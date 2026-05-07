@@ -1,6 +1,6 @@
 import { createBoard } from "../../core/board/create-board";
 import type { Board } from "../../core/board/types";
-import { soccer11v11Surface } from "../../presets/surfaces/soccer-11v11";
+import { soccer11v11Surface } from "./soccer-11v11-surface";
 
 export const footballBoardExample: Board = createBoard({
   id: "football-example",

@@ -1,4 +1,4 @@
-import type { ToolDefinition } from "../../core/tools/types";
+import type { ToolDefinition } from "../core/tools/types";
 
 interface HandToolState {
   lastClientPoint: {

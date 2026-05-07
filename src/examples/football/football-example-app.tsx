@@ -1,9 +1,9 @@
 import { createBoardEditorStore } from "../../core/store/create-board-editor-store";
-import { handTool } from "../../presets/tools/hand-tool";
-import { selectTool } from "../../presets/tools/select-tool";
 import { BoardEditor } from "../../react/components/board-editor";
 import { BoardView } from "../../react/components/board-view";
 import { useBoardEditorStore } from "../../react/hooks/use-board-editor-store";
+import { handTool } from "../../tools/hand-tool";
+import { selectTool } from "../../tools/select-tool";
 import { footballBoardExample } from "./football-board-example";
 
 const store = createBoardEditorStore({
