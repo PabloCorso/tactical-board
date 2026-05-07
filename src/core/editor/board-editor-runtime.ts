@@ -1,6 +1,6 @@
 import { createCanvasRenderer } from "../../rendering/canvas/create-canvas-renderer";
 import type { CanvasRenderer } from "../../rendering/canvas/types";
-import { createBoardEditorController } from "./create-board-editor-controller";
+import { createBoardEditorController } from "./board-editor-controller";
 import type { BoardEditorStore } from "../store/create-board-editor-store";
 
 export interface BoardEditorRuntime {
