@@ -26,12 +26,14 @@ export type {
   CreateBoardEditorStoreOptions,
 } from "./core/store/create-board-editor-store";
 export type { ToolApi, ToolDefinition, ToolRegistry } from "./core/tools/types";
-export { BoardEditor } from "./react/components/board-editor";
+export {
+  BoardEditor,
+  BoardEditorCanvas,
+  BoardEditorProvider,
+  BoardEditorToolControl,
+  BoardEditorToolbar,
+  BoardEditorToolbarButton,
+} from "./react/components/board-editor";
 export { BoardView } from "./react/components/board-view";
-export { FootballExampleApp } from "./examples/football/football-example-app";
-export { footballBoardExample } from "./examples/football/football-board-example";
-export { playerTokenDefinition } from "./examples/football/player-token";
-export { classicSkin } from "./examples/football/classic-skin";
-export { soccer11v11Surface } from "./examples/football/soccer-11v11-surface";
 export { handTool } from "./tools/hand-tool";
 export { selectTool } from "./tools/select-tool";
