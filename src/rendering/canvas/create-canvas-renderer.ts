@@ -10,7 +10,10 @@ const TOKEN_BOTTOM = "#d6bb67";
 const TOKEN_TEXT = "#09231d";
 const TOKEN_BORDER = "rgba(214,187,103,0.22)";
 const SELECTION_STROKE = "#ff8f3d";
+const MARQUEE_FILL = "rgba(255,143,61,0.14)";
+const MARQUEE_STROKE = "rgba(255,143,61,0.9)";
 const TEXT_FONT = '700 18px "ui-rounded", "SF Pro Display", sans-serif';
+const DEFAULT_SURFACE_BACKGROUND = "rgba(255,255,255,0.03)";
 
 function syncCanvasSize(canvas: HTMLCanvasElement) {
   const width = Math.max(1, Math.floor(canvas.clientWidth));
@@ -93,7 +96,13 @@ function drawSurfaceMarking(
     case "circle": {
       const center = worldToCanvas({ x: marking.cx, y: marking.cy });
       context.beginPath();
-      context.arc(center.x, center.y, marking.r * pixelsPerUnit, 0, Math.PI * 2);
+      context.arc(
+        center.x,
+        center.y,
+        marking.r * pixelsPerUnit,
+        0,
+        Math.PI * 2,
+      );
       if (marking.fill) {
         context.fill();
       }
@@ -120,7 +129,13 @@ function drawSurfaceMarking(
 
 export function createCanvasRenderer(): CanvasRenderer {
   return {
-    render: ({ canvas, board, viewport, selectedObjectIds = [] }) => {
+    render: ({
+      canvas,
+      board,
+      viewport,
+      selectedObjectIds = [],
+      selectionMarquee,
+    }) => {
       const context = canvas.getContext("2d");
       if (!context) {
         return;
@@ -148,7 +163,8 @@ export function createCanvasRenderer(): CanvasRenderer {
         surfaceTransform.frame.height,
         SURFACE_RADIUS,
       );
-      context.fillStyle = board.surface.background ?? "rgba(255,255,255,0.03)";
+      context.fillStyle =
+        board.surface.background ?? DEFAULT_SURFACE_BACKGROUND;
       context.fill();
 
       context.save();
@@ -221,6 +237,23 @@ export function createCanvasRenderer(): CanvasRenderer {
           x,
           y + 1,
         );
+      }
+
+      if (selectionMarquee) {
+        const start = surfaceTransform.worldToCanvas(selectionMarquee.start);
+        const end = surfaceTransform.worldToCanvas(selectionMarquee.end);
+        const x = Math.min(start.x, end.x);
+        const y = Math.min(start.y, end.y);
+        const width = Math.abs(end.x - start.x);
+        const height = Math.abs(end.y - start.y);
+
+        context.fillStyle = MARQUEE_FILL;
+        context.strokeStyle = MARQUEE_STROKE;
+        context.lineWidth = 1.5;
+        context.setLineDash([6, 4]);
+        context.fillRect(x, y, width, height);
+        context.strokeRect(x, y, width, height);
+        context.setLineDash([]);
       }
 
       context.globalAlpha = 1;

@@ -19,7 +19,7 @@ const store = createBoardEditorStore({
 export function FootballExampleApp() {
   return (
     <BoardEditorProvider store={store}>
-      <BoardEditor className="relative min-h-dvh w-full p-4">
+      <BoardEditor className="relative h-dvh w-full overflow-hidden p-4">
         <BoardEditorCanvas />
         <BoardEditorToolbar className="absolute inset-x-4 bottom-4 mx-auto">
           <BoardEditorToolControl toolId="select" />

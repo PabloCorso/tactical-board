@@ -35,7 +35,10 @@ export function BoardEditorProvider({
 export function BoardEditor({ children, className }: BoardEditorProps) {
   return (
     <div
-      className={cn("flex min-h-full min-w-0 w-full flex-1 flex-col", className)}
+      className={cn(
+        "flex min-h-full w-full min-w-0 flex-1 flex-col",
+        className,
+      )}
     >
       {children}
     </div>
@@ -50,10 +53,13 @@ export function BoardEditorCanvas({
   const { canvasRef } = useBoardEditorCanvas({ store });
 
   return (
-    <div className={cn("relative min-h-0 min-w-0 w-full flex-1", frameClassName)}>
+    <div
+      className={cn("relative min-h-0 w-full min-w-0 flex-1", frameClassName)}
+    >
       <canvas
         className={className ?? "block size-full touch-none overflow-hidden"}
         ref={canvasRef}
+        tabIndex={0}
       />
     </div>
   );

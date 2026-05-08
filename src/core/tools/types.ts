@@ -1,11 +1,14 @@
 import type { ObjectId, Point, ToolId } from "../board/types";
 import type { BoardEditorState } from "../editor/types";
+import type { CanvasRect } from "../editor/board-editor-controller";
 
 export interface ToolPointerEvent {
   point: Point;
   clientPoint: Point;
+  canvasRect: CanvasRect;
   pointerId: number;
   targetObjectId?: ObjectId;
+  ctrlKey: boolean;
   shiftKey: boolean;
   altKey: boolean;
   metaKey: boolean;

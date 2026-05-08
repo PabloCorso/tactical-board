@@ -22,6 +22,30 @@ export function createBoardEditorRuntime({
   let unsubscribe: (() => void) | null = null;
   let resizeObserver: ResizeObserver | null = null;
 
+  const getSelectionMarquee = () => {
+    const selectState = store.getState().toolState.select;
+    if (
+      !selectState ||
+      typeof selectState !== "object" ||
+      !("mode" in selectState) ||
+      selectState.mode !== "marquee" ||
+      !("origin" in selectState) ||
+      !("current" in selectState)
+    ) {
+      return undefined;
+    }
+
+    const marqueeState = selectState as {
+      origin: { x: number; y: number };
+      current: { x: number; y: number };
+    };
+
+    return {
+      start: marqueeState.origin,
+      end: marqueeState.current,
+    };
+  };
+
   const render = () => {
     if (!canvas) {
       return;
@@ -33,6 +57,7 @@ export function createBoardEditorRuntime({
       board: state.board,
       viewport: state.ui.viewport,
       selectedObjectIds: state.ui.selectedObjectIds,
+      selectionMarquee: getSelectionMarquee(),
     });
   };
 
@@ -58,6 +83,7 @@ export function createBoardEditorRuntime({
         y: event.clientY,
       },
       pointerId: event.pointerId,
+      ctrlKey: event.ctrlKey,
       shiftKey: event.shiftKey,
       altKey: event.altKey,
       metaKey: event.metaKey,
@@ -70,6 +96,7 @@ export function createBoardEditorRuntime({
       return;
     }
 
+    canvas.focus();
     canvas.setPointerCapture(event.pointerId);
     const input = createPointerInput(event);
     if (!input) {
@@ -104,6 +131,17 @@ export function createBoardEditorRuntime({
     }
   };
 
+  const onKeyDown = (event: KeyboardEvent) => {
+    if (!canvas) {
+      return;
+    }
+
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "a") {
+      event.preventDefault();
+      store.getState().actions.setSelectedObjectIds(store.getState().board.objects.order);
+    }
+  };
+
   return {
     mount: (nextCanvas) => {
       if (canvas === nextCanvas) {
@@ -115,6 +153,7 @@ export function createBoardEditorRuntime({
         canvas.removeEventListener("pointerdown", onPointerDown);
         canvas.removeEventListener("pointermove", onPointerMove);
         canvas.removeEventListener("pointerup", onPointerUp);
+        canvas.removeEventListener("keydown", onKeyDown);
       }
 
       resizeObserver?.disconnect();
@@ -124,6 +163,7 @@ export function createBoardEditorRuntime({
       canvas.addEventListener("pointerdown", onPointerDown);
       canvas.addEventListener("pointermove", onPointerMove);
       canvas.addEventListener("pointerup", onPointerUp);
+      canvas.addEventListener("keydown", onKeyDown);
 
       unsubscribe = store.subscribe(() => {
         requestRender();
@@ -154,6 +194,7 @@ export function createBoardEditorRuntime({
         canvas.removeEventListener("pointerdown", onPointerDown);
         canvas.removeEventListener("pointermove", onPointerMove);
         canvas.removeEventListener("pointerup", onPointerUp);
+        canvas.removeEventListener("keydown", onKeyDown);
       }
 
       canvas = null;

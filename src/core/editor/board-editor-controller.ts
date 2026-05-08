@@ -18,6 +18,7 @@ export interface CanvasRect {
 export interface BoardEditorPointerInput {
   clientPoint: Point;
   pointerId: number;
+  ctrlKey: boolean;
   shiftKey: boolean;
   altKey: boolean;
   metaKey: boolean;
@@ -105,8 +106,10 @@ function getTargetObjectId(
           ? object.size.width / 2
           : (DEFAULT_OBJECT_DIAMETER / 2) * transform.pixelsPerUnit;
     if (
-      Math.hypot(canvasPoint.x - objectPoint.x, canvasPoint.y - objectPoint.y) <=
-      Math.max(HIT_TEST_RADIUS_PX, objectRadiusPx)
+      Math.hypot(
+        canvasPoint.x - objectPoint.x,
+        canvasPoint.y - objectPoint.y,
+      ) <= Math.max(HIT_TEST_RADIUS_PX, objectRadiusPx)
     ) {
       return object.id;
     }
@@ -128,12 +131,14 @@ export function createBoardEditorController(
       return {
         point,
         clientPoint: input.clientPoint,
+        canvasRect: input.canvasRect,
         pointerId: input.pointerId,
         targetObjectId: getTargetObjectId(
           state,
           input.canvasRect,
           input.clientPoint,
         ),
+        ctrlKey: input.ctrlKey,
         shiftKey: input.shiftKey,
         altKey: input.altKey,
         metaKey: input.metaKey,
@@ -151,7 +156,9 @@ export function createBoardEditorController(
       const toolPointerEvent = {
         point: getBoardPoint(state, input.canvasRect, input.clientPoint),
         clientPoint: input.clientPoint,
+        canvasRect: input.canvasRect,
         pointerId: input.pointerId,
+        ctrlKey: input.ctrlKey,
         shiftKey: input.shiftKey,
         altKey: input.altKey,
         metaKey: input.metaKey,

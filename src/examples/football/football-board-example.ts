@@ -36,7 +36,8 @@ function createFootballPitchMarkings(): BoardSurfaceMarking[] {
   const centerX = outerMarginX + width / 2;
   const centerY = outerMarginY + height / 2;
 
-  const goalWidth = pitchMetrics.goal.areaDepth * 2 + pitchMetrics.goal.postsWidth;
+  const goalWidth =
+    pitchMetrics.goal.areaDepth * 2 + pitchMetrics.goal.postsWidth;
   const goalDepth = pitchMetrics.goal.areaDepth;
   const penaltyWidth =
     pitchMetrics.penalty.areaDepth * 2 + pitchMetrics.goal.postsWidth;

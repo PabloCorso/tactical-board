@@ -8,6 +8,16 @@ export interface CanvasRenderRequest<
   board: Board<TObject>;
   viewport: Viewport;
   selectedObjectIds?: string[];
+  selectionMarquee?: {
+    start: {
+      x: number;
+      y: number;
+    };
+    end: {
+      x: number;
+      y: number;
+    };
+  };
 }
 
 export interface CanvasRenderer {

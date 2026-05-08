@@ -19,45 +19,44 @@ interface TooltipPosition {
   top: number;
 }
 
-export function Tooltip({
-  children,
-  content,
-  sideOffset = 10,
-}: TooltipProps) {
+export function Tooltip({ children, content, sideOffset = 10 }: TooltipProps) {
   const triggerRef = useRef<HTMLSpanElement>(null);
   const tooltipId = useId();
   const [open, setOpen] = useState(false);
   const [position, setPosition] = useState<TooltipPosition | null>(null);
 
-  useEffect(function syncTooltipPosition() {
-    if (!open || !content) {
-      return;
-    }
-
-    const updatePosition = () => {
-      const trigger = triggerRef.current;
-
-      if (!trigger) {
+  useEffect(
+    function syncTooltipPosition() {
+      if (!open || !content) {
         return;
       }
 
-      const rect = trigger.getBoundingClientRect();
-      setPosition({
-        left: rect.left + rect.width / 2,
-        top: rect.top - sideOffset,
-      });
-    };
+      const updatePosition = () => {
+        const trigger = triggerRef.current;
 
-    updatePosition();
+        if (!trigger) {
+          return;
+        }
 
-    window.addEventListener("resize", updatePosition);
-    window.addEventListener("scroll", updatePosition, true);
+        const rect = trigger.getBoundingClientRect();
+        setPosition({
+          left: rect.left + rect.width / 2,
+          top: rect.top - sideOffset,
+        });
+      };
 
-    return () => {
-      window.removeEventListener("resize", updatePosition);
-      window.removeEventListener("scroll", updatePosition, true);
-    };
-  }, [content, open, sideOffset]);
+      updatePosition();
+
+      window.addEventListener("resize", updatePosition);
+      window.addEventListener("scroll", updatePosition, true);
+
+      return () => {
+        window.removeEventListener("resize", updatePosition);
+        window.removeEventListener("scroll", updatePosition, true);
+      };
+    },
+    [content, open, sideOffset],
+  );
 
   const tooltip =
     open && content && position

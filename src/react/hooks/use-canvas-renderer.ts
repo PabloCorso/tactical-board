@@ -18,52 +18,58 @@ export function useCanvasRenderer<
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const rendererRef = useRef<CanvasRenderer | null>(null);
 
-  useEffect(function renderCanvas() {
-    const canvas = canvasRef.current;
-    if (!canvas) {
-      return;
-    }
+  useEffect(
+    function renderCanvas() {
+      const canvas = canvasRef.current;
+      if (!canvas) {
+        return;
+      }
 
-    if (!rendererRef.current) {
-      rendererRef.current = createCanvasRenderer();
-    }
+      if (!rendererRef.current) {
+        rendererRef.current = createCanvasRenderer();
+      }
 
-    rendererRef.current.render({
-      canvas,
-      board,
-      viewport,
-      selectedObjectIds,
-    });
-  }, [board, viewport, selectedObjectIds]);
+      rendererRef.current.render({
+        canvas,
+        board,
+        viewport,
+        selectedObjectIds,
+      });
+    },
+    [board, viewport, selectedObjectIds],
+  );
 
-  useEffect(function observeCanvasResize() {
-    const canvas = canvasRef.current;
-    if (!canvas) {
-      return;
-    }
+  useEffect(
+    function observeCanvasResize() {
+      const canvas = canvasRef.current;
+      if (!canvas) {
+        return;
+      }
 
-    const observer =
-      typeof ResizeObserver === "undefined"
-        ? undefined
-        : new ResizeObserver(() => {
-            if (!rendererRef.current) {
-              rendererRef.current = createCanvasRenderer();
-            }
+      const observer =
+        typeof ResizeObserver === "undefined"
+          ? undefined
+          : new ResizeObserver(() => {
+              if (!rendererRef.current) {
+                rendererRef.current = createCanvasRenderer();
+              }
 
-            rendererRef.current.render({
-              canvas,
-              board,
-              viewport,
-              selectedObjectIds,
+              rendererRef.current.render({
+                canvas,
+                board,
+                viewport,
+                selectedObjectIds,
+              });
             });
-          });
 
-    observer?.observe(canvas);
+      observer?.observe(canvas);
 
-    return () => {
-      observer?.disconnect();
-    };
-  }, [board, viewport, selectedObjectIds]);
+      return () => {
+        observer?.disconnect();
+      };
+    },
+    [board, viewport, selectedObjectIds],
+  );
 
   return canvasRef;
 }
