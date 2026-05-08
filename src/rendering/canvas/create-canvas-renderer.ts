@@ -1,17 +1,14 @@
+import type { BoardSurfaceMarking } from "../../core/board/types";
+import { createBoardSurfaceTransform } from "../../core/geometry/create-board-surface-transform";
 import type { CanvasRenderer } from "./types";
 
 const SURFACE_INSET = 14;
-const CORNER_RADIUS = 20;
 const SURFACE_RADIUS = 10;
-const OBJECT_RADIUS = 21;
-const CENTER_CIRCLE_RADIUS = 44;
+const DEFAULT_OBJECT_DIAMETER = 1.8;
 const STROKE_COLOR = "rgba(248,247,240,0.76)";
-const BACKGROUND_TOP = "#1f744d";
-const BACKGROUND_BOTTOM = "#16543a";
 const TOKEN_TOP = "#f8f1d3";
 const TOKEN_BOTTOM = "#d6bb67";
 const TOKEN_TEXT = "#09231d";
-const TOKEN_FALLBACK = "rgba(255,255,255,0.1)";
 const TOKEN_BORDER = "rgba(214,187,103,0.22)";
 const SELECTION_STROKE = "#ff8f3d";
 const TEXT_FONT = '700 18px "ui-rounded", "SF Pro Display", sans-serif';
@@ -49,6 +46,79 @@ function drawRoundedRect(
   context.closePath();
 }
 
+function toRadians(angle: number) {
+  return (angle * Math.PI) / 180;
+}
+
+function applyMarkingStyle(
+  context: CanvasRenderingContext2D,
+  marking: BoardSurfaceMarking,
+  pixelsPerUnit: number,
+) {
+  context.globalAlpha = marking.opacity ?? 1;
+  context.fillStyle = marking.fill ?? "transparent";
+  context.strokeStyle = marking.stroke ?? "transparent";
+  context.lineWidth = (marking.strokeWidth ?? 0) * pixelsPerUnit;
+}
+
+function drawSurfaceMarking(
+  context: CanvasRenderingContext2D,
+  marking: BoardSurfaceMarking,
+  worldToCanvas: (point: { x: number; y: number }) => { x: number; y: number },
+  pixelsPerUnit: number,
+) {
+  applyMarkingStyle(context, marking, pixelsPerUnit);
+
+  switch (marking.kind) {
+    case "rect": {
+      const topLeft = worldToCanvas({ x: marking.x, y: marking.y });
+      const width = marking.width * pixelsPerUnit;
+      const height = marking.height * pixelsPerUnit;
+      if (marking.fill) {
+        context.fillRect(topLeft.x, topLeft.y, width, height);
+      }
+      if (marking.stroke && marking.strokeWidth) {
+        context.strokeRect(topLeft.x, topLeft.y, width, height);
+      }
+      return;
+    }
+    case "line": {
+      const from = worldToCanvas({ x: marking.x1, y: marking.y1 });
+      const to = worldToCanvas({ x: marking.x2, y: marking.y2 });
+      context.beginPath();
+      context.moveTo(from.x, from.y);
+      context.lineTo(to.x, to.y);
+      context.stroke();
+      return;
+    }
+    case "circle": {
+      const center = worldToCanvas({ x: marking.cx, y: marking.cy });
+      context.beginPath();
+      context.arc(center.x, center.y, marking.r * pixelsPerUnit, 0, Math.PI * 2);
+      if (marking.fill) {
+        context.fill();
+      }
+      if (marking.stroke && marking.strokeWidth) {
+        context.stroke();
+      }
+      return;
+    }
+    case "arc": {
+      const center = worldToCanvas({ x: marking.cx, y: marking.cy });
+      context.beginPath();
+      context.arc(
+        center.x,
+        center.y,
+        marking.r * pixelsPerUnit,
+        toRadians(marking.startAngle),
+        toRadians(marking.endAngle),
+      );
+      context.stroke();
+      return;
+    }
+  }
+}
+
 export function createCanvasRenderer(): CanvasRenderer {
   return {
     render: ({ canvas, board, viewport, selectedObjectIds = [] }) => {
@@ -61,37 +131,49 @@ export function createCanvasRenderer(): CanvasRenderer {
       context.setTransform(ratio, 0, 0, ratio, 0, 0);
       context.clearRect(0, 0, width, height);
 
-      const background = context.createLinearGradient(0, 0, 0, height);
-      background.addColorStop(0, BACKGROUND_TOP);
-      background.addColorStop(1, BACKGROUND_BOTTOM);
-
-      drawRoundedRect(context, 0, 0, width, height, CORNER_RADIUS);
-      context.fillStyle = background;
-      context.fill();
-
-      context.save();
-      context.translate(viewport.pan.x, viewport.pan.y);
+      const surfaceTransform = createBoardSurfaceTransform({
+        surface: board.surface,
+        frame: {
+          x: SURFACE_INSET + viewport.pan.x,
+          y: SURFACE_INSET + viewport.pan.y,
+          width: width - SURFACE_INSET * 2,
+          height: height - SURFACE_INSET * 2,
+        },
+      });
 
       drawRoundedRect(
         context,
-        SURFACE_INSET,
-        SURFACE_INSET,
-        width - SURFACE_INSET * 2,
-        height - SURFACE_INSET * 2,
+        surfaceTransform.frame.x,
+        surfaceTransform.frame.y,
+        surfaceTransform.frame.width,
+        surfaceTransform.frame.height,
         SURFACE_RADIUS,
       );
+      context.fillStyle = board.surface.background ?? "rgba(255,255,255,0.03)";
+      context.fill();
       context.lineWidth = 2;
       context.strokeStyle = STROKE_COLOR;
       context.stroke();
 
-      context.beginPath();
-      context.moveTo(width / 2, SURFACE_INSET);
-      context.lineTo(width / 2, height - SURFACE_INSET);
-      context.stroke();
+      context.save();
+      drawRoundedRect(
+        context,
+        surfaceTransform.frame.x,
+        surfaceTransform.frame.y,
+        surfaceTransform.frame.width,
+        surfaceTransform.frame.height,
+        SURFACE_RADIUS,
+      );
+      context.clip();
 
-      context.beginPath();
-      context.arc(width / 2, height / 2, CENTER_CIRCLE_RADIUS, 0, Math.PI * 2);
-      context.stroke();
+      for (const marking of board.surface.markings ?? []) {
+        drawSurfaceMarking(
+          context,
+          marking,
+          surfaceTransform.worldToCanvas,
+          surfaceTransform.pixelsPerUnit,
+        );
+      }
 
       context.font = TEXT_FONT;
       context.textAlign = "center";
@@ -103,29 +185,26 @@ export function createCanvasRenderer(): CanvasRenderer {
           continue;
         }
 
-        const x = (object.position.x / 100) * width;
-        const y = (object.position.y / 100) * height;
+        const { x, y } = surfaceTransform.worldToCanvas(object.position);
         const selected = selectedObjectIds.includes(object.id);
-        const tokenFill =
-          object.type === "player-token"
-            ? context.createLinearGradient(
-                x,
-                y - OBJECT_RADIUS,
-                x,
-                y + OBJECT_RADIUS,
-              )
-            : null;
-
-        if (tokenFill) {
-          tokenFill.addColorStop(0, TOKEN_TOP);
-          tokenFill.addColorStop(1, TOKEN_BOTTOM);
-          context.fillStyle = tokenFill;
-        } else {
-          context.fillStyle = TOKEN_FALLBACK;
-        }
+        const objectRadius =
+          object.size && object.size.mode !== "screen"
+            ? (object.size.width / 2) * surfaceTransform.pixelsPerUnit
+            : object.size?.width
+              ? object.size.width / 2
+              : (DEFAULT_OBJECT_DIAMETER / 2) * surfaceTransform.pixelsPerUnit;
+        const tokenFill = context.createLinearGradient(
+          x,
+          y - objectRadius,
+          x,
+          y + objectRadius,
+        );
+        tokenFill.addColorStop(0, TOKEN_TOP);
+        tokenFill.addColorStop(1, TOKEN_BOTTOM);
+        context.fillStyle = tokenFill;
 
         context.beginPath();
-        context.arc(x, y, OBJECT_RADIUS, 0, Math.PI * 2);
+        context.arc(x, y, objectRadius, 0, Math.PI * 2);
         context.fill();
 
         context.strokeStyle = TOKEN_BORDER;
@@ -134,7 +213,7 @@ export function createCanvasRenderer(): CanvasRenderer {
 
         if (selected) {
           context.beginPath();
-          context.arc(x, y, OBJECT_RADIUS + 4, 0, Math.PI * 2);
+          context.arc(x, y, objectRadius + 4, 0, Math.PI * 2);
           context.strokeStyle = SELECTION_STROKE;
           context.lineWidth = 3;
           context.stroke();
@@ -147,6 +226,8 @@ export function createCanvasRenderer(): CanvasRenderer {
           y + 1,
         );
       }
+
+      context.globalAlpha = 1;
 
       context.restore();
     },

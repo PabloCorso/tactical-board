@@ -1,9 +1,12 @@
 import type { BoardEditorState } from "./types";
 import type { ObjectId, Point } from "../board/types";
+import { createBoardSurfaceTransform } from "../geometry/create-board-surface-transform";
 import type { BoardEditorStore } from "../store/create-board-editor-store";
 import type { ToolApi, ToolPointerEvent } from "../tools/types";
 
-const HIT_TEST_RADIUS = 3;
+const SURFACE_INSET = 14;
+const DEFAULT_OBJECT_DIAMETER = 1.8;
+const HIT_TEST_RADIUS_PX = 24;
 
 export interface CanvasRect {
   left: number;
@@ -44,26 +47,45 @@ function createToolApi(store: BoardEditorStore): ToolApi {
 }
 
 function getBoardPoint(
-  ui: BoardEditorState["ui"],
+  state: BoardEditorState,
   canvasRect: CanvasRect,
   clientPoint: Point,
 ): Point {
-  return {
-    x:
-      ((clientPoint.x - canvasRect.left - ui.viewport.pan.x) /
-        canvasRect.width) *
-      100,
-    y:
-      ((clientPoint.y - canvasRect.top - ui.viewport.pan.y) /
-        canvasRect.height) *
-      100,
-  };
+  const transform = createBoardSurfaceTransform({
+    surface: state.board.surface,
+    frame: {
+      x: SURFACE_INSET + state.ui.viewport.pan.x,
+      y: SURFACE_INSET + state.ui.viewport.pan.y,
+      width: canvasRect.width - SURFACE_INSET * 2,
+      height: canvasRect.height - SURFACE_INSET * 2,
+    },
+  });
+
+  return transform.canvasToWorld({
+    x: clientPoint.x - canvasRect.left,
+    y: clientPoint.y - canvasRect.top,
+  });
 }
 
 function getTargetObjectId(
   state: BoardEditorState,
-  point: Point,
+  canvasRect: CanvasRect,
+  clientPoint: Point,
 ): ObjectId | undefined {
+  const transform = createBoardSurfaceTransform({
+    surface: state.board.surface,
+    frame: {
+      x: SURFACE_INSET + state.ui.viewport.pan.x,
+      y: SURFACE_INSET + state.ui.viewport.pan.y,
+      width: canvasRect.width - SURFACE_INSET * 2,
+      height: canvasRect.height - SURFACE_INSET * 2,
+    },
+  });
+  const canvasPoint = {
+    x: clientPoint.x - canvasRect.left,
+    y: clientPoint.y - canvasRect.top,
+  };
+
   for (
     let index = state.board.objects.order.length - 1;
     index >= 0;
@@ -75,9 +97,16 @@ function getTargetObjectId(
       continue;
     }
 
+    const objectPoint = transform.worldToCanvas(object.position);
+    const objectRadiusPx =
+      object.size && object.size.mode !== "screen"
+        ? (object.size.width / 2) * transform.pixelsPerUnit
+        : object.size?.width
+          ? object.size.width / 2
+          : (DEFAULT_OBJECT_DIAMETER / 2) * transform.pixelsPerUnit;
     if (
-      Math.abs(point.x - object.position.x) <= HIT_TEST_RADIUS &&
-      Math.abs(point.y - object.position.y) <= HIT_TEST_RADIUS
+      Math.hypot(canvasPoint.x - objectPoint.x, canvasPoint.y - objectPoint.y) <=
+      Math.max(HIT_TEST_RADIUS_PX, objectRadiusPx)
     ) {
       return object.id;
     }
@@ -94,17 +123,17 @@ export function createBoardEditorController(
   return {
     createToolPointerEvent: (input) => {
       const state = store.getState();
-      const point = getBoardPoint(
-        state.ui,
-        input.canvasRect,
-        input.clientPoint,
-      );
+      const point = getBoardPoint(state, input.canvasRect, input.clientPoint);
 
       return {
         point,
         clientPoint: input.clientPoint,
         pointerId: input.pointerId,
-        targetObjectId: getTargetObjectId(state, point),
+        targetObjectId: getTargetObjectId(
+          state,
+          input.canvasRect,
+          input.clientPoint,
+        ),
         shiftKey: input.shiftKey,
         altKey: input.altKey,
         metaKey: input.metaKey,
@@ -120,7 +149,7 @@ export function createBoardEditorController(
       }
 
       const toolPointerEvent = {
-        point: getBoardPoint(state.ui, input.canvasRect, input.clientPoint),
+        point: getBoardPoint(state, input.canvasRect, input.clientPoint),
         clientPoint: input.clientPoint,
         pointerId: input.pointerId,
         shiftKey: input.shiftKey,
@@ -131,7 +160,11 @@ export function createBoardEditorController(
       handler(
         {
           ...toolPointerEvent,
-          targetObjectId: getTargetObjectId(state, toolPointerEvent.point),
+          targetObjectId: getTargetObjectId(
+            state,
+            input.canvasRect,
+            input.clientPoint,
+          ),
         },
         toolApi,
       );

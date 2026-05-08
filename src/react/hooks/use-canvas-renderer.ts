@@ -18,7 +18,7 @@ export function useCanvasRenderer<
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const rendererRef = useRef<CanvasRenderer | null>(null);
 
-  useEffect(() => {
+  useEffect(function renderCanvas() {
     const canvas = canvasRef.current;
     if (!canvas) {
       return;
@@ -36,7 +36,7 @@ export function useCanvasRenderer<
     });
   }, [board, viewport, selectedObjectIds]);
 
-  useEffect(() => {
+  useEffect(function observeCanvasResize() {
     const canvas = canvasRef.current;
     if (!canvas) {
       return;

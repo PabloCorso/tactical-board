@@ -1,43 +1,24 @@
-import {
-  createContext,
-  type PropsWithChildren,
-  type ReactNode,
-  useContext,
-} from "react";
+import type { PropsWithChildren, ReactNode } from "react";
 import type { BoardEditorStore } from "../../core/store/create-board-editor-store";
 import { useBoardEditorCanvas } from "../hooks/use-board-editor-canvas";
+import {
+  BoardEditorContext,
+  useBoardEditorContext,
+} from "./board-editor-context";
+import { cn } from "./misc";
 
-const boardEditorContext = createContext<BoardEditorStore | null>(null);
-
-interface BoardEditorProps {
-  store: BoardEditorStore;
+export interface BoardEditorProps {
   children?: ReactNode;
-  toolbar?: ReactNode;
-}
-
-interface BoardEditorProviderProps extends PropsWithChildren {
-  store: BoardEditorStore;
-}
-
-interface BoardEditorToolbarProps extends PropsWithChildren {
   className?: string;
 }
 
-interface BoardEditorCanvasProps {
+export interface BoardEditorProviderProps extends PropsWithChildren {
+  store: BoardEditorStore;
+}
+
+export interface BoardEditorCanvasProps {
   className?: string;
   frameClassName?: string;
-}
-
-function useBoardEditorContext() {
-  const store = useContext(boardEditorContext);
-
-  if (!store) {
-    throw new Error(
-      "BoardEditor components must be rendered inside <BoardEditor />.",
-    );
-  }
-
-  return store;
 }
 
 export function BoardEditorProvider({
@@ -45,39 +26,19 @@ export function BoardEditorProvider({
   children,
 }: BoardEditorProviderProps) {
   return (
-    <boardEditorContext.Provider value={store}>
+    <BoardEditorContext.Provider value={store}>
       {children}
-    </boardEditorContext.Provider>
+    </BoardEditorContext.Provider>
   );
 }
 
-export function BoardEditor({ store, children, toolbar }: BoardEditorProps) {
-  const content = children ?? (
-    <>
-      {toolbar ? <BoardEditorToolbar>{toolbar}</BoardEditorToolbar> : null}
-      <BoardEditorCanvas />
-    </>
-  );
-
+export function BoardEditor({ children, className }: BoardEditorProps) {
   return (
-    <BoardEditorProvider store={store}>
-      <section className="overflow-hidden rounded-[24px] border border-[#d6bb672e] bg-[rgba(9,25,21,0.72)] shadow-[0_20px_60px_rgba(0,0,0,0.25)]">
-        <div className="grid grid-cols-1 gap-4 p-5 has-[aside]:grid-cols-[120px_minmax(0,1fr)] max-[760px]:has-[aside]:grid-cols-1">
-          {content}
-        </div>
-      </section>
-    </BoardEditorProvider>
-  );
-}
-
-export function BoardEditorToolbar({
-  children,
-  className,
-}: BoardEditorToolbarProps) {
-  return (
-    <aside className={className ?? "grid content-start gap-2.5"}>
+    <div
+      className={cn("flex min-h-full min-w-0 w-full flex-1 flex-col", className)}
+    >
       {children}
-    </aside>
+    </div>
   );
 }
 
@@ -89,12 +50,9 @@ export function BoardEditorCanvas({
   const { canvasRef } = useBoardEditorCanvas({ store });
 
   return (
-    <div className={frameClassName ?? "relative"}>
+    <div className={cn("relative min-h-0 min-w-0 w-full flex-1", frameClassName)}>
       <canvas
-        className={
-          className ??
-          "block h-[420px] w-full touch-none overflow-hidden rounded-[20px]"
-        }
+        className={className ?? "block size-full touch-none overflow-hidden"}
         ref={canvasRef}
       />
     </div>

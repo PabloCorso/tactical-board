@@ -10,7 +10,7 @@ export function useBoardEditorCanvas({ store }: UseBoardEditorCanvasOptions) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const runtime = useMemo(() => createBoardEditorRuntime({ store }), [store]);
 
-  useEffect(() => {
+  useEffect(function mountBoardEditorRuntime() {
     const canvas = canvasRef.current;
 
     if (canvas) {

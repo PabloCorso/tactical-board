@@ -1,0 +1,61 @@
+import type { ReactNode } from "react";
+import { CursorIcon, HandIcon } from "@phosphor-icons/react";
+import type { ToolId } from "../../core/board/types";
+import { useBoardEditorStore } from "../hooks/use-board-editor-store";
+import { useBoardEditorContext } from "./board-editor-context";
+import { BoardEditorToolbarButton } from "./board-editor-toolbar-button";
+
+export interface BoardEditorToolControlProps {
+  toolId: ToolId;
+  label?: string;
+  icon?: ReactNode;
+  className?: string;
+}
+
+function getDefaultToolIcon(toolId: ToolId) {
+  switch (toolId) {
+    case "select":
+      return <CursorIcon aria-hidden="true" className="size-5" weight="fill" />;
+    case "hand":
+      return <HandIcon aria-hidden="true" className="size-5" weight="fill" />;
+    default:
+      return null;
+  }
+}
+
+export function BoardEditorToolControl({
+  toolId,
+  label,
+  icon,
+  className,
+}: BoardEditorToolControlProps) {
+  const store = useBoardEditorContext();
+  const activeToolId = useBoardEditorStore(
+    store,
+    (state) => state.ui.activeToolId,
+  );
+  const tool = useBoardEditorStore(
+    store,
+    (state) => state.toolRegistry.definitions[toolId],
+  );
+  const actions = useBoardEditorStore(store, (state) => state.actions);
+
+  if (!tool) {
+    return null;
+  }
+
+  const resolvedLabel = label ?? tool.label;
+  const resolvedIcon = icon ?? getDefaultToolIcon(toolId);
+
+  return (
+    <BoardEditorToolbarButton
+      active={activeToolId === toolId}
+      aria-label={resolvedLabel}
+      className={className}
+      onClick={() => actions.setActiveTool(toolId)}
+      tooltip={resolvedLabel}
+    >
+      {resolvedIcon}
+    </BoardEditorToolbarButton>
+  );
+}
