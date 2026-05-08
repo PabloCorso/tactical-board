@@ -5,7 +5,6 @@ import type { CanvasRenderer } from "./types";
 const SURFACE_INSET = 14;
 const SURFACE_RADIUS = 10;
 const DEFAULT_OBJECT_DIAMETER = 1.8;
-const STROKE_COLOR = "rgba(248,247,240,0.76)";
 const TOKEN_TOP = "#f8f1d3";
 const TOKEN_BOTTOM = "#d6bb67";
 const TOKEN_TEXT = "#09231d";
@@ -151,9 +150,6 @@ export function createCanvasRenderer(): CanvasRenderer {
       );
       context.fillStyle = board.surface.background ?? "rgba(255,255,255,0.03)";
       context.fill();
-      context.lineWidth = 2;
-      context.strokeStyle = STROKE_COLOR;
-      context.stroke();
 
       context.save();
       drawRoundedRect(
