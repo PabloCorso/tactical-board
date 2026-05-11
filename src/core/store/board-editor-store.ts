@@ -8,6 +8,14 @@ import type {
 } from "../board/types";
 import type { BoardEditorState } from "../editor/types";
 import type { ToolDefinition, ToolRegistry } from "../tools/types";
+import type {
+  CanvasObjectRendererRegistry,
+  CanvasOverlayRendererRegistry,
+} from "../../rendering/canvas/types";
+import {
+  getSelectToolState,
+  SELECT_TOOL_ID,
+} from "../../tools/select-tool-state";
 
 export interface CreateBoardEditorStoreOptions<
   TObject extends BoardObjectBase = BoardObjectBase,
@@ -15,6 +23,8 @@ export interface CreateBoardEditorStoreOptions<
   initialBoard: Board<TObject>;
   tools?: ToolDefinition[];
   initialToolId?: ToolId;
+  objectRenderers?: CanvasObjectRendererRegistry;
+  overlayRenderers?: CanvasOverlayRendererRegistry;
 }
 
 export type BoardEditorStore<
@@ -30,7 +40,9 @@ function createToolRegistry(tools: ToolDefinition[] = []): ToolRegistry {
 export function createBoardEditorStore<TObject extends BoardObjectBase>({
   initialBoard,
   tools = [],
-  initialToolId = "select",
+  initialToolId = SELECT_TOOL_ID,
+  objectRenderers = {},
+  overlayRenderers = {},
 }: CreateBoardEditorStoreOptions<TObject>): BoardEditorStore<TObject> {
   const toolRegistry = createToolRegistry(tools);
   const fallbackToolId = tools[0]?.id ?? initialToolId;
@@ -42,11 +54,16 @@ export function createBoardEditorStore<TObject extends BoardObjectBase>({
     board: initialBoard,
     ui: {
       activeToolId,
-      selectedObjectIds: [],
       viewport: {
         pan: { x: 0, y: 0 },
         zoom: 1,
       },
+    },
+    rendering: {
+      previewObjects: [],
+      overlayItems: [],
+      objectRenderers: { ...objectRenderers },
+      overlayRenderers: { ...overlayRenderers },
     },
     toolState: {},
     toolRegistry,
@@ -55,6 +72,23 @@ export function createBoardEditorStore<TObject extends BoardObjectBase>({
         set((state) => {
           if (!state.toolRegistry.definitions[toolId]) {
             return state;
+          }
+
+          if (toolId !== SELECT_TOOL_ID) {
+            const nextToolState = { ...state.toolState };
+            delete nextToolState[SELECT_TOOL_ID];
+
+            return {
+              ui: {
+                ...state.ui,
+                activeToolId: toolId,
+              },
+              rendering: {
+                ...state.rendering,
+                overlayItems: [],
+              },
+              toolState: nextToolState,
+            };
           }
 
           return {
@@ -67,17 +101,55 @@ export function createBoardEditorStore<TObject extends BoardObjectBase>({
       },
       setSelectedObjectIds: (objectIds) => {
         set((state) => ({
-          ui: {
-            ...state.ui,
-            selectedObjectIds: [...objectIds],
+          toolState: {
+            ...state.toolState,
+            [SELECT_TOOL_ID]: {
+              ...getSelectToolState(state.toolState),
+              selectedObjectIds: [...objectIds],
+            },
           },
         }));
       },
       clearSelection: () => {
         set((state) => ({
-          ui: {
-            ...state.ui,
-            selectedObjectIds: [],
+          toolState: {
+            ...state.toolState,
+            [SELECT_TOOL_ID]: {
+              ...getSelectToolState(state.toolState),
+              selectedObjectIds: [],
+            },
+          },
+        }));
+      },
+      setPreviewObjects: (objects) => {
+        set((state) => ({
+          rendering: {
+            ...state.rendering,
+            previewObjects: [...objects],
+          },
+        }));
+      },
+      clearPreviewObjects: () => {
+        set((state) => ({
+          rendering: {
+            ...state.rendering,
+            previewObjects: [],
+          },
+        }));
+      },
+      setOverlayItems: (items) => {
+        set((state) => ({
+          rendering: {
+            ...state.rendering,
+            overlayItems: [...items],
+          },
+        }));
+      },
+      clearOverlayItems: () => {
+        set((state) => ({
+          rendering: {
+            ...state.rendering,
+            overlayItems: [],
           },
         }));
       },
@@ -155,6 +227,28 @@ export function createBoardEditorStore<TObject extends BoardObjectBase>({
             definitions: {
               ...state.toolRegistry.definitions,
               [tool.id]: tool,
+            },
+          },
+        }));
+      },
+      registerObjectRenderer: (objectType, renderer) => {
+        set((state) => ({
+          rendering: {
+            ...state.rendering,
+            objectRenderers: {
+              ...state.rendering.objectRenderers,
+              [objectType]: renderer,
+            },
+          },
+        }));
+      },
+      registerOverlayRenderer: (overlayKind, renderer) => {
+        set((state) => ({
+          rendering: {
+            ...state.rendering,
+            overlayRenderers: {
+              ...state.rendering.overlayRenderers,
+              [overlayKind]: renderer,
             },
           },
         }));

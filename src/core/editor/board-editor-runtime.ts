@@ -1,7 +1,7 @@
 import { createCanvasRenderer } from "../../rendering/canvas/create-canvas-renderer";
 import type { CanvasRenderer } from "../../rendering/canvas/types";
 import { createBoardEditorController } from "./board-editor-controller";
-import type { BoardEditorStore } from "../store/create-board-editor-store";
+import type { BoardEditorStore } from "../store/board-editor-store";
 
 export interface BoardEditorRuntime {
   mount: (canvas: HTMLCanvasElement) => void;
@@ -22,30 +22,6 @@ export function createBoardEditorRuntime({
   let unsubscribe: (() => void) | null = null;
   let resizeObserver: ResizeObserver | null = null;
 
-  const getSelectionMarquee = () => {
-    const selectState = store.getState().toolState.select;
-    if (
-      !selectState ||
-      typeof selectState !== "object" ||
-      !("mode" in selectState) ||
-      selectState.mode !== "marquee" ||
-      !("origin" in selectState) ||
-      !("current" in selectState)
-    ) {
-      return undefined;
-    }
-
-    const marqueeState = selectState as {
-      origin: { x: number; y: number };
-      current: { x: number; y: number };
-    };
-
-    return {
-      start: marqueeState.origin,
-      end: marqueeState.current,
-    };
-  };
-
   const render = () => {
     if (!canvas) {
       return;
@@ -56,8 +32,10 @@ export function createBoardEditorRuntime({
       canvas,
       board: state.board,
       viewport: state.ui.viewport,
-      selectedObjectIds: state.ui.selectedObjectIds,
-      selectionMarquee: getSelectionMarquee(),
+      previewObjects: state.rendering.previewObjects,
+      overlayItems: state.rendering.overlayItems,
+      objectRenderers: state.rendering.objectRenderers,
+      overlayRenderers: state.rendering.overlayRenderers,
     });
   };
 
@@ -131,17 +109,6 @@ export function createBoardEditorRuntime({
     }
   };
 
-  const onKeyDown = (event: KeyboardEvent) => {
-    if (!canvas) {
-      return;
-    }
-
-    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "a") {
-      event.preventDefault();
-      store.getState().actions.setSelectedObjectIds(store.getState().board.objects.order);
-    }
-  };
-
   return {
     mount: (nextCanvas) => {
       if (canvas === nextCanvas) {
@@ -153,7 +120,6 @@ export function createBoardEditorRuntime({
         canvas.removeEventListener("pointerdown", onPointerDown);
         canvas.removeEventListener("pointermove", onPointerMove);
         canvas.removeEventListener("pointerup", onPointerUp);
-        canvas.removeEventListener("keydown", onKeyDown);
       }
 
       resizeObserver?.disconnect();
@@ -163,7 +129,6 @@ export function createBoardEditorRuntime({
       canvas.addEventListener("pointerdown", onPointerDown);
       canvas.addEventListener("pointermove", onPointerMove);
       canvas.addEventListener("pointerup", onPointerUp);
-      canvas.addEventListener("keydown", onKeyDown);
 
       unsubscribe = store.subscribe(() => {
         requestRender();
@@ -194,7 +159,6 @@ export function createBoardEditorRuntime({
         canvas.removeEventListener("pointerdown", onPointerDown);
         canvas.removeEventListener("pointermove", onPointerMove);
         canvas.removeEventListener("pointerup", onPointerUp);
-        canvas.removeEventListener("keydown", onKeyDown);
       }
 
       canvas = null;

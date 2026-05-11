@@ -1,4 +1,4 @@
-import { createBoardEditorStore } from "../../core/store/create-board-editor-store";
+import { createBoardEditorStore } from "../../core/store/board-editor-store";
 import {
   BoardEditor,
   BoardEditorCanvas,

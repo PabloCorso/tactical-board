@@ -1,5 +1,5 @@
 import type { PropsWithChildren, ReactNode } from "react";
-import type { BoardEditorStore } from "../../core/store/create-board-editor-store";
+import type { BoardEditorStore } from "../../core/store/board-editor-store";
 import { useBoardEditorCanvas } from "../hooks/use-board-editor-canvas";
 import {
   BoardEditorContext,

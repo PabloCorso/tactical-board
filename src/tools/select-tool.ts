@@ -1,34 +1,40 @@
 import type { BoardEditorState } from "../core/editor/types";
 import type { CanvasRect } from "../core/editor/board-editor-controller";
 import type { ToolDefinition } from "../core/tools/types";
-import { createBoardSurfaceTransform } from "../core/geometry/create-board-surface-transform";
-
-interface SelectDragState {
-  mode: "drag";
-  dragObjectIds: string[];
-  lastPoint: {
-    x: number;
-    y: number;
-  };
-}
-
-interface SelectMarqueeState {
-  mode: "marquee";
-  origin: {
-    x: number;
-    y: number;
-  };
-  current: {
-    x: number;
-    y: number;
-  };
-  baseSelection: string[];
-}
-
-type SelectToolState = SelectDragState | SelectMarqueeState;
+import { createBoardSpaceProjection } from "../core/geometry/board-space-projection";
+import type {
+  CanvasOverlayRenderInput,
+  CanvasRectOverlayItem,
+} from "../rendering/canvas/types";
+import type { BoardObjectBase } from "../core/board/types";
+import {
+  getSelectToolState,
+  type SelectToolState,
+  SELECT_TOOL_ID,
+} from "./select-tool-state";
 
 const SURFACE_INSET = 14;
-const DEFAULT_OBJECT_DIAMETER = 1.8;
+const MARQUEE_FILL = "rgba(255,143,61,0.14)";
+const MARQUEE_STROKE = "rgba(255,143,61,0.9)";
+const SELECTION_STROKE = "#ff8f3d";
+const SELECTION_OVERLAY_KIND = "select:selection-ring";
+
+interface SelectionOverlayItem {
+  kind: typeof SELECTION_OVERLAY_KIND;
+  object: BoardObjectBase;
+  [key: string]: unknown;
+}
+
+function isSelectionOverlayItem(
+  overlay: CanvasOverlayRenderInput["overlay"],
+): overlay is SelectionOverlayItem {
+  return (
+    overlay.kind === SELECTION_OVERLAY_KIND &&
+    "object" in overlay &&
+    typeof overlay.object === "object" &&
+    overlay.object !== null
+  );
+}
 
 function isAdditiveSelectionModifierPressed(event: {
   ctrlKey: boolean;
@@ -53,19 +59,19 @@ function getSelectionBounds(
 function getMarqueeObjectIds(
   state: BoardEditorState,
   canvasRect: CanvasRect,
-  marquee: SelectMarqueeState,
+  marquee: Extract<
+    NonNullable<SelectToolState["interaction"]>,
+    { mode: "marquee" }
+  >,
 ) {
-  const transform = createBoardSurfaceTransform({
+  const projection = createBoardSpaceProjection({
     surface: state.board.surface,
-    frame: {
-      x: SURFACE_INSET + state.ui.viewport.pan.x,
-      y: SURFACE_INSET + state.ui.viewport.pan.y,
-      width: canvasRect.width - SURFACE_INSET * 2,
-      height: canvasRect.height - SURFACE_INSET * 2,
-    },
+    viewport: state.ui.viewport,
+    canvasRect,
+    surfaceInset: SURFACE_INSET,
   });
-  const marqueeStart = transform.worldToCanvas(marquee.origin);
-  const marqueeEnd = transform.worldToCanvas(marquee.current);
+  const marqueeStart = projection.worldToCanvas(marquee.origin);
+  const marqueeEnd = projection.worldToCanvas(marquee.current);
   const marqueeBounds = getSelectionBounds(marqueeStart, marqueeEnd);
 
   return state.board.objects.order.filter((objectId) => {
@@ -74,71 +80,144 @@ function getMarqueeObjectIds(
       return false;
     }
 
-    const objectPoint = transform.worldToCanvas(object.position);
-    const objectHalfWidthPx =
-      object.size && object.size.mode !== "screen"
-        ? ((object.size.width || DEFAULT_OBJECT_DIAMETER) / 2) *
-          transform.pixelsPerUnit
-        : (object.size?.width || DEFAULT_OBJECT_DIAMETER) / 2;
-    const objectHalfHeightPx =
-      object.size && object.size.mode !== "screen"
-        ? ((object.size.height ||
-            object.size.width ||
-            DEFAULT_OBJECT_DIAMETER) /
-            2) *
-          transform.pixelsPerUnit
-        : (object.size?.height ||
-            object.size?.width ||
-            DEFAULT_OBJECT_DIAMETER) / 2;
-    const objectBounds = {
-      left: objectPoint.x - objectHalfWidthPx,
-      top: objectPoint.y - objectHalfHeightPx,
-      right: objectPoint.x + objectHalfWidthPx,
-      bottom: objectPoint.y + objectHalfHeightPx,
-    };
+    const objectBounds = projection.getObjectCanvasBounds(object);
 
     return !(
-      marqueeBounds.right < objectBounds.left ||
-      marqueeBounds.left > objectBounds.right ||
-      marqueeBounds.bottom < objectBounds.top ||
-      marqueeBounds.top > objectBounds.bottom
+      marqueeBounds.right < objectBounds.x ||
+      marqueeBounds.left > objectBounds.x + objectBounds.width ||
+      marqueeBounds.bottom < objectBounds.y ||
+      marqueeBounds.top > objectBounds.y + objectBounds.height
     );
   });
 }
 
+function createMarqueeOverlayItem(
+  marquee: Extract<
+    NonNullable<SelectToolState["interaction"]>,
+    { mode: "marquee" }
+  >,
+): CanvasRectOverlayItem {
+  return {
+    kind: "rect",
+    coordinateSpace: "world",
+    x: Math.min(marquee.origin.x, marquee.current.x),
+    y: Math.min(marquee.origin.y, marquee.current.y),
+    width: Math.abs(marquee.current.x - marquee.origin.x),
+    height: Math.abs(marquee.current.y - marquee.origin.y),
+    fill: MARQUEE_FILL,
+    stroke: MARQUEE_STROKE,
+    lineWidth: 1.5,
+    lineDash: [6, 4],
+  };
+}
+
+function createSelectionOverlayItems(
+  state: BoardEditorState,
+): SelectionOverlayItem[] {
+  const selectState = getSelectToolState(state.toolState);
+
+  return selectState.selectedObjectIds.flatMap((objectId) => {
+    const object = state.board.objects.byId[objectId];
+
+    return object
+      ? [
+          {
+            kind: SELECTION_OVERLAY_KIND,
+            object,
+          } satisfies SelectionOverlayItem,
+        ]
+      : [];
+  });
+}
+
+function createSelectOverlayItems(
+  state: BoardEditorState,
+): Array<CanvasRectOverlayItem | SelectionOverlayItem> {
+  const selectState = getSelectToolState(state.toolState);
+  const overlays: Array<CanvasRectOverlayItem | SelectionOverlayItem> =
+    createSelectionOverlayItems(state);
+
+  if (selectState.interaction?.mode === "marquee") {
+    overlays.push(createMarqueeOverlayItem(selectState.interaction));
+  }
+
+  return overlays;
+}
+
+function syncSelectRendering(
+  api: Parameters<NonNullable<ToolDefinition["onPointerDown"]>>[1],
+) {
+  api.registerOverlayRenderer(
+    SELECTION_OVERLAY_KIND,
+    ({ context, overlay, surfaceTransform }: CanvasOverlayRenderInput) => {
+      if (!isSelectionOverlayItem(overlay)) {
+        return;
+      }
+
+      const selectionOverlay = overlay;
+      const center = surfaceTransform.worldToCanvas(
+        selectionOverlay.object.position,
+      );
+      const radius =
+        surfaceTransform.getObjectCanvasRadius(selectionOverlay.object) + 4;
+
+      context.save();
+      context.beginPath();
+      context.arc(center.x, center.y, radius, 0, Math.PI * 2);
+      context.strokeStyle = SELECTION_STROKE;
+      context.lineWidth = 3;
+      context.stroke();
+      context.restore();
+    },
+  );
+
+  api.setOverlayItems(createSelectOverlayItems(api.getState()));
+}
+
 export const selectTool: ToolDefinition = {
-  id: "select",
+  id: SELECT_TOOL_ID,
   label: "Select",
   onPointerDown: (event, api) => {
+    syncSelectRendering(api);
     const state = api.getState();
+    const selectState = getSelectToolState(state.toolState);
 
     if (event.targetObjectId) {
       const hasAdditiveModifier = isAdditiveSelectionModifierPressed(event);
-      const objectIsSelected = state.ui.selectedObjectIds.includes(
+      const objectIsSelected = selectState.selectedObjectIds.includes(
         event.targetObjectId,
       );
       const nextSelection = hasAdditiveModifier
         ? objectIsSelected
-          ? state.ui.selectedObjectIds.filter(
+          ? selectState.selectedObjectIds.filter(
               (objectId) => objectId !== event.targetObjectId,
             )
-          : [...state.ui.selectedObjectIds, event.targetObjectId]
+          : [...selectState.selectedObjectIds, event.targetObjectId]
         : objectIsSelected
-          ? state.ui.selectedObjectIds
+          ? selectState.selectedObjectIds
           : [event.targetObjectId];
 
       api.setSelectedObjectIds(nextSelection);
 
       if (hasAdditiveModifier) {
-        api.clearToolState("select");
+        api.setToolState(SELECT_TOOL_ID, {
+          ...selectState,
+          selectedObjectIds: nextSelection,
+          interaction: undefined,
+        } satisfies SelectToolState);
+        syncSelectRendering(api);
         return;
       }
 
-      api.setToolState("select", {
-        mode: "drag",
-        dragObjectIds: nextSelection,
-        lastPoint: event.point,
-      } satisfies SelectDragState);
+      api.setToolState(SELECT_TOOL_ID, {
+        selectedObjectIds: nextSelection,
+        interaction: {
+          mode: "drag",
+          dragObjectIds: nextSelection,
+          lastPoint: event.point,
+        },
+      } satisfies SelectToolState);
+      syncSelectRendering(api);
       return;
     }
 
@@ -148,58 +227,79 @@ export const selectTool: ToolDefinition = {
       api.clearSelection();
     }
 
-    api.setToolState("select", {
-      mode: "marquee",
-      origin: event.point,
-      current: event.point,
-      baseSelection: preserveExistingSelection
-        ? state.ui.selectedObjectIds
-        : [],
-    } satisfies SelectMarqueeState);
+    const baseSelection = preserveExistingSelection
+      ? selectState.selectedObjectIds
+      : [];
+    api.setToolState(SELECT_TOOL_ID, {
+      selectedObjectIds: baseSelection,
+      interaction: {
+        mode: "marquee",
+        origin: event.point,
+        current: event.point,
+        baseSelection,
+      },
+    } satisfies SelectToolState);
+    syncSelectRendering(api);
   },
   onPointerMove: (event, api) => {
-    const toolState = api.getState().toolState.select as
-      | SelectToolState
-      | undefined;
-    if (!toolState) {
+    const selectState = getSelectToolState(api.getState().toolState);
+    const interaction = selectState.interaction;
+    if (!interaction) {
       return;
     }
 
-    if (toolState.mode === "marquee") {
+    if (interaction.mode === "marquee") {
       const nextToolState = {
-        ...toolState,
+        ...interaction,
         current: event.point,
-      } satisfies SelectMarqueeState;
+      } satisfies Extract<
+        NonNullable<SelectToolState["interaction"]>,
+        { mode: "marquee" }
+      >;
       const state = api.getState();
       const marqueeObjectIds = getMarqueeObjectIds(
         state,
         event.canvasRect,
         nextToolState,
       );
+      const nextSelection = [
+        ...new Set([...nextToolState.baseSelection, ...marqueeObjectIds]),
+      ];
 
-      api.setSelectedObjectIds([
-        ...new Set([...toolState.baseSelection, ...marqueeObjectIds]),
-      ]);
-      api.setToolState("select", nextToolState);
+      api.setOverlayItems([createMarqueeOverlayItem(nextToolState)]);
+      api.setToolState(SELECT_TOOL_ID, {
+        selectedObjectIds: nextSelection,
+        interaction: nextToolState,
+      } satisfies SelectToolState);
+      syncSelectRendering(api);
       return;
     }
 
     const delta = {
-      x: event.point.x - toolState.lastPoint.x,
-      y: event.point.y - toolState.lastPoint.y,
+      x: event.point.x - interaction.lastPoint.x,
+      y: event.point.y - interaction.lastPoint.y,
     };
 
     if (delta.x === 0 && delta.y === 0) {
       return;
     }
 
-    api.moveObjects(toolState.dragObjectIds, delta);
-    api.setToolState("select", {
-      ...toolState,
-      lastPoint: event.point,
-    } satisfies SelectDragState);
+    api.moveObjects(interaction.dragObjectIds, delta);
+    api.setToolState(SELECT_TOOL_ID, {
+      ...selectState,
+      interaction: {
+        ...interaction,
+        lastPoint: event.point,
+      },
+    } satisfies SelectToolState);
+    syncSelectRendering(api);
   },
   onPointerUp: (_event, api) => {
-    api.clearToolState("select");
+    const selectState = getSelectToolState(api.getState().toolState);
+    api.setToolState(SELECT_TOOL_ID, {
+      ...selectState,
+      interaction: undefined,
+    } satisfies SelectToolState);
+    syncSelectRendering(api);
   },
 };

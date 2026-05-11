@@ -1,12 +1,10 @@
 import type { BoardEditorState } from "./types";
 import type { ObjectId, Point } from "../board/types";
-import { createBoardSurfaceTransform } from "../geometry/create-board-surface-transform";
-import type { BoardEditorStore } from "../store/create-board-editor-store";
+import { createBoardSpaceProjection } from "../geometry/board-space-projection";
+import type { BoardEditorStore } from "../store/board-editor-store";
 import type { ToolApi, ToolPointerEvent } from "../tools/types";
 
 const SURFACE_INSET = 14;
-const DEFAULT_OBJECT_DIAMETER = 1.8;
-const HIT_TEST_RADIUS_PX = 24;
 
 export interface CanvasRect {
   left: number;
@@ -41,9 +39,15 @@ function createToolApi(store: BoardEditorStore): ToolApi {
     moveObjects: actions.moveObjects,
     setSelectedObjectIds: actions.setSelectedObjectIds,
     clearSelection: actions.clearSelection,
+    setPreviewObjects: actions.setPreviewObjects,
+    clearPreviewObjects: actions.clearPreviewObjects,
+    setOverlayItems: actions.setOverlayItems,
+    clearOverlayItems: actions.clearOverlayItems,
     panViewport: actions.panViewport,
     setToolState: actions.setToolState,
     clearToolState: actions.clearToolState,
+    registerObjectRenderer: actions.registerObjectRenderer,
+    registerOverlayRenderer: actions.registerOverlayRenderer,
   };
 }
 
@@ -52,17 +56,14 @@ function getBoardPoint(
   canvasRect: CanvasRect,
   clientPoint: Point,
 ): Point {
-  const transform = createBoardSurfaceTransform({
+  const projection = createBoardSpaceProjection({
     surface: state.board.surface,
-    frame: {
-      x: SURFACE_INSET + state.ui.viewport.pan.x,
-      y: SURFACE_INSET + state.ui.viewport.pan.y,
-      width: canvasRect.width - SURFACE_INSET * 2,
-      height: canvasRect.height - SURFACE_INSET * 2,
-    },
+    viewport: state.ui.viewport,
+    canvasRect,
+    surfaceInset: SURFACE_INSET,
   });
 
-  return transform.canvasToWorld({
+  return projection.canvasToWorld({
     x: clientPoint.x - canvasRect.left,
     y: clientPoint.y - canvasRect.top,
   });
@@ -73,14 +74,11 @@ function getTargetObjectId(
   canvasRect: CanvasRect,
   clientPoint: Point,
 ): ObjectId | undefined {
-  const transform = createBoardSurfaceTransform({
+  const projection = createBoardSpaceProjection({
     surface: state.board.surface,
-    frame: {
-      x: SURFACE_INSET + state.ui.viewport.pan.x,
-      y: SURFACE_INSET + state.ui.viewport.pan.y,
-      width: canvasRect.width - SURFACE_INSET * 2,
-      height: canvasRect.height - SURFACE_INSET * 2,
-    },
+    viewport: state.ui.viewport,
+    canvasRect,
+    surfaceInset: SURFACE_INSET,
   });
   const canvasPoint = {
     x: clientPoint.x - canvasRect.left,
@@ -98,19 +96,7 @@ function getTargetObjectId(
       continue;
     }
 
-    const objectPoint = transform.worldToCanvas(object.position);
-    const objectRadiusPx =
-      object.size && object.size.mode !== "screen"
-        ? (object.size.width / 2) * transform.pixelsPerUnit
-        : object.size?.width
-          ? object.size.width / 2
-          : (DEFAULT_OBJECT_DIAMETER / 2) * transform.pixelsPerUnit;
-    if (
-      Math.hypot(
-        canvasPoint.x - objectPoint.x,
-        canvasPoint.y - objectPoint.y,
-      ) <= Math.max(HIT_TEST_RADIUS_PX, objectRadiusPx)
-    ) {
+    if (projection.hitTestObject(object, canvasPoint)) {
       return object.id;
     }
   }

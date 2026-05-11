@@ -1,17 +1,20 @@
 import type { BoardSurfaceMarking } from "../../core/board/types";
-import { createBoardSurfaceTransform } from "../../core/geometry/create-board-surface-transform";
-import type { CanvasRenderer } from "./types";
+import { createBoardSpaceProjection } from "../../core/geometry/board-space-projection";
+import type {
+  CanvasObjectRenderInput,
+  CanvasObjectRenderer,
+  CanvasOverlayRenderInput,
+  CanvasOverlayRendererRegistry,
+  CanvasRectOverlayItem,
+  CanvasRenderer,
+} from "./types";
 
 const SURFACE_INSET = 14;
 const SURFACE_RADIUS = 10;
-const DEFAULT_OBJECT_DIAMETER = 1.8;
 const TOKEN_TOP = "#f8f1d3";
 const TOKEN_BOTTOM = "#d6bb67";
 const TOKEN_TEXT = "#09231d";
 const TOKEN_BORDER = "rgba(214,187,103,0.22)";
-const SELECTION_STROKE = "#ff8f3d";
-const MARQUEE_FILL = "rgba(255,143,61,0.14)";
-const MARQUEE_STROKE = "rgba(255,143,61,0.9)";
 const TEXT_FONT = '700 18px "ui-rounded", "SF Pro Display", sans-serif';
 const DEFAULT_SURFACE_BACKGROUND = "rgba(255,255,255,0.03)";
 
@@ -127,14 +130,109 @@ function drawSurfaceMarking(
   }
 }
 
+function getObjectRadius(
+  input: Pick<CanvasObjectRenderInput, "object" | "surfaceTransform">,
+) {
+  return input.surfaceTransform.getObjectCanvasRadius(input.object);
+}
+
+const defaultObjectRenderer: CanvasObjectRenderer = ({
+  context,
+  object,
+  appearance,
+  surfaceTransform,
+}) => {
+  const { x, y } = surfaceTransform.worldToCanvas(object.position);
+  const objectRadius = getObjectRadius({ object, surfaceTransform });
+  const tokenFill = context.createLinearGradient(
+    x,
+    y - objectRadius,
+    x,
+    y + objectRadius,
+  );
+  tokenFill.addColorStop(0, TOKEN_TOP);
+  tokenFill.addColorStop(1, TOKEN_BOTTOM);
+
+  context.save();
+  context.globalAlpha = appearance === "preview" ? 0.55 : 1;
+  context.fillStyle = tokenFill;
+  context.beginPath();
+  context.arc(x, y, objectRadius, 0, Math.PI * 2);
+  context.fill();
+
+  context.strokeStyle = TOKEN_BORDER;
+  context.lineWidth = 1;
+  context.stroke();
+
+  context.fillStyle = TOKEN_TEXT;
+  context.font = TEXT_FONT;
+  context.textAlign = "center";
+  context.textBaseline = "middle";
+  context.fillText(
+    String(object.props.label ?? object.props.number ?? object.type),
+    x,
+    y + 1,
+  );
+  context.restore();
+};
+
+function drawRectOverlay({
+  context,
+  overlay,
+  surfaceTransform,
+}: CanvasOverlayRenderInput & {
+  overlay: CanvasRectOverlayItem;
+}) {
+  const origin =
+    overlay.coordinateSpace === "canvas"
+      ? { x: overlay.x, y: overlay.y }
+      : surfaceTransform.worldToCanvas({ x: overlay.x, y: overlay.y });
+  const width =
+    overlay.coordinateSpace === "canvas"
+      ? overlay.width
+      : overlay.width * surfaceTransform.pixelsPerUnit;
+  const height =
+    overlay.coordinateSpace === "canvas"
+      ? overlay.height
+      : overlay.height * surfaceTransform.pixelsPerUnit;
+
+  context.save();
+  context.fillStyle = overlay.fill ?? "transparent";
+  context.strokeStyle = overlay.stroke ?? "transparent";
+  context.lineWidth = overlay.lineWidth ?? 1;
+  context.setLineDash(overlay.lineDash ?? []);
+
+  if (overlay.fill) {
+    context.fillRect(origin.x, origin.y, width, height);
+  }
+
+  if (overlay.stroke) {
+    context.strokeRect(origin.x, origin.y, width, height);
+  }
+
+  context.restore();
+}
+
+const defaultOverlayRenderers: CanvasOverlayRendererRegistry = {
+  rect: (input) => {
+    drawRectOverlay(
+      input as CanvasOverlayRenderInput & {
+        overlay: CanvasRectOverlayItem;
+      },
+    );
+  },
+};
+
 export function createCanvasRenderer(): CanvasRenderer {
   return {
     render: ({
       canvas,
       board,
       viewport,
-      selectedObjectIds = [],
-      selectionMarquee,
+      previewObjects = [],
+      overlayItems = [],
+      objectRenderers = {},
+      overlayRenderers = {},
     }) => {
       const context = canvas.getContext("2d");
       if (!context) {
@@ -145,22 +243,22 @@ export function createCanvasRenderer(): CanvasRenderer {
       context.setTransform(ratio, 0, 0, ratio, 0, 0);
       context.clearRect(0, 0, width, height);
 
-      const surfaceTransform = createBoardSurfaceTransform({
+      const projection = createBoardSpaceProjection({
         surface: board.surface,
-        frame: {
-          x: SURFACE_INSET + viewport.pan.x,
-          y: SURFACE_INSET + viewport.pan.y,
-          width: width - SURFACE_INSET * 2,
-          height: height - SURFACE_INSET * 2,
+        viewport,
+        canvasRect: {
+          width,
+          height,
         },
+        surfaceInset: SURFACE_INSET,
       });
 
       drawRoundedRect(
         context,
-        surfaceTransform.frame.x,
-        surfaceTransform.frame.y,
-        surfaceTransform.frame.width,
-        surfaceTransform.frame.height,
+        projection.frame.x,
+        projection.frame.y,
+        projection.frame.width,
+        projection.frame.height,
         SURFACE_RADIUS,
       );
       context.fillStyle =
@@ -170,10 +268,10 @@ export function createCanvasRenderer(): CanvasRenderer {
       context.save();
       drawRoundedRect(
         context,
-        surfaceTransform.frame.x,
-        surfaceTransform.frame.y,
-        surfaceTransform.frame.width,
-        surfaceTransform.frame.height,
+        projection.frame.x,
+        projection.frame.y,
+        projection.frame.width,
+        projection.frame.height,
         SURFACE_RADIUS,
       );
       context.clip();
@@ -182,14 +280,10 @@ export function createCanvasRenderer(): CanvasRenderer {
         drawSurfaceMarking(
           context,
           marking,
-          surfaceTransform.worldToCanvas,
-          surfaceTransform.pixelsPerUnit,
+          projection.worldToCanvas,
+          projection.pixelsPerUnit,
         );
       }
-
-      context.font = TEXT_FONT;
-      context.textAlign = "center";
-      context.textBaseline = "middle";
 
       for (const objectId of board.objects.order) {
         const object = board.objects.byId[objectId];
@@ -197,63 +291,35 @@ export function createCanvasRenderer(): CanvasRenderer {
           continue;
         }
 
-        const { x, y } = surfaceTransform.worldToCanvas(object.position);
-        const selected = selectedObjectIds.includes(object.id);
-        const objectRadius =
-          object.size && object.size.mode !== "screen"
-            ? (object.size.width / 2) * surfaceTransform.pixelsPerUnit
-            : object.size?.width
-              ? object.size.width / 2
-              : (DEFAULT_OBJECT_DIAMETER / 2) * surfaceTransform.pixelsPerUnit;
-        const tokenFill = context.createLinearGradient(
-          x,
-          y - objectRadius,
-          x,
-          y + objectRadius,
-        );
-        tokenFill.addColorStop(0, TOKEN_TOP);
-        tokenFill.addColorStop(1, TOKEN_BOTTOM);
-        context.fillStyle = tokenFill;
-
-        context.beginPath();
-        context.arc(x, y, objectRadius, 0, Math.PI * 2);
-        context.fill();
-
-        context.strokeStyle = TOKEN_BORDER;
-        context.lineWidth = 1;
-        context.stroke();
-
-        if (selected) {
-          context.beginPath();
-          context.arc(x, y, objectRadius + 4, 0, Math.PI * 2);
-          context.strokeStyle = SELECTION_STROKE;
-          context.lineWidth = 3;
-          context.stroke();
-        }
-
-        context.fillStyle = TOKEN_TEXT;
-        context.fillText(
-          String(object.props.label ?? object.props.number ?? object.type),
-          x,
-          y + 1,
-        );
+        const renderer = objectRenderers[object.type] ?? defaultObjectRenderer;
+        renderer({
+          context,
+          object,
+          appearance: "default",
+          surfaceTransform: projection,
+        });
       }
 
-      if (selectionMarquee) {
-        const start = surfaceTransform.worldToCanvas(selectionMarquee.start);
-        const end = surfaceTransform.worldToCanvas(selectionMarquee.end);
-        const x = Math.min(start.x, end.x);
-        const y = Math.min(start.y, end.y);
-        const width = Math.abs(end.x - start.x);
-        const height = Math.abs(end.y - start.y);
+      for (const previewObject of previewObjects) {
+        const renderer =
+          objectRenderers[previewObject.type] ?? defaultObjectRenderer;
+        renderer({
+          context,
+          object: previewObject,
+          appearance: "preview",
+          surfaceTransform: projection,
+        });
+      }
 
-        context.fillStyle = MARQUEE_FILL;
-        context.strokeStyle = MARQUEE_STROKE;
-        context.lineWidth = 1.5;
-        context.setLineDash([6, 4]);
-        context.fillRect(x, y, width, height);
-        context.strokeRect(x, y, width, height);
-        context.setLineDash([]);
+      for (const overlayItem of overlayItems) {
+        const renderer =
+          overlayRenderers[overlayItem.kind] ??
+          defaultOverlayRenderers[overlayItem.kind];
+        renderer?.({
+          context,
+          overlay: overlayItem,
+          surfaceTransform: projection,
+        });
       }
 
       context.globalAlpha = 1;

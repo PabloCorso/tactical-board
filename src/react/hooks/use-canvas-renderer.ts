@@ -9,12 +9,11 @@ interface UseCanvasRendererOptions<
 > {
   board: Board<TObject>;
   viewport: Viewport;
-  selectedObjectIds?: string[];
 }
 
 export function useCanvasRenderer<
   TObject extends BoardObjectBase = BoardObjectBase,
->({ board, viewport, selectedObjectIds }: UseCanvasRendererOptions<TObject>) {
+>({ board, viewport }: UseCanvasRendererOptions<TObject>) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const rendererRef = useRef<CanvasRenderer | null>(null);
 
@@ -33,10 +32,9 @@ export function useCanvasRenderer<
         canvas,
         board,
         viewport,
-        selectedObjectIds,
       });
     },
-    [board, viewport, selectedObjectIds],
+    [board, viewport],
   );
 
   useEffect(
@@ -58,7 +56,6 @@ export function useCanvasRenderer<
                 canvas,
                 board,
                 viewport,
-                selectedObjectIds,
               });
             });
 
@@ -68,7 +65,7 @@ export function useCanvasRenderer<
         observer?.disconnect();
       };
     },
-    [board, viewport, selectedObjectIds],
+    [board, viewport],
   );
 
   return canvasRef;

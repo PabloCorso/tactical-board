@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import type { BoardEditorStore } from "../../core/store/create-board-editor-store";
+import type { BoardEditorStore } from "../../core/store/board-editor-store";
 
 export const BoardEditorContext = createContext<BoardEditorStore | null>(null);
 

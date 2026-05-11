@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
 import { createBoardEditorRuntime } from "../../core/editor/board-editor-runtime";
-import type { BoardEditorStore } from "../../core/store/create-board-editor-store";
+import type { BoardEditorStore } from "../../core/store/board-editor-store";
 
 interface UseBoardEditorCanvasOptions {
   store: BoardEditorStore;
