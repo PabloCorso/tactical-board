@@ -1,8 +1,9 @@
 import type { BoardEditorState } from "./types";
+import { createToolApi } from "./create-tool-api";
 import type { ObjectId, Point } from "../board/types";
 import { createBoardSpaceProjection } from "../geometry/board-space-projection";
 import type { BoardEditorStore } from "../store/board-editor-store";
-import type { ToolApi, ToolPointerEvent } from "../tools/types";
+import type { ToolPointerEvent } from "../tools/types";
 
 const SURFACE_INSET = 14;
 
@@ -29,26 +30,6 @@ export interface BoardEditorController {
     handlerName: "onPointerDown" | "onPointerMove" | "onPointerUp",
     input: BoardEditorPointerInput,
   ) => void;
-}
-
-function createToolApi(store: BoardEditorStore): ToolApi {
-  const actions = store.getState().actions;
-
-  return {
-    getState: () => store.getState(),
-    moveObjects: actions.moveObjects,
-    setSelectedObjectIds: actions.setSelectedObjectIds,
-    clearSelection: actions.clearSelection,
-    setPreviewObjects: actions.setPreviewObjects,
-    clearPreviewObjects: actions.clearPreviewObjects,
-    setOverlayItems: actions.setOverlayItems,
-    clearOverlayItems: actions.clearOverlayItems,
-    panViewport: actions.panViewport,
-    setToolState: actions.setToolState,
-    clearToolState: actions.clearToolState,
-    registerObjectRenderer: actions.registerObjectRenderer,
-    registerOverlayRenderer: actions.registerOverlayRenderer,
-  };
 }
 
 function getBoardPoint(

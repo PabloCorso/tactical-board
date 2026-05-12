@@ -12,10 +12,7 @@ import type {
   CanvasObjectRendererRegistry,
   CanvasOverlayRendererRegistry,
 } from "../../rendering/canvas/types";
-import {
-  getSelectToolState,
-  SELECT_TOOL_ID,
-} from "../../tools/select-tool-state";
+import { SELECT_TOOL_ID } from "../../tools/select-tool-state";
 
 export interface CreateBoardEditorStoreOptions<
   TObject extends BoardObjectBase = BoardObjectBase,
@@ -37,6 +34,22 @@ function createToolRegistry(tools: ToolDefinition[] = []): ToolRegistry {
   };
 }
 
+function createDuplicatedObjectId(
+  objectId: ObjectId,
+  existingObjects: Record<ObjectId, BoardObjectBase>,
+) {
+  const baseId = `${objectId}-copy`;
+  let candidateId = baseId;
+  let suffix = 2;
+
+  while (existingObjects[candidateId]) {
+    candidateId = `${baseId}-${suffix}`;
+    suffix += 1;
+  }
+
+  return candidateId;
+}
+
 export function createBoardEditorStore<TObject extends BoardObjectBase>({
   initialBoard,
   tools = [],
@@ -50,7 +63,7 @@ export function createBoardEditorStore<TObject extends BoardObjectBase>({
     ? initialToolId
     : fallbackToolId;
 
-  return createStore<BoardEditorState<TObject>>((set) => ({
+  return createStore<BoardEditorState<TObject>>((set, get) => ({
     board: initialBoard,
     ui: {
       activeToolId,
@@ -61,7 +74,6 @@ export function createBoardEditorStore<TObject extends BoardObjectBase>({
     },
     rendering: {
       previewObjects: [],
-      overlayItems: [],
       objectRenderers: { ...objectRenderers },
       overlayRenderers: { ...overlayRenderers },
     },
@@ -83,10 +95,6 @@ export function createBoardEditorStore<TObject extends BoardObjectBase>({
                 ...state.ui,
                 activeToolId: toolId,
               },
-              rendering: {
-                ...state.rendering,
-                overlayItems: [],
-              },
               toolState: nextToolState,
             };
           }
@@ -99,27 +107,80 @@ export function createBoardEditorStore<TObject extends BoardObjectBase>({
           };
         });
       },
-      setSelectedObjectIds: (objectIds) => {
-        set((state) => ({
-          toolState: {
-            ...state.toolState,
-            [SELECT_TOOL_ID]: {
-              ...getSelectToolState(state.toolState),
-              selectedObjectIds: [...objectIds],
+      duplicateObjects: (objectIds) => {
+        const state = get();
+        const nextById = { ...state.board.objects.byId };
+        const nextOrder = [...state.board.objects.order];
+        const duplicateIds: ObjectId[] = [];
+
+        for (const objectId of objectIds) {
+          const object = nextById[objectId];
+          if (!object) {
+            continue;
+          }
+
+          const duplicateId = createDuplicatedObjectId(objectId, nextById);
+          duplicateIds.push(duplicateId);
+          nextById[duplicateId] = {
+            ...object,
+            id: duplicateId,
+            position: {
+              x: object.position.x + 2,
+              y: object.position.y + 2,
+            },
+          } as TObject;
+          nextOrder.push(duplicateId);
+        }
+
+        if (duplicateIds.length === 0) {
+          return [];
+        }
+
+        set((currentState) => ({
+          board: {
+            ...currentState.board,
+            objects: {
+              ...currentState.board.objects,
+              byId: nextById,
+              order: nextOrder,
             },
           },
         }));
+
+        return duplicateIds;
       },
-      clearSelection: () => {
-        set((state) => ({
-          toolState: {
-            ...state.toolState,
-            [SELECT_TOOL_ID]: {
-              ...getSelectToolState(state.toolState),
-              selectedObjectIds: [],
+      deleteObjects: (objectIds) => {
+        set((state) => {
+          const objectIdsToDelete = new Set(objectIds);
+          let changed = false;
+          const nextById = { ...state.board.objects.byId };
+
+          for (const objectId of objectIdsToDelete) {
+            if (!nextById[objectId]) {
+              continue;
+            }
+
+            delete nextById[objectId];
+            changed = true;
+          }
+
+          if (!changed) {
+            return state;
+          }
+
+          return {
+            board: {
+              ...state.board,
+              objects: {
+                ...state.board.objects,
+                byId: nextById,
+                order: state.board.objects.order.filter(
+                  (objectId) => !objectIdsToDelete.has(objectId),
+                ),
+              },
             },
-          },
-        }));
+          };
+        });
       },
       setPreviewObjects: (objects) => {
         set((state) => ({
@@ -134,22 +195,6 @@ export function createBoardEditorStore<TObject extends BoardObjectBase>({
           rendering: {
             ...state.rendering,
             previewObjects: [],
-          },
-        }));
-      },
-      setOverlayItems: (items) => {
-        set((state) => ({
-          rendering: {
-            ...state.rendering,
-            overlayItems: [...items],
-          },
-        }));
-      },
-      clearOverlayItems: () => {
-        set((state) => ({
-          rendering: {
-            ...state.rendering,
-            overlayItems: [],
           },
         }));
       },
@@ -232,26 +277,38 @@ export function createBoardEditorStore<TObject extends BoardObjectBase>({
         }));
       },
       registerObjectRenderer: (objectType, renderer) => {
-        set((state) => ({
-          rendering: {
-            ...state.rendering,
-            objectRenderers: {
-              ...state.rendering.objectRenderers,
-              [objectType]: renderer,
+        set((state) => {
+          if (state.rendering.objectRenderers[objectType] === renderer) {
+            return state;
+          }
+
+          return {
+            rendering: {
+              ...state.rendering,
+              objectRenderers: {
+                ...state.rendering.objectRenderers,
+                [objectType]: renderer,
+              },
             },
-          },
-        }));
+          };
+        });
       },
       registerOverlayRenderer: (overlayKind, renderer) => {
-        set((state) => ({
-          rendering: {
-            ...state.rendering,
-            overlayRenderers: {
-              ...state.rendering.overlayRenderers,
-              [overlayKind]: renderer,
+        set((state) => {
+          if (state.rendering.overlayRenderers[overlayKind] === renderer) {
+            return state;
+          }
+
+          return {
+            rendering: {
+              ...state.rendering,
+              overlayRenderers: {
+                ...state.rendering.overlayRenderers,
+                [overlayKind]: renderer,
+              },
             },
-          },
-        }));
+          };
+        });
       },
     },
   }));

@@ -9,7 +9,6 @@ import type { ToolDefinition, ToolRegistry } from "../tools/types";
 import type {
   CanvasObjectRenderer,
   CanvasObjectRendererRegistry,
-  CanvasOverlayItem,
   CanvasOverlayRenderer,
   CanvasOverlayRendererRegistry,
 } from "../../rendering/canvas/types";
@@ -27,7 +26,6 @@ export interface BoardEditorUiState {
 
 export interface BoardEditorRenderingState {
   previewObjects: BoardObjectBase[];
-  overlayItems: CanvasOverlayItem[];
   objectRenderers: CanvasObjectRendererRegistry;
   overlayRenderers: CanvasOverlayRendererRegistry;
 }
@@ -36,12 +34,10 @@ export type BoardEditorToolState = Record<string, unknown>;
 
 export interface BoardEditorActions {
   setActiveTool: (toolId: ToolId) => void;
-  setSelectedObjectIds: (objectIds: ObjectId[]) => void;
-  clearSelection: () => void;
+  duplicateObjects: (objectIds: ObjectId[]) => ObjectId[];
+  deleteObjects: (objectIds: ObjectId[]) => void;
   setPreviewObjects: (objects: BoardObjectBase[]) => void;
   clearPreviewObjects: () => void;
-  setOverlayItems: (items: CanvasOverlayItem[]) => void;
-  clearOverlayItems: () => void;
   moveObjects: (objectIds: ObjectId[], delta: Point) => void;
   panViewport: (delta: Point) => void;
   setToolState: (toolId: ToolId, value: unknown) => void;

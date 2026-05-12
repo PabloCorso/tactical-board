@@ -4,6 +4,7 @@ import {
   BoardEditorCanvas,
   BoardEditorProvider,
 } from "../../react/components/board-editor";
+import { BoardEditorSecondaryToolbar } from "../../react/components/board-editor-secondary-toolbar";
 import { BoardEditorToolControl } from "../../react/components/board-editor-tool-control";
 import { BoardEditorToolbar } from "../../react/components/board-editor-toolbar";
 import { handTool } from "../../tools/hand-tool";
@@ -21,6 +22,7 @@ export function FootballExampleApp() {
     <BoardEditorProvider store={store}>
       <BoardEditor className="relative h-dvh w-full overflow-hidden p-4">
         <BoardEditorCanvas />
+        <BoardEditorSecondaryToolbar className="absolute inset-x-4 bottom-20 mx-auto" />
         <BoardEditorToolbar className="absolute inset-x-4 bottom-4 mx-auto">
           <BoardEditorToolControl toolId="select" />
           <BoardEditorToolControl toolId="hand" />

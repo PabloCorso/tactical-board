@@ -29,7 +29,7 @@ export function BoardEditorToolbarButton({
       <button
         aria-label={ariaLabel}
         className={cn(
-          "inline-flex size-10 cursor-pointer items-center justify-center rounded-[14px] border text-inherit transition-[background-color,border-color,color] duration-150",
+          "inline-flex min-h-10 min-w-10 cursor-pointer items-center justify-center rounded-[14px] border px-3 text-inherit transition-[background-color,border-color,color] duration-150",
           active
             ? "border-white/12 bg-white/14 text-white"
             : "border-transparent bg-transparent text-neutral-400 hover:border-white/10 hover:bg-white/6 hover:text-neutral-100",

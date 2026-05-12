@@ -1,12 +1,17 @@
 import type { BoardEditorState } from "../core/editor/types";
 import type { CanvasRect } from "../core/editor/board-editor-controller";
-import type { ToolDefinition } from "../core/tools/types";
+import type {
+  ToolActionDefinition,
+  ToolApi,
+  ToolDefinition,
+} from "../core/tools/types";
 import { createBoardSpaceProjection } from "../core/geometry/board-space-projection";
 import type {
   CanvasOverlayRenderInput,
   CanvasRectOverlayItem,
+  CanvasOverlayRenderer,
 } from "../rendering/canvas/types";
-import type { BoardObjectBase } from "../core/board/types";
+import type { BoardObjectBase, ObjectId } from "../core/board/types";
 import {
   getSelectToolState,
   type SelectToolState,
@@ -18,6 +23,52 @@ const MARQUEE_FILL = "rgba(255,143,61,0.14)";
 const MARQUEE_STROKE = "rgba(255,143,61,0.9)";
 const SELECTION_STROKE = "#ff8f3d";
 const SELECTION_OVERLAY_KIND = "select:selection-ring";
+const DISABLED_SELECTION_ACTIONS: ToolActionDefinition[] = [
+  {
+    id: "duplicate-selection",
+    label: "Duplicate",
+    tooltip: "Duplicate",
+    disabled: true,
+    onSelect: duplicateSelection,
+  },
+  {
+    id: "delete-selection",
+    label: "Delete",
+    tooltip: "Delete",
+    disabled: true,
+    onSelect: deleteSelection,
+  },
+];
+const ENABLED_SELECTION_ACTIONS: ToolActionDefinition[] = [
+  {
+    id: "duplicate-selection",
+    label: "Duplicate",
+    tooltip: "Duplicate",
+    disabled: false,
+    onSelect: duplicateSelection,
+  },
+  {
+    id: "delete-selection",
+    label: "Delete",
+    tooltip: "Delete",
+    disabled: false,
+    onSelect: deleteSelection,
+  },
+];
+
+let cachedSelectionOverlayItems:
+  | {
+      objectsById: BoardEditorState["board"]["objects"]["byId"];
+      selectState: SelectToolState;
+      overlays: Array<CanvasRectOverlayItem | SelectionOverlayItem>;
+    }
+  | undefined;
+let cachedSecondaryActions:
+  | {
+      selectState: SelectToolState;
+      actions: ToolActionDefinition[];
+    }
+  | undefined;
 
 interface SelectionOverlayItem {
   kind: typeof SELECTION_OVERLAY_KIND;
@@ -130,10 +181,18 @@ function createSelectionOverlayItems(
   });
 }
 
-function createSelectOverlayItems(
+export function getSelectOverlayItems(
   state: BoardEditorState,
 ): Array<CanvasRectOverlayItem | SelectionOverlayItem> {
   const selectState = getSelectToolState(state.toolState);
+
+  if (
+    cachedSelectionOverlayItems?.selectState === selectState &&
+    cachedSelectionOverlayItems.objectsById === state.board.objects.byId
+  ) {
+    return cachedSelectionOverlayItems.overlays;
+  }
+
   const overlays: Array<CanvasRectOverlayItem | SelectionOverlayItem> =
     createSelectionOverlayItems(state);
 
@@ -141,13 +200,22 @@ function createSelectOverlayItems(
     overlays.push(createMarqueeOverlayItem(selectState.interaction));
   }
 
+  cachedSelectionOverlayItems = {
+    objectsById: state.board.objects.byId,
+    selectState,
+    overlays,
+  };
+
   return overlays;
 }
 
-function syncSelectRendering(
-  api: Parameters<NonNullable<ToolDefinition["onPointerDown"]>>[1],
+export function registerSelectOverlayRenderer(
+  registerOverlayRenderer: (
+    overlayKind: string,
+    renderer: CanvasOverlayRenderer,
+  ) => void,
 ) {
-  api.registerOverlayRenderer(
+  registerOverlayRenderer(
     SELECTION_OVERLAY_KIND,
     ({ context, overlay, surfaceTransform }: CanvasOverlayRenderInput) => {
       if (!isSelectionOverlayItem(overlay)) {
@@ -170,15 +238,77 @@ function syncSelectRendering(
       context.restore();
     },
   );
+}
 
-  api.setOverlayItems(createSelectOverlayItems(api.getState()));
+function setSelectState(
+  api: ToolApi,
+  value: Partial<SelectToolState>,
+) {
+  const selectState = getSelectToolState(api.getState().toolState);
+
+  api.setToolState(SELECT_TOOL_ID, {
+    ...selectState,
+    ...value,
+  } satisfies SelectToolState);
+}
+
+function setSelectedObjectIds(api: ToolApi, objectIds: ObjectId[]) {
+  setSelectState(api, {
+    selectedObjectIds: [...objectIds],
+  });
+}
+
+function clearSelection(api: ToolApi) {
+  setSelectState(api, {
+    selectedObjectIds: [],
+    interaction: undefined,
+  });
+}
+
+function duplicateSelection(api: ToolApi) {
+  const { selectedObjectIds } = getSelectToolState(api.getState().toolState);
+  const duplicateIds = api.duplicateObjects(selectedObjectIds);
+
+  setSelectedObjectIds(api, duplicateIds);
+}
+
+function deleteSelection(api: ToolApi) {
+  const { selectedObjectIds } = getSelectToolState(api.getState().toolState);
+  api.deleteObjects(selectedObjectIds);
+  clearSelection(api);
+}
+
+function getSelectSecondaryActions(
+  state: BoardEditorState,
+): ToolActionDefinition[] {
+  const selectState = getSelectToolState(state.toolState);
+
+  if (cachedSecondaryActions?.selectState === selectState) {
+    return cachedSecondaryActions.actions;
+  }
+
+  const actions =
+    selectState.selectedObjectIds.length > 0
+      ? ENABLED_SELECTION_ACTIONS
+      : DISABLED_SELECTION_ACTIONS;
+
+  cachedSecondaryActions = {
+    selectState,
+    actions,
+  };
+
+  return actions;
 }
 
 export const selectTool: ToolDefinition = {
   id: SELECT_TOOL_ID,
   label: "Select",
+  getSecondaryActions: getSelectSecondaryActions,
+  getOverlayItems: getSelectOverlayItems,
+  registerRenderers: (api) => {
+    registerSelectOverlayRenderer(api.registerOverlayRenderer);
+  },
   onPointerDown: (event, api) => {
-    syncSelectRendering(api);
     const state = api.getState();
     const selectState = getSelectToolState(state.toolState);
 
@@ -197,40 +327,35 @@ export const selectTool: ToolDefinition = {
           ? selectState.selectedObjectIds
           : [event.targetObjectId];
 
-      api.setSelectedObjectIds(nextSelection);
-
       if (hasAdditiveModifier) {
-        api.setToolState(SELECT_TOOL_ID, {
-          ...selectState,
+        setSelectState(api, {
           selectedObjectIds: nextSelection,
           interaction: undefined,
-        } satisfies SelectToolState);
-        syncSelectRendering(api);
+        });
         return;
       }
 
-      api.setToolState(SELECT_TOOL_ID, {
+      setSelectState(api, {
         selectedObjectIds: nextSelection,
         interaction: {
           mode: "drag",
           dragObjectIds: nextSelection,
           lastPoint: event.point,
         },
-      } satisfies SelectToolState);
-      syncSelectRendering(api);
+      });
       return;
     }
 
     const preserveExistingSelection = isAdditiveSelectionModifierPressed(event);
 
     if (!preserveExistingSelection) {
-      api.clearSelection();
+      clearSelection(api);
     }
 
     const baseSelection = preserveExistingSelection
       ? selectState.selectedObjectIds
       : [];
-    api.setToolState(SELECT_TOOL_ID, {
+    setSelectState(api, {
       selectedObjectIds: baseSelection,
       interaction: {
         mode: "marquee",
@@ -238,8 +363,7 @@ export const selectTool: ToolDefinition = {
         current: event.point,
         baseSelection,
       },
-    } satisfies SelectToolState);
-    syncSelectRendering(api);
+    });
   },
   onPointerMove: (event, api) => {
     const selectState = getSelectToolState(api.getState().toolState);
@@ -266,12 +390,10 @@ export const selectTool: ToolDefinition = {
         ...new Set([...nextToolState.baseSelection, ...marqueeObjectIds]),
       ];
 
-      api.setOverlayItems([createMarqueeOverlayItem(nextToolState)]);
-      api.setToolState(SELECT_TOOL_ID, {
+      setSelectState(api, {
         selectedObjectIds: nextSelection,
         interaction: nextToolState,
-      } satisfies SelectToolState);
-      syncSelectRendering(api);
+      });
       return;
     }
 
@@ -285,21 +407,16 @@ export const selectTool: ToolDefinition = {
     }
 
     api.moveObjects(interaction.dragObjectIds, delta);
-    api.setToolState(SELECT_TOOL_ID, {
-      ...selectState,
+    setSelectState(api, {
       interaction: {
         ...interaction,
         lastPoint: event.point,
       },
-    } satisfies SelectToolState);
-    syncSelectRendering(api);
+    });
   },
   onPointerUp: (_event, api) => {
-    const selectState = getSelectToolState(api.getState().toolState);
-    api.setToolState(SELECT_TOOL_ID, {
-      ...selectState,
+    setSelectState(api, {
       interaction: undefined,
-    } satisfies SelectToolState);
-    syncSelectRendering(api);
+    });
   },
 };

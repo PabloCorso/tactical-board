@@ -3,7 +3,6 @@ import type { BoardEditorState } from "../editor/types";
 import type { CanvasRect } from "../editor/board-editor-controller";
 import type {
   CanvasObjectRenderer,
-  CanvasOverlayItem,
   CanvasOverlayRenderer,
 } from "../../rendering/canvas/types";
 
@@ -22,14 +21,12 @@ export interface ToolPointerEvent {
 export interface ToolApi {
   getState: () => BoardEditorState;
   moveObjects: (ids: ObjectId[], delta: Point) => void;
-  setSelectedObjectIds: (ids: ObjectId[]) => void;
-  clearSelection: () => void;
+  duplicateObjects: (ids: ObjectId[]) => ObjectId[];
+  deleteObjects: (ids: ObjectId[]) => void;
   setPreviewObjects: (
     objects: BoardEditorState["rendering"]["previewObjects"],
   ) => void;
   clearPreviewObjects: () => void;
-  setOverlayItems: (items: CanvasOverlayItem[]) => void;
-  clearOverlayItems: () => void;
   panViewport: (delta: Point) => void;
   setToolState: (toolId: ToolId, value: unknown) => void;
   clearToolState: (toolId: ToolId) => void;
@@ -43,9 +40,24 @@ export interface ToolApi {
   ) => void;
 }
 
+export interface ToolActionDefinition {
+  id: string;
+  label: string;
+  tooltip?: string;
+  disabled?: boolean;
+  onSelect: (api: ToolApi) => void;
+}
+
 export interface ToolDefinition {
   id: ToolId;
   label: string;
+  getSecondaryActions?: (
+    state: BoardEditorState,
+  ) => ToolActionDefinition[];
+  getOverlayItems?: (state: BoardEditorState) => CanvasOverlayItem[];
+  registerRenderers?: (
+    api: Pick<ToolApi, "registerObjectRenderer" | "registerOverlayRenderer">,
+  ) => void;
   onPointerDown?: (event: ToolPointerEvent, api: ToolApi) => void;
   onPointerMove?: (event: ToolPointerEvent, api: ToolApi) => void;
   onPointerUp?: (event: ToolPointerEvent, api: ToolApi) => void;

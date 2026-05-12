@@ -2,6 +2,7 @@ import { createCanvasRenderer } from "../../rendering/canvas/create-canvas-rende
 import type { CanvasRenderer } from "../../rendering/canvas/types";
 import { createBoardEditorController } from "./board-editor-controller";
 import type { BoardEditorStore } from "../store/board-editor-store";
+import type { ToolDefinition } from "../tools/types";
 
 export interface BoardEditorRuntime {
   mount: (canvas: HTMLCanvasElement) => void;
@@ -17,10 +18,33 @@ export function createBoardEditorRuntime({
 }: CreateBoardEditorRuntimeOptions): BoardEditorRuntime {
   const controller = createBoardEditorController(store);
   const renderer: CanvasRenderer = createCanvasRenderer();
+  const registeredToolRendererIds = new Set<string>();
   let canvas: HTMLCanvasElement | null = null;
   let frameId: number | null = null;
   let unsubscribe: (() => void) | null = null;
   let resizeObserver: ResizeObserver | null = null;
+
+  const registerToolRenderers = (tool: ToolDefinition | undefined) => {
+    if (!tool || registeredToolRendererIds.has(tool.id)) {
+      return;
+    }
+
+    tool.registerRenderers?.({
+      registerObjectRenderer:
+        store.getState().actions.registerObjectRenderer,
+      registerOverlayRenderer:
+        store.getState().actions.registerOverlayRenderer,
+    });
+    registeredToolRendererIds.add(tool.id);
+  };
+
+  const syncToolRenderers = () => {
+    const { definitions } = store.getState().toolRegistry;
+
+    for (const tool of Object.values(definitions)) {
+      registerToolRenderers(tool);
+    }
+  };
 
   const render = () => {
     if (!canvas) {
@@ -28,12 +52,14 @@ export function createBoardEditorRuntime({
     }
 
     const state = store.getState();
+    const activeTool = state.toolRegistry.definitions[state.ui.activeToolId];
+
     renderer.render({
       canvas,
       board: state.board,
       viewport: state.ui.viewport,
       previewObjects: state.rendering.previewObjects,
-      overlayItems: state.rendering.overlayItems,
+      overlayItems: activeTool?.getOverlayItems?.(state) ?? [],
       objectRenderers: state.rendering.objectRenderers,
       overlayRenderers: state.rendering.overlayRenderers,
     });
@@ -131,6 +157,7 @@ export function createBoardEditorRuntime({
       canvas.addEventListener("pointerup", onPointerUp);
 
       unsubscribe = store.subscribe(() => {
+        syncToolRenderers();
         requestRender();
       });
 
@@ -142,6 +169,7 @@ export function createBoardEditorRuntime({
             });
       resizeObserver?.observe(canvas);
 
+      syncToolRenderers();
       requestRender();
     },
     unmount: () => {
