@@ -5,6 +5,7 @@ import {
   type ArrowObject,
   type ArrowBodyStyle,
   type ArrowHeadStyle,
+  type ArrowLineStyle,
 } from "../core/objects/arrow-object";
 import type {
   CanvasObjectHitTestInput,
@@ -59,13 +60,12 @@ export function setArrowDraftStyle(
       ...arrowState.draftStyle,
       ...draftStyle,
     },
-    activePresetId: undefined,
   });
 }
 
 export function applyArrowPreset(
   api: ToolApi,
-  preset: Pick<ArrowToolPreset, "id" | "draftStyle">,
+  preset: Pick<ArrowToolPreset, "draftStyle">,
 ) {
   const arrowState = getArrowToolState(api.getState().toolState);
 
@@ -75,7 +75,6 @@ export function applyArrowPreset(
       ...arrowState.draftStyle,
       ...preset.draftStyle,
     },
-    activePresetId: preset.id,
   });
 }
 
@@ -247,7 +246,9 @@ function renderArrow({
   context.lineWidth = strokeWidth;
   context.lineCap = "round";
   context.lineJoin = "round";
-  context.setLineDash(arrow.props.dashed ? [10, 7] : []);
+  context.setLineDash(
+    arrow.props.lineStyle === "dashed" ? arrow.props.dashStyle : [],
+  );
 
   drawArrowPath(
     context,
@@ -350,20 +351,17 @@ function hitTestArrow({
 function createPresetSecondaryActions(
   presets: ArrowToolPreset[],
 ): ToolDefinition["getSecondaryActions"] {
-  return (state) => {
-    const arrowState = getArrowToolState(state.toolState);
-
-    return presets.map(
+  return () =>
+    presets.map(
       (preset): ToolActionDefinition => ({
         id: preset.id,
         label: preset.label,
         tooltip: preset.tooltip ?? preset.label,
         disabled: false,
         onSelect: (api) => applyArrowPreset(api, preset),
-        active: arrowState.activePresetId === preset.id,
+        active: false,
       }),
     );
-  };
 }
 
 export function createArrowTool(

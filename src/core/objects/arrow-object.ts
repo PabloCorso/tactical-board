@@ -4,13 +4,16 @@ export const ARROW_OBJECT_TYPE = "arrow";
 
 export type ArrowBodyStyle = "straight" | "curved";
 export type ArrowHeadStyle = "none" | "triangle";
+export type ArrowLineStyle = "solid" | "dashed";
+export const DEFAULT_ARROW_DASH_STYLE = [8, 10] as const;
 
 export interface ArrowObjectProps extends Record<string, unknown> {
   start: Point;
   end: Point;
   color: string;
   strokeWidth: number;
-  dashed: boolean;
+  lineStyle: ArrowLineStyle;
+  dashStyle: number[];
   bodyStyle: ArrowBodyStyle;
   startHead: ArrowHeadStyle;
   endHead: ArrowHeadStyle;
@@ -44,7 +47,8 @@ export function createArrowObject(input: {
   end: Point;
   color: string;
   strokeWidth: number;
-  dashed: boolean;
+  lineStyle: ArrowLineStyle;
+  dashStyle?: number[];
   bodyStyle: ArrowBodyStyle;
   startHead: ArrowHeadStyle;
   endHead: ArrowHeadStyle;
@@ -59,7 +63,8 @@ export function createArrowObject(input: {
       end: input.end,
       color: input.color,
       strokeWidth: input.strokeWidth,
-      dashed: input.dashed,
+      lineStyle: input.lineStyle,
+      dashStyle: [...(input.dashStyle ?? DEFAULT_ARROW_DASH_STYLE)],
       bodyStyle: input.bodyStyle,
       startHead: input.startHead,
       endHead: input.endHead,
@@ -72,5 +77,9 @@ export function normalizeArrowObject(object: ArrowObject): ArrowObject {
     ...object,
     position: getArrowCenter(object.props.start, object.props.end),
     size: getArrowSize(object.props.start, object.props.end),
+    props: {
+      ...object.props,
+      dashStyle: [...(object.props.dashStyle ?? DEFAULT_ARROW_DASH_STYLE)],
+    },
   };
 }

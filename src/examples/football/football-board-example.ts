@@ -209,20 +209,23 @@ const surfaceHeight =
 
 const arrowBodyStyles = ["straight", "curved"] as const;
 const arrowHeadStyles = ["none", "triangle"] as const;
-const arrowDashStyles = [false, true] as const;
+const arrowLineStyles = ["solid", "dashed"] as const;
 
 const arrowExampleEntries = arrowBodyStyles.flatMap((bodyStyle, bodyIndex) =>
-  arrowDashStyles.flatMap((dashed, dashedIndex) =>
+  arrowLineStyles.flatMap((lineStyle, lineStyleIndex) =>
     arrowHeadStyles.flatMap((startHead, startHeadIndex) =>
       arrowHeadStyles.map((endHead, endHeadIndex) => {
         const variantIndex =
-          bodyIndex * 8 + dashedIndex * 4 + startHeadIndex * 2 + endHeadIndex;
+          bodyIndex * 8 +
+          lineStyleIndex * 4 +
+          startHeadIndex * 2 +
+          endHeadIndex;
         const row = Math.floor(variantIndex / 4);
         const column = variantIndex % 4;
         const id = [
           "arrow",
           bodyStyle,
-          dashed ? "dashed" : "solid",
+          lineStyle,
           `start-${startHead}`,
           `end-${endHead}`,
         ].join("-");
@@ -235,9 +238,9 @@ const arrowExampleEntries = arrowBodyStyles.flatMap((bodyStyle, bodyIndex) =>
             id,
             start: { x: startX, y: startY },
             end: { x: startX + 10, y: startY },
-            color: "#f8fafc",
+            color: "black",
             strokeWidth: 0.4,
-            dashed,
+            lineStyle,
             bodyStyle,
             startHead,
             endHead,

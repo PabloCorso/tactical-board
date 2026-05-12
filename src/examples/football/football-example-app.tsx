@@ -12,7 +12,6 @@ import { createArrowTool } from "../../tools/arrow-tool";
 import { handTool } from "../../tools/hand-tool";
 import { selectTool } from "../../tools/select-tool";
 import { footballBoardExample } from "./football-board-example";
-import colors from "tailwindcss/colors";
 
 const footballArrowTool = createArrowTool({
   presets: [
@@ -20,9 +19,9 @@ const footballArrowTool = createArrowTool({
       id: "sprint",
       label: "Sprint",
       draftStyle: {
-        color: colors.slate[50],
+        color: "black",
         strokeWidth: 0.4,
-        dashed: false,
+        lineStyle: "solid",
         bodyStyle: "straight",
         startHead: "none",
         endHead: "triangle",
@@ -32,9 +31,9 @@ const footballArrowTool = createArrowTool({
       id: "dribble",
       label: "Dribble",
       draftStyle: {
-        color: colors.amber[400],
+        color: "black",
         strokeWidth: 0.4,
-        dashed: true,
+        lineStyle: "dashed",
         bodyStyle: "curved",
         startHead: "none",
         endHead: "triangle",
@@ -44,9 +43,9 @@ const footballArrowTool = createArrowTool({
       id: "pass",
       label: "Pass",
       draftStyle: {
-        color: colors.sky[400],
+        color: "black",
         strokeWidth: 0.4,
-        dashed: true,
+        lineStyle: "dashed",
         bodyStyle: "straight",
         startHead: "none",
         endHead: "triangle",

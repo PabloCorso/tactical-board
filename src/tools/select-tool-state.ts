@@ -16,9 +16,16 @@ interface SelectMarqueeInteraction {
   baseSelection: ObjectId[];
 }
 
+interface SelectArrowEndpointInteraction {
+  mode: "arrow-endpoint";
+  objectId: ObjectId;
+  endpoint: "start" | "end";
+}
+
 export type SelectToolInteraction =
   | SelectDragInteraction
-  | SelectMarqueeInteraction;
+  | SelectMarqueeInteraction
+  | SelectArrowEndpointInteraction;
 
 export interface SelectToolState {
   selectedObjectIds: ObjectId[];

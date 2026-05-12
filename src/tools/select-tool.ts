@@ -4,6 +4,7 @@ import type {
   ToolActionDefinition,
   ToolApi,
   ToolDefinition,
+  ToolPointerEvent,
 } from "../core/tools/types";
 import { createBoardSpaceProjection } from "../core/geometry/board-space-projection";
 import type {
@@ -12,6 +13,10 @@ import type {
   CanvasOverlayRenderer,
 } from "../rendering/canvas/types";
 import type { BoardObject } from "../core/board/types";
+import {
+  ARROW_OBJECT_TYPE,
+  type ArrowObject,
+} from "../core/objects/arrow-object";
 import {
   getSelectToolState,
   type SelectToolState,
@@ -23,6 +28,8 @@ import colors from "tailwindcss/colors";
 const SURFACE_INSET = 14;
 const DEFAULT_SELECTION_COLOR = colors.sky[400];
 const SELECTION_OVERLAY_KIND = "select:selection-ring";
+const ARROW_ENDPOINT_HANDLE_RADIUS_PX = 5;
+const ARROW_ENDPOINT_HANDLE_HIT_RADIUS_PX = 12;
 const DISABLED_SELECTION_ACTIONS: ToolActionDefinition[] = [
   {
     id: "duplicate-selection",
@@ -226,6 +233,61 @@ function createSelectionOverlayItems(
   });
 }
 
+function getSelectedArrowEndpointAtPoint(
+  state: BoardEditorState,
+  selectState: SelectToolState,
+  event: ToolPointerEvent,
+) {
+  const projection = createBoardSpaceProjection({
+    surface: state.board.surface,
+    viewport: state.ui.viewport,
+    canvasRect: event.canvasRect,
+    surfaceInset: SURFACE_INSET,
+  });
+  const canvasPoint = projection.worldToCanvas(event.point);
+  let nearest:
+    | {
+        objectId: string;
+        endpoint: "start" | "end";
+        distance: number;
+      }
+    | undefined;
+
+  for (const objectId of selectState.selectedObjectIds) {
+    const object = state.board.objects.byId[objectId];
+    if (object?.type !== ARROW_OBJECT_TYPE || object.locked) {
+      continue;
+    }
+
+    const arrow = object as ArrowObject;
+    const endpoints = [
+      { endpoint: "start" as const, point: arrow.props.start },
+      { endpoint: "end" as const, point: arrow.props.end },
+    ];
+
+    for (const { endpoint, point } of endpoints) {
+      const endpointCanvasPoint = projection.worldToCanvas(point);
+      const distance = Math.hypot(
+        canvasPoint.x - endpointCanvasPoint.x,
+        canvasPoint.y - endpointCanvasPoint.y,
+      );
+
+      if (
+        distance <= ARROW_ENDPOINT_HANDLE_HIT_RADIUS_PX &&
+        (!nearest || distance < nearest.distance)
+      ) {
+        nearest = {
+          objectId,
+          endpoint,
+          distance,
+        };
+      }
+    }
+  }
+
+  return nearest;
+}
+
 export function getSelectOverlayItems(
   state: BoardEditorState,
 ): Array<CanvasRectOverlayItem | SelectionOverlayItem> {
@@ -271,14 +333,42 @@ export function registerSelectOverlayRenderer(
       }
 
       const selectionOverlay = overlay;
-      const bounds = surfaceTransform.getObjectCanvasBounds(
-        selectionOverlay.object,
-      );
 
       context.save();
       context.strokeStyle = selectionOverlay.color;
       context.lineWidth = 1;
       context.setLineDash([]);
+
+      if (selectionOverlay.object.type === ARROW_OBJECT_TYPE) {
+        const arrow = selectionOverlay.object as ArrowObject;
+        const endpoints = [arrow.props.start, arrow.props.end];
+
+        context.fillStyle = colors.white;
+        context.lineWidth = 1.5;
+
+        for (const endpoint of endpoints) {
+          const point = surfaceTransform.worldToCanvas(endpoint);
+
+          context.beginPath();
+          context.arc(
+            point.x,
+            point.y,
+            ARROW_ENDPOINT_HANDLE_RADIUS_PX,
+            0,
+            Math.PI * 2,
+          );
+          context.fill();
+          context.stroke();
+        }
+
+        context.restore();
+        return;
+      }
+
+      const bounds = surfaceTransform.getObjectCanvasBounds(
+        selectionOverlay.object,
+      );
+
       context.strokeRect(
         bounds.x - 4,
         bounds.y - 4,
@@ -345,6 +435,23 @@ export const selectTool: ToolDefinition = {
   onPointerDown: (event, api) => {
     const state = api.getState();
     const selectState = getSelectToolState(state.toolState);
+    const arrowEndpointHit = getSelectedArrowEndpointAtPoint(
+      state,
+      selectState,
+      event,
+    );
+
+    if (arrowEndpointHit) {
+      setSelectState(api, {
+        selectedObjectIds: [arrowEndpointHit.objectId],
+        interaction: {
+          mode: "arrow-endpoint",
+          objectId: arrowEndpointHit.objectId,
+          endpoint: arrowEndpointHit.endpoint,
+        },
+      });
+      return;
+    }
 
     if (event.targetObjectId) {
       const hasAdditiveModifier = isAdditiveSelectionModifierPressed(event);
@@ -427,6 +534,25 @@ export const selectTool: ToolDefinition = {
       setSelectState(api, {
         selectedObjectIds: nextSelection,
         interaction: nextToolState,
+      });
+      return;
+    }
+
+    if (interaction.mode === "arrow-endpoint") {
+      api.updateObjects([interaction.objectId], (object) => {
+        if (object.type !== ARROW_OBJECT_TYPE || object.locked) {
+          return object;
+        }
+
+        const arrow = object as ArrowObject;
+
+        return {
+          ...arrow,
+          props: {
+            ...arrow.props,
+            [interaction.endpoint]: event.point,
+          },
+        };
       });
       return;
     }

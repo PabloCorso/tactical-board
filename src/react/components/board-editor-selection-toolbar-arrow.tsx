@@ -11,6 +11,7 @@ import type { ReactNode } from "react";
 import {
   type ArrowBodyStyle,
   type ArrowHeadStyle,
+  type ArrowLineStyle,
   type ArrowObject,
 } from "../../core/objects/arrow-object";
 import { createToolApi } from "../../core/editor/create-tool-api";
@@ -20,6 +21,7 @@ import { BoardEditorToolbarButton } from "./board-editor-toolbar-button";
 import type { BoardEditorSelectionToolbarRendererProps } from "./board-editor-selection-toolbar-types";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Button } from "./ui/button";
+import { ColorPicker, DEFAULT_PRESET_COLORS } from "./ui/color-picker";
 import type { IconProps } from "./ui/icon";
 
 const BODY_STYLE_OPTIONS: Array<{
@@ -43,9 +45,12 @@ const WEIGHT_OPTIONS = [
   { label: "Bold", value: "0.6", strokeWidth: 0.6 },
 ] as const;
 
-const DASHED_OPTIONS = [
-  { label: "Solid", value: false },
-  { label: "Dashed", value: true },
+const LINE_STYLE_OPTIONS: Array<{
+  value: ArrowLineStyle;
+  label: string;
+}> = [
+  { label: "Solid", value: "solid" },
+  { label: "Dashed", value: "dashed" },
 ] as const;
 
 function getWeightValue(strokeWidth: number) {
@@ -88,6 +93,7 @@ type ArrowPopoverButtonProps = {
   tooltip?: string;
   icon: IconProps["children"];
   content: ReactNode;
+  showCaret?: boolean;
 };
 
 function ArrowPopoverButton({
@@ -95,6 +101,7 @@ function ArrowPopoverButton({
   tooltip,
   icon,
   content,
+  showCaret = true,
 }: ArrowPopoverButtonProps) {
   return (
     <Popover>
@@ -102,7 +109,9 @@ function ArrowPopoverButton({
         <BoardEditorToolbarButton
           aria-label={ariaLabel}
           iconBefore={icon}
-          iconAfter={<CaretDownIcon className="opacity-75" />}
+          iconAfter={
+            showCaret ? <CaretDownIcon className="opacity-75" /> : undefined
+          }
           iconSize="xl"
           tooltip={tooltip}
         />
@@ -194,21 +203,21 @@ function ArrowBodyPopoverContent({
   );
 }
 
-type ArrowDashedPopoverContentProps = {
-  dashed: boolean;
-  onSelect: (value: boolean) => void;
+type ArrowLineStylePopoverContentProps = {
+  lineStyle: ArrowLineStyle;
+  onSelect: (value: ArrowLineStyle) => void;
 };
 
-function ArrowDashedPopoverContent({
-  dashed,
+function ArrowLineStylePopoverContent({
+  lineStyle,
   onSelect,
-}: ArrowDashedPopoverContentProps) {
+}: ArrowLineStylePopoverContentProps) {
   return (
     <div className="grid grid-cols-2 gap-2">
-      {DASHED_OPTIONS.map((option) => (
+      {LINE_STYLE_OPTIONS.map((option) => (
         <ArrowOptionButton
-          key={option.label}
-          active={dashed === option.value}
+          key={option.value}
+          active={lineStyle === option.value}
           ariaLabel={`Arrow line style ${option.label}`}
           icon={
             <span className="flex h-5 w-10 items-center justify-center">
@@ -218,7 +227,7 @@ function ArrowDashedPopoverContent({
                   width: 28,
                   height: 2.5,
                   borderRadius: 9999,
-                  opacity: option.value ? 0.6 : 1,
+                  opacity: option.value === "dashed" ? 0.6 : 1,
                 }}
               />
             </span>
@@ -264,6 +273,24 @@ function ArrowWeightPopoverContent({
   );
 }
 
+type ArrowColorPopoverContentProps = {
+  color: string;
+  onSelect: (value: string) => void;
+};
+
+function ArrowColorPopoverContent({
+  color,
+  onSelect,
+}: ArrowColorPopoverContentProps) {
+  return (
+    <ColorPicker
+      value={color}
+      onChange={onSelect}
+      presetColors={[...DEFAULT_PRESET_COLORS]}
+    />
+  );
+}
+
 export function BoardEditorArrowSelectionToolbar({
   className,
   selectedObject,
@@ -306,12 +333,32 @@ export function BoardEditorArrowSelectionToolbar({
       >
         <BoardEditorToolbar className={className}>
           <ArrowPopoverButton
+            ariaLabel="Arrow color"
+            tooltip={`Color: ${selectedObject.props.color}`}
+            showCaret={false}
+            content={
+              <ArrowColorPopoverContent
+                color={selectedObject.props.color}
+                onSelect={(value) => updateArrowProps({ color: value })}
+              />
+            }
+            icon={
+              <span
+                className="border-default inline-flex h-5 w-5 rounded-full border"
+                style={{ backgroundColor: selectedObject.props.color }}
+              >
+                <span className="sr-only">{selectedObject.props.color}</span>
+              </span>
+            }
+          />
+
+          <ArrowPopoverButton
             ariaLabel="Arrow line style"
             tooltip="Line style"
             content={
-              <ArrowDashedPopoverContent
-                dashed={selectedObject.props.dashed}
-                onSelect={(value) => updateArrowProps({ dashed: value })}
+              <ArrowLineStylePopoverContent
+                lineStyle={selectedObject.props.lineStyle}
+                onSelect={(value) => updateArrowProps({ lineStyle: value })}
               />
             }
             icon={<LineSegmentsIcon weight="bold" />}
