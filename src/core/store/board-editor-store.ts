@@ -12,7 +12,6 @@ import type {
   CanvasObjectRendererRegistry,
   CanvasOverlayRendererRegistry,
 } from "../../rendering/canvas/types";
-import { SELECT_TOOL_ID } from "../../tools/select-tool-state";
 
 export interface CreateBoardEditorStoreOptions<
   TObject extends BoardObjectBase = BoardObjectBase,
@@ -53,15 +52,15 @@ function createDuplicatedObjectId(
 export function createBoardEditorStore<TObject extends BoardObjectBase>({
   initialBoard,
   tools = [],
-  initialToolId = SELECT_TOOL_ID,
+  initialToolId,
   objectRenderers = {},
   overlayRenderers = {},
 }: CreateBoardEditorStoreOptions<TObject>): BoardEditorStore<TObject> {
   const toolRegistry = createToolRegistry(tools);
-  const fallbackToolId = tools[0]?.id ?? initialToolId;
-  const activeToolId = toolRegistry.definitions[initialToolId]
-    ? initialToolId
-    : fallbackToolId;
+  const activeToolId =
+    initialToolId && toolRegistry.definitions[initialToolId]
+      ? initialToolId
+      : tools[0]?.id ?? initialToolId ?? ""
 
   return createStore<BoardEditorState<TObject>>((set, get) => ({
     board: initialBoard,
@@ -84,19 +83,6 @@ export function createBoardEditorStore<TObject extends BoardObjectBase>({
         set((state) => {
           if (!state.toolRegistry.definitions[toolId]) {
             return state;
-          }
-
-          if (toolId !== SELECT_TOOL_ID) {
-            const nextToolState = { ...state.toolState };
-            delete nextToolState[SELECT_TOOL_ID];
-
-            return {
-              ui: {
-                ...state.ui,
-                activeToolId: toolId,
-              },
-              toolState: nextToolState,
-            };
           }
 
           return {

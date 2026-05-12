@@ -34,7 +34,7 @@ describe("createBoardEditorStore", () => {
       ],
     });
 
-  it("clears select tool state when another tool becomes active", () => {
+  it("switches active tools without mutating tool state", () => {
     const store = createStore();
 
     store.getState().actions.setToolState(SELECT_TOOL_ID, {
@@ -44,8 +44,14 @@ describe("createBoardEditorStore", () => {
 
     expect(
       getSelectToolState(store.getState().toolState).selectedObjectIds,
-    ).toEqual([]);
+    ).toEqual(["a", "b"]);
     expect(store.getState().ui.activeToolId).toBe("draw");
+  });
+
+  it("uses the first registered tool when no initial tool is provided", () => {
+    const store = createStore();
+
+    expect(store.getState().ui.activeToolId).toBe(SELECT_TOOL_ID);
   });
 
   it("duplicates objects without changing select tool state", () => {
