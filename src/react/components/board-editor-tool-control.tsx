@@ -1,5 +1,6 @@
 import {
   ArrowUpRightIcon,
+  CircleIcon,
   CursorIcon,
   HandIcon,
   SquareIcon,
@@ -29,6 +30,8 @@ function getDefaultToolIcon(toolId: ToolId) {
       );
     case "shape":
       return <SquareIcon aria-hidden="true" className="size-5" weight="bold" />;
+    case "player":
+      return <CircleIcon aria-hidden="true" className="size-5" weight="fill" />;
     default:
       return undefined;
   }

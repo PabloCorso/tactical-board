@@ -35,6 +35,7 @@ export interface ToolWheelEvent {
 
 export type ToolActionIcon =
   | { kind: "system"; value: "duplicate" | "delete" }
+  | { kind: "color"; value: string }
   | {
       kind: "arrow";
       value:

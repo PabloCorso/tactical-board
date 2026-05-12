@@ -32,7 +32,7 @@ describe("createBoardSpaceProjection", () => {
     expect(
       projection.getObjectCanvasBounds({
         id: "screen-token",
-        type: "player-token",
+        type: "player",
         position: { x: 10, y: 10 },
         size: { width: 24, height: 18, mode: "screen" },
         props: {},
@@ -63,7 +63,7 @@ describe("createBoardSpaceProjection", () => {
       projection.hitTestObject(
         {
           id: "small-token",
-          type: "player-token",
+          type: "player",
           position: { x: 10, y: 10 },
           size: { height: 2, width: 2, mode: "screen" },
           props: {},

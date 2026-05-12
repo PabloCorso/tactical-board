@@ -7,12 +7,15 @@ import {
   createArrowObject,
   getArrowCurveHandlePoint,
 } from "../objects/arrow-object";
+import { createPlayerObject } from "../objects/player-object";
 import { createShapeObject } from "../objects/shape-object";
 import { createArrowTool, setArrowDraftStyle } from "../../tools/arrow-tool";
+import { createPlayerTool, setPlayerDraftStyle } from "../../tools/player-tool";
 import { createShapeTool } from "../../tools/shape-tool";
 import { selectTool } from "../../tools/select-tool";
 import { setSelectedObjectIds } from "../../tools/select-tool-actions";
 import { getArrowToolState } from "../../tools/arrow-tool-state";
+import { getPlayerToolState } from "../../tools/player-tool-state";
 import { getSelectToolState } from "../../tools/select-tool-state";
 import { getShapeToolState } from "../../tools/shape-tool-state";
 import { MAX_VIEWPORT_ZOOM, MIN_VIEWPORT_ZOOM } from "./viewport-utils";
@@ -289,6 +292,355 @@ describe("createBoardEditorController", () => {
         },
       },
     );
+  });
+
+  it("places players with numeric labels sequenced by color", () => {
+    const playerTool = createPlayerTool();
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+          unit: "m",
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      initialToolId: playerTool.id,
+      tools: [selectTool, playerTool],
+    });
+    const toolApi = createToolApi(store);
+    playerTool.registerRenderers?.(toolApi);
+
+    const controller = createBoardEditorController(store);
+    const canvasRect = {
+      left: 0,
+      top: 0,
+      width: 1000,
+      height: 500,
+    };
+    const projection = createBoardSpaceProjection({
+      surface: store.getState().board.surface,
+      viewport: store.getState().ui.viewport,
+      canvasRect,
+      surfaceInset: 14,
+    });
+
+    const firstBlue = projection.worldToCanvas({ x: 10, y: 10 });
+    controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: firstBlue,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    const secondBlue = projection.worldToCanvas({ x: 20, y: 10 });
+    controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: secondBlue,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    setPlayerDraftStyle(toolApi, { color: "#ff6b35" });
+    const firstOrange = projection.worldToCanvas({ x: 30, y: 10 });
+    controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: firstOrange,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    setPlayerDraftStyle(toolApi, { color: "#111827" });
+    const firstBlack = projection.worldToCanvas({ x: 40, y: 10 });
+    controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: firstBlack,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    setPlayerDraftStyle(toolApi, { color: "#ff6b35" });
+    const secondOrange = projection.worldToCanvas({ x: 50, y: 10 });
+    controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: secondOrange,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    expect(store.getState().board.objects.order).toEqual([
+      "player-1",
+      "player-2",
+      "player-3",
+      "player-4",
+      "player-5",
+    ]);
+    expect(store.getState().board.objects.byId["player-1"]).toMatchObject({
+      type: "player",
+      props: { label: "1", color: "#111827" },
+    });
+    expect(store.getState().board.objects.byId["player-2"]).toMatchObject({
+      type: "player",
+      props: { label: "2", color: "#111827" },
+    });
+    expect(store.getState().board.objects.byId["player-3"]).toMatchObject({
+      type: "player",
+      props: { label: "1", color: "#ff6b35" },
+    });
+    expect(store.getState().board.objects.byId["player-4"]).toMatchObject({
+      type: "player",
+      props: { label: "3", color: "#111827" },
+    });
+    expect(store.getState().board.objects.byId["player-5"]).toMatchObject({
+      type: "player",
+      props: { label: "2", color: "#ff6b35" },
+    });
+    expect(getPlayerToolState(store.getState().toolState).nextNumericLabelByColor).toEqual({
+      "#111827": 4,
+      "#ff6b35": 3,
+    });
+  });
+
+  it("seeds player numbering from existing players on the board", () => {
+    const playerTool = createPlayerTool();
+    const existingBluePlayer = createPlayerObject({
+      id: "player-1",
+      position: { x: 10, y: 10 },
+      color: "#1f6feb",
+      label: "1",
+    });
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+          unit: "m",
+        },
+        objects: {
+          byId: {
+            [existingBluePlayer.id]: existingBluePlayer,
+          },
+          order: [existingBluePlayer.id],
+        },
+        style: {},
+      },
+      initialToolId: playerTool.id,
+      tools: [selectTool, playerTool],
+    });
+    const toolApi = createToolApi(store);
+    playerTool.registerRenderers?.(toolApi);
+    setPlayerDraftStyle(toolApi, { color: "#1f6feb" });
+
+    const controller = createBoardEditorController(store);
+    const canvasRect = {
+      left: 0,
+      top: 0,
+      width: 1000,
+      height: 500,
+    };
+    const projection = createBoardSpaceProjection({
+      surface: store.getState().board.surface,
+      viewport: store.getState().ui.viewport,
+      canvasRect,
+      surfaceInset: 14,
+    });
+    const nextBlue = projection.worldToCanvas({ x: 20, y: 10 });
+
+    controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: nextBlue,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    expect(store.getState().board.objects.byId["player-2"]).toMatchObject({
+      type: "player",
+      props: { color: "#1f6feb", label: "2" },
+    });
+    expect(getPlayerToolState(store.getState().toolState).nextNumericLabelByColor).toEqual({
+      "#1f6feb": 3,
+    });
+  });
+
+  it("resizes a selected player by dragging a selection handle", () => {
+    const playerTool = createPlayerTool();
+    const existingPlayer = createPlayerObject({
+      id: "player-1",
+      position: { x: 10, y: 10 },
+      size: { width: 2, height: 2, mode: "world", unit: "m" },
+      color: "#1f6feb",
+      label: "1",
+    });
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+          unit: "m",
+        },
+        objects: {
+          byId: {
+            [existingPlayer.id]: existingPlayer,
+          },
+          order: [existingPlayer.id],
+        },
+        style: {},
+      },
+      initialToolId: selectTool.id,
+      tools: [selectTool, playerTool],
+    });
+    const toolApi = createToolApi(store);
+    playerTool.registerRenderers?.(toolApi);
+    setSelectedObjectIds(toolApi, [existingPlayer.id]);
+
+    const controller = createBoardEditorController(store);
+    const canvasRect = {
+      left: 0,
+      top: 0,
+      width: 1000,
+      height: 500,
+    };
+    const projection = createBoardSpaceProjection({
+      surface: store.getState().board.surface,
+      viewport: store.getState().ui.viewport,
+      canvasRect,
+      surfaceInset: 14,
+    });
+
+    const bottomRightHandle = projection.worldToCanvas({ x: 11, y: 11 });
+    const nextSizeHandle = projection.worldToCanvas({ x: 12, y: 12 });
+
+    controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: bottomRightHandle,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+    controller.dispatchPointerEvent("onPointerMove", {
+      clientPoint: nextSizeHandle,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    expect(store.getState().board.objects.byId[existingPlayer.id]).toMatchObject({
+      size: { width: 4, height: 4 },
+    });
+  });
+
+  it("rotates a selected player by dragging the rotation handle", () => {
+    const playerTool = createPlayerTool();
+    const existingPlayer = createPlayerObject({
+      id: "player-1",
+      position: { x: 10, y: 10 },
+      size: { width: 2, height: 2, mode: "world", unit: "m" },
+      color: "#1f6feb",
+      label: "1",
+    });
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+          unit: "m",
+        },
+        objects: {
+          byId: {
+            [existingPlayer.id]: existingPlayer,
+          },
+          order: [existingPlayer.id],
+        },
+        style: {},
+      },
+      initialToolId: selectTool.id,
+      tools: [selectTool, playerTool],
+    });
+    const toolApi = createToolApi(store);
+    playerTool.registerRenderers?.(toolApi);
+    setSelectedObjectIds(toolApi, [existingPlayer.id]);
+
+    const controller = createBoardEditorController(store);
+    const canvasRect = {
+      left: 0,
+      top: 0,
+      width: 1000,
+      height: 500,
+    };
+    const projection = createBoardSpaceProjection({
+      surface: store.getState().board.surface,
+      viewport: store.getState().ui.viewport,
+      canvasRect,
+      surfaceInset: 14,
+    });
+    const bounds = projection.getObjectCanvasBounds(existingPlayer);
+    const rotationHandle = {
+      x: bounds.x + bounds.width / 2,
+      y: bounds.y - 20,
+    };
+    const rightOfCenter = projection.worldToCanvas({ x: 12, y: 10 });
+
+    controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: rotationHandle,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+    controller.dispatchPointerEvent("onPointerMove", {
+      clientPoint: rightOfCenter,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    expect(store.getState().board.objects.byId[existingPlayer.id]).toMatchObject({
+      rotation: 90,
+    });
   });
 
   it("resizes a selected shape by dragging a corner handle", () => {

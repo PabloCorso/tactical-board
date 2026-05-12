@@ -216,6 +216,15 @@ function getSecondaryActionIcon(action: ToolActionDefinition): IconRender {
         );
       }
       return undefined;
+    case "color":
+      return (
+        <span
+          className="border-default inline-flex h-5 w-5 rounded-full border"
+          style={{ backgroundColor: action.icon.value }}
+        >
+          <span className="sr-only">{action.icon.value}</span>
+        </span>
+      );
     case "arrow":
       return renderArrowActionIcon(action.icon);
     case "shape":

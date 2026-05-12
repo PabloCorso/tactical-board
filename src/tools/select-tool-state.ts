@@ -53,13 +53,27 @@ interface SelectShapeResizeInteraction {
   };
 }
 
+interface SelectPlayerResizeInteraction {
+  mode: "player-resize";
+  objectId: ObjectId;
+  center: Point;
+}
+
+interface SelectPlayerRotateInteraction {
+  mode: "player-rotate";
+  objectId: ObjectId;
+  center: Point;
+}
+
 export type SelectToolInteraction =
   | SelectDragInteraction
   | SelectMarqueeInteraction
   | SelectArrowEndpointInteraction
   | SelectArrowPointInteraction
   | SelectArrowCurveInteraction
-  | SelectShapeResizeInteraction;
+  | SelectShapeResizeInteraction
+  | SelectPlayerResizeInteraction
+  | SelectPlayerRotateInteraction;
 
 export interface SelectToolState {
   selectedObjectIds: ObjectId[];

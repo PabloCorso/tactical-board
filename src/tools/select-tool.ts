@@ -24,6 +24,12 @@ import {
   type ArrowObject,
 } from "../core/objects/arrow-object";
 import {
+  PLAYER_OBJECT_TYPE,
+  resizePlayerObject,
+  rotatePlayerObject,
+  type PlayerObject,
+} from "../core/objects/player-object";
+import {
   getShapeBounds,
   resizeShapeObject,
   SHAPE_OBJECT_TYPE,
@@ -47,6 +53,11 @@ const ARROW_CURVE_HANDLE_HEIGHT_PX = 6;
 const SHAPE_RESIZE_HANDLE_RADIUS_PX = 5;
 const SHAPE_RESIZE_HANDLE_HIT_RADIUS_PX = 12;
 const SHAPE_RESIZE_EDGE_HIT_RADIUS_PX = 8;
+const PLAYER_RESIZE_HANDLE_RADIUS_PX = 5;
+const PLAYER_RESIZE_HANDLE_HIT_RADIUS_PX = 12;
+const PLAYER_ROTATE_HANDLE_RADIUS_PX = 5;
+const PLAYER_ROTATE_HANDLE_HIT_RADIUS_PX = 12;
+const PLAYER_ROTATE_HANDLE_OFFSET_PX = 20;
 const DISABLED_SELECTION_ACTIONS: ToolActionDefinition[] = [
   {
     id: "duplicate-selection",
@@ -126,6 +137,50 @@ function getShapeResizeHandlePoints(shape: ShapeObject) {
       point: { x: bounds.minX, y: bounds.maxY },
     },
   ];
+}
+
+function getPlayerResizeHandlePoints(player: PlayerObject) {
+  const halfWidth = (player.size?.width ?? 0) / 2;
+  const halfHeight = (player.size?.height ?? player.size?.width ?? 0) / 2;
+
+  return [
+    {
+      point: {
+        x: player.position.x - halfWidth,
+        y: player.position.y - halfHeight,
+      },
+    },
+    {
+      point: {
+        x: player.position.x + halfWidth,
+        y: player.position.y - halfHeight,
+      },
+    },
+    {
+      point: {
+        x: player.position.x + halfWidth,
+        y: player.position.y + halfHeight,
+      },
+    },
+    {
+      point: {
+        x: player.position.x - halfWidth,
+        y: player.position.y + halfHeight,
+      },
+    },
+  ];
+}
+
+function getPlayerRotateHandleCanvasPoint(
+  projection: ReturnType<typeof createBoardSpaceProjection>,
+  player: PlayerObject,
+) {
+  const bounds = projection.getObjectCanvasBounds(player);
+
+  return {
+    x: bounds.x + bounds.width / 2,
+    y: bounds.y - PLAYER_ROTATE_HANDLE_OFFSET_PX,
+  };
 }
 
 function isSelectionOverlayItem(
@@ -563,6 +618,87 @@ function getSelectedShapeResizeHandleAtPoint(
   return nearest;
 }
 
+function getSelectedPlayerResizeHandleAtPoint(
+  state: BoardEditorState,
+  selectState: SelectToolState,
+  event: ToolPointerEvent,
+) {
+  if (selectState.selectedObjectIds.length !== 1) {
+    return undefined;
+  }
+
+  const object = state.board.objects.byId[selectState.selectedObjectIds[0]];
+  if (object?.type !== PLAYER_OBJECT_TYPE || object.locked) {
+    return undefined;
+  }
+
+  const projection = createBoardSpaceProjection({
+    surface: state.board.surface,
+    viewport: state.ui.viewport,
+    canvasRect: event.canvasRect,
+    surfaceInset: SURFACE_INSET,
+  });
+  const canvasPoint = projection.worldToCanvas(event.point);
+  const player = object as PlayerObject;
+
+  for (const { point } of getPlayerResizeHandlePoints(player)) {
+    const handleCanvasPoint = projection.worldToCanvas(point);
+    const distance = Math.hypot(
+      canvasPoint.x - handleCanvasPoint.x,
+      canvasPoint.y - handleCanvasPoint.y,
+    );
+
+    if (distance <= PLAYER_RESIZE_HANDLE_HIT_RADIUS_PX) {
+      return {
+        objectId: player.id,
+        center: player.position,
+      };
+    }
+  }
+
+  return undefined;
+}
+
+function getSelectedPlayerRotateHandleAtPoint(
+  state: BoardEditorState,
+  selectState: SelectToolState,
+  event: ToolPointerEvent,
+) {
+  if (selectState.selectedObjectIds.length !== 1) {
+    return undefined;
+  }
+
+  const object = state.board.objects.byId[selectState.selectedObjectIds[0]];
+  if (object?.type !== PLAYER_OBJECT_TYPE || object.locked) {
+    return undefined;
+  }
+
+  const projection = createBoardSpaceProjection({
+    surface: state.board.surface,
+    viewport: state.ui.viewport,
+    canvasRect: event.canvasRect,
+    surfaceInset: SURFACE_INSET,
+  });
+  const canvasPoint = projection.worldToCanvas(event.point);
+  const handleCanvasPoint = getPlayerRotateHandleCanvasPoint(
+    projection,
+    object as PlayerObject,
+  );
+  const distance = Math.hypot(
+    canvasPoint.x - handleCanvasPoint.x,
+    canvasPoint.y - handleCanvasPoint.y,
+  );
+
+  if (distance <= PLAYER_ROTATE_HANDLE_HIT_RADIUS_PX) {
+    return {
+      objectId: object.id,
+      center: object.position,
+    };
+  }
+
+  return undefined;
+}
+
 export function getSelectOverlayItems(
   state: BoardEditorState,
 ): Array<CanvasRectOverlayItem | SelectionOverlayItem> {
@@ -705,6 +841,47 @@ export function registerSelectOverlayRenderer(
         }
       }
 
+      if (
+        selectionOverlay.object.type === PLAYER_OBJECT_TYPE &&
+        !selectionOverlay.object.locked
+      ) {
+        const player = selectionOverlay.object as PlayerObject;
+        context.fillStyle = colors.white;
+
+        for (const { point } of getPlayerResizeHandlePoints(player)) {
+          const handlePoint = surfaceTransform.worldToCanvas(point);
+          context.beginPath();
+          context.arc(
+            handlePoint.x,
+            handlePoint.y,
+            PLAYER_RESIZE_HANDLE_RADIUS_PX,
+            0,
+            Math.PI * 2,
+          );
+          context.fill();
+          context.stroke();
+        }
+
+        const rotateHandlePoint = getPlayerRotateHandleCanvasPoint(
+          surfaceTransform,
+          player,
+        );
+        context.beginPath();
+        context.moveTo(bounds.x + bounds.width / 2, bounds.y);
+        context.lineTo(rotateHandlePoint.x, rotateHandlePoint.y);
+        context.stroke();
+        context.beginPath();
+        context.arc(
+          rotateHandlePoint.x,
+          rotateHandlePoint.y,
+          PLAYER_ROTATE_HANDLE_RADIUS_PX,
+          0,
+          Math.PI * 2,
+        );
+        context.fill();
+        context.stroke();
+      }
+
       context.restore();
     },
   );
@@ -760,6 +937,40 @@ function beginSelectionInteraction(
   selectState: SelectToolState,
 ) {
   const state = api.getState();
+  const playerResizeHit = getSelectedPlayerResizeHandleAtPoint(
+    state,
+    selectState,
+    event,
+  );
+  if (playerResizeHit) {
+    setSelectState(api, {
+      selectedObjectIds: [playerResizeHit.objectId],
+      interaction: {
+        mode: "player-resize",
+        objectId: playerResizeHit.objectId,
+        center: playerResizeHit.center,
+      },
+    });
+    return;
+  }
+
+  const playerRotateHit = getSelectedPlayerRotateHandleAtPoint(
+    state,
+    selectState,
+    event,
+  );
+  if (playerRotateHit) {
+    setSelectState(api, {
+      selectedObjectIds: [playerRotateHit.objectId],
+      interaction: {
+        mode: "player-rotate",
+        objectId: playerRotateHit.objectId,
+        center: playerRotateHit.center,
+      },
+    });
+    return;
+  }
+
   const shapeResizeHit = getSelectedShapeResizeHandleAtPoint(
     state,
     selectState,
@@ -1058,6 +1269,53 @@ function updateShapeResizeInteraction(
   });
 }
 
+function updatePlayerResizeInteraction(
+  event: ToolPointerEvent,
+  api: ToolApi,
+  interaction: Extract<
+    NonNullable<SelectToolState["interaction"]>,
+    { mode: "player-resize" }
+  >,
+) {
+  api.updateObjects([interaction.objectId], (object) => {
+    if (object.type !== PLAYER_OBJECT_TYPE || object.locked) {
+      return object;
+    }
+
+    const halfSize = Math.max(
+      Math.abs(event.point.x - interaction.center.x),
+      Math.abs(event.point.y - interaction.center.y),
+      0.125,
+    );
+
+    return resizePlayerObject(object as PlayerObject, halfSize * 2);
+  });
+}
+
+function updatePlayerRotateInteraction(
+  event: ToolPointerEvent,
+  api: ToolApi,
+  interaction: Extract<
+    NonNullable<SelectToolState["interaction"]>,
+    { mode: "player-rotate" }
+  >,
+) {
+  api.updateObjects([interaction.objectId], (object) => {
+    if (object.type !== PLAYER_OBJECT_TYPE || object.locked) {
+      return object;
+    }
+
+    const dx = event.point.x - interaction.center.x;
+    const dy = event.point.y - interaction.center.y;
+    if (dx === 0 && dy === 0) {
+      return object;
+    }
+
+    const rotation = (Math.atan2(dy, dx) * 180) / Math.PI + 90;
+    return rotatePlayerObject(object as PlayerObject, rotation);
+  });
+}
+
 function updateSelectionInteraction(event: ToolPointerEvent, api: ToolApi) {
   const selectState = getSelectToolState(api.getState().toolState);
   const interaction = selectState.interaction;
@@ -1083,6 +1341,12 @@ function updateSelectionInteraction(event: ToolPointerEvent, api: ToolApi) {
       return;
     case "shape-resize":
       updateShapeResizeInteraction(event, api, interaction);
+      return;
+    case "player-resize":
+      updatePlayerResizeInteraction(event, api, interaction);
+      return;
+    case "player-rotate":
+      updatePlayerRotateInteraction(event, api, interaction);
       return;
   }
 }

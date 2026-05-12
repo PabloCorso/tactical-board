@@ -13,6 +13,7 @@ import { BoardEditorToolControl } from "../../react/components/board-editor-tool
 import { BoardEditorToolbar } from "../../react/components/board-editor-toolbar";
 import { createArrowTool } from "../../tools/arrow-tool";
 import { handTool } from "../../tools/hand-tool";
+import { createPlayerTool } from "../../tools/player-tool";
 import { createShapeTool } from "../../tools/shape-tool";
 import { selectTool } from "../../tools/select-tool";
 import { footballBoardExample } from "./football-board-example";
@@ -112,10 +113,42 @@ const footballShapeTool = createShapeTool({
   ],
 });
 
+const footballPlayerTool = createPlayerTool({
+  presets: [
+    {
+      id: "team-home",
+      label: "Home",
+      draftStyle: {
+        color: "#1f6feb",
+      },
+    },
+    {
+      id: "team-away",
+      label: "Away",
+      draftStyle: {
+        color: "#ff6b35",
+      },
+    },
+    {
+      id: "neutral",
+      label: "Neutral",
+      draftStyle: {
+        color: "#111827",
+      },
+    },
+  ],
+});
+
 const store = createBoardEditorStore({
   initialBoard: footballBoardExample,
   initialToolId: selectTool.id,
-  tools: [selectTool, footballArrowTool, footballShapeTool, handTool],
+  tools: [
+    selectTool,
+    handTool,
+    footballPlayerTool,
+    footballArrowTool,
+    footballShapeTool,
+  ],
 });
 
 export function FootballExampleApp() {
@@ -132,6 +165,7 @@ export function FootballExampleApp() {
             <BoardEditorToolbar className="flex-col">
               <BoardEditorToolControl toolId="select" />
               <BoardEditorToolControl toolId="hand" />
+              <BoardEditorToolControl toolId="player" />
               <BoardEditorToolControl toolId="arrow" />
               <BoardEditorToolControl toolId="shape" />
             </BoardEditorToolbar>

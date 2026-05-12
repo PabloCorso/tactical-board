@@ -7,11 +7,17 @@ import {
 } from "../../tools/arrow-tool-state";
 import { createArrowTool } from "../../tools/arrow-tool";
 import {
+  DEFAULT_PLAYER_TOOL_STATE,
+  getPlayerToolState,
+  PLAYER_TOOL_ID,
+} from "../../tools/player-tool-state";
+import {
   DEFAULT_SHAPE_TOOL_STATE,
   getShapeToolState,
   SHAPE_TOOL_ID,
 } from "../../tools/shape-tool-state";
 import { createShapeTool } from "../../tools/shape-tool";
+import { createPlayerTool } from "../../tools/player-tool";
 import {
   getSelectToolState,
   SELECT_TOOL_ID,
@@ -222,6 +228,63 @@ describe("createBoardEditorStore", () => {
       ...DEFAULT_ARROW_TOOL_STATE.draftStyle,
       geometry: "polyline",
       bodyStyle: "straight",
+    });
+  });
+
+  it("applies the first player preset when activating the player tool", () => {
+    const playerTool = createPlayerTool({
+      presets: [
+        {
+          id: "home",
+          label: "Home",
+          draftStyle: {
+            color: "#1f6feb",
+            size: 2.4,
+          },
+        },
+        {
+          id: "away",
+          label: "Away",
+          draftStyle: {
+            color: "#ff6b35",
+          },
+        },
+      ],
+    });
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      initialToolId: SELECT_TOOL_ID,
+      tools: [selectTool, playerTool],
+    });
+
+    store.getState().actions.setToolState(PLAYER_TOOL_ID, {
+      ...DEFAULT_PLAYER_TOOL_STATE,
+      draftStyle: {
+        ...DEFAULT_PLAYER_TOOL_STATE.draftStyle,
+        color: "#111827",
+        size: 3,
+      },
+    });
+
+    store.getState().actions.setActiveTool(PLAYER_TOOL_ID);
+
+    expect(getPlayerToolState(store.getState().toolState).draftStyle).toEqual({
+      ...DEFAULT_PLAYER_TOOL_STATE.draftStyle,
+      color: "#1f6feb",
+      size: 2.4,
     });
   });
 

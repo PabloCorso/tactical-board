@@ -7,9 +7,14 @@ import {
   type ArrowObject,
 } from "../../core/objects/arrow-object";
 import {
+  PLAYER_OBJECT_TYPE,
+  type PlayerObject,
+} from "../../core/objects/player-object";
+import {
   SHAPE_OBJECT_TYPE,
   type ShapeObject,
 } from "../../core/objects/shape-object";
+import { BoardEditorPlayerSelectionToolbar } from "./board-editor-selection-toolbar-player";
 import { getSelectToolState } from "../../tools/select-tool-state";
 import { useBoardEditorStore } from "../hooks/use-board-editor-store";
 import { useBoardEditorContext } from "./board-editor-context";
@@ -80,6 +85,12 @@ const selectionToolbarRenderers: Record<
     <BoardEditorShapeSelectionToolbar
       {...props}
       selectedObject={props.selectedObject as ShapeObject}
+    />
+  ),
+  [PLAYER_OBJECT_TYPE]: (props) => (
+    <BoardEditorPlayerSelectionToolbar
+      {...props}
+      selectedObject={props.selectedObject as PlayerObject}
     />
   ),
 };

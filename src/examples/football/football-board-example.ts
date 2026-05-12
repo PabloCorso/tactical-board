@@ -1,5 +1,6 @@
 import { createBoard } from "../../core/board/create-board";
 import { createArrowObject } from "../../core/objects/arrow-object";
+import { createPlayerObject } from "../../core/objects/player-object";
 import {
   createShapeObject,
   type ShapeFillStyle,
@@ -348,17 +349,16 @@ export const footballBoardExample = createBoard({
   },
   objects: {
     byId: {
-      "player-token-example": {
-        id: "player-token-example",
-        type: "player-token",
+      "player-example": createPlayerObject({
+        id: "player-example",
         position: { x: 10, y: 10 },
-        size: { width: 1.8, height: 1.8, mode: "world", unit: "m" },
-        props: { label: "1" },
-      },
+        color: "#1f6feb",
+        label: "1",
+      }),
       ...arrowExampleObjects,
       ...shapeExampleObjects,
     },
-    order: ["player-token-example", ...arrowExampleOrder, ...shapeExampleOrder],
+    order: ["player-example", ...arrowExampleOrder, ...shapeExampleOrder],
   },
   style: {},
 });
