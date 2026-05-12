@@ -1098,7 +1098,8 @@ describe("createBoardEditorController", () => {
     );
   });
 
-  it("pans vertically on wheel while the select tool is active", () => {
+  it("pans vertically on wheel regardless of the active tool", () => {
+    const playerTool = createPlayerTool();
     const store = createBoardEditorStore({
       initialBoard: {
         id: "board-1",
@@ -1114,8 +1115,8 @@ describe("createBoardEditorController", () => {
         },
         style: {},
       },
-      initialToolId: selectTool.id,
-      tools: [selectTool],
+      initialToolId: playerTool.id,
+      tools: [selectTool, playerTool],
     });
     const controller = createBoardEditorController(store);
     const handled = controller.dispatchWheelEvent({
@@ -1141,7 +1142,8 @@ describe("createBoardEditorController", () => {
     });
   });
 
-  it("pans horizontally on shift + wheel while the select tool is active", () => {
+  it("pans horizontally on shift + wheel regardless of the active tool", () => {
+    const playerTool = createPlayerTool();
     const store = createBoardEditorStore({
       initialBoard: {
         id: "board-1",
@@ -1157,8 +1159,8 @@ describe("createBoardEditorController", () => {
         },
         style: {},
       },
-      initialToolId: selectTool.id,
-      tools: [selectTool],
+      initialToolId: playerTool.id,
+      tools: [selectTool, playerTool],
     });
     const controller = createBoardEditorController(store);
     const handled = controller.dispatchWheelEvent({

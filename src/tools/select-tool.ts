@@ -1373,16 +1373,4 @@ export const selectTool: ToolDefinition = {
       interaction: undefined,
     });
   },
-  onWheel: (event, api) => {
-    const delta =
-      event.shiftKey && event.deltaX === 0
-        ? { x: -event.deltaY, y: 0 }
-        : { x: -event.deltaX, y: -event.deltaY };
-
-    if (delta.x === 0 && delta.y === 0) {
-      return;
-    }
-
-    api.panViewport(delta);
-  },
 };

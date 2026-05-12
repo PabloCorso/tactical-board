@@ -115,6 +115,19 @@ export function createBoardEditorController(
   store: BoardEditorStore,
 ): BoardEditorController {
   const toolApi = createToolApi(store);
+  const panViewportFromWheel = (input: BoardEditorWheelInput) => {
+    const delta =
+      input.shiftKey && input.deltaX === 0
+        ? { x: -input.deltaY, y: 0 }
+        : { x: -input.deltaX, y: -input.deltaY };
+
+    if (delta.x === 0 && delta.y === 0) {
+      return false;
+    }
+
+    store.getState().actions.panViewport(delta);
+    return true;
+  };
   const zoomViewportFromWheel = (input: BoardEditorWheelInput) => {
     const state = store.getState();
     const nextViewport = getViewportForZoomAtCanvasPoint({
@@ -216,7 +229,7 @@ export function createBoardEditorController(
       const handler = currentTool?.onWheel;
 
       if (!handler) {
-        return false;
+        return panViewportFromWheel(input);
       }
 
       handler(getToolWheelEvent(state, input), toolApi);
