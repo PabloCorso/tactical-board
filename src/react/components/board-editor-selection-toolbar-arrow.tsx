@@ -2,12 +2,10 @@ import {
   ArrowArcRightIcon,
   ArrowLeftIcon,
   ArrowRightIcon,
-  CaretDownIcon,
   LineSegmentIcon,
   LineSegmentsIcon,
   TrashIcon,
 } from "@phosphor-icons/react";
-import type { ReactNode } from "react";
 import {
   type ArrowBodyStyle,
   type ArrowHeadStyle,
@@ -16,13 +14,15 @@ import {
 } from "../../core/objects/arrow-object";
 import { createToolApi } from "../../core/editor/create-tool-api";
 import { useBoardEditorContext } from "./board-editor-context";
-import { BoardEditorToolbar } from "./board-editor-toolbar";
-import { BoardEditorToolbarButton } from "./board-editor-toolbar-button";
+import {
+  BoardEditorToolbar,
+  BoardEditorToolbarButton,
+  BoardEditorToolbarOptionButton,
+  BoardEditorToolbarPopoverButton,
+} from "./board-editor-toolbar";
 import type { BoardEditorSelectionToolbarRendererProps } from "./board-editor-selection-toolbar-types";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import { Button } from "./ui/button";
 import { ColorPicker, DEFAULT_PRESET_COLORS } from "./ui/color-picker";
-import type { IconProps } from "./ui/icon";
+import type { IconRender } from "./ui/icon";
 
 const BODY_STYLE_OPTIONS: Array<{
   value: ArrowBodyStyle;
@@ -68,7 +68,7 @@ function getWeightLabel(strokeWidth: number) {
 function getHeadIcon(
   side: "start" | "end",
   head: ArrowHeadStyle,
-): IconProps["children"] {
+): IconRender {
   if (head === "none") {
     return <LineSegmentIcon weight="bold" />;
   }
@@ -80,7 +80,7 @@ function getHeadIcon(
   );
 }
 
-function getBodyStyleIcon(bodyStyle: ArrowBodyStyle): IconProps["children"] {
+function getBodyStyleIcon(bodyStyle: ArrowBodyStyle): IconRender {
   return bodyStyle === "curved" ? (
     <ArrowArcRightIcon weight="bold" />
   ) : (
@@ -88,74 +88,9 @@ function getBodyStyleIcon(bodyStyle: ArrowBodyStyle): IconProps["children"] {
   );
 }
 
-type ArrowPopoverButtonProps = {
-  ariaLabel: string;
-  tooltip?: string;
-  icon: IconProps["children"];
-  content: ReactNode;
-  showCaret?: boolean;
-};
-
-function ArrowPopoverButton({
-  ariaLabel,
-  tooltip,
-  icon,
-  content,
-  showCaret = true,
-}: ArrowPopoverButtonProps) {
-  return (
-    <Popover>
-      <PopoverTrigger>
-        <BoardEditorToolbarButton
-          aria-label={ariaLabel}
-          iconBefore={icon}
-          iconAfter={
-            showCaret ? <CaretDownIcon className="opacity-75" /> : undefined
-          }
-          iconSize="xl"
-          tooltip={tooltip}
-        />
-      </PopoverTrigger>
-      <PopoverContent
-        align="center"
-        sideOffset={8}
-        className="w-auto min-w-max"
-      >
-        {content}
-      </PopoverContent>
-    </Popover>
-  );
-}
-
-type ArrowOptionButtonProps = {
-  active: boolean;
-  ariaLabel: string;
-  onClick: () => void;
-  icon: IconProps["children"];
-};
-
-function ArrowOptionButton({
-  active,
-  ariaLabel,
-  onClick,
-  icon,
-}: ArrowOptionButtonProps) {
-  return (
-    <Button
-      variant={active ? "secondary" : "ghost"}
-      aria-label={ariaLabel}
-      aria-pressed={active}
-      iconBefore={icon}
-      iconSize="xl"
-      onClick={onClick}
-    />
-  );
-}
-
 type ArrowHeadPopoverContentProps = {
   activeHead: ArrowHeadStyle;
   side: "start" | "end";
-  selectedObject: ArrowObject;
   onSelect: (value: ArrowHeadStyle) => void;
 };
 
@@ -167,7 +102,7 @@ function ArrowHeadPopoverContent({
   return (
     <div className="grid grid-cols-2 gap-2">
       {HEAD_OPTIONS.map((option) => (
-        <ArrowOptionButton
+        <BoardEditorToolbarOptionButton
           key={option.value}
           active={activeHead === option.value}
           ariaLabel={`${side} head ${option.label}`}
@@ -191,7 +126,7 @@ function ArrowBodyPopoverContent({
   return (
     <div className="grid grid-cols-2 gap-2">
       {BODY_STYLE_OPTIONS.map((option) => (
-        <ArrowOptionButton
+        <BoardEditorToolbarOptionButton
           key={option.value}
           active={selectedObject.props.bodyStyle === option.value}
           ariaLabel={`Arrow body ${option.label}`}
@@ -215,7 +150,7 @@ function ArrowLineStylePopoverContent({
   return (
     <div className="grid grid-cols-2 gap-2">
       {LINE_STYLE_OPTIONS.map((option) => (
-        <ArrowOptionButton
+        <BoardEditorToolbarOptionButton
           key={option.value}
           active={lineStyle === option.value}
           ariaLabel={`Arrow line style ${option.label}`}
@@ -251,7 +186,7 @@ function ArrowWeightPopoverContent({
   return (
     <div className="grid grid-cols-2 gap-2">
       {WEIGHT_OPTIONS.map((option) => (
-        <ArrowOptionButton
+        <BoardEditorToolbarOptionButton
           key={option.value}
           active={getWeightValue(strokeWidth) === option.value}
           ariaLabel={`Arrow weight ${option.label}`}
@@ -332,7 +267,7 @@ export function BoardEditorArrowSelectionToolbar({
         }}
       >
         <BoardEditorToolbar className={className}>
-          <ArrowPopoverButton
+          <BoardEditorToolbarPopoverButton
             ariaLabel="Arrow color"
             tooltip={`Color: ${selectedObject.props.color}`}
             showCaret={false}
@@ -352,7 +287,7 @@ export function BoardEditorArrowSelectionToolbar({
             }
           />
 
-          <ArrowPopoverButton
+          <BoardEditorToolbarPopoverButton
             ariaLabel="Arrow line style"
             tooltip="Line style"
             content={
@@ -364,7 +299,7 @@ export function BoardEditorArrowSelectionToolbar({
             icon={<LineSegmentsIcon weight="bold" />}
           />
 
-          <ArrowPopoverButton
+          <BoardEditorToolbarPopoverButton
             ariaLabel="Arrow weight"
             tooltip={`Weight: ${getWeightLabel(selectedObject.props.strokeWidth)}`}
             content={
@@ -386,21 +321,20 @@ export function BoardEditorArrowSelectionToolbar({
             }
           />
 
-          <ArrowPopoverButton
+          <BoardEditorToolbarPopoverButton
             ariaLabel="Arrow start head"
             tooltip="Start head"
             content={
               <ArrowHeadPopoverContent
                 activeHead={selectedObject.props.startHead}
                 side="start"
-                selectedObject={selectedObject}
                 onSelect={(value) => updateArrowProps({ startHead: value })}
               />
             }
             icon={getHeadIcon("start", selectedObject.props.startHead)}
           />
 
-          <ArrowPopoverButton
+          <BoardEditorToolbarPopoverButton
             ariaLabel="Arrow body style"
             tooltip="Body style"
             content={
@@ -412,14 +346,13 @@ export function BoardEditorArrowSelectionToolbar({
             icon={getBodyStyleIcon(selectedObject.props.bodyStyle)}
           />
 
-          <ArrowPopoverButton
+          <BoardEditorToolbarPopoverButton
             ariaLabel="Arrow end head"
             tooltip="End head"
             content={
               <ArrowHeadPopoverContent
                 activeHead={selectedObject.props.endHead}
                 side="end"
-                selectedObject={selectedObject}
                 onSelect={(value) => updateArrowProps({ endHead: value })}
               />
             }

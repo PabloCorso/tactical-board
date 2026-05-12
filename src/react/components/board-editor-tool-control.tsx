@@ -1,14 +1,14 @@
-import type { ReactNode } from "react";
 import { ArrowUpRightIcon, CursorIcon, HandIcon } from "@phosphor-icons/react";
 import type { ToolId } from "../../core/board/types";
 import { useBoardEditorStore } from "../hooks/use-board-editor-store";
 import { useBoardEditorContext } from "./board-editor-context";
-import { BoardEditorToolbarButton } from "./board-editor-toolbar-button";
+import { BoardEditorToolbarButton } from "./board-editor-toolbar";
+import type { IconRender } from "./ui/icon";
 
 export type BoardEditorToolControlProps = {
   toolId: ToolId;
   label?: string;
-  icon?: ReactNode;
+  icon?: IconRender;
   className?: string;
 };
 
@@ -23,7 +23,7 @@ function getDefaultToolIcon(toolId: ToolId) {
         <ArrowUpRightIcon aria-hidden="true" className="size-5" weight="bold" />
       );
     default:
-      return null;
+      return undefined;
   }
 }
 

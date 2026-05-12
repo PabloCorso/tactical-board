@@ -4,9 +4,11 @@ import type { BoardEditorState } from "../../core/editor/types";
 import { createToolApi } from "../../core/editor/create-tool-api";
 import { useBoardEditorStore } from "../hooks/use-board-editor-store";
 import { useBoardEditorContext } from "./board-editor-context";
-import { BoardEditorToolbar } from "./board-editor-toolbar";
-import { BoardEditorToolbarButton } from "./board-editor-toolbar-button";
-import type { IconProps } from "./ui/icon";
+import {
+  BoardEditorToolbar,
+  BoardEditorToolbarButton,
+} from "./board-editor-toolbar";
+import type { IconRender } from "./ui/icon";
 
 export type BoardEditorSecondaryToolbarProps = {
   className?: string;
@@ -14,7 +16,7 @@ export type BoardEditorSecondaryToolbarProps = {
 
 const EMPTY_SECONDARY_ACTIONS: [] = [];
 
-function getSecondaryActionIcon(actionId: string): IconProps["children"] {
+function getSecondaryActionIcon(actionId: string): IconRender {
   switch (actionId) {
     case "duplicate-selection":
       return <CopyIcon aria-hidden="true" className="size-4" weight="bold" />;

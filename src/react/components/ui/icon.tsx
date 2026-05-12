@@ -2,7 +2,7 @@ import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 import { type IconProps as PhosphorIconProps } from "@phosphor-icons/react";
 import { type VariantProps, cva } from "class-variance-authority";
-import { cn } from "#app/utils/misc";
+import { cn } from "#app/utils/misc.tsx";
 
 export const iconVariants = cva("shrink-0", {
   variants: {
@@ -28,6 +28,8 @@ export const iconVariants = cva("shrink-0", {
   },
 });
 
+export type IconRender = useRender.ComponentProps<"svg">["render"];
+
 export type IconProps = Omit<
   useRender.ComponentProps<"svg">,
   "children" | "render"
@@ -35,7 +37,7 @@ export type IconProps = Omit<
   VariantProps<typeof iconVariants> &
   Omit<PhosphorIconProps, "size" | "color" | "children"> & {
     interactive?: boolean;
-    children?: useRender.ComponentProps<"svg">["render"];
+    children?: IconRender;
   };
 
 export function Icon({

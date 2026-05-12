@@ -2,7 +2,7 @@ import type { Ref } from "react";
 import { Button as ButtonPrimitive } from "@base-ui/react/button";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "#app/utils/misc";
-import { Icon, type IconProps } from "./icon.tsx";
+import { Icon, type IconProps, type IconRender } from "./icon.tsx";
 import { Spinner } from "./spinner.tsx";
 
 export const buttonVariants = cva(
@@ -50,8 +50,8 @@ export type ButtonProps = ButtonPrimitive.Props &
   VariantProps<typeof buttonVariants> & {
     disabled?: boolean;
     loading?: boolean;
-    iconBefore?: IconProps["children"];
-    iconAfter?: IconProps["children"];
+    iconBefore?: IconRender;
+    iconAfter?: IconRender;
     iconSize?: IconProps["size"];
     ref?: Ref<HTMLButtonElement>;
   };
