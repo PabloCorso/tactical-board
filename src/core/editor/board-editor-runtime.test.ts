@@ -76,9 +76,9 @@ describe("createBoardEditorRuntime", () => {
     runtime.mount(canvas);
 
     expect(registerRenderers).toHaveBeenCalledTimes(1);
-    expect(
-      store.getState().rendering.overlayRenderers.selection,
-    ).toBeTypeOf("function");
+    expect(store.getState().rendering.overlayRenderers.selection).toBeTypeOf(
+      "function",
+    );
 
     runtime.unmount();
     requestAnimationFrameSpy.mockRestore();

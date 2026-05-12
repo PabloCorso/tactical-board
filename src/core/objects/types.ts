@@ -1,17 +1,15 @@
-import type { BoardObjectBase, ObjectType, SkinId } from "../board/types";
+import type { BoardObject, ObjectType, SkinId } from "../board/types";
 import type { Rect } from "../geometry/types";
 
 export interface ObjectRenderContext {
   skinId?: SkinId;
 }
 
-export interface ObjectDefinition<
-  TObject extends BoardObjectBase<object> = BoardObjectBase<object>,
-> {
+export interface ObjectDefinition {
   type: ObjectType;
-  createDefault: (input: Pick<TObject, "id" | "position">) => TObject;
-  getBounds: (object: TObject) => Rect;
-  render: (object: TObject, context: ObjectRenderContext) => void;
+  createDefault: (input: Pick<BoardObject, "id" | "position">) => BoardObject;
+  getBounds: (object: BoardObject) => Rect;
+  render: (object: BoardObject, context: ObjectRenderContext) => void;
   hitTestMode?: "normal" | "passthrough" | "bounds-only";
 }
 

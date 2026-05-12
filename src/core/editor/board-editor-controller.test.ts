@@ -1,0 +1,117 @@
+import { describe, expect, it } from "vitest";
+import { createBoardEditorController } from "./board-editor-controller";
+import { createToolApi } from "./create-tool-api";
+import { createBoardSpaceProjection } from "../geometry/board-space-projection";
+import { createBoardEditorStore } from "../store/board-editor-store";
+import { createArrowObject } from "../objects/arrow-object";
+import { createArrowTool } from "../../tools/arrow-tool";
+import { selectTool } from "../../tools/select-tool";
+import { getArrowToolState } from "../../tools/arrow-tool-state";
+import { getSelectToolState } from "../../tools/select-tool-state";
+
+describe("createBoardEditorController", () => {
+  it("keeps the arrow tool in creation mode when pointer down hits an existing arrow", () => {
+    const arrowTool = createArrowTool();
+    const existingArrow = createArrowObject({
+      id: "arrow-1",
+      start: { x: 10, y: 10 },
+      end: { x: 20, y: 10 },
+      color: "#fff",
+      strokeWidth: 2,
+      dashed: false,
+      bodyStyle: "straight",
+      startHead: "none",
+      endHead: "triangle",
+    });
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {
+            [existingArrow.id]: existingArrow,
+          },
+          order: [existingArrow.id],
+        },
+        style: {},
+      },
+      initialToolId: arrowTool.id,
+      tools: [selectTool, arrowTool],
+    });
+    const toolApi = createToolApi(store);
+    arrowTool.registerRenderers?.(toolApi);
+
+    const controller = createBoardEditorController(store);
+    const canvasRect = {
+      left: 0,
+      top: 0,
+      width: 1000,
+      height: 500,
+    };
+    const projection = createBoardSpaceProjection({
+      surface: store.getState().board.surface,
+      viewport: store.getState().ui.viewport,
+      canvasRect,
+      surfaceInset: 14,
+    });
+    const startPoint = projection.worldToCanvas(existingArrow.props.start);
+    const endPoint = projection.worldToCanvas({ x: 30, y: 15 });
+
+    controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: {
+        x: startPoint.x + canvasRect.left,
+        y: startPoint.y + canvasRect.top,
+      },
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    expect(
+      getSelectToolState(store.getState().toolState).selectedObjectIds,
+    ).toEqual([]);
+    expect(getArrowToolState(store.getState().toolState).pendingStart).toEqual({
+      x: 10,
+      y: 10,
+    });
+
+    controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: {
+        x: endPoint.x + canvasRect.left,
+        y: endPoint.y + canvasRect.top,
+      },
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    expect(store.getState().board.objects.order).toEqual([
+      "arrow-1",
+      "arrow-2",
+    ]);
+    expect(
+      getSelectToolState(store.getState().toolState).selectedObjectIds,
+    ).toEqual([]);
+    expect(
+      getArrowToolState(store.getState().toolState).pendingStart,
+    ).toBeUndefined();
+    expect(store.getState().board.objects.byId["arrow-2"]).toMatchObject({
+      type: "arrow",
+      props: {
+        start: { x: 10, y: 10 },
+        end: { x: 30, y: 15 },
+      },
+    });
+  });
+});

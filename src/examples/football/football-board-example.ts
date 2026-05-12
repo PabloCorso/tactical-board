@@ -1,4 +1,5 @@
 import { createBoard } from "../../core/board/create-board";
+import { createArrowObject } from "../../core/objects/arrow-object";
 import type { BoardSurfaceMarking } from "../../core/board/types";
 
 const pitchMetrics = {
@@ -206,6 +207,50 @@ const surfaceWidth =
 const surfaceHeight =
   pitchMetrics.field.width + pitchMetrics.perimeter.goalLine * 2;
 
+const arrowBodyStyles = ["straight", "curved"] as const;
+const arrowHeadStyles = ["none", "triangle"] as const;
+const arrowDashStyles = [false, true] as const;
+
+const arrowExampleEntries = arrowBodyStyles.flatMap((bodyStyle, bodyIndex) =>
+  arrowDashStyles.flatMap((dashed, dashedIndex) =>
+    arrowHeadStyles.flatMap((startHead, startHeadIndex) =>
+      arrowHeadStyles.map((endHead, endHeadIndex) => {
+        const variantIndex =
+          bodyIndex * 8 + dashedIndex * 4 + startHeadIndex * 2 + endHeadIndex;
+        const row = Math.floor(variantIndex / 4);
+        const column = variantIndex % 4;
+        const id = [
+          "arrow",
+          bodyStyle,
+          dashed ? "dashed" : "solid",
+          `start-${startHead}`,
+          `end-${endHead}`,
+        ].join("-");
+        const startX = 28 + column * 18;
+        const startY = 10 + row * 16;
+
+        return [
+          id,
+          createArrowObject({
+            id,
+            start: { x: startX, y: startY },
+            end: { x: startX + 10, y: startY },
+            color: "#f8fafc",
+            strokeWidth: 0.4,
+            dashed,
+            bodyStyle,
+            startHead,
+            endHead,
+          }),
+        ] as const;
+      }),
+    ),
+  ),
+);
+
+const arrowExampleObjects = Object.fromEntries(arrowExampleEntries);
+const arrowExampleOrder = arrowExampleEntries.map(([id]) => id);
+
 export const footballBoardExample = createBoard({
   id: "football-example-board",
   version: 1,
@@ -225,36 +270,16 @@ export const footballBoardExample = createBoard({
   },
   objects: {
     byId: {
-      "player-1": {
-        id: "player-1",
+      "player-token-example": {
+        id: "player-token-example",
         type: "player-token",
-        position: { x: 30.2, y: 22.04 },
+        position: { x: 10, y: 10 },
         size: { width: 1.8, height: 1.8, mode: "world", unit: "m" },
         props: { label: "1" },
       },
-      "player-2": {
-        id: "player-2",
-        type: "player-token",
-        position: { x: 51.2, y: 35.64 },
-        size: { width: 1.8, height: 1.8, mode: "world", unit: "m" },
-        props: { label: "2" },
-      },
-      "player-3": {
-        id: "player-3",
-        type: "player-token",
-        position: { x: 74.3, y: 26.12 },
-        size: { width: 1.8, height: 1.8, mode: "world", unit: "m" },
-        props: { label: "3" },
-      },
-      "player-4": {
-        id: "player-4",
-        type: "player-token",
-        position: { x: 82.7, y: 47.88 },
-        size: { width: 1.8, height: 1.8, mode: "world", unit: "m" },
-        props: { label: "4" },
-      },
+      ...arrowExampleObjects,
     },
-    order: ["player-1", "player-2", "player-3", "player-4"],
+    order: ["player-token-example", ...arrowExampleOrder],
   },
   style: {},
 });

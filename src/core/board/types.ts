@@ -33,22 +33,18 @@ export interface BoardStyleRef {
   skinIds?: Partial<Record<ObjectType, SkinId>>;
 }
 
-export interface BoardObjectBase<
-  TProps extends object = Record<string, unknown>,
-> {
+export interface BoardObject {
   id: ObjectId;
   type: ObjectType;
   position: Point;
   size?: BoardObjectSize;
   rotation?: number;
   locked?: boolean;
-  props: TProps;
+  props: Record<string, unknown>;
 }
 
-export interface ObjectIndex<
-  TObject extends BoardObjectBase = BoardObjectBase,
-> {
-  byId: Record<ObjectId, TObject>;
+export interface ObjectIndex {
+  byId: Record<ObjectId, BoardObject>;
   order: ObjectId[];
 }
 
@@ -108,11 +104,11 @@ export type BoardSurfaceMarking =
   | SurfaceCircleMarking
   | SurfaceArcMarking;
 
-export interface Board<TObject extends BoardObjectBase = BoardObjectBase> {
+export interface Board {
   id: BoardId;
   version: number;
   metadata: BoardMetadata;
   surface: BoardSurfaceConfig;
-  objects: ObjectIndex<TObject>;
+  objects: ObjectIndex;
   style: BoardStyleRef;
 }

@@ -1,45 +1,405 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:is(.dark *));
+
 @layer base {
-  :root {
-    font-family: "IBM Plex Sans", "Avenir Next", system-ui, sans-serif;
-    line-height: 1.5;
-    font-weight: 400;
-    color: rgb(241 245 249);
-    background: rgb(2 6 23);
-    font-synthesis: none;
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+  * {
+    @apply border-default;
   }
+}
 
-  *,
-  ::before,
-  ::after {
-    box-sizing: border-box;
-  }
+:root {
+  color-scheme: light;
 
-  html,
-  body,
-  #root {
-    height: 100%;
-    min-height: 100%;
-  }
+  /* Background Colors - Light Mode */
+  --background-screen: color-mix(
+    in oklab,
+    var(--color-white) 96%,
+    var(--color-neutral-100)
+  );
+  --background-input: var(--color-white);
+  --background-item-hover: var(--color-neutral-100);
+  --background-sidebar: color-mix(
+    in oklab,
+    var(--background-screen) 88%,
+    var(--color-neutral-200)
+  );
+  --background-surface: var(--color-white);
 
-  body {
-    margin: 0;
-    min-width: 320px;
-    min-height: 100dvh;
-  }
+  /* Text Colors - Light Mode */
+  --text-primary: var(--color-neutral-900);
+  --text-secondary: var(--color-neutral-600);
+  --text-tertiary: var(--color-neutral-500);
+  --text-placeholder: var(--text-tertiary);
+  --text-on-accent: var(--color-neutral-100);
+  --text-on-color: var(--color-neutral-100);
+  --text-on-neutral: var(--color-neutral-100);
+  --text-on-warning: var(--color-warning-950);
+  --text-neutral-on-soft: var(--text-primary);
+  --text-accent-on-soft: var(--color-primary-900);
+  --text-alternative-on-soft: var(--color-secondary-900);
+  --text-danger-on-soft: var(--color-danger-900);
+  --text-success-on-soft: var(--color-success-900);
+  --text-warning-on-soft: var(--color-warning-900);
+  --text-info-on-soft: var(--color-info-900);
+  --text-neutral-on-ghost: var(--text-secondary);
+  --text-accent-on-ghost: var(--color-primary-700);
+  --text-danger-on-ghost: var(--color-danger-700);
+  --text-success-on-ghost: var(--color-success-700);
+  --text-warning-on-ghost: var(--color-warning-700);
+  --text-info-on-ghost: var(--color-info-700);
 
-  button,
-  input,
-  textarea,
-  select {
-    font: inherit;
-  }
+  /* Border Colors - Light Mode */
+  --border-default: color-mix(
+    in oklab,
+    var(--color-neutral-200) 84%,
+    var(--color-white)
+  );
+  --border-input: var(--color-neutral-300);
+  --border-input-hover: var(--color-neutral-400);
 
-  a {
-    color: inherit;
-  }
+  /* Focus Colors - Light Mode */
+  --focus-ring: var(--accent);
+  --focus-ring-offset: var(--background-screen);
+
+  /* Semantic Colors - Light Mode */
+  --neutral: var(--color-neutral-600);
+  --neutral-hover: var(--color-neutral-700);
+  --neutral-active: var(--color-neutral-800);
+  --neutral-soft: var(--color-neutral-100);
+  --neutral-soft-hover: var(--color-neutral-200);
+  --neutral-soft-active: var(--color-neutral-300);
+  --accent: var(--color-primary-600);
+  --accent-hover: var(--color-primary-700);
+  --accent-active: var(--color-primary-800);
+  --accent-soft: var(--color-primary-100);
+  --accent-soft-hover: var(--color-primary-200);
+  --accent-soft-active: var(--color-primary-300);
+  --alternative: var(--color-secondary-600);
+  --alternative-hover: var(--color-secondary-700);
+  --alternative-active: var(--color-secondary-800);
+  --alternative-soft: var(--color-secondary-100);
+  --alternative-soft-hover: var(--color-secondary-200);
+  --alternative-soft-active: var(--color-secondary-300);
+  --danger: var(--color-danger-600);
+  --danger-hover: var(--color-danger-700);
+  --danger-active: var(--color-danger-800);
+  --danger-soft: var(--color-danger-100);
+  --danger-soft-hover: var(--color-danger-200);
+  --danger-soft-active: var(--color-danger-300);
+  --success: var(--color-success-600);
+  --success-hover: var(--color-success-700);
+  --success-active: var(--color-success-800);
+  --success-soft: var(--color-success-100);
+  --success-soft-hover: var(--color-success-200);
+  --success-soft-active: var(--color-success-300);
+  --warning: var(--color-warning-300);
+  --warning-hover: var(--color-warning-400);
+  --warning-active: var(--color-warning-500);
+  --warning-soft: var(--color-warning-100);
+  --warning-soft-hover: var(--color-warning-200);
+  --warning-soft-active: var(--color-warning-300);
+  --info: var(--color-info-600);
+  --info-hover: var(--color-info-700);
+  --info-active: var(--color-info-800);
+  --info-soft: var(--color-info-100);
+  --info-soft-hover: var(--color-info-200);
+  --info-soft-active: var(--color-info-300);
+}
+
+.dark {
+  color-scheme: dark;
+
+  /* Background Colors - Dark Mode */
+  --background-screen: color-mix(
+    in oklab,
+    var(--color-neutral-950) 94%,
+    var(--color-black)
+  );
+  --background-input: color-mix(
+    in oklab,
+    var(--background-screen) 70%,
+    var(--color-neutral-800)
+  );
+  --background-item-hover: var(--color-neutral-800);
+  --background-sidebar: color-mix(
+    in oklab,
+    var(--background-screen) 86%,
+    var(--color-neutral-900)
+  );
+  --background-surface: color-mix(
+    in oklab,
+    var(--background-screen) 82%,
+    var(--color-neutral-900)
+  );
+
+  /* Text Colors - Dark Mode */
+  --text-primary: var(--color-neutral-100);
+  --text-secondary: var(--color-neutral-400);
+  --text-tertiary: var(--color-neutral-500);
+  --text-placeholder: var(--text-tertiary);
+  --text-on-neutral: var(--color-neutral-950);
+  --text-on-warning: var(--color-warning-950);
+  --text-neutral-on-soft: var(--text-primary);
+  --text-accent-on-soft: var(--color-primary-300);
+  --text-alternative-on-soft: var(--color-secondary-300);
+  --text-danger-on-soft: var(--color-danger-300);
+  --text-success-on-soft: var(--color-success-300);
+  --text-warning-on-soft: var(--color-warning-300);
+  --text-info-on-soft: var(--color-info-300);
+  --text-neutral-on-ghost: var(--text-secondary);
+  --text-accent-on-ghost: var(--color-primary-200);
+  --text-danger-on-ghost: var(--color-danger-200);
+  --text-success-on-ghost: var(--color-success-200);
+  --text-warning-on-ghost: var(--color-warning-200);
+  --text-info-on-ghost: var(--color-info-200);
+
+  /* Border Colors - Dark Mode */
+  --border-default: color-mix(
+    in oklab,
+    var(--color-neutral-800) 82%,
+    var(--background-screen)
+  );
+  --border-input: color-mix(
+    in oklab,
+    var(--color-neutral-700) 82%,
+    var(--background-screen)
+  );
+  --border-input-hover: var(--color-neutral-600);
+
+  /* Semantic Colors - Dark Mode */
+  --neutral: var(--color-neutral-100);
+  --neutral-hover: var(--color-neutral-200);
+  --neutral-active: var(--color-neutral-300);
+  --neutral-soft: var(--color-neutral-800);
+  --neutral-soft-hover: var(--color-neutral-700);
+  --neutral-soft-active: var(--color-neutral-600);
+  --accent-soft: var(--color-primary-950);
+  --accent-soft-hover: var(--color-primary-900);
+  --accent-soft-active: var(--color-primary-800);
+  --alternative-soft: var(--color-secondary-950);
+  --alternative-soft-hover: var(--color-secondary-900);
+  --alternative-soft-active: var(--color-secondary-800);
+  --danger-soft: var(--color-danger-950);
+  --danger-soft-hover: var(--color-danger-900);
+  --danger-soft-active: var(--color-danger-800);
+  --success-soft: var(--color-success-950);
+  --success-soft-hover: var(--color-success-900);
+  --success-soft-active: var(--color-success-800);
+  --warning-soft: var(--color-warning-950);
+  --warning-soft-hover: var(--color-warning-900);
+  --warning-soft-active: var(--color-warning-800);
+  --info-soft: var(--color-info-950);
+  --info-soft-hover: var(--color-info-900);
+  --info-soft-active: var(--color-info-800);
+}
+
+/* https://tailwindcss.com/docs/theme#extending-the-default-theme */
+@theme {
+  --font-sans: InterVariable, sans-serif;
+  --font-sans--font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+
+  /* Breakpoints */
+  --breakpoint-2xs: 20rem;
+  --breakpoint-xs: 30rem;
+
+  /* Primary Colors */
+  --color-primary-50: var(--color-blue-50);
+  --color-primary-100: var(--color-blue-100);
+  --color-primary-200: var(--color-blue-200);
+  --color-primary-300: var(--color-blue-300);
+  --color-primary-400: var(--color-blue-400);
+  --color-primary-500: var(--color-blue-500);
+  --color-primary-600: var(--color-blue-600);
+  --color-primary-700: var(--color-blue-700);
+  --color-primary-800: var(--color-blue-800);
+  --color-primary-900: var(--color-blue-900);
+  --color-primary-950: var(--color-blue-950);
+
+  /* Secondary Colors */
+  --color-secondary-50: var(--color-violet-50);
+  --color-secondary-100: var(--color-violet-100);
+  --color-secondary-200: var(--color-violet-200);
+  --color-secondary-300: var(--color-violet-300);
+  --color-secondary-400: var(--color-violet-400);
+  --color-secondary-500: var(--color-violet-500);
+  --color-secondary-600: var(--color-violet-600);
+  --color-secondary-700: var(--color-violet-700);
+  --color-secondary-800: var(--color-violet-800);
+  --color-secondary-900: var(--color-violet-900);
+  --color-secondary-950: var(--color-violet-950);
+}
+
+/* https://tailwindcss.com/docs/theme#referencing-other-variables */
+@theme inline {
+  /* Neutral Colors */
+  --color-neutral-50: var(--color-zinc-50);
+  --color-neutral-100: var(--color-zinc-100);
+  --color-neutral-200: var(--color-zinc-200);
+  --color-neutral-300: var(--color-zinc-300);
+  --color-neutral-400: var(--color-zinc-400);
+  --color-neutral-500: var(--color-zinc-500);
+  --color-neutral-600: var(--color-zinc-600);
+  --color-neutral-700: var(--color-zinc-700);
+  --color-neutral-800: var(--color-zinc-800);
+  --color-neutral-900: var(--color-zinc-900);
+  --color-neutral-950: var(--color-zinc-950);
+
+  /* Success Colors */
+  --color-success-50: var(--color-emerald-50);
+  --color-success-100: var(--color-emerald-100);
+  --color-success-200: var(--color-emerald-200);
+  --color-success-300: var(--color-emerald-300);
+  --color-success-400: var(--color-emerald-400);
+  --color-success-500: var(--color-emerald-500);
+  --color-success-600: var(--color-emerald-600);
+  --color-success-700: var(--color-emerald-700);
+  --color-success-800: var(--color-emerald-800);
+  --color-success-900: var(--color-emerald-900);
+  --color-success-950: var(--color-emerald-950);
+
+  /* Danger Colors */
+  --color-danger-50: var(--color-red-50);
+  --color-danger-100: var(--color-red-100);
+  --color-danger-200: var(--color-red-200);
+  --color-danger-300: var(--color-red-300);
+  --color-danger-400: var(--color-red-400);
+  --color-danger-500: var(--color-red-500);
+  --color-danger-600: var(--color-red-600);
+  --color-danger-700: var(--color-red-700);
+  --color-danger-800: var(--color-red-800);
+  --color-danger-900: var(--color-red-900);
+  --color-danger-950: var(--color-red-950);
+
+  /* Warning Colors */
+  --color-warning-50: var(--color-yellow-50);
+  --color-warning-100: var(--color-yellow-100);
+  --color-warning-200: var(--color-yellow-200);
+  --color-warning-300: var(--color-yellow-300);
+  --color-warning-400: var(--color-yellow-400);
+  --color-warning-500: var(--color-yellow-500);
+  --color-warning-600: var(--color-yellow-600);
+  --color-warning-700: var(--color-yellow-700);
+  --color-warning-800: var(--color-yellow-800);
+  --color-warning-900: var(--color-yellow-900);
+  --color-warning-950: var(--color-yellow-950);
+
+  /* Info Colors */
+  --color-info-50: var(--color-sky-50);
+  --color-info-100: var(--color-sky-100);
+  --color-info-200: var(--color-sky-200);
+  --color-info-300: var(--color-sky-300);
+  --color-info-400: var(--color-sky-400);
+  --color-info-500: var(--color-sky-500);
+  --color-info-600: var(--color-sky-600);
+  --color-info-700: var(--color-sky-700);
+  --color-info-800: var(--color-sky-800);
+  --color-info-900: var(--color-sky-900);
+  --color-info-950: var(--color-sky-950);
+
+  /* Background Colors */
+  --background-color-screen: var(--background-screen);
+  --background-color-item-hover: var(--background-item-hover);
+  --background-color-sidebar: var(--background-sidebar);
+  --background-color-surface: var(--background-surface);
+  --background-color-border: var(--border-default);
+  --background-color-input: var(--background-input);
+
+  /* Text Colors */
+  --text-color-primary: var(--text-primary);
+  --text-color-secondary: var(--text-secondary);
+  --text-color-tertiary: var(--text-tertiary);
+  --text-color-placeholder: var(--text-placeholder);
+  --text-color-on-accent: var(--text-on-accent);
+  --text-color-on-color: var(--text-on-color);
+  --text-color-on-neutral: var(--text-on-neutral);
+  --text-color-on-warning: var(--text-on-warning);
+  --text-color-neutral-on-soft: var(--text-neutral-on-soft);
+  --text-color-accent-on-soft: var(--text-accent-on-soft);
+  --text-color-alternative-on-soft: var(--text-alternative-on-soft);
+  --text-color-danger-on-soft: var(--text-danger-on-soft);
+  --text-color-success-on-soft: var(--text-success-on-soft);
+  --text-color-warning-on-soft: var(--text-warning-on-soft);
+  --text-color-info-on-soft: var(--text-info-on-soft);
+  --text-color-neutral-on-ghost: var(--text-neutral-on-ghost);
+  --text-color-accent-on-ghost: var(--text-accent-on-ghost);
+  --text-color-danger-on-ghost: var(--text-danger-on-ghost);
+  --text-color-success-on-ghost: var(--text-success-on-ghost);
+  --text-color-warning-on-ghost: var(--text-warning-on-ghost);
+  --text-color-info-on-ghost: var(--text-info-on-ghost);
+
+  /* Border Colors */
+  --border-color-default: var(--border-default);
+  --border-color-input: var(--border-input);
+  --border-color-input-hover: var(--border-input-hover);
+
+  /* Focus Colors */
+  --color-focus-ring: var(--focus-ring);
+  --color-focus-ring-offset: var(--focus-ring-offset);
+
+  /* Shape */
+  --radius-parent: calc(
+    var(--child-radius, var(--radius-lg)) +
+      var(--parent-padding, var(--spacing)) + var(--parent-border-width, 0px)
+  );
+
+  /* Semantic Colors */
+  --color-neutral: var(--neutral);
+  --color-neutral-hover: var(--neutral-hover);
+  --color-neutral-active: var(--neutral-active);
+  --color-neutral-soft: var(--neutral-soft);
+  --color-neutral-soft-hover: var(--neutral-soft-hover);
+  --color-neutral-soft-active: var(--neutral-soft-active);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-active: var(--accent-active);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-soft-hover: var(--accent-soft-hover);
+  --color-accent-soft-active: var(--accent-soft-active);
+  --color-alternative: var(--alternative);
+  --color-alternative-hover: var(--alternative-hover);
+  --color-alternative-active: var(--alternative-active);
+  --color-alternative-soft: var(--alternative-soft);
+  --color-alternative-soft-hover: var(--alternative-soft-hover);
+  --color-alternative-soft-active: var(--alternative-soft-active);
+  --color-danger: var(--danger);
+  --color-danger-hover: var(--danger-hover);
+  --color-danger-active: var(--danger-active);
+  --color-danger-soft: var(--danger-soft);
+  --color-danger-soft-hover: var(--danger-soft-hover);
+  --color-danger-soft-active: var(--danger-soft-active);
+  --color-success: var(--success);
+  --color-success-hover: var(--success-hover);
+  --color-success-active: var(--success-active);
+  --color-success-soft: var(--success-soft);
+  --color-success-soft-hover: var(--success-soft-hover);
+  --color-success-soft-active: var(--success-soft-active);
+  --color-warning: var(--warning);
+  --color-warning-hover: var(--warning-hover);
+  --color-warning-active: var(--warning-active);
+  --color-warning-soft: var(--warning-soft);
+  --color-warning-soft-hover: var(--warning-soft-hover);
+  --color-warning-soft-active: var(--warning-soft-active);
+  --color-info: var(--info);
+  --color-info-hover: var(--info-hover);
+  --color-info-active: var(--info-active);
+  --color-info-soft: var(--info-soft);
+  --color-info-soft-hover: var(--info-soft-hover);
+  --color-info-soft-active: var(--info-soft-active);
+}
+
+@utility focus-ring {
+  @apply ring-focus-ring ring-offset-focus-ring-offset ring-2 ring-offset-0 outline-none;
+}
+
+@utility focus-ring-within {
+  @apply has-[:focus-visible]:ring-focus-ring has-[:focus-visible]:ring-offset-focus-ring-offset has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-offset-0 has-[:focus-visible]:outline-none;
+}
+
+@utility transition-interactive {
+  transition-property:
+    color, background-color, border-color, text-decoration-color, fill, stroke,
+    box-shadow;
+  transition-timing-function: var(--default-transition-timing-function);
+  transition-duration: var(--default-transition-duration);
 }

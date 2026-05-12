@@ -1,4 +1,4 @@
-import type { Board, BoardObjectBase } from "../../core/board/types";
+import type { Board, BoardObject } from "../../core/board/types";
 import type { BoardSpaceProjection } from "../../core/geometry/board-space-projection";
 import type { Viewport } from "../../core/geometry/types";
 
@@ -24,7 +24,7 @@ export type CanvasOverlayItem = CanvasRectOverlayItem | CanvasCustomOverlayItem;
 
 export interface CanvasObjectRenderInput {
   context: CanvasRenderingContext2D;
-  object: BoardObjectBase;
+  object: BoardObject;
   appearance: "default" | "preview";
   surfaceTransform: BoardSpaceProjection;
 }
@@ -32,6 +32,22 @@ export interface CanvasObjectRenderInput {
 export type CanvasObjectRenderer = (input: CanvasObjectRenderInput) => void;
 
 export type CanvasObjectRendererRegistry = Record<string, CanvasObjectRenderer>;
+
+export interface CanvasObjectHitTestInput {
+  object: BoardObject;
+  canvasPoint: { x: number; y: number };
+  surfaceTransform: BoardSpaceProjection;
+  minimumHitRadiusPx: number;
+}
+
+export type CanvasObjectHitTester = (
+  input: CanvasObjectHitTestInput,
+) => boolean;
+
+export type CanvasObjectHitTesterRegistry = Record<
+  string,
+  CanvasObjectHitTester
+>;
 
 export interface CanvasOverlayRenderInput {
   context: CanvasRenderingContext2D;
@@ -46,20 +62,16 @@ export type CanvasOverlayRendererRegistry = Record<
   CanvasOverlayRenderer
 >;
 
-export interface CanvasRenderRequest<
-  TObject extends BoardObjectBase = BoardObjectBase,
-> {
+export interface CanvasRenderRequest {
   canvas: HTMLCanvasElement;
-  board: Board<TObject>;
+  board: Board;
   viewport: Viewport;
-  previewObjects?: BoardObjectBase[];
+  previewObjects?: BoardObject[];
   overlayItems?: CanvasOverlayItem[];
   objectRenderers?: CanvasObjectRendererRegistry;
   overlayRenderers?: CanvasOverlayRendererRegistry;
 }
 
 export interface CanvasRenderer {
-  render: <TObject extends BoardObjectBase>(
-    request: CanvasRenderRequest<TObject>,
-  ) => void;
+  render: (request: CanvasRenderRequest) => void;
 }

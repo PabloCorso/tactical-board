@@ -1,17 +1,13 @@
-import type { Board, BoardObjectBase } from "../board/types";
+import type { Board } from "../board/types";
 import type { ParseBoardResult } from "./types";
 
-export function serializeBoard<TObject extends BoardObjectBase>(
-  board: Board<TObject>,
-): string {
+export function serializeBoard(board: Board): string {
   return JSON.stringify(board, null, 2);
 }
 
-export function parseBoard<TObject extends BoardObjectBase>(
-  input: string,
-): ParseBoardResult<TObject> {
+export function parseBoard(input: string): ParseBoardResult {
   try {
-    const parsed = JSON.parse(input) as Board<TObject>;
+    const parsed = JSON.parse(input) as Board;
     return {
       ok: true,
       board: parsed,

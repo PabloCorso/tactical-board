@@ -1,9 +1,7 @@
-import type { Board, BoardObjectBase } from "../board/types";
+import type { Board } from "../board/types";
 
-export interface ParseBoardResult<
-  TObject extends BoardObjectBase = BoardObjectBase,
-> {
+export interface ParseBoardResult {
   ok: boolean;
-  board?: Board<TObject>;
+  board?: Board;
   error?: string;
 }

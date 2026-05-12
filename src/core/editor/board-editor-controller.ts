@@ -77,7 +77,17 @@ function getTargetObjectId(
       continue;
     }
 
-    if (projection.hitTestObject(object, canvasPoint)) {
+    const hitTester = state.rendering.objectHitTesters[object.type];
+
+    if (
+      hitTester?.({
+        object,
+        canvasPoint,
+        surfaceTransform: projection,
+        minimumHitRadiusPx: 24,
+      }) ??
+      projection.hitTestObject(object, canvasPoint)
+    ) {
       return object.id;
     }
   }

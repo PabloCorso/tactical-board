@@ -1,25 +1,27 @@
 import { CopyIcon, TrashIcon } from "@phosphor-icons/react";
 import { useMemo } from "react";
+import type { BoardEditorState } from "../../core/editor/types";
 import { createToolApi } from "../../core/editor/create-tool-api";
 import { useBoardEditorStore } from "../hooks/use-board-editor-store";
 import { useBoardEditorContext } from "./board-editor-context";
 import { BoardEditorToolbar } from "./board-editor-toolbar";
 import { BoardEditorToolbarButton } from "./board-editor-toolbar-button";
+import type { IconProps } from "./ui/icon";
 
-export interface BoardEditorSecondaryToolbarProps {
+export type BoardEditorSecondaryToolbarProps = {
   className?: string;
-}
+};
 
 const EMPTY_SECONDARY_ACTIONS: [] = [];
 
-function getSecondaryActionIcon(actionId: string) {
+function getSecondaryActionIcon(actionId: string): IconProps["children"] {
   switch (actionId) {
     case "duplicate-selection":
       return <CopyIcon aria-hidden="true" className="size-4" weight="bold" />;
     case "delete-selection":
       return <TrashIcon aria-hidden="true" className="size-4" weight="bold" />;
     default:
-      return null;
+      return undefined;
   }
 }
 
@@ -28,12 +30,13 @@ export function BoardEditorSecondaryToolbar({
 }: BoardEditorSecondaryToolbarProps) {
   const store = useBoardEditorContext();
   const toolApi = useMemo(() => createToolApi(store), [store]);
-  const currentTool = useBoardEditorStore(
-    store,
-    (state) => state.toolRegistry.definitions[state.ui.activeToolId],
-  );
-  const secondaryActions = useBoardEditorStore(store, (state) =>
-    currentTool?.getSecondaryActions?.(state) ?? EMPTY_SECONDARY_ACTIONS,
+  const state = useBoardEditorStore(store, (currentState) => currentState);
+  const currentTool = state.toolRegistry.definitions[state.ui.activeToolId];
+  const secondaryActions = useMemo(
+    () =>
+      currentTool?.getSecondaryActions?.(state as BoardEditorState) ??
+      EMPTY_SECONDARY_ACTIONS,
+    [currentTool, state],
   );
 
   if (secondaryActions.length === 0) {
@@ -48,15 +51,14 @@ export function BoardEditorSecondaryToolbar({
         return (
           <BoardEditorToolbarButton
             aria-label={action.label}
+            active={action.active}
             disabled={action.disabled}
+            iconBefore={icon}
             key={action.id}
             onClick={() => action.onSelect(toolApi)}
             tooltip={action.tooltip ?? action.label}
           >
-            <span className="inline-flex items-center gap-2 px-1 text-sm font-medium">
-              {icon}
-              <span>{action.label}</span>
-            </span>
+            {action.label}
           </BoardEditorToolbarButton>
         );
       })}

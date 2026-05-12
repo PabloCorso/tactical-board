@@ -7,19 +7,19 @@ import {
 } from "./board-editor-context";
 import { cn } from "./misc";
 
-export interface BoardEditorProps {
+export type BoardEditorProps = {
   children?: ReactNode;
   className?: string;
-}
+};
 
-export interface BoardEditorProviderProps extends PropsWithChildren {
+export type BoardEditorProviderProps = PropsWithChildren & {
   store: BoardEditorStore;
-}
+};
 
-export interface BoardEditorCanvasProps {
+export type BoardEditorCanvasProps = {
   className?: string;
   frameClassName?: string;
-}
+};
 
 export function BoardEditorProvider({
   store,

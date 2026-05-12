@@ -2,6 +2,7 @@ import type { ObjectId, Point, ToolId } from "../board/types";
 import type { BoardEditorState } from "../editor/types";
 import type { CanvasRect } from "../editor/board-editor-controller";
 import type {
+  CanvasObjectHitTester,
   CanvasObjectRenderer,
   CanvasOverlayItem,
   CanvasOverlayRenderer,
@@ -21,9 +22,18 @@ export interface ToolPointerEvent {
 
 export interface ToolApi {
   getState: () => BoardEditorState;
+  addObjects: (
+    objects: BoardEditorState["board"]["objects"]["byId"][string][],
+  ) => void;
   moveObjects: (ids: ObjectId[], delta: Point) => void;
   duplicateObjects: (ids: ObjectId[]) => ObjectId[];
   deleteObjects: (ids: ObjectId[]) => void;
+  updateObjects: (
+    ids: ObjectId[],
+    updater: (
+      object: BoardEditorState["board"]["objects"]["byId"][string],
+    ) => BoardEditorState["board"]["objects"]["byId"][string],
+  ) => void;
   setPreviewObjects: (
     objects: BoardEditorState["rendering"]["previewObjects"],
   ) => void;
@@ -35,6 +45,10 @@ export interface ToolApi {
     objectType: string,
     renderer: CanvasObjectRenderer,
   ) => void;
+  registerObjectHitTester: (
+    objectType: string,
+    hitTester: CanvasObjectHitTester,
+  ) => void;
   registerOverlayRenderer: (
     overlayKind: string,
     renderer: CanvasOverlayRenderer,
@@ -45,6 +59,7 @@ export interface ToolActionDefinition {
   id: string;
   label: string;
   tooltip?: string;
+  active?: boolean;
   disabled?: boolean;
   onSelect: (api: ToolApi) => void;
 }
@@ -52,12 +67,15 @@ export interface ToolActionDefinition {
 export interface ToolDefinition {
   id: ToolId;
   label: string;
-  getSecondaryActions?: (
-    state: BoardEditorState,
-  ) => ToolActionDefinition[];
+  getSecondaryActions?: (state: BoardEditorState) => ToolActionDefinition[];
   getOverlayItems?: (state: BoardEditorState) => CanvasOverlayItem[];
   registerRenderers?: (
-    api: Pick<ToolApi, "registerObjectRenderer" | "registerOverlayRenderer">,
+    api: Pick<
+      ToolApi,
+      | "registerObjectRenderer"
+      | "registerObjectHitTester"
+      | "registerOverlayRenderer"
+    >,
   ) => void;
   onPointerDown?: (event: ToolPointerEvent, api: ToolApi) => void;
   onPointerMove?: (event: ToolPointerEvent, api: ToolApi) => void;

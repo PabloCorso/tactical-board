@@ -3,6 +3,7 @@ import type { CanvasRenderer } from "../../rendering/canvas/types";
 import { createBoardEditorController } from "./board-editor-controller";
 import type { BoardEditorStore } from "../store/board-editor-store";
 import type { ToolDefinition } from "../tools/types";
+import { getSelectOverlayItems } from "../../tools/select-tool";
 
 export interface BoardEditorRuntime {
   mount: (canvas: HTMLCanvasElement) => void;
@@ -32,10 +33,9 @@ export function createBoardEditorRuntime({
     registeredToolRendererIds.add(tool.id);
 
     tool.registerRenderers?.({
-      registerObjectRenderer:
-        store.getState().actions.registerObjectRenderer,
-      registerOverlayRenderer:
-        store.getState().actions.registerOverlayRenderer,
+      registerObjectRenderer: store.getState().actions.registerObjectRenderer,
+      registerObjectHitTester: store.getState().actions.registerObjectHitTester,
+      registerOverlayRenderer: store.getState().actions.registerOverlayRenderer,
     });
   };
 
@@ -54,15 +54,31 @@ export function createBoardEditorRuntime({
 
     const state = store.getState();
     const activeTool = state.toolRegistry.definitions[state.ui.activeToolId];
+    const activeToolOverlayItems = activeTool?.getOverlayItems?.(state) ?? [];
+    const overlayItems =
+      activeTool?.id === "select"
+        ? activeToolOverlayItems
+        : [...getSelectOverlayItems(state), ...activeToolOverlayItems];
 
     renderer.render({
       canvas,
       board: state.board,
       viewport: state.ui.viewport,
       previewObjects: state.rendering.previewObjects,
-      overlayItems: activeTool?.getOverlayItems?.(state) ?? [],
+      overlayItems,
       objectRenderers: state.rendering.objectRenderers,
       overlayRenderers: state.rendering.overlayRenderers,
+    });
+  };
+
+  const syncCanvasRect = () => {
+    if (!canvas) {
+      return;
+    }
+
+    store.getState().actions.setCanvasRect({
+      width: Math.max(1, Math.floor(canvas.clientWidth)),
+      height: Math.max(1, Math.floor(canvas.clientHeight)),
     });
   };
 
@@ -166,10 +182,12 @@ export function createBoardEditorRuntime({
         typeof ResizeObserver === "undefined"
           ? null
           : new ResizeObserver(() => {
+              syncCanvasRect();
               requestRender();
             });
       resizeObserver?.observe(canvas);
 
+      syncCanvasRect();
       syncToolRenderers();
       requestRender();
     },

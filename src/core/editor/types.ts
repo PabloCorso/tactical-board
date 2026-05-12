@@ -1,12 +1,13 @@
 import type {
   Board,
-  BoardObjectBase,
+  BoardObject,
   ObjectId,
   Point,
   ToolId,
 } from "../board/types";
 import type { ToolDefinition, ToolRegistry } from "../tools/types";
 import type {
+  CanvasObjectHitTester,
   CanvasObjectRenderer,
   CanvasObjectRendererRegistry,
   CanvasOverlayRenderer,
@@ -21,12 +22,17 @@ export interface BoardViewport {
 export interface BoardEditorUiState {
   activeToolId: ToolId;
   hoveredObjectId?: ObjectId;
+  canvasRect?: {
+    width: number;
+    height: number;
+  };
   viewport: BoardViewport;
 }
 
 export interface BoardEditorRenderingState {
-  previewObjects: BoardObjectBase[];
+  previewObjects: BoardObject[];
   objectRenderers: CanvasObjectRendererRegistry;
+  objectHitTesters: Record<string, CanvasObjectHitTester>;
   overlayRenderers: CanvasOverlayRendererRegistry;
 }
 
@@ -34,9 +40,15 @@ export type BoardEditorToolState = Record<string, unknown>;
 
 export interface BoardEditorActions {
   setActiveTool: (toolId: ToolId) => void;
+  setCanvasRect: (rect: { width: number; height: number }) => void;
+  addObjects: (objects: BoardObject[]) => void;
   duplicateObjects: (objectIds: ObjectId[]) => ObjectId[];
   deleteObjects: (objectIds: ObjectId[]) => void;
-  setPreviewObjects: (objects: BoardObjectBase[]) => void;
+  updateObjects: (
+    objectIds: ObjectId[],
+    updater: (object: BoardObject) => BoardObject,
+  ) => void;
+  setPreviewObjects: (objects: BoardObject[]) => void;
   clearPreviewObjects: () => void;
   moveObjects: (objectIds: ObjectId[], delta: Point) => void;
   panViewport: (delta: Point) => void;
@@ -47,16 +59,18 @@ export interface BoardEditorActions {
     objectType: string,
     renderer: CanvasObjectRenderer,
   ) => void;
+  registerObjectHitTester: (
+    objectType: string,
+    hitTester: CanvasObjectHitTester,
+  ) => void;
   registerOverlayRenderer: (
     overlayKind: string,
     renderer: CanvasOverlayRenderer,
   ) => void;
 }
 
-export interface BoardEditorState<
-  TObject extends BoardObjectBase = BoardObjectBase,
-> {
-  board: Board<TObject>;
+export interface BoardEditorState {
+  board: Board;
   ui: BoardEditorUiState;
   rendering: BoardEditorRenderingState;
   toolState: BoardEditorToolState;

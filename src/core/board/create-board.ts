@@ -1,8 +1,6 @@
-import type { Board, BoardObjectBase } from "./types";
+import type { Board } from "./types";
 
-export function createBoard<TObject extends BoardObjectBase>(
-  input: Board<TObject>,
-): Board<TObject> {
+export function createBoard(input: Board): Board {
   return {
     ...input,
     metadata: input.metadata ?? {},

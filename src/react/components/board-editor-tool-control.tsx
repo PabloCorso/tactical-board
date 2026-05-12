@@ -1,16 +1,16 @@
 import type { ReactNode } from "react";
-import { CursorIcon, HandIcon } from "@phosphor-icons/react";
+import { ArrowUpRightIcon, CursorIcon, HandIcon } from "@phosphor-icons/react";
 import type { ToolId } from "../../core/board/types";
 import { useBoardEditorStore } from "../hooks/use-board-editor-store";
 import { useBoardEditorContext } from "./board-editor-context";
 import { BoardEditorToolbarButton } from "./board-editor-toolbar-button";
 
-export interface BoardEditorToolControlProps {
+export type BoardEditorToolControlProps = {
   toolId: ToolId;
   label?: string;
   icon?: ReactNode;
   className?: string;
-}
+};
 
 function getDefaultToolIcon(toolId: ToolId) {
   switch (toolId) {
@@ -18,6 +18,10 @@ function getDefaultToolIcon(toolId: ToolId) {
       return <CursorIcon aria-hidden="true" className="size-5" weight="fill" />;
     case "hand":
       return <HandIcon aria-hidden="true" className="size-5" weight="fill" />;
+    case "arrow":
+      return (
+        <ArrowUpRightIcon aria-hidden="true" className="size-5" weight="bold" />
+      );
     default:
       return null;
   }
@@ -52,10 +56,9 @@ export function BoardEditorToolControl({
       active={activeToolId === toolId}
       aria-label={resolvedLabel}
       className={className}
+      iconBefore={resolvedIcon}
       onClick={() => actions.setActiveTool(toolId)}
       tooltip={resolvedLabel}
-    >
-      {resolvedIcon}
-    </BoardEditorToolbarButton>
+    />
   );
 }

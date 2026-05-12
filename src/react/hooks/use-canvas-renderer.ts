@@ -1,19 +1,18 @@
 import { useEffect, useRef } from "react";
-import type { Board, BoardObjectBase } from "../../core/board/types";
+import type { Board } from "../../core/board/types";
 import type { Viewport } from "../../core/geometry/types";
 import { createCanvasRenderer } from "../../rendering/canvas/create-canvas-renderer";
 import type { CanvasRenderer } from "../../rendering/canvas/types";
 
-interface UseCanvasRendererOptions<
-  TObject extends BoardObjectBase = BoardObjectBase,
-> {
-  board: Board<TObject>;
+interface UseCanvasRendererOptions {
+  board: Board;
   viewport: Viewport;
 }
 
-export function useCanvasRenderer<
-  TObject extends BoardObjectBase = BoardObjectBase,
->({ board, viewport }: UseCanvasRendererOptions<TObject>) {
+export function useCanvasRenderer({
+  board,
+  viewport,
+}: UseCanvasRendererOptions) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const rendererRef = useRef<CanvasRenderer | null>(null);
 

@@ -1,31 +1,34 @@
 import { createStore, type StoreApi } from "zustand/vanilla";
 import type {
   Board,
-  BoardObjectBase,
+  BoardObject,
   ObjectId,
   Point,
   ToolId,
 } from "../board/types";
 import type { BoardEditorState } from "../editor/types";
+import {
+  ARROW_OBJECT_TYPE,
+  normalizeArrowObject,
+  type ArrowObject,
+} from "../objects/arrow-object";
 import type { ToolDefinition, ToolRegistry } from "../tools/types";
 import type {
+  CanvasObjectHitTesterRegistry,
   CanvasObjectRendererRegistry,
   CanvasOverlayRendererRegistry,
 } from "../../rendering/canvas/types";
 
-export interface CreateBoardEditorStoreOptions<
-  TObject extends BoardObjectBase = BoardObjectBase,
-> {
-  initialBoard: Board<TObject>;
+export interface CreateBoardEditorStoreOptions {
+  initialBoard: Board;
   tools?: ToolDefinition[];
   initialToolId?: ToolId;
   objectRenderers?: CanvasObjectRendererRegistry;
+  objectHitTesters?: CanvasObjectHitTesterRegistry;
   overlayRenderers?: CanvasOverlayRendererRegistry;
 }
 
-export type BoardEditorStore<
-  TObject extends BoardObjectBase = BoardObjectBase,
-> = StoreApi<BoardEditorState<TObject>>;
+export type BoardEditorStore = StoreApi<BoardEditorState>;
 
 function createToolRegistry(tools: ToolDefinition[] = []): ToolRegistry {
   return {
@@ -35,7 +38,7 @@ function createToolRegistry(tools: ToolDefinition[] = []): ToolRegistry {
 
 function createDuplicatedObjectId(
   objectId: ObjectId,
-  existingObjects: Record<ObjectId, BoardObjectBase>,
+  existingObjects: Record<ObjectId, BoardObject>,
 ) {
   const baseId = `${objectId}-copy`;
   let candidateId = baseId;
@@ -49,23 +52,58 @@ function createDuplicatedObjectId(
   return candidateId;
 }
 
-export function createBoardEditorStore<TObject extends BoardObjectBase>({
+function translateObject(object: BoardObject, delta: Point): BoardObject {
+  if (object.type === ARROW_OBJECT_TYPE) {
+    const arrowObject = object as ArrowObject;
+
+    return normalizeArrowObject({
+      ...arrowObject,
+      position: {
+        x: arrowObject.position.x + delta.x,
+        y: arrowObject.position.y + delta.y,
+      },
+      props: {
+        ...arrowObject.props,
+        start: {
+          x: arrowObject.props.start.x + delta.x,
+          y: arrowObject.props.start.y + delta.y,
+        },
+        end: {
+          x: arrowObject.props.end.x + delta.x,
+          y: arrowObject.props.end.y + delta.y,
+        },
+      },
+    });
+  }
+
+  return {
+    ...object,
+    position: {
+      x: object.position.x + delta.x,
+      y: object.position.y + delta.y,
+    },
+  };
+}
+
+export function createBoardEditorStore({
   initialBoard,
   tools = [],
   initialToolId,
   objectRenderers = {},
+  objectHitTesters = {},
   overlayRenderers = {},
-}: CreateBoardEditorStoreOptions<TObject>): BoardEditorStore<TObject> {
+}: CreateBoardEditorStoreOptions): BoardEditorStore {
   const toolRegistry = createToolRegistry(tools);
   const activeToolId =
     initialToolId && toolRegistry.definitions[initialToolId]
       ? initialToolId
-      : tools[0]?.id ?? initialToolId ?? ""
+      : (tools[0]?.id ?? initialToolId ?? "");
 
-  return createStore<BoardEditorState<TObject>>((set, get) => ({
+  return createStore<BoardEditorState>((set, get) => ({
     board: initialBoard,
     ui: {
       activeToolId,
+      canvasRect: undefined,
       viewport: {
         pan: { x: 0, y: 0 },
         zoom: 1,
@@ -74,6 +112,7 @@ export function createBoardEditorStore<TObject extends BoardObjectBase>({
     rendering: {
       previewObjects: [],
       objectRenderers: { ...objectRenderers },
+      objectHitTesters: { ...objectHitTesters },
       overlayRenderers: { ...overlayRenderers },
     },
     toolState: {},
@@ -93,6 +132,54 @@ export function createBoardEditorStore<TObject extends BoardObjectBase>({
           };
         });
       },
+      setCanvasRect: (rect) => {
+        set((state) => {
+          if (
+            state.ui.canvasRect?.width === rect.width &&
+            state.ui.canvasRect?.height === rect.height
+          ) {
+            return state;
+          }
+
+          return {
+            ui: {
+              ...state.ui,
+              canvasRect: rect,
+            },
+          };
+        });
+      },
+      addObjects: (objects) => {
+        if (objects.length === 0) {
+          return;
+        }
+
+        set((state) => {
+          const nextById = { ...state.board.objects.byId };
+          const nextOrder = [...state.board.objects.order];
+
+          for (const object of objects) {
+            nextById[object.id] =
+              object.type === ARROW_OBJECT_TYPE
+                ? normalizeArrowObject(object as ArrowObject)
+                : object;
+            if (!nextOrder.includes(object.id)) {
+              nextOrder.push(object.id);
+            }
+          }
+
+          return {
+            board: {
+              ...state.board,
+              objects: {
+                ...state.board.objects,
+                byId: nextById,
+                order: nextOrder,
+              },
+            },
+          };
+        });
+      },
       duplicateObjects: (objectIds) => {
         const state = get();
         const nextById = { ...state.board.objects.byId };
@@ -107,14 +194,16 @@ export function createBoardEditorStore<TObject extends BoardObjectBase>({
 
           const duplicateId = createDuplicatedObjectId(objectId, nextById);
           duplicateIds.push(duplicateId);
-          nextById[duplicateId] = {
-            ...object,
-            id: duplicateId,
-            position: {
-              x: object.position.x + 2,
-              y: object.position.y + 2,
+          nextById[duplicateId] = translateObject(
+            {
+              ...object,
+              id: duplicateId,
             },
-          } as TObject;
+            {
+              x: 2,
+              y: 2,
+            },
+          );
           nextOrder.push(duplicateId);
         }
 
@@ -168,6 +257,44 @@ export function createBoardEditorStore<TObject extends BoardObjectBase>({
           };
         });
       },
+      updateObjects: (objectIds, updater) => {
+        set((state) => {
+          let changed = false;
+          const nextById = { ...state.board.objects.byId };
+
+          for (const objectId of objectIds) {
+            const object = nextById[objectId];
+            if (!object) {
+              continue;
+            }
+
+            const nextObject = updater(object);
+            if (nextObject === object) {
+              continue;
+            }
+
+            changed = true;
+            nextById[objectId] =
+              nextObject.type === ARROW_OBJECT_TYPE
+                ? normalizeArrowObject(nextObject as ArrowObject)
+                : nextObject;
+          }
+
+          if (!changed) {
+            return state;
+          }
+
+          return {
+            board: {
+              ...state.board,
+              objects: {
+                ...state.board.objects,
+                byId: nextById,
+              },
+            },
+          };
+        });
+      },
       setPreviewObjects: (objects) => {
         set((state) => ({
           rendering: {
@@ -210,13 +337,7 @@ export function createBoardEditorStore<TObject extends BoardObjectBase>({
             }
 
             changed = true;
-            nextById[objectId] = {
-              ...object,
-              position: {
-                x: object.position.x + delta.x,
-                y: object.position.y + delta.y,
-              },
-            };
+            nextById[objectId] = translateObject(object, delta);
           }
 
           if (!changed) {
@@ -274,6 +395,23 @@ export function createBoardEditorStore<TObject extends BoardObjectBase>({
               objectRenderers: {
                 ...state.rendering.objectRenderers,
                 [objectType]: renderer,
+              },
+            },
+          };
+        });
+      },
+      registerObjectHitTester: (objectType, hitTester) => {
+        set((state) => {
+          if (state.rendering.objectHitTesters[objectType] === hitTester) {
+            return state;
+          }
+
+          return {
+            rendering: {
+              ...state.rendering,
+              objectHitTesters: {
+                ...state.rendering.objectHitTesters,
+                [objectType]: hitTester,
               },
             },
           };

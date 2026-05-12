@@ -1,8 +1,4 @@
-import type {
-  BoardObjectBase,
-  BoardSurfaceConfig,
-  Point,
-} from "../board/types";
+import type { BoardObject, BoardSurfaceConfig, Point } from "../board/types";
 import { createBoardSurfaceTransform } from "./create-board-surface-transform";
 import type { Rect, Viewport } from "./types";
 
@@ -16,10 +12,10 @@ export interface BoardSpaceProjection {
   worldOrigin: Point;
   worldToCanvas: (point: Point) => Point;
   canvasToWorld: (point: Point) => Point;
-  getObjectCanvasRadius: (object: BoardObjectBase) => number;
-  getObjectCanvasBounds: (object: BoardObjectBase) => Rect;
+  getObjectCanvasRadius: (object: BoardObject) => number;
+  getObjectCanvasBounds: (object: BoardObject) => Rect;
   hitTestObject: (
-    object: BoardObjectBase,
+    object: BoardObject,
     canvasPoint: Point,
     options?: { minimumHitRadiusPx?: number },
   ) => boolean;
@@ -48,7 +44,7 @@ export function createBoardSpaceProjection({
     },
   });
 
-  const getObjectCanvasSize = (object: BoardObjectBase) => {
+  const getObjectCanvasSize = (object: BoardObject) => {
     const width = object.size?.width ?? DEFAULT_OBJECT_DIAMETER;
     const height =
       object.size?.height ?? object.size?.width ?? DEFAULT_OBJECT_DIAMETER;
@@ -63,12 +59,12 @@ export function createBoardSpaceProjection({
     };
   };
 
-  const getObjectCanvasRadius = (object: BoardObjectBase) => {
+  const getObjectCanvasRadius = (object: BoardObject) => {
     const { width } = getObjectCanvasSize(object);
     return width / 2;
   };
 
-  const getObjectCanvasBounds = (object: BoardObjectBase): Rect => {
+  const getObjectCanvasBounds = (object: BoardObject): Rect => {
     const center = surfaceTransform.worldToCanvas(object.position);
     const { width, height } = getObjectCanvasSize(object);
 

@@ -11,17 +11,17 @@ import type {
   CanvasRectOverlayItem,
   CanvasOverlayRenderer,
 } from "../rendering/canvas/types";
-import type { BoardObjectBase, ObjectId } from "../core/board/types";
+import type { BoardObject } from "../core/board/types";
 import {
   getSelectToolState,
   type SelectToolState,
   SELECT_TOOL_ID,
 } from "./select-tool-state";
+import { clearSelection, setSelectedObjectIds } from "./select-tool-actions";
+import colors from "tailwindcss/colors";
 
 const SURFACE_INSET = 14;
-const MARQUEE_FILL = "rgba(255,143,61,0.14)";
-const MARQUEE_STROKE = "rgba(255,143,61,0.9)";
-const SELECTION_STROKE = "#ff8f3d";
+const DEFAULT_SELECTION_COLOR = colors.sky[400];
 const SELECTION_OVERLAY_KIND = "select:selection-ring";
 const DISABLED_SELECTION_ACTIONS: ToolActionDefinition[] = [
   {
@@ -72,7 +72,8 @@ let cachedSecondaryActions:
 
 interface SelectionOverlayItem {
   kind: typeof SELECTION_OVERLAY_KIND;
-  object: BoardObjectBase;
+  object: BoardObject;
+  color: string;
   [key: string]: unknown;
 }
 
@@ -105,6 +106,48 @@ function getSelectionBounds(
     right: Math.max(start.x, end.x),
     bottom: Math.max(start.y, end.y),
   };
+}
+
+function withAlpha(color: string, alpha: number) {
+  const hex = color.trim().replace("#", "");
+  const normalizedHex =
+    hex.length === 3
+      ? hex
+          .split("")
+          .map((part) => `${part}${part}`)
+          .join("")
+      : hex;
+
+  if (!/^[\da-fA-F]{6}$/.test(normalizedHex)) {
+    return `rgba(56, 189, 248, ${alpha})`;
+  }
+
+  const red = Number.parseInt(normalizedHex.slice(0, 2), 16);
+  const green = Number.parseInt(normalizedHex.slice(2, 4), 16);
+  const blue = Number.parseInt(normalizedHex.slice(4, 6), 16);
+
+  return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+}
+
+function getSelectionAccentColor(
+  state: BoardEditorState,
+  selectState: SelectToolState,
+) {
+  const prioritizedIds = [
+    ...selectState.selectedObjectIds,
+    ...(selectState.interaction?.mode === "marquee"
+      ? selectState.interaction.baseSelection
+      : []),
+  ];
+
+  for (const objectId of prioritizedIds) {
+    const object = state.board.objects.byId[objectId];
+    if (typeof object?.props.color === "string") {
+      return object.props.color;
+    }
+  }
+
+  return DEFAULT_SELECTION_COLOR;
 }
 
 function getMarqueeObjectIds(
@@ -147,6 +190,7 @@ function createMarqueeOverlayItem(
     NonNullable<SelectToolState["interaction"]>,
     { mode: "marquee" }
   >,
+  accentColor: string,
 ): CanvasRectOverlayItem {
   return {
     kind: "rect",
@@ -155,10 +199,9 @@ function createMarqueeOverlayItem(
     y: Math.min(marquee.origin.y, marquee.current.y),
     width: Math.abs(marquee.current.x - marquee.origin.x),
     height: Math.abs(marquee.current.y - marquee.origin.y),
-    fill: MARQUEE_FILL,
-    stroke: MARQUEE_STROKE,
-    lineWidth: 1.5,
-    lineDash: [6, 4],
+    fill: withAlpha(accentColor, 0.14),
+    stroke: withAlpha(accentColor, 0.85),
+    lineWidth: 1,
   };
 }
 
@@ -166,6 +209,7 @@ function createSelectionOverlayItems(
   state: BoardEditorState,
 ): SelectionOverlayItem[] {
   const selectState = getSelectToolState(state.toolState);
+  const accentColor = getSelectionAccentColor(state, selectState);
 
   return selectState.selectedObjectIds.flatMap((objectId) => {
     const object = state.board.objects.byId[objectId];
@@ -175,6 +219,7 @@ function createSelectionOverlayItems(
           {
             kind: SELECTION_OVERLAY_KIND,
             object,
+            color: accentColor,
           } satisfies SelectionOverlayItem,
         ]
       : [];
@@ -185,6 +230,7 @@ export function getSelectOverlayItems(
   state: BoardEditorState,
 ): Array<CanvasRectOverlayItem | SelectionOverlayItem> {
   const selectState = getSelectToolState(state.toolState);
+  const accentColor = getSelectionAccentColor(state, selectState);
 
   if (
     cachedSelectionOverlayItems?.selectState === selectState &&
@@ -197,7 +243,9 @@ export function getSelectOverlayItems(
     createSelectionOverlayItems(state);
 
   if (selectState.interaction?.mode === "marquee") {
-    overlays.push(createMarqueeOverlayItem(selectState.interaction));
+    overlays.push(
+      createMarqueeOverlayItem(selectState.interaction, accentColor),
+    );
   }
 
   cachedSelectionOverlayItems = {
@@ -223,46 +271,32 @@ export function registerSelectOverlayRenderer(
       }
 
       const selectionOverlay = overlay;
-      const center = surfaceTransform.worldToCanvas(
-        selectionOverlay.object.position,
+      const bounds = surfaceTransform.getObjectCanvasBounds(
+        selectionOverlay.object,
       );
-      const radius =
-        surfaceTransform.getObjectCanvasRadius(selectionOverlay.object) + 4;
 
       context.save();
-      context.beginPath();
-      context.arc(center.x, center.y, radius, 0, Math.PI * 2);
-      context.strokeStyle = SELECTION_STROKE;
-      context.lineWidth = 3;
-      context.stroke();
+      context.strokeStyle = selectionOverlay.color;
+      context.lineWidth = 1;
+      context.setLineDash([]);
+      context.strokeRect(
+        bounds.x - 4,
+        bounds.y - 4,
+        bounds.width + 8,
+        bounds.height + 8,
+      );
       context.restore();
     },
   );
 }
 
-function setSelectState(
-  api: ToolApi,
-  value: Partial<SelectToolState>,
-) {
+function setSelectState(api: ToolApi, value: Partial<SelectToolState>) {
   const selectState = getSelectToolState(api.getState().toolState);
 
   api.setToolState(SELECT_TOOL_ID, {
     ...selectState,
     ...value,
   } satisfies SelectToolState);
-}
-
-function setSelectedObjectIds(api: ToolApi, objectIds: ObjectId[]) {
-  setSelectState(api, {
-    selectedObjectIds: [...objectIds],
-  });
-}
-
-function clearSelection(api: ToolApi) {
-  setSelectState(api, {
-    selectedObjectIds: [],
-    interaction: undefined,
-  });
 }
 
 function duplicateSelection(api: ToolApi) {
