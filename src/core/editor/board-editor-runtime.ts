@@ -29,13 +29,14 @@ export function createBoardEditorRuntime({
       return;
     }
 
+    registeredToolRendererIds.add(tool.id);
+
     tool.registerRenderers?.({
       registerObjectRenderer:
         store.getState().actions.registerObjectRenderer,
       registerOverlayRenderer:
         store.getState().actions.registerOverlayRenderer,
     });
-    registeredToolRendererIds.add(tool.id);
   };
 
   const syncToolRenderers = () => {
