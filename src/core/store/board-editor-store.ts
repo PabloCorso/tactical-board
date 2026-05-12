@@ -8,15 +8,8 @@ import type {
 } from "../board/types";
 import type { BoardEditorState } from "../editor/types";
 import {
-  ARROW_OBJECT_TYPE,
-  normalizeArrowObject,
-  type ArrowObject,
-} from "../objects/arrow-object";
-import {
-  normalizeShapeObject,
-  SHAPE_OBJECT_TYPE,
-  type ShapeObject,
-} from "../objects/shape-object";
+  moveBoardObject,
+} from "../objects/object-behaviors";
 import type { ToolApi, ToolDefinition, ToolRegistry } from "../tools/types";
 import type {
   CanvasObjectHitTesterRegistry,
@@ -58,71 +51,7 @@ function createDuplicatedObjectId(
 }
 
 function translateObject(object: BoardObject, delta: Point): BoardObject {
-  if (object.type === ARROW_OBJECT_TYPE) {
-    const arrowObject = object as ArrowObject;
-
-    return normalizeArrowObject({
-      ...arrowObject,
-      position: {
-        x: arrowObject.position.x + delta.x,
-        y: arrowObject.position.y + delta.y,
-      },
-      props: {
-        ...arrowObject.props,
-        start: {
-          x: arrowObject.props.start.x + delta.x,
-          y: arrowObject.props.start.y + delta.y,
-        },
-        end: {
-          x: arrowObject.props.end.x + delta.x,
-          y: arrowObject.props.end.y + delta.y,
-        },
-        points: arrowObject.props.points?.map((point) => ({
-          x: point.x + delta.x,
-          y: point.y + delta.y,
-        })),
-      },
-    });
-  }
-
-  if (object.type === SHAPE_OBJECT_TYPE) {
-    const shapeObject = object as ShapeObject;
-
-    return normalizeShapeObject({
-      ...shapeObject,
-      position: {
-        x: shapeObject.position.x + delta.x,
-        y: shapeObject.position.y + delta.y,
-      },
-      props: {
-        ...shapeObject.props,
-        start: shapeObject.props.start
-          ? {
-              x: shapeObject.props.start.x + delta.x,
-              y: shapeObject.props.start.y + delta.y,
-            }
-          : undefined,
-        end: shapeObject.props.end
-          ? {
-              x: shapeObject.props.end.x + delta.x,
-              y: shapeObject.props.end.y + delta.y,
-            }
-          : undefined,
-        points: shapeObject.props.points?.map((point) => ({
-          x: point.x + delta.x,
-          y: point.y + delta.y,
-        })),
-      },
-    });
-  }
-
-  return {
-    ...object,
-    position: {
-      x: object.position.x + delta.x,
-      y: object.position.y + delta.y,
-    },
-  };
+  return moveBoardObject(object, delta);
 }
 
 export function createBoardEditorStore({
@@ -184,8 +113,9 @@ export function createBoardEditorStore({
             registerObjectHitTester: actions.registerObjectHitTester,
             registerOverlayRenderer: actions.registerOverlayRenderer,
           };
-          const toolsToDeactivate = Object.values(state.toolRegistry.definitions)
-            .filter((tool) => tool.id !== toolId);
+          const toolsToDeactivate = Object.values(
+            state.toolRegistry.definitions,
+          ).filter((tool) => tool.id !== toolId);
           const toolToActivate = state.toolRegistry.definitions[toolId];
 
           for (const tool of toolsToDeactivate) {
@@ -223,6 +153,24 @@ export function createBoardEditorStore({
           };
         });
       },
+      setViewport: (viewport) => {
+        set((state) => {
+          if (
+            state.ui.viewport.zoom === viewport.zoom &&
+            state.ui.viewport.pan.x === viewport.pan.x &&
+            state.ui.viewport.pan.y === viewport.pan.y
+          ) {
+            return state;
+          }
+
+          return {
+            ui: {
+              ...state.ui,
+              viewport,
+            },
+          };
+        });
+      },
       addObjects: (objects) => {
         if (objects.length === 0) {
           return;
@@ -233,12 +181,7 @@ export function createBoardEditorStore({
           const nextOrder = [...state.board.objects.order];
 
           for (const object of objects) {
-            nextById[object.id] =
-              object.type === ARROW_OBJECT_TYPE
-                ? normalizeArrowObject(object as ArrowObject)
-                : object.type === SHAPE_OBJECT_TYPE
-                  ? normalizeShapeObject(object as ShapeObject)
-                : object;
+            nextById[object.id] = object;
             if (!nextOrder.includes(object.id)) {
               nextOrder.push(object.id);
             }
@@ -350,12 +293,7 @@ export function createBoardEditorStore({
             }
 
             changed = true;
-            nextById[objectId] =
-              nextObject.type === ARROW_OBJECT_TYPE
-                ? normalizeArrowObject(nextObject as ArrowObject)
-                : nextObject.type === SHAPE_OBJECT_TYPE
-                  ? normalizeShapeObject(nextObject as ShapeObject)
-                : nextObject;
+            nextById[objectId] = nextObject;
           }
 
           if (!changed) {

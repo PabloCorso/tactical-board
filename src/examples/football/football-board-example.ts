@@ -1,5 +1,11 @@
 import { createBoard } from "../../core/board/create-board";
 import { createArrowObject } from "../../core/objects/arrow-object";
+import {
+  createShapeObject,
+  type ShapeFillStyle,
+  type ShapeKind,
+  type ShapeLineStyle,
+} from "../../core/objects/shape-object";
 import type { BoardSurfaceMarking } from "../../core/board/types";
 
 const pitchMetrics = {
@@ -210,6 +216,23 @@ const surfaceHeight =
 const arrowBodyStyles = ["straight", "curved", "wavy", "double"] as const;
 const arrowHeadStyles = ["none", "triangle"] as const;
 const arrowLineStyles = ["solid", "dashed"] as const;
+const shapeKinds = [
+  "rectangle",
+  "oval",
+  "triangle",
+  "diamond",
+  "polygon",
+] as const satisfies readonly ShapeKind[];
+const shapeLineStyles = [
+  "solid",
+  "dashed",
+] as const satisfies readonly ShapeLineStyle[];
+const shapeFillStyles = [
+  "none",
+  "solid",
+  "diagonal-stripes",
+] as const satisfies readonly ShapeFillStyle[];
+const shapeBorderStyles = [true, false] as const;
 
 const arrowExampleEntries = arrowBodyStyles.flatMap((bodyStyle, bodyIndex) =>
   arrowLineStyles.flatMap((lineStyle, lineStyleIndex) =>
@@ -253,6 +276,59 @@ const arrowExampleEntries = arrowBodyStyles.flatMap((bodyStyle, bodyIndex) =>
 const arrowExampleObjects = Object.fromEntries(arrowExampleEntries);
 const arrowExampleOrder = arrowExampleEntries.map(([id]) => id);
 
+const shapeExampleEntries = shapeKinds.flatMap((kind, row) =>
+  shapeLineStyles.flatMap((lineStyle, lineStyleIndex) =>
+    shapeFillStyles.flatMap((fillStyle, fillStyleIndex) =>
+      shapeBorderStyles.map((bordered, borderIndex) => {
+        const column =
+          lineStyleIndex * shapeFillStyles.length * shapeBorderStyles.length +
+          fillStyleIndex * shapeBorderStyles.length +
+          borderIndex;
+        const id = [
+          "shape",
+          kind,
+          lineStyle,
+          fillStyle,
+          bordered ? "bordered" : "borderless",
+        ].join("-");
+        const startX = 64 + column * 7;
+        const startY = 10 + row * 10;
+        const endX = startX + 4.5;
+        const endY = startY + 4.5;
+
+        return [
+          id,
+          createShapeObject({
+            id,
+            kind,
+            color: "black",
+            lineStyle,
+            fillStyle,
+            bordered,
+            ...(kind === "polygon"
+              ? {
+                  points: [
+                    { x: startX + 0.4, y: startY + 4.3 },
+                    { x: startX + 1.5, y: startY + 0.4 },
+                    { x: startX + 4.2, y: startY + 0.9 },
+                    { x: startX + 4.5, y: startY + 3.3 },
+                    { x: startX + 2.1, y: startY + 4.5 },
+                  ],
+                }
+              : {
+                  start: { x: startX, y: startY },
+                  end: { x: endX, y: endY },
+                }),
+          }),
+        ] as const;
+      }),
+    ),
+  ),
+);
+
+const shapeExampleObjects = Object.fromEntries(shapeExampleEntries);
+const shapeExampleOrder = shapeExampleEntries.map(([id]) => id);
+
 export const footballBoardExample = createBoard({
   id: "football-example-board",
   version: 1,
@@ -280,8 +356,9 @@ export const footballBoardExample = createBoard({
         props: { label: "1" },
       },
       ...arrowExampleObjects,
+      ...shapeExampleObjects,
     },
-    order: ["player-token-example", ...arrowExampleOrder],
+    order: ["player-token-example", ...arrowExampleOrder, ...shapeExampleOrder],
   },
   style: {},
 });

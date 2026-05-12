@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  createShapeObject,
-  DEFAULT_SHAPE_STROKE_WIDTH,
-} from "./shape-object";
+import { createShapeObject, DEFAULT_SHAPE_STROKE_WIDTH } from "./shape-object";
 
 describe("createShapeObject", () => {
   it("derives rectangle center and size from drag bounds", () => {
@@ -13,7 +10,8 @@ describe("createShapeObject", () => {
       end: { x: 22, y: 20 },
       color: "#000",
       lineStyle: "solid",
-      style: "fill-stroke",
+      fillStyle: "solid",
+      bordered: true,
     });
 
     expect(shape.position).toEqual({ x: 16, y: 16 });
@@ -31,26 +29,28 @@ describe("createShapeObject", () => {
       ],
       color: "#000",
       lineStyle: "solid",
-      style: "fill-stroke",
+      fillStyle: "solid",
+      bordered: true,
     });
 
     expect(shape.position).toEqual({ x: 14, y: 17 });
     expect(shape.size).toMatchObject({ width: 8, height: 14 });
   });
 
-  it("locks circle bounds to a square from the drag box", () => {
+  it("derives oval bounds from the drag box", () => {
     const shape = createShapeObject({
-      id: "shape-circle",
-      kind: "circle",
+      id: "shape-oval",
+      kind: "oval",
       start: { x: 10, y: 10 },
       end: { x: 22, y: 18 },
       color: "#000",
       lineStyle: "solid",
-      style: "fill-stroke",
+      fillStyle: "solid",
+      bordered: true,
     });
 
-    expect(shape.position).toEqual({ x: 14, y: 14 });
-    expect(shape.size).toMatchObject({ width: 8, height: 8 });
+    expect(shape.position).toEqual({ x: 16, y: 14 });
+    expect(shape.size).toMatchObject({ width: 12, height: 8 });
   });
 
   it("derives triangle bounds from the drag box", () => {
@@ -61,7 +61,8 @@ describe("createShapeObject", () => {
       end: { x: 22, y: 20 },
       color: "#000",
       lineStyle: "solid",
-      style: "fill-stroke",
+      fillStyle: "solid",
+      bordered: true,
     });
 
     expect(shape.position).toEqual({ x: 16, y: 16 });
@@ -76,7 +77,8 @@ describe("createShapeObject", () => {
       end: { x: 22, y: 20 },
       color: "#000",
       lineStyle: "solid",
-      style: "fill-stroke",
+      fillStyle: "solid",
+      bordered: true,
     });
 
     expect(shape.position).toEqual({ x: 16, y: 16 });
@@ -86,14 +88,31 @@ describe("createShapeObject", () => {
   it("uses the shared default stroke width when omitted", () => {
     const shape = createShapeObject({
       id: "shape-3",
-      kind: "ellipse",
+      kind: "oval",
       start: { x: 10, y: 10 },
       end: { x: 20, y: 18 },
       color: "#000",
       lineStyle: "solid",
-      style: "stroke",
+      fillStyle: "none",
+      bordered: true,
     });
 
     expect(shape.props.strokeWidth).toBe(DEFAULT_SHAPE_STROKE_WIDTH);
+  });
+
+  it("normalizes legacy circle and style props", () => {
+    const shape = createShapeObject({
+      id: "legacy-shape",
+      kind: "circle",
+      start: { x: 10, y: 10 },
+      end: { x: 20, y: 20 },
+      color: "#000",
+      lineStyle: "solid",
+      style: "fill",
+    });
+
+    expect(shape.props.kind).toBe("oval");
+    expect(shape.props.fillStyle).toBe("solid");
+    expect(shape.props.bordered).toBe(false);
   });
 });

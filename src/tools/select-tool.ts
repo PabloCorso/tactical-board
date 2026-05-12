@@ -18,8 +18,17 @@ import {
   getArrowCurveHandlePoint,
   getArrowCurveOffsetFromHandlePoint,
   getArrowPolylinePoints,
+  setArrowCurveOffset,
+  setArrowEndpoint,
+  setArrowPolylinePoint,
   type ArrowObject,
 } from "../core/objects/arrow-object";
+import {
+  getShapeBounds,
+  resizeShapeObject,
+  SHAPE_OBJECT_TYPE,
+  type ShapeObject,
+} from "../core/objects/shape-object";
 import {
   getSelectToolState,
   type SelectToolState,
@@ -35,10 +44,14 @@ const ARROW_ENDPOINT_HANDLE_RADIUS_PX = 5;
 const ARROW_ENDPOINT_HANDLE_HIT_RADIUS_PX = 12;
 const ARROW_CURVE_HANDLE_WIDTH_PX = 18;
 const ARROW_CURVE_HANDLE_HEIGHT_PX = 6;
+const SHAPE_RESIZE_HANDLE_RADIUS_PX = 5;
+const SHAPE_RESIZE_HANDLE_HIT_RADIUS_PX = 12;
+const SHAPE_RESIZE_EDGE_HIT_RADIUS_PX = 8;
 const DISABLED_SELECTION_ACTIONS: ToolActionDefinition[] = [
   {
     id: "duplicate-selection",
     label: "Duplicate",
+    icon: { kind: "system", value: "duplicate" },
     tooltip: "Duplicate",
     disabled: true,
     onSelect: duplicateSelection,
@@ -46,6 +59,7 @@ const DISABLED_SELECTION_ACTIONS: ToolActionDefinition[] = [
   {
     id: "delete-selection",
     label: "Delete",
+    icon: { kind: "system", value: "delete" },
     tooltip: "Delete",
     disabled: true,
     onSelect: deleteSelection,
@@ -55,6 +69,7 @@ const ENABLED_SELECTION_ACTIONS: ToolActionDefinition[] = [
   {
     id: "duplicate-selection",
     label: "Duplicate",
+    icon: { kind: "system", value: "duplicate" },
     tooltip: "Duplicate",
     disabled: false,
     onSelect: duplicateSelection,
@@ -62,6 +77,7 @@ const ENABLED_SELECTION_ACTIONS: ToolActionDefinition[] = [
   {
     id: "delete-selection",
     label: "Delete",
+    icon: { kind: "system", value: "delete" },
     tooltip: "Delete",
     disabled: false,
     onSelect: deleteSelection,
@@ -87,6 +103,29 @@ interface SelectionOverlayItem {
   object: BoardObject;
   color: string;
   [key: string]: unknown;
+}
+
+function getShapeResizeHandlePoints(shape: ShapeObject) {
+  const bounds = getShapeBounds(shape.props);
+
+  return [
+    {
+      handle: "top-left" as const,
+      point: { x: bounds.minX, y: bounds.minY },
+    },
+    {
+      handle: "top-right" as const,
+      point: { x: bounds.maxX, y: bounds.minY },
+    },
+    {
+      handle: "bottom-right" as const,
+      point: { x: bounds.maxX, y: bounds.maxY },
+    },
+    {
+      handle: "bottom-left" as const,
+      point: { x: bounds.minX, y: bounds.maxY },
+    },
+  ];
 }
 
 function isSelectionOverlayItem(
@@ -404,6 +443,126 @@ function getSelectedArrowCurveHandleAtPoint(
   return undefined;
 }
 
+function getSelectedShapeResizeHandleAtPoint(
+  state: BoardEditorState,
+  selectState: SelectToolState,
+  event: ToolPointerEvent,
+) {
+  if (selectState.selectedObjectIds.length !== 1) {
+    return undefined;
+  }
+
+  const object = state.board.objects.byId[selectState.selectedObjectIds[0]];
+  if (
+    object?.type !== SHAPE_OBJECT_TYPE ||
+    object.locked ||
+    (object as ShapeObject).props.kind === "polygon"
+  ) {
+    return undefined;
+  }
+
+  const projection = createBoardSpaceProjection({
+    surface: state.board.surface,
+    viewport: state.ui.viewport,
+    canvasRect: event.canvasRect,
+    surfaceInset: SURFACE_INSET,
+  });
+  const canvasPoint = projection.worldToCanvas(event.point);
+  const shape = object as ShapeObject;
+  let nearest:
+    | {
+        objectId: string;
+        handle:
+          | "top"
+          | "right"
+          | "bottom"
+          | "left"
+          | "top-left"
+          | "top-right"
+          | "bottom-right"
+          | "bottom-left";
+        distance: number;
+        bounds: ReturnType<typeof getShapeBounds>;
+      }
+    | undefined;
+
+  for (const { handle, point } of getShapeResizeHandlePoints(shape)) {
+    const handleCanvasPoint = projection.worldToCanvas(point);
+    const distance = Math.hypot(
+      canvasPoint.x - handleCanvasPoint.x,
+      canvasPoint.y - handleCanvasPoint.y,
+    );
+
+    if (
+      distance <= SHAPE_RESIZE_HANDLE_HIT_RADIUS_PX &&
+      (!nearest || distance < nearest.distance)
+    ) {
+      nearest = {
+        objectId: shape.id,
+        handle,
+        distance,
+        bounds: getShapeBounds(shape.props),
+      };
+    }
+  }
+
+  if (nearest) {
+    return nearest;
+  }
+
+  const bounds = projection.getObjectCanvasBounds(shape);
+  const edgeHits = [
+    {
+      handle: "top" as const,
+      distance:
+        canvasPoint.x >= bounds.x &&
+        canvasPoint.x <= bounds.x + bounds.width
+          ? Math.abs(canvasPoint.y - bounds.y)
+          : Number.POSITIVE_INFINITY,
+    },
+    {
+      handle: "right" as const,
+      distance:
+        canvasPoint.y >= bounds.y &&
+        canvasPoint.y <= bounds.y + bounds.height
+          ? Math.abs(canvasPoint.x - (bounds.x + bounds.width))
+          : Number.POSITIVE_INFINITY,
+    },
+    {
+      handle: "bottom" as const,
+      distance:
+        canvasPoint.x >= bounds.x &&
+        canvasPoint.x <= bounds.x + bounds.width
+          ? Math.abs(canvasPoint.y - (bounds.y + bounds.height))
+          : Number.POSITIVE_INFINITY,
+    },
+    {
+      handle: "left" as const,
+      distance:
+        canvasPoint.y >= bounds.y &&
+        canvasPoint.y <= bounds.y + bounds.height
+          ? Math.abs(canvasPoint.x - bounds.x)
+          : Number.POSITIVE_INFINITY,
+    },
+  ];
+
+  for (const edgeHit of edgeHits) {
+    if (
+      edgeHit.distance <= SHAPE_RESIZE_EDGE_HIT_RADIUS_PX &&
+      (!nearest || edgeHit.distance < nearest.distance)
+    ) {
+      nearest = {
+        objectId: shape.id,
+        handle: edgeHit.handle,
+        distance: edgeHit.distance,
+        bounds: getShapeBounds(shape.props),
+      };
+    }
+  }
+
+  return nearest;
+}
+
 export function getSelectOverlayItems(
   state: BoardEditorState,
 ): Array<CanvasRectOverlayItem | SelectionOverlayItem> {
@@ -518,12 +677,34 @@ export function registerSelectOverlayRenderer(
         selectionOverlay.object,
       );
 
-      context.strokeRect(
-        bounds.x - 4,
-        bounds.y - 4,
-        bounds.width + 8,
-        bounds.height + 8,
-      );
+      context.strokeStyle = DEFAULT_SELECTION_COLOR;
+      context.lineWidth = 1.5;
+      context.strokeRect(bounds.x, bounds.y, bounds.width, bounds.height);
+
+      if (
+        selectionOverlay.object.type === SHAPE_OBJECT_TYPE &&
+        !selectionOverlay.object.locked &&
+        (selectionOverlay.object as ShapeObject).props.kind !== "polygon"
+      ) {
+        context.fillStyle = colors.white;
+
+        for (const { point } of getShapeResizeHandlePoints(
+          selectionOverlay.object as ShapeObject,
+        )) {
+          const handlePoint = surfaceTransform.worldToCanvas(point);
+          context.beginPath();
+          context.arc(
+            handlePoint.x,
+            handlePoint.y,
+            SHAPE_RESIZE_HANDLE_RADIUS_PX,
+            0,
+            Math.PI * 2,
+          );
+          context.fill();
+          context.stroke();
+        }
+      }
+
       context.restore();
     },
   );
@@ -573,6 +754,339 @@ function getSelectSecondaryActions(
   return actions;
 }
 
+function beginSelectionInteraction(
+  event: ToolPointerEvent,
+  api: ToolApi,
+  selectState: SelectToolState,
+) {
+  const state = api.getState();
+  const shapeResizeHit = getSelectedShapeResizeHandleAtPoint(
+    state,
+    selectState,
+    event,
+  );
+  if (shapeResizeHit) {
+    setSelectState(api, {
+      selectedObjectIds: [shapeResizeHit.objectId],
+        interaction: {
+          mode: "shape-resize",
+          objectId: shapeResizeHit.objectId,
+          handle: shapeResizeHit.handle,
+          bounds: shapeResizeHit.bounds,
+        },
+      });
+    return;
+  }
+
+  const arrowCurveHit = getSelectedArrowCurveHandleAtPoint(
+    state,
+    selectState,
+    event,
+  );
+  if (arrowCurveHit) {
+    setSelectState(api, {
+      selectedObjectIds: [arrowCurveHit.objectId],
+      interaction: {
+        mode: "arrow-curve",
+        objectId: arrowCurveHit.objectId,
+      },
+    });
+    return;
+  }
+
+  const arrowEndpointHit = getSelectedArrowEndpointAtPoint(
+    state,
+    selectState,
+    event,
+  );
+
+  if (arrowEndpointHit) {
+    setSelectState(api, {
+      selectedObjectIds: [arrowEndpointHit.objectId],
+      interaction: {
+        mode: "arrow-endpoint",
+        objectId: arrowEndpointHit.objectId,
+        endpoint: arrowEndpointHit.endpoint,
+      },
+    });
+    return;
+  }
+
+  const arrowPointHit = getSelectedArrowPointAtPoint(state, selectState, event);
+
+  if (arrowPointHit) {
+    setSelectState(api, {
+      selectedObjectIds: [arrowPointHit.objectId],
+      interaction: {
+        mode: "arrow-point",
+        objectId: arrowPointHit.objectId,
+        pointIndex: arrowPointHit.pointIndex,
+      },
+    });
+    return;
+  }
+
+  if (event.targetObjectId) {
+    const hasAdditiveModifier = isAdditiveSelectionModifierPressed(event);
+    const objectIsSelected = selectState.selectedObjectIds.includes(
+      event.targetObjectId,
+    );
+    const nextSelection = hasAdditiveModifier
+      ? objectIsSelected
+        ? selectState.selectedObjectIds.filter(
+            (objectId) => objectId !== event.targetObjectId,
+          )
+        : [...selectState.selectedObjectIds, event.targetObjectId]
+      : objectIsSelected
+        ? selectState.selectedObjectIds
+        : [event.targetObjectId];
+
+    if (hasAdditiveModifier) {
+      setSelectState(api, {
+        selectedObjectIds: nextSelection,
+        interaction: undefined,
+      });
+      return;
+    }
+
+    setSelectState(api, {
+      selectedObjectIds: nextSelection,
+      interaction: {
+        mode: "drag",
+        dragObjectIds: nextSelection,
+        lastPoint: event.point,
+      },
+    });
+    return;
+  }
+
+  const preserveExistingSelection = isAdditiveSelectionModifierPressed(event);
+
+  if (!preserveExistingSelection) {
+    clearSelection(api);
+  }
+
+  const baseSelection = preserveExistingSelection
+    ? selectState.selectedObjectIds
+    : [];
+  setSelectState(api, {
+    selectedObjectIds: baseSelection,
+    interaction: {
+      mode: "marquee",
+      origin: event.point,
+      current: event.point,
+      baseSelection,
+    },
+  });
+}
+
+function updateMarqueeSelection(
+  event: ToolPointerEvent,
+  api: ToolApi,
+  interaction: Extract<
+    NonNullable<SelectToolState["interaction"]>,
+    { mode: "marquee" }
+  >,
+) {
+  const nextInteraction = {
+    ...interaction,
+    current: event.point,
+  } satisfies Extract<
+    NonNullable<SelectToolState["interaction"]>,
+    { mode: "marquee" }
+  >;
+  const state = api.getState();
+  const marqueeObjectIds = getMarqueeObjectIds(
+    state,
+    event.canvasRect,
+    nextInteraction,
+  );
+  const nextSelection = [
+    ...new Set([...nextInteraction.baseSelection, ...marqueeObjectIds]),
+  ];
+
+  setSelectState(api, {
+    selectedObjectIds: nextSelection,
+    interaction: nextInteraction,
+  });
+}
+
+function updateArrowEndpointInteraction(
+  event: ToolPointerEvent,
+  api: ToolApi,
+  interaction: Extract<
+    NonNullable<SelectToolState["interaction"]>,
+    { mode: "arrow-endpoint" }
+  >,
+) {
+  api.updateObjects([interaction.objectId], (object) => {
+    if (object.type !== ARROW_OBJECT_TYPE || object.locked) {
+      return object;
+    }
+
+    return setArrowEndpoint(
+      object as ArrowObject,
+      interaction.endpoint,
+      event.point,
+    );
+  });
+}
+
+function updateArrowPointInteraction(
+  event: ToolPointerEvent,
+  api: ToolApi,
+  interaction: Extract<
+    NonNullable<SelectToolState["interaction"]>,
+    { mode: "arrow-point" }
+  >,
+) {
+  api.updateObjects([interaction.objectId], (object) => {
+    if (object.type !== ARROW_OBJECT_TYPE || object.locked) {
+      return object;
+    }
+
+    return setArrowPolylinePoint(
+      object as ArrowObject,
+      interaction.pointIndex,
+      event.point,
+    );
+  });
+}
+
+function updateArrowCurveInteraction(
+  event: ToolPointerEvent,
+  api: ToolApi,
+  interaction: Extract<
+    NonNullable<SelectToolState["interaction"]>,
+    { mode: "arrow-curve" }
+  >,
+) {
+  api.updateObjects([interaction.objectId], (object) => {
+    if (object.type !== ARROW_OBJECT_TYPE || object.locked) {
+      return object;
+    }
+
+    const arrow = object as ArrowObject;
+    const curveOffset = getArrowCurveOffsetFromHandlePoint(
+      arrow.props.start,
+      arrow.props.end,
+      event.point,
+    );
+
+    return setArrowCurveOffset(arrow, curveOffset);
+  });
+}
+
+function updateDragInteraction(
+  event: ToolPointerEvent,
+  api: ToolApi,
+  interaction: Extract<
+    NonNullable<SelectToolState["interaction"]>,
+    { mode: "drag" }
+  >,
+) {
+  const delta = {
+    x: event.point.x - interaction.lastPoint.x,
+    y: event.point.y - interaction.lastPoint.y,
+  };
+
+  if (delta.x === 0 && delta.y === 0) {
+    return;
+  }
+
+  api.moveObjects(interaction.dragObjectIds, delta);
+  setSelectState(api, {
+    interaction: {
+      ...interaction,
+      lastPoint: event.point,
+    },
+  });
+}
+
+function updateShapeResizeInteraction(
+  event: ToolPointerEvent,
+  api: ToolApi,
+  interaction: Extract<
+    NonNullable<SelectToolState["interaction"]>,
+    { mode: "shape-resize" }
+  >,
+) {
+  api.updateObjects([interaction.objectId], (object) => {
+    if (object.type !== SHAPE_OBJECT_TYPE || object.locked) {
+      return object;
+    }
+
+    const shape = object as ShapeObject;
+    if (shape.props.kind === "polygon") {
+      return object;
+    }
+
+    const bounds = interaction.bounds;
+    let start = { x: bounds.minX, y: bounds.minY };
+    let end = { x: bounds.maxX, y: bounds.maxY };
+
+    switch (interaction.handle) {
+      case "left":
+        start = { x: event.point.x, y: bounds.minY };
+        break;
+      case "right":
+        end = { x: event.point.x, y: bounds.maxY };
+        break;
+      case "top":
+        start = { x: bounds.minX, y: event.point.y };
+        break;
+      case "bottom":
+        end = { x: bounds.maxX, y: event.point.y };
+        break;
+      case "top-left":
+        start = event.point;
+        break;
+      case "top-right":
+        start = { x: bounds.minX, y: event.point.y };
+        end = { x: event.point.x, y: bounds.maxY };
+        break;
+      case "bottom-right":
+        end = event.point;
+        break;
+      case "bottom-left":
+        start = { x: event.point.x, y: bounds.minY };
+        end = { x: bounds.maxX, y: event.point.y };
+        break;
+    }
+
+    return resizeShapeObject(shape, { start, end });
+  });
+}
+
+function updateSelectionInteraction(event: ToolPointerEvent, api: ToolApi) {
+  const selectState = getSelectToolState(api.getState().toolState);
+  const interaction = selectState.interaction;
+  if (!interaction) {
+    return;
+  }
+
+  switch (interaction.mode) {
+    case "marquee":
+      updateMarqueeSelection(event, api, interaction);
+      return;
+    case "arrow-endpoint":
+      updateArrowEndpointInteraction(event, api, interaction);
+      return;
+    case "arrow-point":
+      updateArrowPointInteraction(event, api, interaction);
+      return;
+    case "arrow-curve":
+      updateArrowCurveInteraction(event, api, interaction);
+      return;
+    case "drag":
+      updateDragInteraction(event, api, interaction);
+      return;
+    case "shape-resize":
+      updateShapeResizeInteraction(event, api, interaction);
+      return;
+  }
+}
+
 export const selectTool: ToolDefinition = {
   id: SELECT_TOOL_ID,
   label: "Select",
@@ -585,233 +1099,14 @@ export const selectTool: ToolDefinition = {
     registerSelectOverlayRenderer(api.registerOverlayRenderer);
   },
   onPointerDown: (event, api) => {
-    const state = api.getState();
-    const selectState = getSelectToolState(state.toolState);
-    const arrowCurveHit = getSelectedArrowCurveHandleAtPoint(
-      state,
-      selectState,
+    beginSelectionInteraction(
       event,
+      api,
+      getSelectToolState(api.getState().toolState),
     );
-    if (arrowCurveHit) {
-      setSelectState(api, {
-        selectedObjectIds: [arrowCurveHit.objectId],
-        interaction: {
-          mode: "arrow-curve",
-          objectId: arrowCurveHit.objectId,
-        },
-      });
-      return;
-    }
-
-    const arrowEndpointHit = getSelectedArrowEndpointAtPoint(
-      state,
-      selectState,
-      event,
-    );
-
-    if (arrowEndpointHit) {
-      setSelectState(api, {
-        selectedObjectIds: [arrowEndpointHit.objectId],
-        interaction: {
-          mode: "arrow-endpoint",
-          objectId: arrowEndpointHit.objectId,
-          endpoint: arrowEndpointHit.endpoint,
-        },
-      });
-      return;
-    }
-
-    const arrowPointHit = getSelectedArrowPointAtPoint(
-      state,
-      selectState,
-      event,
-    );
-
-    if (arrowPointHit) {
-      setSelectState(api, {
-        selectedObjectIds: [arrowPointHit.objectId],
-        interaction: {
-          mode: "arrow-point",
-          objectId: arrowPointHit.objectId,
-          pointIndex: arrowPointHit.pointIndex,
-        },
-      });
-      return;
-    }
-
-    if (event.targetObjectId) {
-      const hasAdditiveModifier = isAdditiveSelectionModifierPressed(event);
-      const objectIsSelected = selectState.selectedObjectIds.includes(
-        event.targetObjectId,
-      );
-      const nextSelection = hasAdditiveModifier
-        ? objectIsSelected
-          ? selectState.selectedObjectIds.filter(
-              (objectId) => objectId !== event.targetObjectId,
-            )
-          : [...selectState.selectedObjectIds, event.targetObjectId]
-        : objectIsSelected
-          ? selectState.selectedObjectIds
-          : [event.targetObjectId];
-
-      if (hasAdditiveModifier) {
-        setSelectState(api, {
-          selectedObjectIds: nextSelection,
-          interaction: undefined,
-        });
-        return;
-      }
-
-      setSelectState(api, {
-        selectedObjectIds: nextSelection,
-        interaction: {
-          mode: "drag",
-          dragObjectIds: nextSelection,
-          lastPoint: event.point,
-        },
-      });
-      return;
-    }
-
-    const preserveExistingSelection = isAdditiveSelectionModifierPressed(event);
-
-    if (!preserveExistingSelection) {
-      clearSelection(api);
-    }
-
-    const baseSelection = preserveExistingSelection
-      ? selectState.selectedObjectIds
-      : [];
-    setSelectState(api, {
-      selectedObjectIds: baseSelection,
-      interaction: {
-        mode: "marquee",
-        origin: event.point,
-        current: event.point,
-        baseSelection,
-      },
-    });
   },
   onPointerMove: (event, api) => {
-    const selectState = getSelectToolState(api.getState().toolState);
-    const interaction = selectState.interaction;
-    if (!interaction) {
-      return;
-    }
-
-    if (interaction.mode === "marquee") {
-      const nextToolState = {
-        ...interaction,
-        current: event.point,
-      } satisfies Extract<
-        NonNullable<SelectToolState["interaction"]>,
-        { mode: "marquee" }
-      >;
-      const state = api.getState();
-      const marqueeObjectIds = getMarqueeObjectIds(
-        state,
-        event.canvasRect,
-        nextToolState,
-      );
-      const nextSelection = [
-        ...new Set([...nextToolState.baseSelection, ...marqueeObjectIds]),
-      ];
-
-      setSelectState(api, {
-        selectedObjectIds: nextSelection,
-        interaction: nextToolState,
-      });
-      return;
-    }
-
-    if (interaction.mode === "arrow-endpoint") {
-      api.updateObjects([interaction.objectId], (object) => {
-        if (object.type !== ARROW_OBJECT_TYPE || object.locked) {
-          return object;
-        }
-
-        const arrow = object as ArrowObject;
-
-        return {
-          ...arrow,
-          props: {
-            ...arrow.props,
-            [interaction.endpoint]: event.point,
-          },
-        };
-      });
-      return;
-    }
-
-    if (interaction.mode === "arrow-point") {
-      api.updateObjects([interaction.objectId], (object) => {
-        if (object.type !== ARROW_OBJECT_TYPE || object.locked) {
-          return object;
-        }
-
-        const arrow = object as ArrowObject;
-        if (arrow.props.geometry !== "polyline") {
-          return object;
-        }
-
-        const points = getArrowPolylinePoints(arrow.props);
-        if (!points[interaction.pointIndex]) {
-          return object;
-        }
-
-        points[interaction.pointIndex] = event.point;
-
-        return {
-          ...arrow,
-          props: {
-            ...arrow.props,
-            points,
-          },
-        };
-      });
-      return;
-    }
-
-    if (interaction.mode === "arrow-curve") {
-      api.updateObjects([interaction.objectId], (object) => {
-        if (object.type !== ARROW_OBJECT_TYPE || object.locked) {
-          return object;
-        }
-
-        const arrow = object as ArrowObject;
-        const curveOffset = getArrowCurveOffsetFromHandlePoint(
-          arrow.props.start,
-          arrow.props.end,
-          event.point,
-        );
-
-        return {
-          ...arrow,
-          props: {
-            ...arrow.props,
-            curveOffset,
-          },
-        };
-      });
-      return;
-    }
-
-    const delta = {
-      x: event.point.x - interaction.lastPoint.x,
-      y: event.point.y - interaction.lastPoint.y,
-    };
-
-    if (delta.x === 0 && delta.y === 0) {
-      return;
-    }
-
-    api.moveObjects(interaction.dragObjectIds, delta);
-    setSelectState(api, {
-      interaction: {
-        ...interaction,
-        lastPoint: event.point,
-      },
-    });
+    updateSelectionInteraction(event, api);
   },
   onPointerUp: (_event, api) => {
     setSelectState(api, {

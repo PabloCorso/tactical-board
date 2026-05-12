@@ -33,12 +33,33 @@ interface SelectArrowCurveInteraction {
   objectId: ObjectId;
 }
 
+interface SelectShapeResizeInteraction {
+  mode: "shape-resize";
+  objectId: ObjectId;
+  handle:
+    | "top"
+    | "right"
+    | "bottom"
+    | "left"
+    | "top-left"
+    | "top-right"
+    | "bottom-right"
+    | "bottom-left";
+  bounds: {
+    minX: number;
+    maxX: number;
+    minY: number;
+    maxY: number;
+  };
+}
+
 export type SelectToolInteraction =
   | SelectDragInteraction
   | SelectMarqueeInteraction
   | SelectArrowEndpointInteraction
   | SelectArrowPointInteraction
-  | SelectArrowCurveInteraction;
+  | SelectArrowCurveInteraction
+  | SelectShapeResizeInteraction;
 
 export interface SelectToolState {
   selectedObjectIds: ObjectId[];

@@ -1,10 +1,10 @@
 import type { Point } from "../core/board/types";
 import type { BoardEditorToolState } from "../core/editor/types";
 import type {
+  ShapeFillStyle,
   ShapeKind,
   ShapeLineStyle,
   ShapeObjectProps,
-  ShapeStyle,
 } from "../core/objects/shape-object";
 import { DEFAULT_SHAPE_DASH_STYLE } from "../core/objects/shape-object";
 
@@ -16,7 +16,8 @@ export interface ShapeDraftStyle {
   strokeWidth: number;
   lineStyle: ShapeLineStyle;
   dashStyle: ShapeObjectProps["dashStyle"];
-  style: ShapeStyle;
+  fillStyle: ShapeFillStyle;
+  bordered: boolean;
   fillOpacity: number;
 }
 
@@ -32,7 +33,8 @@ export const DEFAULT_SHAPE_TOOL_STATE: ShapeToolState = {
     strokeWidth: 0.4,
     lineStyle: "solid",
     dashStyle: [...DEFAULT_SHAPE_DASH_STYLE],
-    style: "fill-stroke",
+    fillStyle: "solid",
+    bordered: true,
     fillOpacity: 0.15,
   },
   pendingPoints: [],

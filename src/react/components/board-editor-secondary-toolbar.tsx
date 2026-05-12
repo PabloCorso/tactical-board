@@ -2,7 +2,10 @@ import { CopyIcon, TrashIcon } from "@phosphor-icons/react";
 import { useMemo } from "react";
 import type { BoardEditorState } from "../../core/editor/types";
 import { createToolApi } from "../../core/editor/create-tool-api";
-import type { ToolActionDefinition } from "../../core/tools/types";
+import type {
+  ToolActionDefinition,
+  ToolActionIcon,
+} from "../../core/tools/types";
 import { useBoardEditorStore } from "../hooks/use-board-editor-store";
 import { useBoardEditorContext } from "./board-editor-context";
 import {
@@ -18,7 +21,9 @@ export type BoardEditorSecondaryToolbarProps = {
 
 const EMPTY_SECONDARY_ACTIONS: [] = [];
 
-function renderArrowActionIcon(iconId: string): IconRender {
+function renderArrowActionIcon(
+  variant: ToolActionIcon & { kind: "arrow" },
+): IconRender {
   return (
     <span className="flex h-5 w-10 items-center justify-center">
       <svg
@@ -27,7 +32,7 @@ function renderArrowActionIcon(iconId: string): IconRender {
         fill="none"
         viewBox="0 0 40 20"
       >
-        {iconId === "arrow-curved-solid" ? (
+        {variant.value === "curved-solid" ? (
           <>
             <path
               d="M5 14 C15 4, 24 4, 32 9"
@@ -43,7 +48,7 @@ function renderArrowActionIcon(iconId: string): IconRender {
               strokeWidth="2.25"
             />
           </>
-        ) : iconId === "arrow-curved-dashed" ? (
+        ) : variant.value === "curved-dashed" ? (
           <>
             <path
               d="M5 14 C15 4, 24 4, 32 9"
@@ -60,7 +65,7 @@ function renderArrowActionIcon(iconId: string): IconRender {
               strokeWidth="2.25"
             />
           </>
-        ) : iconId === "arrow-wavy" ? (
+        ) : variant.value === "wavy" ? (
           <>
             <path
               d="M4 10 C8 4, 12 16, 16 10 S24 4, 28 10 S31 14, 33 10"
@@ -77,7 +82,7 @@ function renderArrowActionIcon(iconId: string): IconRender {
               strokeWidth="2.25"
             />
           </>
-        ) : iconId === "arrow-double" ? (
+        ) : variant.value === "double" ? (
           <>
             <path
               d="M5 6.25 L32 6.25"
@@ -99,7 +104,7 @@ function renderArrowActionIcon(iconId: string): IconRender {
               strokeWidth="2.25"
             />
           </>
-        ) : iconId === "arrow-polyline" ? (
+        ) : variant.value === "polyline" ? (
           <>
             <path
               d="M5 14 L15 8 L24 12 L32 7"
@@ -122,7 +127,7 @@ function renderArrowActionIcon(iconId: string): IconRender {
               d="M5 10 L32 10"
               stroke="currentColor"
               strokeDasharray={
-                iconId === "arrow-straight-dashed" ? "4 4" : undefined
+                variant.value === "straight-dashed" ? "4 4" : undefined
               }
               strokeLinecap="round"
               strokeWidth="2.25"
@@ -141,7 +146,9 @@ function renderArrowActionIcon(iconId: string): IconRender {
   );
 }
 
-function renderShapeActionIcon(iconId: string): IconRender {
+function renderShapeActionIcon(
+  variant: ToolActionIcon & { kind: "shape" },
+): IconRender {
   return (
     <span className="flex h-5 w-10 items-center justify-center">
       <svg
@@ -150,15 +157,7 @@ function renderShapeActionIcon(iconId: string): IconRender {
         fill="none"
         viewBox="0 0 40 20"
       >
-        {iconId === "shape-circle" ? (
-          <circle
-            cx="20"
-            cy="10"
-            r="6"
-            stroke="currentColor"
-            strokeWidth="2.25"
-          />
-        ) : iconId === "shape-ellipse" ? (
+        {variant.value === "oval" ? (
           <ellipse
             cx="20"
             cy="10"
@@ -167,21 +166,21 @@ function renderShapeActionIcon(iconId: string): IconRender {
             stroke="currentColor"
             strokeWidth="2.25"
           />
-        ) : iconId === "shape-triangle" ? (
+        ) : variant.value === "triangle" ? (
           <path
             d="M20 4 L31 16 L9 16 Z"
             stroke="currentColor"
             strokeLinejoin="round"
             strokeWidth="2.25"
           />
-        ) : iconId === "shape-diamond" ? (
+        ) : variant.value === "diamond" ? (
           <path
             d="M20 4 L31 10 L20 16 L9 10 Z"
             stroke="currentColor"
             strokeLinejoin="round"
             strokeWidth="2.25"
           />
-        ) : iconId === "shape-polygon" ? (
+        ) : variant.value === "polygon" ? (
           <path
             d="M10 13 L15 5 L28 6 L31 14 L18 16 Z"
             stroke="currentColor"
@@ -205,26 +204,22 @@ function renderShapeActionIcon(iconId: string): IconRender {
 }
 
 function getSecondaryActionIcon(action: ToolActionDefinition): IconRender {
-  switch (action.iconId ?? action.id) {
-    case "duplicate-selection":
-      return <CopyIcon aria-hidden="true" className="size-4" weight="bold" />;
-    case "delete-selection":
-      return <TrashIcon aria-hidden="true" className="size-4" weight="bold" />;
-    case "arrow-straight-solid":
-    case "arrow-straight-dashed":
-    case "arrow-curved-solid":
-    case "arrow-curved-dashed":
-    case "arrow-wavy":
-    case "arrow-double":
-    case "arrow-polyline":
-      return renderArrowActionIcon(action.iconId ?? action.id);
-    case "shape-rectangle":
-    case "shape-circle":
-    case "shape-ellipse":
-    case "shape-triangle":
-    case "shape-diamond":
-    case "shape-polygon":
-      return renderShapeActionIcon(action.iconId ?? action.id);
+  switch (action.icon?.kind) {
+    case "system":
+      if (action.icon.value === "duplicate") {
+        return <CopyIcon aria-hidden="true" className="size-4" weight="bold" />;
+      }
+
+      if (action.icon.value === "delete") {
+        return (
+          <TrashIcon aria-hidden="true" className="size-4" weight="bold" />
+        );
+      }
+      return undefined;
+    case "arrow":
+      return renderArrowActionIcon(action.icon);
+    case "shape":
+      return renderShapeActionIcon(action.icon);
     default:
       return undefined;
   }

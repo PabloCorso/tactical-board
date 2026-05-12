@@ -72,4 +72,26 @@ describe("createBoardSpaceProjection", () => {
       ),
     ).toBe(true);
   });
+
+  it("scales world-space projection by viewport zoom", () => {
+    const zoomedProjection = createBoardSpaceProjection({
+      surface: {
+        width: 100,
+        height: 50,
+        origin: { x: 0, y: 0 },
+      },
+      viewport: {
+        pan: { x: 10, y: 20 },
+        zoom: 2,
+      },
+      canvasRect: {
+        width: 300,
+        height: 200,
+      },
+    });
+
+    expect(zoomedProjection.pixelsPerUnit).toBeCloseTo(
+      projection.pixelsPerUnit * 2,
+    );
+  });
 });

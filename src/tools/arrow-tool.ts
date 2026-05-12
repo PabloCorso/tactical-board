@@ -15,6 +15,7 @@ import type {
   CanvasObjectRenderInput,
 } from "../rendering/canvas/types";
 import type {
+  ToolActionIcon,
   ToolActionDefinition,
   ToolApi,
   ToolDefinition,
@@ -33,7 +34,7 @@ const POLYLINE_FINISH_HIT_RADIUS_PX = 12;
 export interface ArrowToolPreset {
   id: string;
   label: string;
-  iconId?: string;
+  icon?: ToolActionIcon;
   tooltip?: string;
   draftStyle: Partial<ArrowDraftStyle>;
 }
@@ -501,7 +502,7 @@ function createPresetSecondaryActions(
       (preset): ToolActionDefinition => ({
         id: preset.id,
         label: preset.label,
-        iconId: preset.iconId,
+        icon: preset.icon,
         tooltip: preset.tooltip ?? preset.label,
         disabled: false,
         onSelect: (api) => applyArrowPreset(api, preset),

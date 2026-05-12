@@ -83,10 +83,7 @@ describe("createBoardEditorStore", () => {
         style: {},
       },
       initialToolId: ARROW_TOOL_ID,
-      tools: [
-        selectTool,
-        arrowTool,
-      ],
+      tools: [selectTool, arrowTool],
     });
 
     store.getState().actions.setToolState(ARROW_TOOL_ID, {
@@ -108,9 +105,9 @@ describe("createBoardEditorStore", () => {
     expect(getArrowToolState(store.getState().toolState).pendingPoints).toEqual(
       [],
     );
-    expect(
-      getArrowToolState(store.getState().toolState).draftStyle,
-    ).toEqual(DEFAULT_ARROW_TOOL_STATE.draftStyle);
+    expect(getArrowToolState(store.getState().toolState).draftStyle).toEqual(
+      DEFAULT_ARROW_TOOL_STATE.draftStyle,
+    );
     expect(store.getState().rendering.previewObjects).toEqual([]);
   });
 

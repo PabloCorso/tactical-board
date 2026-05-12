@@ -33,6 +33,24 @@ export interface ToolWheelEvent {
   deltaY: number;
 }
 
+export type ToolActionIcon =
+  | { kind: "system"; value: "duplicate" | "delete" }
+  | {
+      kind: "arrow";
+      value:
+        | "straight-solid"
+        | "straight-dashed"
+        | "curved-solid"
+        | "curved-dashed"
+        | "wavy"
+        | "double"
+        | "polyline";
+    }
+  | {
+      kind: "shape";
+      value: "rectangle" | "oval" | "triangle" | "diamond" | "polygon";
+    };
+
 export interface ToolApi {
   getState: () => BoardEditorState;
   addObjects: (
@@ -71,7 +89,7 @@ export interface ToolApi {
 export interface ToolActionDefinition {
   id: string;
   label: string;
-  iconId?: string;
+  icon?: ToolActionIcon;
   tooltip?: string;
   active?: boolean;
   disabled?: boolean;

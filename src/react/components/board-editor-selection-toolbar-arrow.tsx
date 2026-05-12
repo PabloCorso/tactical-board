@@ -8,7 +8,8 @@ import {
 import {
   THICK_ARROW_STROKE_WIDTH,
   THIN_ARROW_STROKE_WIDTH,
-  getDefaultArrowCurveOffset,
+  setArrowBodyStyle,
+  updateArrowObject,
   type ArrowBodyStyle,
   type ArrowHeadStyle,
   type ArrowLineStyle,
@@ -305,28 +306,11 @@ export function BoardEditorArrowSelectionToolbar({
   };
 
   const updateArrowProps = (props: Partial<ArrowObject["props"]>) => {
-    updateArrow((arrow) => ({
-      ...arrow,
-      props: {
-        ...arrow.props,
-        ...props,
-      },
-    }));
+    updateArrow((arrow) => updateArrowObject(arrow, props));
   };
 
   const updateBodyStyle = (value: ArrowBodyStyle) => {
-    updateArrow((arrow) => ({
-      ...arrow,
-      props: {
-        ...arrow.props,
-        bodyStyle: value,
-        curveOffset:
-          value === "curved"
-            ? (arrow.props.curveOffset ??
-              getDefaultArrowCurveOffset(arrow.props.start, arrow.props.end))
-            : arrow.props.curveOffset,
-      },
-    }));
+    updateArrow((arrow) => setArrowBodyStyle(arrow, value));
   };
 
   return (

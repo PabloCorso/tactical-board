@@ -7,6 +7,7 @@ import {
   createArrowObject,
   getArrowCurveHandlePoint,
 } from "../objects/arrow-object";
+import { createShapeObject } from "../objects/shape-object";
 import { createArrowTool, setArrowDraftStyle } from "../../tools/arrow-tool";
 import { createShapeTool } from "../../tools/shape-tool";
 import { selectTool } from "../../tools/select-tool";
@@ -14,6 +15,7 @@ import { setSelectedObjectIds } from "../../tools/select-tool-actions";
 import { getArrowToolState } from "../../tools/arrow-tool-state";
 import { getSelectToolState } from "../../tools/select-tool-state";
 import { getShapeToolState } from "../../tools/shape-tool-state";
+import { MAX_VIEWPORT_ZOOM, MIN_VIEWPORT_ZOOM } from "./viewport-utils";
 
 describe("createBoardEditorController", () => {
   it("keeps the arrow tool in creation mode when pointer down hits an existing arrow", () => {
@@ -202,6 +204,170 @@ describe("createBoardEditorController", () => {
         props: {
           start: { x: 10, y: 10 },
           end: { x: 35, y: 18 },
+        },
+      },
+    );
+  });
+
+  it("resizes a selected shape by dragging a selection edge", () => {
+    const arrowTool = createArrowTool();
+    const shapeTool = createShapeTool();
+    const existingShape = createShapeObject({
+      id: "shape-1",
+      kind: "rectangle",
+      start: { x: 10, y: 10 },
+      end: { x: 20, y: 18 },
+      color: "#fff",
+      lineStyle: "solid",
+      fillStyle: "solid",
+      bordered: true,
+    });
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {
+            [existingShape.id]: existingShape,
+          },
+          order: [existingShape.id],
+        },
+        style: {},
+      },
+      initialToolId: selectTool.id,
+      tools: [selectTool, arrowTool, shapeTool],
+    });
+    const toolApi = createToolApi(store);
+    shapeTool.registerRenderers?.(toolApi);
+    setSelectedObjectIds(toolApi, [existingShape.id]);
+
+    const controller = createBoardEditorController(store);
+    const canvasRect = {
+      left: 0,
+      top: 0,
+      width: 1000,
+      height: 500,
+    };
+    const projection = createBoardSpaceProjection({
+      surface: store.getState().board.surface,
+      viewport: store.getState().ui.viewport,
+      canvasRect,
+      surfaceInset: 14,
+    });
+    const rightHandle = projection.worldToCanvas({ x: 20, y: 14 });
+    const nextRightHandle = projection.worldToCanvas({ x: 30, y: 14 });
+
+    controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: rightHandle,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+    controller.dispatchPointerEvent("onPointerMove", {
+      clientPoint: nextRightHandle,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    expect(store.getState().board.objects.byId[existingShape.id]).toMatchObject(
+      {
+        props: {
+          start: { x: 10, y: 10 },
+          end: { x: 30, y: 18 },
+        },
+      },
+    );
+  });
+
+  it("resizes a selected shape by dragging a corner handle", () => {
+    const arrowTool = createArrowTool();
+    const shapeTool = createShapeTool();
+    const existingShape = createShapeObject({
+      id: "shape-1",
+      kind: "rectangle",
+      start: { x: 10, y: 10 },
+      end: { x: 20, y: 18 },
+      color: "#fff",
+      lineStyle: "solid",
+      fillStyle: "solid",
+      bordered: true,
+    });
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {
+            [existingShape.id]: existingShape,
+          },
+          order: [existingShape.id],
+        },
+        style: {},
+      },
+      initialToolId: selectTool.id,
+      tools: [selectTool, arrowTool, shapeTool],
+    });
+    const toolApi = createToolApi(store);
+    shapeTool.registerRenderers?.(toolApi);
+    setSelectedObjectIds(toolApi, [existingShape.id]);
+
+    const controller = createBoardEditorController(store);
+    const canvasRect = {
+      left: 0,
+      top: 0,
+      width: 1000,
+      height: 500,
+    };
+    const projection = createBoardSpaceProjection({
+      surface: store.getState().board.surface,
+      viewport: store.getState().ui.viewport,
+      canvasRect,
+      surfaceInset: 14,
+    });
+    const bottomRightHandle = projection.worldToCanvas({ x: 20, y: 18 });
+    const nextBottomRightHandle = projection.worldToCanvas({ x: 30, y: 24 });
+
+    controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: bottomRightHandle,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+    controller.dispatchPointerEvent("onPointerMove", {
+      clientPoint: nextBottomRightHandle,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    expect(store.getState().board.objects.byId[existingShape.id]).toMatchObject(
+      {
+        props: {
+          start: { x: 10, y: 10 },
+          end: { x: 30, y: 24 },
         },
       },
     );
@@ -656,6 +822,116 @@ describe("createBoardEditorController", () => {
       x: -24,
       y: 0,
     });
+  });
+
+  it("zooms around the cursor on modifier + wheel", () => {
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      initialToolId: selectTool.id,
+      tools: [selectTool],
+    });
+    const controller = createBoardEditorController(store);
+    const canvasRect = {
+      left: 0,
+      top: 0,
+      width: 1000,
+      height: 500,
+    };
+    const beforeProjection = createBoardSpaceProjection({
+      surface: store.getState().board.surface,
+      viewport: store.getState().ui.viewport,
+      canvasRect,
+      surfaceInset: 14,
+    });
+    const worldPoint = beforeProjection.canvasToWorld({ x: 300, y: 200 });
+    const handled = controller.dispatchWheelEvent({
+      clientPoint: { x: 300, y: 200 },
+      deltaX: 0,
+      deltaY: -120,
+      ctrlKey: true,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    expect(handled).toBe(true);
+    expect(store.getState().ui.viewport.zoom).toBeGreaterThan(1);
+
+    const afterProjection = createBoardSpaceProjection({
+      surface: store.getState().board.surface,
+      viewport: store.getState().ui.viewport,
+      canvasRect,
+      surfaceInset: 14,
+    });
+
+    expect(afterProjection.worldToCanvas(worldPoint).x).toBeCloseTo(300);
+    expect(afterProjection.worldToCanvas(worldPoint).y).toBeCloseTo(200);
+  });
+
+  it("clamps modifier + wheel zoom", () => {
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      initialToolId: selectTool.id,
+      tools: [selectTool],
+    });
+    const controller = createBoardEditorController(store);
+    const canvasRect = {
+      left: 0,
+      top: 0,
+      width: 1000,
+      height: 500,
+    };
+
+    controller.dispatchWheelEvent({
+      clientPoint: { x: 500, y: 250 },
+      deltaX: 0,
+      deltaY: 10000,
+      ctrlKey: true,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+    expect(store.getState().ui.viewport.zoom).toBe(MIN_VIEWPORT_ZOOM);
+
+    controller.dispatchWheelEvent({
+      clientPoint: { x: 500, y: 250 },
+      deltaX: 0,
+      deltaY: -10000,
+      ctrlKey: true,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+    expect(store.getState().ui.viewport.zoom).toBe(MAX_VIEWPORT_ZOOM);
   });
 
   it("preserves a selected curved arrow's bend when dragging the arrow body", () => {

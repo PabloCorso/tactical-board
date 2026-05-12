@@ -12,6 +12,7 @@ import type {
   CanvasObjectRenderInput,
 } from "../rendering/canvas/types";
 import type {
+  ToolActionIcon,
   ToolActionDefinition,
   ToolApi,
   ToolDefinition,
@@ -30,7 +31,7 @@ const POLYGON_FINISH_HIT_RADIUS_PX = 12;
 export interface ShapeToolPreset {
   id: string;
   label: string;
-  iconId?: string;
+  icon?: ToolActionIcon;
   tooltip?: string;
   draftStyle: Partial<ShapeDraftStyle>;
 }
@@ -151,6 +152,36 @@ function drawShapePath(context: CanvasRenderingContext2D, points: Point[]) {
   }
 }
 
+function createDiagonalStripePattern(
+  context: CanvasRenderingContext2D,
+  color: string,
+) {
+  const tileSize = 18;
+  const patternCanvas = document.createElement("canvas");
+  patternCanvas.width = tileSize;
+  patternCanvas.height = tileSize;
+  const patternContext = patternCanvas.getContext("2d");
+
+  if (!patternContext) {
+    return undefined;
+  }
+
+  patternContext.strokeStyle = color;
+  patternContext.lineWidth = 2.25;
+  patternContext.lineCap = "butt";
+  patternContext.setLineDash([]);
+  patternContext.beginPath();
+  patternContext.moveTo(-tileSize, tileSize);
+  patternContext.lineTo(0, 0);
+  patternContext.moveTo(0, tileSize);
+  patternContext.lineTo(tileSize, 0);
+  patternContext.moveTo(tileSize, tileSize);
+  patternContext.lineTo(tileSize * 2, 0);
+  patternContext.stroke();
+
+  return context.createPattern(patternCanvas, "repeat") ?? undefined;
+}
+
 function renderShape({
   context,
   object,
@@ -177,7 +208,7 @@ function renderShape({
     shape.props.lineStyle === "dashed" ? shape.props.dashStyle : [],
   );
 
-  if (shape.props.kind === "ellipse" || shape.props.kind === "circle") {
+  if (shape.props.kind === "oval") {
     const bounds = surfaceTransform.getObjectCanvasBounds(shape);
     context.beginPath();
     context.ellipse(
@@ -194,14 +225,27 @@ function renderShape({
     context.closePath();
   }
 
-  if (shape.props.style === "fill" || shape.props.style === "fill-stroke") {
+  if (shape.props.fillStyle !== "none") {
     context.save();
     context.globalAlpha *= shape.props.fillOpacity;
+    context.fillStyle = shape.props.color;
     context.fill();
+
+    if (shape.props.fillStyle === "diagonal-stripes") {
+      const stripePattern = createDiagonalStripePattern(
+        context,
+        shape.props.color,
+      );
+
+      if (stripePattern) {
+        context.fillStyle = stripePattern;
+        context.fill();
+      }
+    }
     context.restore();
   }
 
-  if (shape.props.style === "stroke" || shape.props.style === "fill-stroke") {
+  if (shape.props.bordered) {
     context.stroke();
   }
 
@@ -235,12 +279,16 @@ function distanceToSegment(point: Point, start: Point, end: Point) {
 function isPointInsidePolygon(point: Point, polygon: Point[]) {
   let inside = false;
 
-  for (let index = 0, previous = polygon.length - 1; index < polygon.length; previous = index, index += 1) {
+  for (
+    let index = 0, previous = polygon.length - 1;
+    index < polygon.length;
+    previous = index, index += 1
+  ) {
     const a = polygon[index];
     const b = polygon[previous];
     const intersects =
       a.y > point.y !== b.y > point.y &&
-      point.x < ((b.x - a.x) * (point.y - a.y)) / ((b.y - a.y) || 1e-9) + a.x;
+      point.x < ((b.x - a.x) * (point.y - a.y)) / (b.y - a.y || 1e-9) + a.x;
 
     if (intersects) {
       inside = !inside;
@@ -266,7 +314,7 @@ function hitTestShape({
     shape.props.strokeWidth * surfaceTransform.pixelsPerUnit,
   );
 
-  if (shape.props.kind === "ellipse" || shape.props.kind === "circle") {
+  if (shape.props.kind === "oval") {
     const bounds = surfaceTransform.getObjectCanvasBounds(shape);
     const rx = Math.max(Math.abs(bounds.width) / 2, threshold);
     const ry = Math.max(Math.abs(bounds.height) / 2, threshold);
@@ -276,7 +324,7 @@ function hitTestShape({
       ((canvasPoint.x - cx) * (canvasPoint.x - cx)) / (rx * rx) +
       ((canvasPoint.y - cy) * (canvasPoint.y - cy)) / (ry * ry);
 
-    if (shape.props.style !== "stroke") {
+    if (shape.props.fillStyle !== "none") {
       return normalized <= 1;
     }
 
@@ -298,7 +346,10 @@ function hitTestShape({
     }
   }
 
-  return shape.props.style !== "stroke" && isPointInsidePolygon(canvasPoint, points);
+  return (
+    shape.props.fillStyle !== "none" &&
+    isPointInsidePolygon(canvasPoint, points)
+  );
 }
 
 function createPresetSecondaryActions(
@@ -311,7 +362,7 @@ function createPresetSecondaryActions(
       (preset): ToolActionDefinition => ({
         id: preset.id,
         label: preset.label,
-        iconId: preset.iconId,
+        icon: preset.icon,
         tooltip: preset.tooltip ?? preset.label,
         disabled: false,
         onSelect: (api) => applyShapePreset(api, preset),

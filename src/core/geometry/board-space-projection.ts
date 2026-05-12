@@ -42,6 +42,7 @@ export function createBoardSpaceProjection({
       width: canvasRect.width - surfaceInset * 2,
       height: canvasRect.height - surfaceInset * 2,
     },
+    zoom: viewport.zoom,
   });
 
   const getObjectCanvasSize = (object: BoardObject) => {

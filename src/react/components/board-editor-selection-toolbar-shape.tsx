@@ -1,9 +1,10 @@
 import { LineSegmentsIcon, SquareIcon, TrashIcon } from "@phosphor-icons/react";
 import type {
+  ShapeFillStyle,
   ShapeLineStyle,
   ShapeObject,
-  ShapeStyle,
 } from "../../core/objects/shape-object";
+import { updateShapeObject } from "../../core/objects/shape-object";
 import { createToolApi } from "../../core/editor/create-tool-api";
 import { useBoardEditorContext } from "./board-editor-context";
 import {
@@ -29,13 +30,18 @@ const LINE_STYLE_OPTIONS: Array<{
 ];
 
 const FILL_STYLE_OPTIONS: Array<{
-  value: ShapeStyle;
+  value: ShapeFillStyle;
   label: string;
 }> = [
-  { value: "stroke", label: "Stroke" },
-  { value: "fill", label: "Fill" },
-  { value: "fill-stroke", label: "Both" },
+  { value: "none", label: "None" },
+  { value: "solid", label: "Solid" },
+  { value: "diagonal-stripes", label: "Stripes" },
 ];
+
+const BORDER_STYLE_OPTIONS = [
+  { value: true, label: "Bordered" },
+  { value: false, label: "Borderless" },
+] as const;
 
 function getWeightValue(strokeWidth: number) {
   return WEIGHT_OPTIONS.reduce((closest, option) =>
@@ -129,8 +135,8 @@ function ShapeFillPopoverContent({
   value,
   onSelect,
 }: {
-  value: ShapeStyle;
-  onSelect: (nextValue: ShapeStyle) => void;
+  value: ShapeFillStyle;
+  onSelect: (nextValue: ShapeFillStyle) => void;
 }) {
   return (
     <div className="grid grid-cols-3 gap-2">
@@ -153,19 +159,59 @@ function ShapeFillPopoverContent({
                   width="22"
                   height="12"
                   rx="2"
-                  fill={
-                    option.value === "fill" || option.value === "fill-stroke"
-                      ? "currentColor"
-                      : "none"
-                  }
-                  fillOpacity={
-                    option.value === "fill" || option.value === "fill-stroke"
-                      ? 0.25
-                      : 1
-                  }
-                  stroke={
-                    option.value === "fill" ? "none" : "currentColor"
-                  }
+                  fill={option.value === "none" ? "none" : "currentColor"}
+                  fillOpacity={option.value === "none" ? 1 : 0.2}
+                  stroke="currentColor"
+                  strokeWidth="2"
+                />
+                {option.value === "diagonal-stripes" ? (
+                  <path
+                    d="M10 15 L20 5 M15 17 L27 5 M22 17 L30 9"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                  />
+                ) : null}
+              </svg>
+            </span>
+          }
+          onClick={() => onSelect(option.value)}
+        />
+      ))}
+    </div>
+  );
+}
+
+function ShapeBorderPopoverContent({
+  value,
+  onSelect,
+}: {
+  value: boolean;
+  onSelect: (nextValue: boolean) => void;
+}) {
+  return (
+    <div className="grid grid-cols-2 gap-2">
+      {BORDER_STYLE_OPTIONS.map((option) => (
+        <BoardEditorToolbarOptionButton
+          key={String(option.value)}
+          active={value === option.value}
+          ariaLabel={`Shape border ${option.label}`}
+          icon={
+            <span className="flex h-5 w-10 items-center justify-center">
+              <svg
+                aria-hidden="true"
+                className="h-5 w-10"
+                fill="none"
+                viewBox="0 0 40 20"
+              >
+                <rect
+                  x="9"
+                  y="4"
+                  width="22"
+                  height="12"
+                  rx="2"
+                  fill="currentColor"
+                  fillOpacity="0.12"
+                  stroke={option.value ? "currentColor" : "none"}
                   strokeWidth="2"
                 />
               </svg>
@@ -188,17 +234,16 @@ export function BoardEditorShapeSelectionToolbar({
   const toolApi = createToolApi(store);
 
   const updateShapeProps = (props: Partial<ShapeObject["props"]>) => {
-    toolApi.updateObjects([selectedObject.id], (object) => ({
-      ...(object as ShapeObject),
-      props: {
-        ...(object as ShapeObject).props,
-        ...props,
-      },
-    }));
+    toolApi.updateObjects([selectedObject.id], (object) =>
+      updateShapeObject(object as ShapeObject, props),
+    );
   };
 
   return (
-    <div className="pointer-events-none absolute inset-0" style={{ zIndex: 10 }}>
+    <div
+      className="pointer-events-none absolute inset-0"
+      style={{ zIndex: 10 }}
+    >
       <div
         className="pointer-events-auto absolute"
         style={{
@@ -273,11 +318,23 @@ export function BoardEditorShapeSelectionToolbar({
             tooltip="Fill style"
             content={
               <ShapeFillPopoverContent
-                value={selectedObject.props.style}
-                onSelect={(value) => updateShapeProps({ style: value })}
+                value={selectedObject.props.fillStyle}
+                onSelect={(value) => updateShapeProps({ fillStyle: value })}
               />
             }
             icon={<SquareIcon weight="bold" />}
+          />
+
+          <BoardEditorToolbarPopoverButton
+            ariaLabel="Shape border style"
+            tooltip="Border"
+            content={
+              <ShapeBorderPopoverContent
+                value={selectedObject.props.bordered}
+                onSelect={(value) => updateShapeProps({ bordered: value })}
+              />
+            }
+            icon={<LineSegmentsIcon weight="bold" />}
           />
 
           <BoardEditorToolbarButton

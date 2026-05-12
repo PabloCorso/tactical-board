@@ -4,6 +4,10 @@ import type { ObjectId, Point } from "../board/types";
 import { createBoardSpaceProjection } from "../geometry/board-space-projection";
 import type { BoardEditorStore } from "../store/board-editor-store";
 import type { ToolPointerEvent, ToolWheelEvent } from "../tools/types";
+import {
+  getViewportForZoomAtCanvasPoint,
+  VIEWPORT_WHEEL_ZOOM_SENSITIVITY,
+} from "./viewport-utils";
 
 const SURFACE_INSET = 14;
 
@@ -111,6 +115,23 @@ export function createBoardEditorController(
   store: BoardEditorStore,
 ): BoardEditorController {
   const toolApi = createToolApi(store);
+  const zoomViewportFromWheel = (input: BoardEditorWheelInput) => {
+    const state = store.getState();
+    const nextViewport = getViewportForZoomAtCanvasPoint({
+      surface: state.board.surface,
+      viewport: state.ui.viewport,
+      canvasRect: input.canvasRect,
+      anchorCanvasPoint: {
+        x: input.clientPoint.x - input.canvasRect.left,
+        y: input.clientPoint.y - input.canvasRect.top,
+      },
+      zoom:
+        state.ui.viewport.zoom *
+        Math.exp(-input.deltaY * VIEWPORT_WHEEL_ZOOM_SENSITIVITY),
+    });
+
+    state.actions.setViewport(nextViewport);
+  };
   const getToolWheelEvent = (
     state: BoardEditorState,
     input: BoardEditorWheelInput,
@@ -185,6 +206,11 @@ export function createBoardEditorController(
       );
     },
     dispatchWheelEvent: (input) => {
+      if (input.ctrlKey || input.metaKey) {
+        zoomViewportFromWheel(input);
+        return true;
+      }
+
       const state = store.getState();
       const currentTool = state.toolRegistry.definitions[state.ui.activeToolId];
       const handler = currentTool?.onWheel;

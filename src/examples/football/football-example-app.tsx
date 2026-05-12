@@ -3,6 +3,7 @@ import {
   BoardEditor,
   BoardEditorArrowRouteDone,
   BoardEditorCanvas,
+  BoardEditorCanvasToolbar,
   BoardEditorProvider,
   BoardEditorShapePolygonDone,
 } from "../../react/components/board-editor";
@@ -21,7 +22,7 @@ const footballArrowTool = createArrowTool({
     {
       id: "run",
       label: "Run",
-      iconId: "arrow-straight-solid",
+      icon: { kind: "arrow", value: "straight-solid" },
       draftStyle: {
         geometry: "simple",
         bodyStyle: "straight",
@@ -30,7 +31,7 @@ const footballArrowTool = createArrowTool({
     {
       id: "dribble",
       label: "Dribble",
-      iconId: "arrow-wavy",
+      icon: { kind: "arrow", value: "wavy" },
       draftStyle: {
         geometry: "simple",
         bodyStyle: "wavy",
@@ -39,7 +40,7 @@ const footballArrowTool = createArrowTool({
     {
       id: "lofted-pass",
       label: "Lofted pass",
-      iconId: "arrow-curved-solid",
+      icon: { kind: "arrow", value: "curved-solid" },
       draftStyle: {
         geometry: "simple",
         bodyStyle: "curved",
@@ -48,7 +49,7 @@ const footballArrowTool = createArrowTool({
     {
       id: "screen",
       label: "Screen",
-      iconId: "arrow-double",
+      icon: { kind: "arrow", value: "double" },
       draftStyle: {
         geometry: "simple",
         bodyStyle: "double",
@@ -57,7 +58,7 @@ const footballArrowTool = createArrowTool({
     {
       id: "route",
       label: "Route",
-      iconId: "arrow-polyline",
+      icon: { kind: "arrow", value: "polyline" },
       draftStyle: {
         geometry: "polyline",
         bodyStyle: "straight",
@@ -71,31 +72,23 @@ const footballShapeTool = createShapeTool({
     {
       id: "shape-rectangle",
       label: "Rectangle",
-      iconId: "shape-rectangle",
+      icon: { kind: "shape", value: "rectangle" },
       draftStyle: {
         kind: "rectangle",
       },
     },
     {
-      id: "shape-circle",
-      label: "Circle",
-      iconId: "shape-circle",
+      id: "shape-oval",
+      label: "Oval",
+      icon: { kind: "shape", value: "oval" },
       draftStyle: {
-        kind: "circle",
-      },
-    },
-    {
-      id: "shape-ellipse",
-      label: "Ellipse",
-      iconId: "shape-ellipse",
-      draftStyle: {
-        kind: "ellipse",
+        kind: "oval",
       },
     },
     {
       id: "shape-triangle",
       label: "Triangle",
-      iconId: "shape-triangle",
+      icon: { kind: "shape", value: "triangle" },
       draftStyle: {
         kind: "triangle",
       },
@@ -103,7 +96,7 @@ const footballShapeTool = createShapeTool({
     {
       id: "shape-diamond",
       label: "Diamond",
-      iconId: "shape-diamond",
+      icon: { kind: "shape", value: "diamond" },
       draftStyle: {
         kind: "diamond",
       },
@@ -111,7 +104,7 @@ const footballShapeTool = createShapeTool({
     {
       id: "shape-polygon",
       label: "Polygon",
-      iconId: "shape-polygon",
+      icon: { kind: "shape", value: "polygon" },
       draftStyle: {
         kind: "polygon",
       },
@@ -132,6 +125,7 @@ export function FootballExampleApp() {
         <BoardEditorCanvas />
         <BoardEditorArrowRouteDone />
         <BoardEditorShapePolygonDone />
+        <BoardEditorCanvasToolbar />
         <BoardEditorSelectionToolbar />
         <div className="pointer-events-none absolute inset-y-4 left-4 flex items-center">
           <div className="pointer-events-auto flex items-center gap-3">
