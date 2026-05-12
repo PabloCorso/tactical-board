@@ -16,7 +16,8 @@ import type { BoardObject } from "../core/board/types";
 import {
   ARROW_OBJECT_TYPE,
   getArrowCurveHandlePoint,
-  getArrowCurveOffset,
+  getArrowCurveOffsetFromHandlePoint,
+  getArrowPolylinePoints,
   type ArrowObject,
 } from "../core/objects/arrow-object";
 import {
@@ -292,6 +293,62 @@ function getSelectedArrowEndpointAtPoint(
   return nearest;
 }
 
+function getSelectedArrowPointAtPoint(
+  state: BoardEditorState,
+  selectState: SelectToolState,
+  event: ToolPointerEvent,
+) {
+  const projection = createBoardSpaceProjection({
+    surface: state.board.surface,
+    viewport: state.ui.viewport,
+    canvasRect: event.canvasRect,
+    surfaceInset: SURFACE_INSET,
+  });
+  const canvasPoint = projection.worldToCanvas(event.point);
+  let nearest:
+    | {
+        objectId: string;
+        pointIndex: number;
+        distance: number;
+      }
+    | undefined;
+
+  for (const objectId of selectState.selectedObjectIds) {
+    const object = state.board.objects.byId[objectId];
+    if (object?.type !== ARROW_OBJECT_TYPE || object.locked) {
+      continue;
+    }
+
+    const arrow = object as ArrowObject;
+    if (arrow.props.geometry !== "polyline") {
+      continue;
+    }
+
+    for (const [pointIndex, point] of getArrowPolylinePoints(
+      arrow.props,
+    ).entries()) {
+      const pointCanvas = projection.worldToCanvas(point);
+      const distance = Math.hypot(
+        canvasPoint.x - pointCanvas.x,
+        canvasPoint.y - pointCanvas.y,
+      );
+
+      if (
+        distance <= ARROW_ENDPOINT_HANDLE_HIT_RADIUS_PX &&
+        (!nearest || distance < nearest.distance)
+      ) {
+        nearest = {
+          objectId,
+          pointIndex,
+          distance,
+        };
+      }
+    }
+  }
+
+  return nearest;
+}
+
 function getSelectedArrowCurveHandleAtPoint(
   state: BoardEditorState,
   selectState: SelectToolState,
@@ -336,7 +393,7 @@ function getSelectedArrowCurveHandleAtPoint(
 
     if (
       Math.abs(localX) <= ARROW_CURVE_HANDLE_WIDTH_PX / 2 + 2 &&
-      Math.abs(localY) <= ARROW_CURVE_HANDLE_HEIGHT_PX / 2 + 2
+      Math.abs(localY) <= ARROW_CURVE_HANDLE_HEIGHT_PX / 2
     ) {
       return {
         objectId,
@@ -400,16 +457,17 @@ export function registerSelectOverlayRenderer(
 
       if (selectionOverlay.object.type === ARROW_OBJECT_TYPE) {
         const arrow = selectionOverlay.object as ArrowObject;
-        const endpoints = [arrow.props.start, arrow.props.end];
         const startPoint = surfaceTransform.worldToCanvas(arrow.props.start);
         const endPoint = surfaceTransform.worldToCanvas(arrow.props.end);
 
         context.fillStyle = colors.white;
+        context.strokeStyle = DEFAULT_SELECTION_COLOR;
         context.lineWidth = 1.5;
 
-        for (const endpoint of endpoints) {
-          const point = surfaceTransform.worldToCanvas(endpoint);
-
+        for (const point of (arrow.props.geometry === "polyline"
+          ? getArrowPolylinePoints(arrow.props)
+          : [arrow.props.start, arrow.props.end]
+        ).map((endpoint) => surfaceTransform.worldToCanvas(endpoint))) {
           context.beginPath();
           context.arc(
             point.x,
@@ -520,6 +578,9 @@ export const selectTool: ToolDefinition = {
   label: "Select",
   getSecondaryActions: getSelectSecondaryActions,
   getOverlayItems: getSelectOverlayItems,
+  onDeactivate: (api) => {
+    clearSelection(api);
+  },
   registerRenderers: (api) => {
     registerSelectOverlayRenderer(api.registerOverlayRenderer);
   },
@@ -555,6 +616,24 @@ export const selectTool: ToolDefinition = {
           mode: "arrow-endpoint",
           objectId: arrowEndpointHit.objectId,
           endpoint: arrowEndpointHit.endpoint,
+        },
+      });
+      return;
+    }
+
+    const arrowPointHit = getSelectedArrowPointAtPoint(
+      state,
+      selectState,
+      event,
+    );
+
+    if (arrowPointHit) {
+      setSelectState(api, {
+        selectedObjectIds: [arrowPointHit.objectId],
+        interaction: {
+          mode: "arrow-point",
+          objectId: arrowPointHit.objectId,
+          pointIndex: arrowPointHit.pointIndex,
         },
       });
       return;
@@ -664,6 +743,35 @@ export const selectTool: ToolDefinition = {
       return;
     }
 
+    if (interaction.mode === "arrow-point") {
+      api.updateObjects([interaction.objectId], (object) => {
+        if (object.type !== ARROW_OBJECT_TYPE || object.locked) {
+          return object;
+        }
+
+        const arrow = object as ArrowObject;
+        if (arrow.props.geometry !== "polyline") {
+          return object;
+        }
+
+        const points = getArrowPolylinePoints(arrow.props);
+        if (!points[interaction.pointIndex]) {
+          return object;
+        }
+
+        points[interaction.pointIndex] = event.point;
+
+        return {
+          ...arrow,
+          props: {
+            ...arrow.props,
+            points,
+          },
+        };
+      });
+      return;
+    }
+
     if (interaction.mode === "arrow-curve") {
       api.updateObjects([interaction.objectId], (object) => {
         if (object.type !== ARROW_OBJECT_TYPE || object.locked) {
@@ -671,9 +779,11 @@ export const selectTool: ToolDefinition = {
         }
 
         const arrow = object as ArrowObject;
-        const curveOffset =
-          getArrowCurveOffset(arrow.props.start, arrow.props.end, event.point) *
-          2;
+        const curveOffset = getArrowCurveOffsetFromHandlePoint(
+          arrow.props.start,
+          arrow.props.end,
+          event.point,
+        );
 
         return {
           ...arrow,

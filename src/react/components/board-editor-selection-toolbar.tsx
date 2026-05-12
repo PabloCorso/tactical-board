@@ -21,6 +21,15 @@ function getSelectionToolbarAnchor(
 ) {
   if (selectedObject.type === ARROW_OBJECT_TYPE) {
     const arrow = selectedObject as ArrowObject;
+    if (arrow.props.geometry === "polyline") {
+      const bounds = projection.getObjectCanvasBounds(selectedObject);
+
+      return {
+        left: bounds.x + bounds.width / 2,
+        top: bounds.y - SELECTION_TOOLBAR_OFFSET,
+      };
+    }
+
     const start = projection.worldToCanvas(arrow.props.start);
     const end = projection.worldToCanvas(arrow.props.end);
     const controlPoint =

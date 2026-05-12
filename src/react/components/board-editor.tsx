@@ -6,6 +6,7 @@ import {
   useBoardEditorContext,
 } from "./board-editor-context";
 import { cn } from "./misc";
+export { BoardEditorArrowRouteDone } from "./board-editor-arrow-route-done";
 
 export type BoardEditorProps = {
   children?: ReactNode;

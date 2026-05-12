@@ -239,7 +239,6 @@ const arrowExampleEntries = arrowBodyStyles.flatMap((bodyStyle, bodyIndex) =>
             start: { x: startX, y: startY },
             end: { x: startX + 6.5, y: startY },
             color: "black",
-            strokeWidth: 0.4,
             lineStyle,
             bodyStyle,
             startHead,

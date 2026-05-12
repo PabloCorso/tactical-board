@@ -12,7 +12,7 @@ import {
   normalizeArrowObject,
   type ArrowObject,
 } from "../objects/arrow-object";
-import type { ToolDefinition, ToolRegistry } from "../tools/types";
+import type { ToolApi, ToolDefinition, ToolRegistry } from "../tools/types";
 import type {
   CanvasObjectHitTesterRegistry,
   CanvasObjectRendererRegistry,
@@ -72,6 +72,10 @@ function translateObject(object: BoardObject, delta: Point): BoardObject {
           x: arrowObject.props.end.x + delta.x,
           y: arrowObject.props.end.y + delta.y,
         },
+        points: arrowObject.props.points?.map((point) => ({
+          x: point.x + delta.x,
+          y: point.y + delta.y,
+        })),
       },
     });
   }
@@ -120,13 +124,47 @@ export function createBoardEditorStore({
     actions: {
       setActiveTool: (toolId) => {
         set((state) => {
-          if (!state.toolRegistry.definitions[toolId]) {
+          if (
+            !state.toolRegistry.definitions[toolId] ||
+            state.ui.activeToolId === toolId
+          ) {
             return state;
           }
 
+          const actions = get().actions;
+          const toolApi: ToolApi = {
+            getState: () => get(),
+            addObjects: actions.addObjects,
+            moveObjects: actions.moveObjects,
+            duplicateObjects: actions.duplicateObjects,
+            deleteObjects: actions.deleteObjects,
+            updateObjects: actions.updateObjects,
+            setPreviewObjects: actions.setPreviewObjects,
+            clearPreviewObjects: actions.clearPreviewObjects,
+            panViewport: actions.panViewport,
+            setToolState: actions.setToolState,
+            clearToolState: actions.clearToolState,
+            registerObjectRenderer: actions.registerObjectRenderer,
+            registerObjectHitTester: actions.registerObjectHitTester,
+            registerOverlayRenderer: actions.registerOverlayRenderer,
+          };
+          const toolsToDeactivate = Object.values(state.toolRegistry.definitions)
+            .filter((tool) => tool.id !== toolId);
+          const toolToActivate = state.toolRegistry.definitions[toolId];
+
+          for (const tool of toolsToDeactivate) {
+            tool.onDeactivate?.(toolApi);
+          }
+
+          toolToActivate?.onActivate?.(toolApi);
+
           return {
+            rendering: {
+              ...get().rendering,
+              previewObjects: [],
+            },
             ui: {
-              ...state.ui,
+              ...get().ui,
               activeToolId: toolId,
             },
           };

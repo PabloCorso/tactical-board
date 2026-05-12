@@ -9,6 +9,7 @@ import {
   BoardEditorToolbar,
   BoardEditorToolbarButton,
 } from "./board-editor-toolbar";
+import { cn } from "./misc";
 import type { IconRender } from "./ui/icon";
 
 export type BoardEditorSecondaryToolbarProps = {
@@ -76,6 +77,45 @@ function renderArrowActionIcon(iconId: string): IconRender {
               strokeWidth="2.25"
             />
           </>
+        ) : iconId === "arrow-double" ? (
+          <>
+            <path
+              d="M5 6.25 L32 6.25"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeWidth="2.25"
+            />
+            <path
+              d="M5 13.75 L32 13.75"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeWidth="2.25"
+            />
+            <path
+              d="M29 9 L35 10 L29 11"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2.25"
+            />
+          </>
+        ) : iconId === "arrow-polyline" ? (
+          <>
+            <path
+              d="M5 14 L15 8 L24 12 L32 7"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2.25"
+            />
+            <path
+              d="M29 4 L35 7 L29 10"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2.25"
+            />
+          </>
         ) : (
           <>
             <path
@@ -112,6 +152,8 @@ function getSecondaryActionIcon(action: ToolActionDefinition): IconRender {
     case "arrow-curved-solid":
     case "arrow-curved-dashed":
     case "arrow-wavy":
+    case "arrow-double":
+    case "arrow-polyline":
       return renderArrowActionIcon(action.iconId ?? action.id);
     default:
       return undefined;
@@ -137,7 +179,7 @@ export function BoardEditorSecondaryToolbar({
   }
 
   return (
-    <BoardEditorToolbar className={className}>
+    <BoardEditorToolbar className={cn("items-stretch", className)}>
       {secondaryActions.map((action) => {
         const icon = getSecondaryActionIcon(action);
 
@@ -145,6 +187,7 @@ export function BoardEditorSecondaryToolbar({
           <BoardEditorToolbarButton
             aria-label={action.label}
             active={action.active}
+            className="w-full justify-start"
             disabled={action.disabled}
             iconBefore={icon}
             key={action.id}

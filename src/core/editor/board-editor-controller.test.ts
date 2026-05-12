@@ -7,7 +7,7 @@ import {
   createArrowObject,
   getArrowCurveHandlePoint,
 } from "../objects/arrow-object";
-import { createArrowTool } from "../../tools/arrow-tool";
+import { createArrowTool, setArrowDraftStyle } from "../../tools/arrow-tool";
 import { selectTool } from "../../tools/select-tool";
 import { setSelectedObjectIds } from "../../tools/select-tool-actions";
 import { getArrowToolState } from "../../tools/arrow-tool-state";
@@ -82,10 +82,14 @@ describe("createBoardEditorController", () => {
     expect(
       getSelectToolState(store.getState().toolState).selectedObjectIds,
     ).toEqual([]);
-    expect(getArrowToolState(store.getState().toolState).pendingStart).toEqual({
-      x: 10,
-      y: 10,
-    });
+    expect(getArrowToolState(store.getState().toolState).pendingPoints).toEqual(
+      [
+        {
+          x: 10,
+          y: 10,
+        },
+      ],
+    );
 
     controller.dispatchPointerEvent("onPointerDown", {
       clientPoint: {
@@ -107,9 +111,9 @@ describe("createBoardEditorController", () => {
     expect(
       getSelectToolState(store.getState().toolState).selectedObjectIds,
     ).toEqual([]);
-    expect(
-      getArrowToolState(store.getState().toolState).pendingStart,
-    ).toBeUndefined();
+    expect(getArrowToolState(store.getState().toolState).pendingPoints).toEqual(
+      [],
+    );
     expect(store.getState().board.objects.byId["arrow-2"]).toMatchObject({
       type: "arrow",
       props: {
@@ -199,6 +203,103 @@ describe("createBoardEditorController", () => {
         },
       },
     );
+  });
+
+  it("creates a polyline arrow across multiple clicks", () => {
+    const arrowTool = createArrowTool();
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      initialToolId: arrowTool.id,
+      tools: [selectTool, arrowTool],
+    });
+    const toolApi = createToolApi(store);
+    arrowTool.registerRenderers?.(toolApi);
+    setArrowDraftStyle(toolApi, {
+      geometry: "polyline",
+      bodyStyle: "straight",
+    });
+
+    const controller = createBoardEditorController(store);
+    const canvasRect = {
+      left: 0,
+      top: 0,
+      width: 1000,
+      height: 500,
+    };
+    const projection = createBoardSpaceProjection({
+      surface: store.getState().board.surface,
+      viewport: store.getState().ui.viewport,
+      canvasRect,
+      surfaceInset: 14,
+    });
+    const firstPoint = projection.worldToCanvas({ x: 10, y: 10 });
+    const secondPoint = projection.worldToCanvas({ x: 15, y: 15 });
+    const thirdPoint = projection.worldToCanvas({ x: 20, y: 10 });
+
+    controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: firstPoint,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+    controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: secondPoint,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+    controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: thirdPoint,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+    controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: thirdPoint,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    expect(store.getState().board.objects.order).toEqual(["arrow-1"]);
+    expect(store.getState().board.objects.byId["arrow-1"]).toMatchObject({
+      type: "arrow",
+      props: {
+        geometry: "polyline",
+        start: { x: 10, y: 10 },
+        end: { x: 20, y: 10 },
+        points: [
+          { x: 10, y: 10 },
+          { x: 15, y: 15 },
+          { x: 20, y: 10 },
+        ],
+      },
+    });
   });
 
   it("moves a selected arrow when dragging the arrow body", () => {
@@ -533,7 +634,99 @@ describe("createBoardEditorController", () => {
     expect(store.getState().board.objects.byId[existingArrow.id]).toMatchObject(
       {
         props: {
-          curveOffset: -10,
+          curveOffset: -9,
+        },
+      },
+    );
+  });
+
+  it("moves a selected polyline arrow vertex when dragging its handle", () => {
+    const arrowTool = createArrowTool();
+    const existingArrow = createArrowObject({
+      id: "arrow-1",
+      geometry: "polyline",
+      points: [
+        { x: 10, y: 10 },
+        { x: 15, y: 15 },
+        { x: 20, y: 10 },
+      ],
+      color: "#fff",
+      strokeWidth: 2,
+      lineStyle: "solid",
+      bodyStyle: "straight",
+      startHead: "none",
+      endHead: "triangle",
+    });
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {
+            [existingArrow.id]: existingArrow,
+          },
+          order: [existingArrow.id],
+        },
+        style: {},
+      },
+      initialToolId: selectTool.id,
+      tools: [selectTool, arrowTool],
+    });
+    const toolApi = createToolApi(store);
+    arrowTool.registerRenderers?.(toolApi);
+    setSelectedObjectIds(toolApi, [existingArrow.id]);
+
+    const controller = createBoardEditorController(store);
+    const canvasRect = {
+      left: 0,
+      top: 0,
+      width: 1000,
+      height: 500,
+    };
+    const projection = createBoardSpaceProjection({
+      surface: store.getState().board.surface,
+      viewport: store.getState().ui.viewport,
+      canvasRect,
+      surfaceInset: 14,
+    });
+    const middlePoint = projection.worldToCanvas({ x: 15, y: 15 });
+    const nextPoint = projection.worldToCanvas({ x: 18, y: 18 });
+
+    controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: middlePoint,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+    controller.dispatchPointerEvent("onPointerMove", {
+      clientPoint: nextPoint,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    expect(store.getState().board.objects.byId[existingArrow.id]).toMatchObject(
+      {
+        props: {
+          geometry: "polyline",
+          points: [
+            { x: 10, y: 10 },
+            { x: 18, y: 18 },
+            { x: 20, y: 10 },
+          ],
+          start: { x: 10, y: 10 },
+          end: { x: 20, y: 10 },
         },
       },
     );

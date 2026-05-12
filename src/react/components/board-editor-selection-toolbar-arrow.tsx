@@ -6,6 +6,8 @@ import {
   TrashIcon,
 } from "@phosphor-icons/react";
 import {
+  THICK_ARROW_STROKE_WIDTH,
+  THIN_ARROW_STROKE_WIDTH,
   getDefaultArrowCurveOffset,
   type ArrowBodyStyle,
   type ArrowHeadStyle,
@@ -43,8 +45,16 @@ const HEAD_OPTIONS: Array<{
 ];
 
 const WEIGHT_OPTIONS = [
-  { label: "Thin", value: "0.2", strokeWidth: 0.2 },
-  { label: "Bold", value: "0.6", strokeWidth: 0.6 },
+  {
+    label: "Thin",
+    value: String(THIN_ARROW_STROKE_WIDTH),
+    strokeWidth: THIN_ARROW_STROKE_WIDTH,
+  },
+  {
+    label: "Thick",
+    value: String(THICK_ARROW_STROKE_WIDTH),
+    strokeWidth: THICK_ARROW_STROKE_WIDTH,
+  },
 ] as const;
 
 const LINE_STYLE_OPTIONS: Array<{
@@ -56,7 +66,12 @@ const LINE_STYLE_OPTIONS: Array<{
 ] as const;
 
 function getWeightValue(strokeWidth: number) {
-  return strokeWidth > 0.4 ? "0.6" : "0.2";
+  return WEIGHT_OPTIONS.reduce((closest, option) =>
+    Math.abs(option.strokeWidth - strokeWidth) <
+    Math.abs(closest.strokeWidth - strokeWidth)
+      ? option
+      : closest,
+  ).value;
 }
 
 function getWeightLabel(strokeWidth: number) {
@@ -239,7 +254,12 @@ function ArrowWeightPopoverContent({
                 className="rounded-full bg-current"
                 style={{
                   width: 28,
-                  height: option.strokeWidth > 0.4 ? 4.5 : 2.5,
+                  height:
+                    option.strokeWidth >= 0.6
+                      ? 4.5
+                      : option.strokeWidth >= 0.4
+                        ? 3.5
+                        : 2.5,
                 }}
               />
             </span>
@@ -372,7 +392,12 @@ export function BoardEditorArrowSelectionToolbar({
                   className="rounded-full bg-current"
                   style={{
                     width: 28,
-                    height: selectedObject.props.strokeWidth > 0.4 ? 4.5 : 2.5,
+                    height:
+                      selectedObject.props.strokeWidth >= 0.6
+                        ? 4.5
+                        : selectedObject.props.strokeWidth >= 0.4
+                          ? 3.5
+                          : 2.5,
                   }}
                 />
               </span>
@@ -392,17 +417,19 @@ export function BoardEditorArrowSelectionToolbar({
             icon={getHeadIcon("start", selectedObject.props.startHead)}
           />
 
-          <BoardEditorToolbarPopoverButton
-            ariaLabel="Arrow body style"
-            tooltip="Body style"
-            content={
-              <ArrowBodyPopoverContent
-                selectedObject={selectedObject}
-                onSelect={updateBodyStyle}
-              />
-            }
-            icon={getBodyStyleIcon(selectedObject.props.bodyStyle)}
-          />
+          {selectedObject.props.geometry === "simple" ? (
+            <BoardEditorToolbarPopoverButton
+              ariaLabel="Arrow body style"
+              tooltip="Body style"
+              content={
+                <ArrowBodyPopoverContent
+                  selectedObject={selectedObject}
+                  onSelect={updateBodyStyle}
+                />
+              }
+              icon={getBodyStyleIcon(selectedObject.props.bodyStyle)}
+            />
+          ) : null}
 
           <BoardEditorToolbarPopoverButton
             ariaLabel="Arrow end head"

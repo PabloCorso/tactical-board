@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { createArrowObject, getArrowWavyPoints } from "./arrow-object";
+import {
+  createArrowObject,
+  DEFAULT_ARROW_STROKE_WIDTH,
+  getArrowCurveHandlePoint,
+  getArrowCurveOffsetFromHandlePoint,
+  getArrowWavyPoints,
+} from "./arrow-object";
 
 describe("createArrowObject", () => {
   it("expands bounds for a wavy horizontal arrow", () => {
@@ -37,6 +43,29 @@ describe("createArrowObject", () => {
     expect(arrow.position.y).toBeCloseTo(10);
   });
 
+  it("derives start, end, and bounds from polyline points", () => {
+    const arrow = createArrowObject({
+      id: "arrow-polyline",
+      geometry: "polyline",
+      points: [
+        { x: 10, y: 10 },
+        { x: 15, y: 18 },
+        { x: 22, y: 9 },
+      ],
+      color: "#000",
+      strokeWidth: 0.4,
+      lineStyle: "solid",
+      bodyStyle: "straight",
+      startHead: "none",
+      endHead: "triangle",
+    });
+
+    expect(arrow.props.start).toEqual({ x: 10, y: 10 });
+    expect(arrow.props.end).toEqual({ x: 22, y: 9 });
+    expect(arrow.position.x).toBeCloseTo(16);
+    expect(arrow.position.y).toBeCloseTo(13.5);
+  });
+
   it("keeps the squiggle visible across arrow lengths", () => {
     const shortStart = { x: 0, y: 0 };
     const shortEnd = { x: 6, y: 0 };
@@ -49,5 +78,54 @@ describe("createArrowObject", () => {
 
     expect(getPeakOffset(shortPoints)).toBeGreaterThan(2);
     expect(getPeakOffset(longPoints)).toBeGreaterThan(2.5);
+  });
+
+  it("uses the shared default stroke width when omitted", () => {
+    const arrow = createArrowObject({
+      id: "arrow-default-stroke",
+      start: { x: 10, y: 10 },
+      end: { x: 20, y: 10 },
+      color: "#000",
+      lineStyle: "solid",
+      bodyStyle: "straight",
+      startHead: "none",
+      endHead: "triangle",
+    });
+
+    expect(arrow.props.strokeWidth).toBe(DEFAULT_ARROW_STROKE_WIDTH);
+  });
+
+  it("keeps the curved handle aligned with the visible bend direction", () => {
+    const start = { x: 10, y: 10 };
+    const end = { x: 20, y: 10 };
+
+    expect(getArrowCurveHandlePoint(start, end, 4)).toEqual({
+      x: 15,
+      y: 12.5,
+    });
+    expect(getArrowCurveHandlePoint(start, end, -4)).toEqual({
+      x: 15,
+      y: 7.5,
+    });
+  });
+
+  it("derives the original curve offset from the displayed handle point", () => {
+    const start = { x: 10, y: 10 };
+    const end = { x: 20, y: 10 };
+
+    expect(
+      getArrowCurveOffsetFromHandlePoint(
+        start,
+        end,
+        getArrowCurveHandlePoint(start, end, 4),
+      ),
+    ).toBeCloseTo(4);
+    expect(
+      getArrowCurveOffsetFromHandlePoint(
+        start,
+        end,
+        getArrowCurveHandlePoint(start, end, -4),
+      ),
+    ).toBeCloseTo(-4);
   });
 });

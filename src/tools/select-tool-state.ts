@@ -22,6 +22,12 @@ interface SelectArrowEndpointInteraction {
   endpoint: "start" | "end";
 }
 
+interface SelectArrowPointInteraction {
+  mode: "arrow-point";
+  objectId: ObjectId;
+  pointIndex: number;
+}
+
 interface SelectArrowCurveInteraction {
   mode: "arrow-curve";
   objectId: ObjectId;
@@ -31,6 +37,7 @@ export type SelectToolInteraction =
   | SelectDragInteraction
   | SelectMarqueeInteraction
   | SelectArrowEndpointInteraction
+  | SelectArrowPointInteraction
   | SelectArrowCurveInteraction;
 
 export interface SelectToolState {

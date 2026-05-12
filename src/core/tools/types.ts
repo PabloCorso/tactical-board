@@ -91,6 +91,8 @@ export interface ToolDefinition {
       | "registerOverlayRenderer"
     >,
   ) => void;
+  onActivate?: (api: ToolApi) => void;
+  onDeactivate?: (api: ToolApi) => void;
   onPointerDown?: (event: ToolPointerEvent, api: ToolApi) => void;
   onPointerMove?: (event: ToolPointerEvent, api: ToolApi) => void;
   onPointerUp?: (event: ToolPointerEvent, api: ToolApi) => void;

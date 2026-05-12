@@ -2,9 +2,13 @@ import type { BoardObject, Point } from "../board/types";
 
 export const ARROW_OBJECT_TYPE = "arrow";
 
+export type ArrowGeometry = "simple" | "polyline";
 export type ArrowBodyStyle = "straight" | "curved" | "wavy" | "double";
 export type ArrowHeadStyle = "none" | "triangle";
 export type ArrowLineStyle = "solid" | "dashed";
+export const THIN_ARROW_STROKE_WIDTH = 0.3;
+export const THICK_ARROW_STROKE_WIDTH = 0.5;
+export const DEFAULT_ARROW_STROKE_WIDTH = THIN_ARROW_STROKE_WIDTH;
 export const DEFAULT_ARROW_DASH_STYLE = [8, 10] as const;
 const DEFAULT_CURVE_BEND_RATIO = 0.18;
 const DEFAULT_ARROW_PADDING = 3;
@@ -14,13 +18,14 @@ const MIN_WAVE_SEGMENTS = 1;
 const WAVE_SAMPLES_PER_SEGMENT = 8;
 const WAVE_TAIL_LENGTH = 2;
 const BODY_SAMPLE_COUNT = 24;
-const MIN_DOUBLE_LINE_OFFSET = 0.18;
-const DOUBLE_LINE_OFFSET_RATIO = 0.03;
-const DOUBLE_LINE_STROKE_MULTIPLIER = 0.9;
+const DOUBLE_LINE_OFFSET = 3;
+const CURVE_HANDLE_OFFSET = 0.5;
 
 export interface ArrowObjectProps extends Record<string, unknown> {
+  geometry: ArrowGeometry;
   start: Point;
   end: Point;
+  points?: Point[];
   controlPoint?: Point;
   curveOffset?: number;
   color: string;
@@ -36,6 +41,14 @@ export type ArrowObject = BoardObject & {
   type: typeof ARROW_OBJECT_TYPE;
   props: ArrowObjectProps;
 };
+
+function clonePoint(point: Point): Point {
+  return { x: point.x, y: point.y };
+}
+
+function clonePoints(points: Point[]) {
+  return points.map(clonePoint);
+}
 
 function getArrowVector(start: Point, end: Point) {
   const dx = end.x - start.x;
@@ -66,18 +79,6 @@ function offsetPointByNormal(
     x: point.x + normal.x * offset,
     y: point.y + normal.y * offset,
   };
-}
-
-export function getArrowDoubleLineOffset(
-  start: Point,
-  end: Point,
-  strokeWidth: number,
-) {
-  return Math.max(
-    MIN_DOUBLE_LINE_OFFSET,
-    strokeWidth * DOUBLE_LINE_STROKE_MULTIPLIER,
-    getArrowVector(start, end).length * DOUBLE_LINE_OFFSET_RATIO,
-  );
 }
 
 export function getDefaultArrowCurveOffset(start: Point, end: Point): number {
@@ -132,16 +133,39 @@ export function getArrowCurveHandlePoint(
   end: Point,
   curveOffset?: number,
 ): Point {
-  return getArrowControlPoint(start, end, curveOffset);
+  const bend = curveOffset ?? getDefaultArrowCurveOffset(start, end);
+  const handleOffset =
+    Math.sign(bend || 1) * (Math.abs(bend) / 2 + CURVE_HANDLE_OFFSET);
+
+  return offsetPointByNormal(
+    {
+      x: (start.x + end.x) / 2,
+      y: (start.y + end.y) / 2,
+    },
+    start,
+    end,
+    handleOffset,
+  );
+}
+
+export function getArrowCurveOffsetFromHandlePoint(
+  start: Point,
+  end: Point,
+  handlePoint: Point,
+) {
+  const handleOffset = getArrowCurveOffset(start, end, handlePoint);
+  const sign = Math.sign(handleOffset || 1);
+
+  return sign * Math.max(0, (Math.abs(handleOffset) - CURVE_HANDLE_OFFSET) * 2);
 }
 
 function getResolvedCurveOffset(
   props: Pick<
     ArrowObjectProps,
-    "start" | "end" | "controlPoint" | "curveOffset" | "bodyStyle"
+    "geometry" | "start" | "end" | "controlPoint" | "curveOffset" | "bodyStyle"
   >,
 ) {
-  if (props.bodyStyle !== "curved") {
+  if (props.geometry !== "simple" || props.bodyStyle !== "curved") {
     return props.curveOffset;
   }
 
@@ -256,17 +280,36 @@ export function getArrowWavyPoints(start: Point, end: Point) {
   return points;
 }
 
+export function getArrowPolylinePoints(
+  props: Pick<ArrowObjectProps, "geometry" | "start" | "end" | "points">,
+) {
+  if (props.geometry !== "polyline") {
+    return [clonePoint(props.start), clonePoint(props.end)];
+  }
+
+  if (Array.isArray(props.points) && props.points.length >= 2) {
+    return clonePoints(props.points);
+  }
+
+  return [clonePoint(props.start), clonePoint(props.end)];
+}
+
 export function getArrowBodyPolylines(
   props: Pick<
     ArrowObjectProps,
+    | "geometry"
     | "start"
     | "end"
+    | "points"
     | "controlPoint"
     | "curveOffset"
     | "bodyStyle"
-    | "strokeWidth"
   >,
 ) {
+  if (props.geometry === "polyline") {
+    return [getArrowPolylinePoints(props)];
+  }
+
   switch (props.bodyStyle) {
     case "curved":
       return [
@@ -283,20 +326,34 @@ export function getArrowBodyPolylines(
     case "wavy":
       return [getArrowWavyPoints(props.start, props.end)];
     case "double": {
-      const offset = getArrowDoubleLineOffset(
-        props.start,
-        props.end,
-        props.strokeWidth,
-      );
-
       return [
         [
-          offsetPointByNormal(props.start, props.start, props.end, offset),
-          offsetPointByNormal(props.end, props.start, props.end, offset),
+          offsetPointByNormal(
+            props.start,
+            props.start,
+            props.end,
+            DOUBLE_LINE_OFFSET,
+          ),
+          offsetPointByNormal(
+            props.end,
+            props.start,
+            props.end,
+            DOUBLE_LINE_OFFSET,
+          ),
         ],
         [
-          offsetPointByNormal(props.start, props.start, props.end, -offset),
-          offsetPointByNormal(props.end, props.start, props.end, -offset),
+          offsetPointByNormal(
+            props.start,
+            props.start,
+            props.end,
+            -DOUBLE_LINE_OFFSET,
+          ),
+          offsetPointByNormal(
+            props.end,
+            props.start,
+            props.end,
+            -DOUBLE_LINE_OFFSET,
+          ),
         ],
       ];
     }
@@ -308,12 +365,13 @@ export function getArrowBodyPolylines(
 function getArrowBodyPoints(
   props: Pick<
     ArrowObjectProps,
+    | "geometry"
     | "start"
     | "end"
+    | "points"
     | "controlPoint"
     | "curveOffset"
     | "bodyStyle"
-    | "strokeWidth"
   >,
 ) {
   return getArrowBodyPolylines(props).flat();
@@ -322,8 +380,10 @@ function getArrowBodyPoints(
 export function getArrowCenter(
   props: Pick<
     ArrowObjectProps,
+    | "geometry"
     | "start"
     | "end"
+    | "points"
     | "controlPoint"
     | "curveOffset"
     | "bodyStyle"
@@ -345,8 +405,10 @@ export function getArrowCenter(
 export function getArrowSize(
   props: Pick<
     ArrowObjectProps,
+    | "geometry"
     | "start"
     | "end"
+    | "points"
     | "controlPoint"
     | "curveOffset"
     | "bodyStyle"
@@ -368,10 +430,12 @@ export function getArrowSize(
 
 export function createArrowObject(input: {
   id: string;
-  start: Point;
-  end: Point;
+  geometry?: ArrowGeometry;
+  start?: Point;
+  end?: Point;
+  points?: Point[];
   color: string;
-  strokeWidth: number;
+  strokeWidth?: number;
   lineStyle: ArrowLineStyle;
   dashStyle?: number[];
   bodyStyle: ArrowBodyStyle;
@@ -380,38 +444,58 @@ export function createArrowObject(input: {
   startHead: ArrowHeadStyle;
   endHead: ArrowHeadStyle;
 }): ArrowObject {
+  const geometry = input.geometry ?? "simple";
+  const strokeWidth = input.strokeWidth ?? DEFAULT_ARROW_STROKE_WIDTH;
+  const points =
+    geometry === "polyline"
+      ? getArrowPolylinePoints({
+          geometry,
+          start: input.start ?? input.points?.[0] ?? { x: 0, y: 0 },
+          end: input.end ??
+            input.points?.[input.points.length - 1] ?? { x: 0, y: 0 },
+          points: input.points,
+        })
+      : undefined;
+  const start = clonePoint(input.start ?? points?.[0] ?? { x: 0, y: 0 });
+  const end = clonePoint(input.end ?? points?.[points.length - 1] ?? start);
   const curveOffset =
-    input.bodyStyle === "curved"
+    geometry === "simple" && input.bodyStyle === "curved"
       ? (input.curveOffset ??
-        getArrowCurveOffset(input.start, input.end, input.controlPoint))
+        getArrowCurveOffset(start, end, input.controlPoint))
       : input.curveOffset;
 
   return {
     id: input.id,
     type: ARROW_OBJECT_TYPE,
     position: getArrowCenter({
-      start: input.start,
-      end: input.end,
+      geometry,
+      start,
+      end,
+      points,
       controlPoint: undefined,
       curveOffset,
       bodyStyle: input.bodyStyle,
-      strokeWidth: input.strokeWidth,
+      strokeWidth,
     }),
     size: getArrowSize({
-      start: input.start,
-      end: input.end,
+      geometry,
+      start,
+      end,
+      points,
       controlPoint: undefined,
       curveOffset,
       bodyStyle: input.bodyStyle,
-      strokeWidth: input.strokeWidth,
+      strokeWidth,
     }),
     props: {
-      start: input.start,
-      end: input.end,
+      geometry,
+      start,
+      end,
+      points,
       controlPoint: undefined,
       curveOffset,
       color: input.color,
-      strokeWidth: input.strokeWidth,
+      strokeWidth,
       lineStyle: input.lineStyle,
       dashStyle: [...(input.dashStyle ?? DEFAULT_ARROW_DASH_STYLE)],
       bodyStyle: input.bodyStyle,
@@ -422,30 +506,45 @@ export function createArrowObject(input: {
 }
 
 export function normalizeArrowObject(object: ArrowObject): ArrowObject {
+  const geometry = object.props.geometry ?? "simple";
+  const points =
+    geometry === "polyline" ? getArrowPolylinePoints(object.props) : undefined;
+  const start = clonePoint(points?.[0] ?? object.props.start);
+  const end = clonePoint(points?.[points.length - 1] ?? object.props.end);
   const curveOffset = getResolvedCurveOffset(object.props);
+  const strokeWidth = object.props.strokeWidth ?? DEFAULT_ARROW_STROKE_WIDTH;
 
   return {
     ...object,
     position: getArrowCenter({
-      start: object.props.start,
-      end: object.props.end,
+      geometry,
+      start,
+      end,
+      points,
       controlPoint: undefined,
       curveOffset,
       bodyStyle: object.props.bodyStyle,
-      strokeWidth: object.props.strokeWidth,
+      strokeWidth,
     }),
     size: getArrowSize({
-      start: object.props.start,
-      end: object.props.end,
+      geometry,
+      start,
+      end,
+      points,
       controlPoint: undefined,
       curveOffset,
       bodyStyle: object.props.bodyStyle,
-      strokeWidth: object.props.strokeWidth,
+      strokeWidth,
     }),
     props: {
       ...object.props,
+      geometry,
+      start,
+      end,
+      points,
       controlPoint: undefined,
       curveOffset,
+      strokeWidth,
       dashStyle: [...(object.props.dashStyle ?? DEFAULT_ARROW_DASH_STYLE)],
     },
   };

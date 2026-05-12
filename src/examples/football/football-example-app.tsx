@@ -1,6 +1,7 @@
 import { createBoardEditorStore } from "../../core/store/board-editor-store";
 import {
   BoardEditor,
+  BoardEditorArrowRouteDone,
   BoardEditorCanvas,
   BoardEditorProvider,
 } from "../../react/components/board-editor";
@@ -20,12 +21,8 @@ const footballArrowTool = createArrowTool({
       label: "Run",
       iconId: "arrow-straight-solid",
       draftStyle: {
-        color: "black",
-        strokeWidth: 0.4,
-        lineStyle: "solid",
+        geometry: "simple",
         bodyStyle: "straight",
-        startHead: "none",
-        endHead: "triangle",
       },
     },
     {
@@ -33,38 +30,35 @@ const footballArrowTool = createArrowTool({
       label: "Dribble",
       iconId: "arrow-wavy",
       draftStyle: {
-        color: "black",
-        strokeWidth: 0.4,
-        lineStyle: "solid",
+        geometry: "simple",
         bodyStyle: "wavy",
-        startHead: "none",
-        endHead: "triangle",
       },
     },
     {
-      id: "pass",
-      label: "Pass",
-      iconId: "arrow-straight-dashed",
+      id: "lofted-pass",
+      label: "Lofted pass",
+      iconId: "arrow-curved-solid",
       draftStyle: {
-        color: "black",
-        strokeWidth: 0.4,
-        lineStyle: "dashed",
-        bodyStyle: "straight",
-        startHead: "none",
-        endHead: "triangle",
-      },
-    },
-    {
-      id: "long-pass",
-      label: "Long pass",
-      iconId: "arrow-curved-dashed",
-      draftStyle: {
-        color: "black",
-        strokeWidth: 0.4,
-        lineStyle: "dashed",
+        geometry: "simple",
         bodyStyle: "curved",
-        startHead: "none",
-        endHead: "triangle",
+      },
+    },
+    {
+      id: "screen",
+      label: "Screen",
+      iconId: "arrow-double",
+      draftStyle: {
+        geometry: "simple",
+        bodyStyle: "double",
+      },
+    },
+    {
+      id: "route",
+      label: "Route",
+      iconId: "arrow-polyline",
+      draftStyle: {
+        geometry: "polyline",
+        bodyStyle: "straight",
       },
     },
   ],
@@ -79,8 +73,9 @@ const store = createBoardEditorStore({
 export function FootballExampleApp() {
   return (
     <BoardEditorProvider store={store}>
-      <BoardEditor className="relative h-dvh w-full overflow-hidden p-4">
+      <BoardEditor className="relative h-dvh w-full overflow-hidden">
         <BoardEditorCanvas />
+        <BoardEditorArrowRouteDone />
         <BoardEditorSelectionToolbar />
         <div className="pointer-events-none absolute inset-y-4 left-4 flex items-center">
           <div className="pointer-events-auto flex items-center gap-3">
