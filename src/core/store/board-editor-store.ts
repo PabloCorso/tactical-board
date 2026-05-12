@@ -7,9 +7,7 @@ import type {
   ToolId,
 } from "../board/types";
 import type { BoardEditorState } from "../editor/types";
-import {
-  moveBoardObject,
-} from "../objects/object-behaviors";
+import { moveBoardObject } from "../objects/object-behaviors";
 import type { ToolApi, ToolDefinition, ToolRegistry } from "../tools/types";
 import type {
   CanvasObjectHitTesterRegistry,

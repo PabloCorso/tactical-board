@@ -1,8 +1,4 @@
-import {
-  CornersOutIcon,
-  MinusIcon,
-  PlusIcon,
-} from "@phosphor-icons/react";
+import { CornersOutIcon, MinusIcon, PlusIcon } from "@phosphor-icons/react";
 import { useMemo } from "react";
 import { useBoardEditorStore } from "../hooks/use-board-editor-store";
 import { useBoardEditorContext } from "./board-editor-context";
@@ -59,22 +55,28 @@ export function BoardEditorCanvasToolbar({
   };
 
   return (
-    <div className={cn("pointer-events-none absolute bottom-4 right-4", className)}>
+    <div
+      className={cn("pointer-events-none absolute right-4 bottom-4", className)}
+    >
       <BoardEditorToolbar className="pointer-events-auto gap-1 p-1.5">
         <BoardEditorToolbarButton
           aria-label="Zoom out"
-          iconBefore={<MinusIcon aria-hidden="true" className="size-4" weight="bold" />}
+          iconBefore={
+            <MinusIcon aria-hidden="true" className="size-4" weight="bold" />
+          }
           onClick={() =>
             zoomAroundCanvasCenter(viewport.zoom / VIEWPORT_ZOOM_STEP_FACTOR)
           }
           tooltip="Zoom out"
         />
-        <div className="min-w-14 px-1 text-center text-xs font-medium tabular-nums text-primary/70">
+        <div className="text-primary/70 min-w-14 px-1 text-center text-xs font-medium tabular-nums">
           {zoomLabel}
         </div>
         <BoardEditorToolbarButton
           aria-label="Zoom in"
-          iconBefore={<PlusIcon aria-hidden="true" className="size-4" weight="bold" />}
+          iconBefore={
+            <PlusIcon aria-hidden="true" className="size-4" weight="bold" />
+          }
           onClick={() =>
             zoomAroundCanvasCenter(viewport.zoom * VIEWPORT_ZOOM_STEP_FACTOR)
           }

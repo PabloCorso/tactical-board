@@ -30,7 +30,9 @@ export const DEFAULT_PLAYER_TOOL_STATE: PlayerToolState = {
 export function getPlayerToolState(
   toolState: BoardEditorToolState,
 ): PlayerToolState {
-  const state = toolState[PLAYER_TOOL_ID] as Partial<PlayerToolState> | undefined;
+  const state = toolState[PLAYER_TOOL_ID] as
+    | Partial<PlayerToolState>
+    | undefined;
 
   return {
     draftStyle: {
@@ -42,7 +44,8 @@ export function getPlayerToolState(
       typeof state.nextNumericLabelByColor === "object"
         ? Object.fromEntries(
             Object.entries(state.nextNumericLabelByColor).filter(
-              ([color, value]) => typeof color === "string" && typeof value === "number",
+              ([color, value]) =>
+                typeof color === "string" && typeof value === "number",
             ),
           )
         : {},

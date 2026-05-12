@@ -1,5 +1,8 @@
 import { TrashIcon } from "@phosphor-icons/react";
-import { updatePlayerObject, type PlayerObject } from "../../core/objects/player-object";
+import {
+  updatePlayerObject,
+  type PlayerObject,
+} from "../../core/objects/player-object";
 import { createToolApi } from "../../core/editor/create-tool-api";
 import { useBoardEditorContext } from "./board-editor-context";
 import {
@@ -43,7 +46,7 @@ export function BoardEditorPlayerSelectionToolbar({
             <span className="sr-only">Player label</span>
             <input
               aria-label="Player label"
-              className="w-14 bg-transparent text-center text-sm font-medium text-primary outline-none"
+              className="text-primary w-14 bg-transparent text-center text-sm font-medium outline-none"
               onChange={(event) => updatePlayer({ label: event.target.value })}
               value={selectedObject.props.label ?? ""}
             />
@@ -72,7 +75,9 @@ export function BoardEditorPlayerSelectionToolbar({
 
           <BoardEditorToolbarButton
             aria-label="Delete"
-            iconBefore={<TrashIcon aria-hidden="true" className="size-4" weight="bold" />}
+            iconBefore={
+              <TrashIcon aria-hidden="true" className="size-4" weight="bold" />
+            }
             onClick={() => toolApi.deleteObjects([selectedObject.id])}
             tooltip="Delete"
           />

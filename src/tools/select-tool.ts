@@ -570,32 +570,28 @@ function getSelectedShapeResizeHandleAtPoint(
     {
       handle: "top" as const,
       distance:
-        canvasPoint.x >= bounds.x &&
-        canvasPoint.x <= bounds.x + bounds.width
+        canvasPoint.x >= bounds.x && canvasPoint.x <= bounds.x + bounds.width
           ? Math.abs(canvasPoint.y - bounds.y)
           : Number.POSITIVE_INFINITY,
     },
     {
       handle: "right" as const,
       distance:
-        canvasPoint.y >= bounds.y &&
-        canvasPoint.y <= bounds.y + bounds.height
+        canvasPoint.y >= bounds.y && canvasPoint.y <= bounds.y + bounds.height
           ? Math.abs(canvasPoint.x - (bounds.x + bounds.width))
           : Number.POSITIVE_INFINITY,
     },
     {
       handle: "bottom" as const,
       distance:
-        canvasPoint.x >= bounds.x &&
-        canvasPoint.x <= bounds.x + bounds.width
+        canvasPoint.x >= bounds.x && canvasPoint.x <= bounds.x + bounds.width
           ? Math.abs(canvasPoint.y - (bounds.y + bounds.height))
           : Number.POSITIVE_INFINITY,
     },
     {
       handle: "left" as const,
       distance:
-        canvasPoint.y >= bounds.y &&
-        canvasPoint.y <= bounds.y + bounds.height
+        canvasPoint.y >= bounds.y && canvasPoint.y <= bounds.y + bounds.height
           ? Math.abs(canvasPoint.x - bounds.x)
           : Number.POSITIVE_INFINITY,
     },
@@ -979,13 +975,13 @@ function beginSelectionInteraction(
   if (shapeResizeHit) {
     setSelectState(api, {
       selectedObjectIds: [shapeResizeHit.objectId],
-        interaction: {
-          mode: "shape-resize",
-          objectId: shapeResizeHit.objectId,
-          handle: shapeResizeHit.handle,
-          bounds: shapeResizeHit.bounds,
-        },
-      });
+      interaction: {
+        mode: "shape-resize",
+        objectId: shapeResizeHit.objectId,
+        handle: shapeResizeHit.handle,
+        bounds: shapeResizeHit.bounds,
+      },
+    });
     return;
   }
 

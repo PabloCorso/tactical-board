@@ -417,7 +417,9 @@ describe("createBoardEditorController", () => {
       type: "player",
       props: { label: "2", color: "#ff6b35" },
     });
-    expect(getPlayerToolState(store.getState().toolState).nextNumericLabelByColor).toEqual({
+    expect(
+      getPlayerToolState(store.getState().toolState).nextNumericLabelByColor,
+    ).toEqual({
       "#111827": 4,
       "#ff6b35": 3,
     });
@@ -485,7 +487,9 @@ describe("createBoardEditorController", () => {
       type: "player",
       props: { color: "#1f6feb", label: "2" },
     });
-    expect(getPlayerToolState(store.getState().toolState).nextNumericLabelByColor).toEqual({
+    expect(
+      getPlayerToolState(store.getState().toolState).nextNumericLabelByColor,
+    ).toEqual({
       "#1f6feb": 3,
     });
   });
@@ -560,7 +564,9 @@ describe("createBoardEditorController", () => {
       canvasRect,
     });
 
-    expect(store.getState().board.objects.byId[existingPlayer.id]).toMatchObject({
+    expect(
+      store.getState().board.objects.byId[existingPlayer.id],
+    ).toMatchObject({
       size: { width: 4, height: 4 },
     });
   });
@@ -638,7 +644,9 @@ describe("createBoardEditorController", () => {
       canvasRect,
     });
 
-    expect(store.getState().board.objects.byId[existingPlayer.id]).toMatchObject({
+    expect(
+      store.getState().board.objects.byId[existingPlayer.id],
+    ).toMatchObject({
       rotation: 90,
     });
   });
