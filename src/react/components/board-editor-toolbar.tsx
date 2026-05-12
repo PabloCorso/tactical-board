@@ -17,7 +17,7 @@ export function BoardEditorToolbar({
   return (
     <aside
       className={cn(
-        "border-default bg-surface/90 mx-auto flex w-fit flex-wrap items-center justify-center gap-2 rounded-[20px] border p-2 shadow-lg backdrop-blur-sm",
+        "border-default bg-surface/90 mx-auto flex w-max flex-nowrap items-center justify-center gap-2 rounded-[20px] border p-2 shadow-lg backdrop-blur-sm",
         className,
       )}
     >
@@ -73,7 +73,9 @@ export function BoardEditorToolbarPopoverButton({
           aria-label={ariaLabel}
           iconBefore={icon}
           iconAfter={
-            showCaret ? <CaretDownIcon aria-hidden="true" className="opacity-75" /> : undefined
+            showCaret ? (
+              <CaretDownIcon aria-hidden="true" className="opacity-75" />
+            ) : undefined
           }
           iconSize="xl"
           tooltip={tooltip}

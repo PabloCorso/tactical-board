@@ -207,7 +207,7 @@ const surfaceWidth =
 const surfaceHeight =
   pitchMetrics.field.width + pitchMetrics.perimeter.goalLine * 2;
 
-const arrowBodyStyles = ["straight", "curved"] as const;
+const arrowBodyStyles = ["straight", "curved", "wavy", "double"] as const;
 const arrowHeadStyles = ["none", "triangle"] as const;
 const arrowLineStyles = ["solid", "dashed"] as const;
 
@@ -229,15 +229,15 @@ const arrowExampleEntries = arrowBodyStyles.flatMap((bodyStyle, bodyIndex) =>
           `start-${startHead}`,
           `end-${endHead}`,
         ].join("-");
-        const startX = 28 + column * 18;
-        const startY = 10 + row * 16;
+        const startX = 28 + column * 11;
+        const startY = 10 + row * 9;
 
         return [
           id,
           createArrowObject({
             id,
             start: { x: startX, y: startY },
-            end: { x: startX + 10, y: startY },
+            end: { x: startX + 6.5, y: startY },
             color: "black",
             strokeWidth: 0.4,
             lineStyle,

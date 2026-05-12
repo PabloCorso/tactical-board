@@ -265,17 +265,6 @@ export function createCanvasRenderer(): CanvasRenderer {
         board.surface.background ?? DEFAULT_SURFACE_BACKGROUND;
       context.fill();
 
-      context.save();
-      drawRoundedRect(
-        context,
-        projection.frame.x,
-        projection.frame.y,
-        projection.frame.width,
-        projection.frame.height,
-        SURFACE_RADIUS,
-      );
-      context.clip();
-
       for (const marking of board.surface.markings ?? []) {
         drawSurfaceMarking(
           context,
@@ -323,8 +312,6 @@ export function createCanvasRenderer(): CanvasRenderer {
       }
 
       context.globalAlpha = 1;
-
-      context.restore();
     },
   };
 }

@@ -3,7 +3,7 @@ import { createToolApi } from "./create-tool-api";
 import type { ObjectId, Point } from "../board/types";
 import { createBoardSpaceProjection } from "../geometry/board-space-projection";
 import type { BoardEditorStore } from "../store/board-editor-store";
-import type { ToolPointerEvent } from "../tools/types";
+import type { ToolPointerEvent, ToolWheelEvent } from "../tools/types";
 
 const SURFACE_INSET = 14;
 
@@ -24,12 +24,24 @@ export interface BoardEditorPointerInput {
   canvasRect: CanvasRect;
 }
 
+export interface BoardEditorWheelInput {
+  clientPoint: Point;
+  deltaX: number;
+  deltaY: number;
+  ctrlKey: boolean;
+  shiftKey: boolean;
+  altKey: boolean;
+  metaKey: boolean;
+  canvasRect: CanvasRect;
+}
+
 export interface BoardEditorController {
   createToolPointerEvent: (input: BoardEditorPointerInput) => ToolPointerEvent;
   dispatchPointerEvent: (
     handlerName: "onPointerDown" | "onPointerMove" | "onPointerUp",
     input: BoardEditorPointerInput,
   ) => void;
+  dispatchWheelEvent: (input: BoardEditorWheelInput) => boolean;
 }
 
 function getBoardPoint(
@@ -99,6 +111,25 @@ export function createBoardEditorController(
   store: BoardEditorStore,
 ): BoardEditorController {
   const toolApi = createToolApi(store);
+  const getToolWheelEvent = (
+    state: BoardEditorState,
+    input: BoardEditorWheelInput,
+  ): ToolWheelEvent => ({
+    point: getBoardPoint(state, input.canvasRect, input.clientPoint),
+    clientPoint: input.clientPoint,
+    canvasRect: input.canvasRect,
+    targetObjectId: getTargetObjectId(
+      state,
+      input.canvasRect,
+      input.clientPoint,
+    ),
+    ctrlKey: input.ctrlKey,
+    shiftKey: input.shiftKey,
+    altKey: input.altKey,
+    metaKey: input.metaKey,
+    deltaX: input.deltaX,
+    deltaY: input.deltaY,
+  });
 
   return {
     createToolPointerEvent: (input) => {
@@ -152,6 +183,18 @@ export function createBoardEditorController(
         },
         toolApi,
       );
+    },
+    dispatchWheelEvent: (input) => {
+      const state = store.getState();
+      const currentTool = state.toolRegistry.definitions[state.ui.activeToolId];
+      const handler = currentTool?.onWheel;
+
+      if (!handler) {
+        return false;
+      }
+
+      handler(getToolWheelEvent(state, input), toolApi);
+      return true;
     },
   };
 }

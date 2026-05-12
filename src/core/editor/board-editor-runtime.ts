@@ -152,6 +152,30 @@ export function createBoardEditorRuntime({
     }
   };
 
+  const onWheel = (event: WheelEvent) => {
+    if (!canvas) {
+      return;
+    }
+
+    const handled = controller.dispatchWheelEvent({
+      clientPoint: {
+        x: event.clientX,
+        y: event.clientY,
+      },
+      deltaX: event.deltaX,
+      deltaY: event.deltaY,
+      ctrlKey: event.ctrlKey,
+      shiftKey: event.shiftKey,
+      altKey: event.altKey,
+      metaKey: event.metaKey,
+      canvasRect: canvas.getBoundingClientRect(),
+    });
+
+    if (handled) {
+      event.preventDefault();
+    }
+  };
+
   return {
     mount: (nextCanvas) => {
       if (canvas === nextCanvas) {
@@ -163,6 +187,7 @@ export function createBoardEditorRuntime({
         canvas.removeEventListener("pointerdown", onPointerDown);
         canvas.removeEventListener("pointermove", onPointerMove);
         canvas.removeEventListener("pointerup", onPointerUp);
+        canvas.removeEventListener("wheel", onWheel);
       }
 
       resizeObserver?.disconnect();
@@ -172,6 +197,7 @@ export function createBoardEditorRuntime({
       canvas.addEventListener("pointerdown", onPointerDown);
       canvas.addEventListener("pointermove", onPointerMove);
       canvas.addEventListener("pointerup", onPointerUp);
+      canvas.addEventListener("wheel", onWheel, { passive: false });
 
       unsubscribe = store.subscribe(() => {
         syncToolRenderers();
@@ -206,6 +232,7 @@ export function createBoardEditorRuntime({
         canvas.removeEventListener("pointerdown", onPointerDown);
         canvas.removeEventListener("pointermove", onPointerMove);
         canvas.removeEventListener("pointerup", onPointerUp);
+        canvas.removeEventListener("wheel", onWheel);
       }
 
       canvas = null;

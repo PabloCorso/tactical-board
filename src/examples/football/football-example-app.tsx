@@ -16,8 +16,9 @@ import { footballBoardExample } from "./football-board-example";
 const footballArrowTool = createArrowTool({
   presets: [
     {
-      id: "sprint",
-      label: "Sprint",
+      id: "run",
+      label: "Run",
+      iconId: "arrow-straight-solid",
       draftStyle: {
         color: "black",
         strokeWidth: 0.4,
@@ -30,11 +31,12 @@ const footballArrowTool = createArrowTool({
     {
       id: "dribble",
       label: "Dribble",
+      iconId: "arrow-wavy",
       draftStyle: {
         color: "black",
         strokeWidth: 0.4,
-        lineStyle: "dashed",
-        bodyStyle: "curved",
+        lineStyle: "solid",
+        bodyStyle: "wavy",
         startHead: "none",
         endHead: "triangle",
       },
@@ -42,11 +44,25 @@ const footballArrowTool = createArrowTool({
     {
       id: "pass",
       label: "Pass",
+      iconId: "arrow-straight-dashed",
       draftStyle: {
         color: "black",
         strokeWidth: 0.4,
         lineStyle: "dashed",
         bodyStyle: "straight",
+        startHead: "none",
+        endHead: "triangle",
+      },
+    },
+    {
+      id: "long-pass",
+      label: "Long pass",
+      iconId: "arrow-curved-dashed",
+      draftStyle: {
+        color: "black",
+        strokeWidth: 0.4,
+        lineStyle: "dashed",
+        bodyStyle: "curved",
         startHead: "none",
         endHead: "triangle",
       },

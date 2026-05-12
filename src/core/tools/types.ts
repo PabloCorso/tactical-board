@@ -20,6 +20,19 @@ export interface ToolPointerEvent {
   metaKey: boolean;
 }
 
+export interface ToolWheelEvent {
+  point: Point;
+  clientPoint: Point;
+  canvasRect: CanvasRect;
+  targetObjectId?: ObjectId;
+  ctrlKey: boolean;
+  shiftKey: boolean;
+  altKey: boolean;
+  metaKey: boolean;
+  deltaX: number;
+  deltaY: number;
+}
+
 export interface ToolApi {
   getState: () => BoardEditorState;
   addObjects: (
@@ -58,6 +71,7 @@ export interface ToolApi {
 export interface ToolActionDefinition {
   id: string;
   label: string;
+  iconId?: string;
   tooltip?: string;
   active?: boolean;
   disabled?: boolean;
@@ -80,6 +94,7 @@ export interface ToolDefinition {
   onPointerDown?: (event: ToolPointerEvent, api: ToolApi) => void;
   onPointerMove?: (event: ToolPointerEvent, api: ToolApi) => void;
   onPointerUp?: (event: ToolPointerEvent, api: ToolApi) => void;
+  onWheel?: (event: ToolWheelEvent, api: ToolApi) => void;
 }
 
 export interface ToolRegistry {

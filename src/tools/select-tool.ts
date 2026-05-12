@@ -15,6 +15,8 @@ import type {
 import type { BoardObject } from "../core/board/types";
 import {
   ARROW_OBJECT_TYPE,
+  getArrowCurveHandlePoint,
+  getArrowCurveOffset,
   type ArrowObject,
 } from "../core/objects/arrow-object";
 import {
@@ -30,6 +32,8 @@ const DEFAULT_SELECTION_COLOR = colors.sky[400];
 const SELECTION_OVERLAY_KIND = "select:selection-ring";
 const ARROW_ENDPOINT_HANDLE_RADIUS_PX = 5;
 const ARROW_ENDPOINT_HANDLE_HIT_RADIUS_PX = 12;
+const ARROW_CURVE_HANDLE_WIDTH_PX = 18;
+const ARROW_CURVE_HANDLE_HEIGHT_PX = 6;
 const DISABLED_SELECTION_ACTIONS: ToolActionDefinition[] = [
   {
     id: "duplicate-selection",
@@ -288,6 +292,61 @@ function getSelectedArrowEndpointAtPoint(
   return nearest;
 }
 
+function getSelectedArrowCurveHandleAtPoint(
+  state: BoardEditorState,
+  selectState: SelectToolState,
+  event: ToolPointerEvent,
+) {
+  const projection = createBoardSpaceProjection({
+    surface: state.board.surface,
+    viewport: state.ui.viewport,
+    canvasRect: event.canvasRect,
+    surfaceInset: SURFACE_INSET,
+  });
+  const canvasPoint = projection.worldToCanvas(event.point);
+
+  for (const objectId of selectState.selectedObjectIds) {
+    const object = state.board.objects.byId[objectId];
+    if (
+      object?.type !== ARROW_OBJECT_TYPE ||
+      object.locked ||
+      (object as ArrowObject).props.bodyStyle !== "curved"
+    ) {
+      continue;
+    }
+
+    const arrow = object as ArrowObject;
+    const handlePoint = projection.worldToCanvas(
+      getArrowCurveHandlePoint(
+        arrow.props.start,
+        arrow.props.end,
+        arrow.props.curveOffset,
+      ),
+    );
+    const startPoint = projection.worldToCanvas(arrow.props.start);
+    const endPoint = projection.worldToCanvas(arrow.props.end);
+    const angle = Math.atan2(
+      endPoint.y - startPoint.y,
+      endPoint.x - startPoint.x,
+    );
+    const dx = canvasPoint.x - handlePoint.x;
+    const dy = canvasPoint.y - handlePoint.y;
+    const localX = dx * Math.cos(angle) + dy * Math.sin(angle);
+    const localY = -dx * Math.sin(angle) + dy * Math.cos(angle);
+
+    if (
+      Math.abs(localX) <= ARROW_CURVE_HANDLE_WIDTH_PX / 2 + 2 &&
+      Math.abs(localY) <= ARROW_CURVE_HANDLE_HEIGHT_PX / 2 + 2
+    ) {
+      return {
+        objectId,
+      };
+    }
+  }
+
+  return undefined;
+}
+
 export function getSelectOverlayItems(
   state: BoardEditorState,
 ): Array<CanvasRectOverlayItem | SelectionOverlayItem> {
@@ -342,6 +401,8 @@ export function registerSelectOverlayRenderer(
       if (selectionOverlay.object.type === ARROW_OBJECT_TYPE) {
         const arrow = selectionOverlay.object as ArrowObject;
         const endpoints = [arrow.props.start, arrow.props.end];
+        const startPoint = surfaceTransform.worldToCanvas(arrow.props.start);
+        const endPoint = surfaceTransform.worldToCanvas(arrow.props.end);
 
         context.fillStyle = colors.white;
         context.lineWidth = 1.5;
@@ -359,6 +420,36 @@ export function registerSelectOverlayRenderer(
           );
           context.fill();
           context.stroke();
+        }
+
+        if (arrow.props.bodyStyle === "curved") {
+          const handlePoint = surfaceTransform.worldToCanvas(
+            getArrowCurveHandlePoint(
+              arrow.props.start,
+              arrow.props.end,
+              arrow.props.curveOffset,
+            ),
+          );
+          const angle = Math.atan2(
+            endPoint.y - startPoint.y,
+            endPoint.x - startPoint.x,
+          );
+
+          context.save();
+          context.translate(handlePoint.x, handlePoint.y);
+          context.rotate(angle);
+          context.fillStyle = colors.white;
+          context.beginPath();
+          context.roundRect(
+            -ARROW_CURVE_HANDLE_WIDTH_PX / 2,
+            -ARROW_CURVE_HANDLE_HEIGHT_PX / 2,
+            ARROW_CURVE_HANDLE_WIDTH_PX,
+            ARROW_CURVE_HANDLE_HEIGHT_PX,
+            ARROW_CURVE_HANDLE_HEIGHT_PX / 2,
+          );
+          context.fill();
+          context.stroke();
+          context.restore();
         }
 
         context.restore();
@@ -435,6 +526,22 @@ export const selectTool: ToolDefinition = {
   onPointerDown: (event, api) => {
     const state = api.getState();
     const selectState = getSelectToolState(state.toolState);
+    const arrowCurveHit = getSelectedArrowCurveHandleAtPoint(
+      state,
+      selectState,
+      event,
+    );
+    if (arrowCurveHit) {
+      setSelectState(api, {
+        selectedObjectIds: [arrowCurveHit.objectId],
+        interaction: {
+          mode: "arrow-curve",
+          objectId: arrowCurveHit.objectId,
+        },
+      });
+      return;
+    }
+
     const arrowEndpointHit = getSelectedArrowEndpointAtPoint(
       state,
       selectState,
@@ -557,6 +664,28 @@ export const selectTool: ToolDefinition = {
       return;
     }
 
+    if (interaction.mode === "arrow-curve") {
+      api.updateObjects([interaction.objectId], (object) => {
+        if (object.type !== ARROW_OBJECT_TYPE || object.locked) {
+          return object;
+        }
+
+        const arrow = object as ArrowObject;
+        const curveOffset =
+          getArrowCurveOffset(arrow.props.start, arrow.props.end, event.point) *
+          2;
+
+        return {
+          ...arrow,
+          props: {
+            ...arrow.props,
+            curveOffset,
+          },
+        };
+      });
+      return;
+    }
+
     const delta = {
       x: event.point.x - interaction.lastPoint.x,
       y: event.point.y - interaction.lastPoint.y,
@@ -578,5 +707,17 @@ export const selectTool: ToolDefinition = {
     setSelectState(api, {
       interaction: undefined,
     });
+  },
+  onWheel: (event, api) => {
+    const delta =
+      event.shiftKey && event.deltaX === 0
+        ? { x: -event.deltaY, y: 0 }
+        : { x: -event.deltaX, y: -event.deltaY };
+
+    if (delta.x === 0 && delta.y === 0) {
+      return;
+    }
+
+    api.panViewport(delta);
   },
 };

@@ -1,5 +1,4 @@
 import {
-  ArrowArcRightIcon,
   ArrowLeftIcon,
   ArrowRightIcon,
   LineSegmentIcon,
@@ -7,6 +6,7 @@ import {
   TrashIcon,
 } from "@phosphor-icons/react";
 import {
+  getDefaultArrowCurveOffset,
   type ArrowBodyStyle,
   type ArrowHeadStyle,
   type ArrowLineStyle,
@@ -30,6 +30,8 @@ const BODY_STYLE_OPTIONS: Array<{
 }> = [
   { value: "straight", label: "Straight" },
   { value: "curved", label: "Curved" },
+  { value: "wavy", label: "Wavy" },
+  { value: "double", label: "Double" },
 ];
 
 const HEAD_OPTIONS: Array<{
@@ -65,10 +67,7 @@ function getWeightLabel(strokeWidth: number) {
   );
 }
 
-function getHeadIcon(
-  side: "start" | "end",
-  head: ArrowHeadStyle,
-): IconRender {
+function getHeadIcon(side: "start" | "end", head: ArrowHeadStyle): IconRender {
   if (head === "none") {
     return <LineSegmentIcon weight="bold" />;
   }
@@ -81,10 +80,54 @@ function getHeadIcon(
 }
 
 function getBodyStyleIcon(bodyStyle: ArrowBodyStyle): IconRender {
-  return bodyStyle === "curved" ? (
-    <ArrowArcRightIcon weight="bold" />
-  ) : (
-    <ArrowRightIcon weight="bold" />
+  return (
+    <span className="flex h-5 w-10 items-center justify-center">
+      <svg
+        aria-hidden="true"
+        className="h-5 w-10"
+        fill="none"
+        viewBox="0 0 40 20"
+      >
+        {bodyStyle === "curved" ? (
+          <path
+            d="M5 14 C15 4, 25 4, 35 10"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeWidth="2.5"
+          />
+        ) : bodyStyle === "wavy" ? (
+          <path
+            d="M4 10 C8 4, 12 16, 16 10 S24 4, 28 10 S32 16, 36 10"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2.5"
+          />
+        ) : bodyStyle === "double" ? (
+          <>
+            <path
+              d="M5 7 L35 7"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeWidth="2.25"
+            />
+            <path
+              d="M5 13 L35 13"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeWidth="2.25"
+            />
+          </>
+        ) : (
+          <path
+            d="M5 10 L35 10"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeWidth="2.5"
+          />
+        )}
+      </svg>
+    </span>
   );
 }
 
@@ -251,6 +294,21 @@ export function BoardEditorArrowSelectionToolbar({
     }));
   };
 
+  const updateBodyStyle = (value: ArrowBodyStyle) => {
+    updateArrow((arrow) => ({
+      ...arrow,
+      props: {
+        ...arrow.props,
+        bodyStyle: value,
+        curveOffset:
+          value === "curved"
+            ? (arrow.props.curveOffset ??
+              getDefaultArrowCurveOffset(arrow.props.start, arrow.props.end))
+            : arrow.props.curveOffset,
+      },
+    }));
+  };
+
   return (
     <div
       className="pointer-events-none absolute inset-0"
@@ -340,7 +398,7 @@ export function BoardEditorArrowSelectionToolbar({
             content={
               <ArrowBodyPopoverContent
                 selectedObject={selectedObject}
-                onSelect={(value) => updateArrowProps({ bodyStyle: value })}
+                onSelect={updateBodyStyle}
               />
             }
             icon={getBodyStyleIcon(selectedObject.props.bodyStyle)}

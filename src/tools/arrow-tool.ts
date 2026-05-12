@@ -1,11 +1,12 @@
 import type { Point } from "../core/board/types";
 import {
   ARROW_OBJECT_TYPE,
+  getArrowBodyPolylines,
   createArrowObject,
+  getArrowControlPoint,
   type ArrowObject,
   type ArrowBodyStyle,
   type ArrowHeadStyle,
-  type ArrowLineStyle,
 } from "../core/objects/arrow-object";
 import type {
   CanvasObjectHitTestInput,
@@ -24,12 +25,12 @@ import {
 import { clearSelection } from "./select-tool-actions";
 
 const PREVIEW_OPACITY = 0.55;
-const CURVE_BEND_RATIO = 0.18;
 const MIN_HIT_DISTANCE_PX = 10;
 
 export interface ArrowToolPreset {
   id: string;
   label: string;
+  iconId?: string;
   tooltip?: string;
   draftStyle: Partial<ArrowDraftStyle>;
 }
@@ -85,18 +86,6 @@ function setPendingStart(api: ToolApi, pendingStart?: Point) {
     ...arrowState,
     pendingStart,
   });
-}
-
-function getCurveControlPoint(start: Point, end: Point): Point {
-  const dx = end.x - start.x;
-  const dy = end.y - start.y;
-  const length = Math.hypot(dx, dy) || 1;
-  const bend = length * CURVE_BEND_RATIO;
-
-  return {
-    x: (start.x + end.x) / 2 - (dy / length) * bend,
-    y: (start.y + end.y) / 2 + (dx / length) * bend,
-  };
 }
 
 function getArrowHeadLength(strokeWidth: number) {
@@ -163,34 +152,30 @@ function drawArrowHead(input: {
   context.restore();
 }
 
-function drawArrowPath(
-  context: CanvasRenderingContext2D,
-  start: Point,
-  end: Point,
-  controlPoint: Point | undefined,
-  bodyStyle: ArrowBodyStyle,
-) {
-  context.beginPath();
-  context.moveTo(start.x, start.y);
-
-  if (bodyStyle === "curved" && controlPoint) {
-    context.quadraticCurveTo(controlPoint.x, controlPoint.y, end.x, end.y);
+function drawArrowPath(context: CanvasRenderingContext2D, points: Point[]) {
+  if (points.length === 0) {
     return;
   }
 
-  context.lineTo(end.x, end.y);
+  context.beginPath();
+  context.moveTo(points[0].x, points[0].y);
+
+  for (const point of points.slice(1)) {
+    context.lineTo(point.x, point.y);
+  }
 }
 
 function getArrowGeometry(
   start: Point,
   end: Point,
   bodyStyle: ArrowBodyStyle,
+  explicitControlPoint: Point | undefined,
   strokeWidth: number,
   startHead: ArrowHeadStyle,
   endHead: ArrowHeadStyle,
 ) {
   const controlPoint =
-    bodyStyle === "curved" ? getCurveControlPoint(start, end) : undefined;
+    bodyStyle === "curved" ? explicitControlPoint : undefined;
   const startTangent = controlPoint ?? end;
   const endTangent = controlPoint ?? start;
 
@@ -234,6 +219,15 @@ function renderArrow({
       start,
       end,
       arrow.props.bodyStyle,
+      arrow.props.curveOffset !== undefined
+        ? surfaceTransform.worldToCanvas(
+            getArrowControlPoint(
+              arrow.props.start,
+              arrow.props.end,
+              arrow.props.curveOffset,
+            ),
+          )
+        : undefined,
       strokeWidth,
       arrow.props.startHead,
       arrow.props.endHead,
@@ -250,14 +244,16 @@ function renderArrow({
     arrow.props.lineStyle === "dashed" ? arrow.props.dashStyle : [],
   );
 
-  drawArrowPath(
-    context,
-    pathStart,
-    pathEnd,
-    controlPoint,
-    arrow.props.bodyStyle,
-  );
-  context.stroke();
+  for (const polyline of getArrowBodyPolylines({
+    start: pathStart,
+    end: pathEnd,
+    controlPoint: arrow.props.bodyStyle === "curved" ? controlPoint : undefined,
+    bodyStyle: arrow.props.bodyStyle,
+    strokeWidth,
+  })) {
+    drawArrowPath(context, polyline);
+    context.stroke();
+  }
 
   drawArrowHead({
     context,
@@ -318,31 +314,32 @@ function hitTestArrow({
     strokeWidth,
   );
 
-  if (arrow.props.bodyStyle === "straight") {
-    return distanceToSegment(canvasPoint, start, end) <= threshold;
-  }
+  const controlPoint =
+    arrow.props.bodyStyle === "curved"
+      ? surfaceTransform.worldToCanvas(
+          getArrowControlPoint(
+            arrow.props.start,
+            arrow.props.end,
+            arrow.props.curveOffset,
+          ),
+        )
+      : undefined;
 
-  const controlPoint = getCurveControlPoint(start, end);
-  let previous = start;
-
-  for (let index = 1; index <= 16; index += 1) {
-    const t = index / 16;
-    const point = {
-      x:
-        (1 - t) * (1 - t) * start.x +
-        2 * (1 - t) * t * controlPoint.x +
-        t * t * end.x,
-      y:
-        (1 - t) * (1 - t) * start.y +
-        2 * (1 - t) * t * controlPoint.y +
-        t * t * end.y,
-    };
-
-    if (distanceToSegment(canvasPoint, previous, point) <= threshold) {
-      return true;
+  for (const polyline of getArrowBodyPolylines({
+    start,
+    end,
+    controlPoint,
+    bodyStyle: arrow.props.bodyStyle,
+    strokeWidth,
+  })) {
+    for (let index = 1; index < polyline.length; index += 1) {
+      if (
+        distanceToSegment(canvasPoint, polyline[index - 1], polyline[index]) <=
+        threshold
+      ) {
+        return true;
+      }
     }
-
-    previous = point;
   }
 
   return false;
@@ -356,6 +353,7 @@ function createPresetSecondaryActions(
       (preset): ToolActionDefinition => ({
         id: preset.id,
         label: preset.label,
+        iconId: preset.iconId,
         tooltip: preset.tooltip ?? preset.label,
         disabled: false,
         onSelect: (api) => applyArrowPreset(api, preset),

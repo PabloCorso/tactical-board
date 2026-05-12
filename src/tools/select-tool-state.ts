@@ -22,10 +22,16 @@ interface SelectArrowEndpointInteraction {
   endpoint: "start" | "end";
 }
 
+interface SelectArrowCurveInteraction {
+  mode: "arrow-curve";
+  objectId: ObjectId;
+}
+
 export type SelectToolInteraction =
   | SelectDragInteraction
   | SelectMarqueeInteraction
-  | SelectArrowEndpointInteraction;
+  | SelectArrowEndpointInteraction
+  | SelectArrowCurveInteraction;
 
 export interface SelectToolState {
   selectedObjectIds: ObjectId[];
