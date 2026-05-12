@@ -1,4 +1,9 @@
-import { ArrowUpRightIcon, CursorIcon, HandIcon } from "@phosphor-icons/react";
+import {
+  ArrowUpRightIcon,
+  CursorIcon,
+  HandIcon,
+  SquareIcon,
+} from "@phosphor-icons/react";
 import type { ToolId } from "../../core/board/types";
 import { useBoardEditorStore } from "../hooks/use-board-editor-store";
 import { useBoardEditorContext } from "./board-editor-context";
@@ -22,6 +27,8 @@ function getDefaultToolIcon(toolId: ToolId) {
       return (
         <ArrowUpRightIcon aria-hidden="true" className="size-5" weight="bold" />
       );
+    case "shape":
+      return <SquareIcon aria-hidden="true" className="size-5" weight="bold" />;
     default:
       return undefined;
   }

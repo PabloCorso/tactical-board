@@ -12,6 +12,11 @@ import {
   normalizeArrowObject,
   type ArrowObject,
 } from "../objects/arrow-object";
+import {
+  normalizeShapeObject,
+  SHAPE_OBJECT_TYPE,
+  type ShapeObject,
+} from "../objects/shape-object";
 import type { ToolApi, ToolDefinition, ToolRegistry } from "../tools/types";
 import type {
   CanvasObjectHitTesterRegistry,
@@ -73,6 +78,37 @@ function translateObject(object: BoardObject, delta: Point): BoardObject {
           y: arrowObject.props.end.y + delta.y,
         },
         points: arrowObject.props.points?.map((point) => ({
+          x: point.x + delta.x,
+          y: point.y + delta.y,
+        })),
+      },
+    });
+  }
+
+  if (object.type === SHAPE_OBJECT_TYPE) {
+    const shapeObject = object as ShapeObject;
+
+    return normalizeShapeObject({
+      ...shapeObject,
+      position: {
+        x: shapeObject.position.x + delta.x,
+        y: shapeObject.position.y + delta.y,
+      },
+      props: {
+        ...shapeObject.props,
+        start: shapeObject.props.start
+          ? {
+              x: shapeObject.props.start.x + delta.x,
+              y: shapeObject.props.start.y + delta.y,
+            }
+          : undefined,
+        end: shapeObject.props.end
+          ? {
+              x: shapeObject.props.end.x + delta.x,
+              y: shapeObject.props.end.y + delta.y,
+            }
+          : undefined,
+        points: shapeObject.props.points?.map((point) => ({
           x: point.x + delta.x,
           y: point.y + delta.y,
         })),
@@ -200,6 +236,8 @@ export function createBoardEditorStore({
             nextById[object.id] =
               object.type === ARROW_OBJECT_TYPE
                 ? normalizeArrowObject(object as ArrowObject)
+                : object.type === SHAPE_OBJECT_TYPE
+                  ? normalizeShapeObject(object as ShapeObject)
                 : object;
             if (!nextOrder.includes(object.id)) {
               nextOrder.push(object.id);
@@ -315,6 +353,8 @@ export function createBoardEditorStore({
             nextById[objectId] =
               nextObject.type === ARROW_OBJECT_TYPE
                 ? normalizeArrowObject(nextObject as ArrowObject)
+                : nextObject.type === SHAPE_OBJECT_TYPE
+                  ? normalizeShapeObject(nextObject as ShapeObject)
                 : nextObject;
           }
 

@@ -6,10 +6,15 @@ import {
   getArrowCurveHandlePoint,
   type ArrowObject,
 } from "../../core/objects/arrow-object";
+import {
+  SHAPE_OBJECT_TYPE,
+  type ShapeObject,
+} from "../../core/objects/shape-object";
 import { getSelectToolState } from "../../tools/select-tool-state";
 import { useBoardEditorStore } from "../hooks/use-board-editor-store";
 import { useBoardEditorContext } from "./board-editor-context";
 import { BoardEditorArrowSelectionToolbar } from "./board-editor-selection-toolbar-arrow";
+import { BoardEditorShapeSelectionToolbar } from "./board-editor-selection-toolbar-shape";
 import type { BoardEditorSelectionToolbarRenderer } from "./board-editor-selection-toolbar-types";
 
 const SURFACE_INSET = 14;
@@ -69,6 +74,12 @@ const selectionToolbarRenderers: Record<
     <BoardEditorArrowSelectionToolbar
       {...props}
       selectedObject={props.selectedObject as ArrowObject}
+    />
+  ),
+  [SHAPE_OBJECT_TYPE]: (props) => (
+    <BoardEditorShapeSelectionToolbar
+      {...props}
+      selectedObject={props.selectedObject as ShapeObject}
     />
   ),
 };

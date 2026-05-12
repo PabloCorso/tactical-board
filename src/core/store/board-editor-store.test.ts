@@ -7,6 +7,12 @@ import {
 } from "../../tools/arrow-tool-state";
 import { createArrowTool } from "../../tools/arrow-tool";
 import {
+  DEFAULT_SHAPE_TOOL_STATE,
+  getShapeToolState,
+  SHAPE_TOOL_ID,
+} from "../../tools/shape-tool-state";
+import { createShapeTool } from "../../tools/shape-tool";
+import {
   getSelectToolState,
   SELECT_TOOL_ID,
 } from "../../tools/select-tool-state";
@@ -105,6 +111,56 @@ describe("createBoardEditorStore", () => {
     expect(
       getArrowToolState(store.getState().toolState).draftStyle,
     ).toEqual(DEFAULT_ARROW_TOOL_STATE.draftStyle);
+    expect(store.getState().rendering.previewObjects).toEqual([]);
+  });
+
+  it("clears unfinished shape drafts when switching tools", () => {
+    const shapeTool = createShapeTool();
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      initialToolId: SHAPE_TOOL_ID,
+      tools: [selectTool, shapeTool],
+    });
+
+    store.getState().actions.setToolState(SHAPE_TOOL_ID, {
+      ...DEFAULT_SHAPE_TOOL_STATE,
+      pendingPoints: [
+        { x: 10, y: 12 },
+        { x: 14, y: 16 },
+        { x: 12, y: 20 },
+      ],
+    });
+    store.getState().actions.setPreviewObjects([
+      {
+        id: "preview-shape",
+        type: "token",
+        position: { x: 0, y: 0 },
+        props: {},
+      },
+    ]);
+
+    store.getState().actions.setActiveTool(SELECT_TOOL_ID);
+
+    expect(store.getState().ui.activeToolId).toBe(SELECT_TOOL_ID);
+    expect(getShapeToolState(store.getState().toolState).pendingPoints).toEqual(
+      [],
+    );
+    expect(getShapeToolState(store.getState().toolState).draftStyle).toEqual(
+      DEFAULT_SHAPE_TOOL_STATE.draftStyle,
+    );
     expect(store.getState().rendering.previewObjects).toEqual([]);
   });
 

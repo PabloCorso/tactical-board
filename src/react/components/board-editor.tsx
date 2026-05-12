@@ -7,6 +7,7 @@ import {
 } from "./board-editor-context";
 import { cn } from "./misc";
 export { BoardEditorArrowRouteDone } from "./board-editor-arrow-route-done";
+export { BoardEditorShapePolygonDone } from "./board-editor-shape-polygon-done";
 
 export type BoardEditorProps = {
   children?: ReactNode;

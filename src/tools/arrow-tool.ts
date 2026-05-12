@@ -7,7 +7,6 @@ import {
   getArrowPolylinePoints,
   type ArrowObject,
   type ArrowBodyStyle,
-  type ArrowGeometry,
   type ArrowHeadStyle,
 } from "../core/objects/arrow-object";
 import { createBoardSpaceProjection } from "../core/geometry/board-space-projection";

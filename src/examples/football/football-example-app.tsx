@@ -4,6 +4,7 @@ import {
   BoardEditorArrowRouteDone,
   BoardEditorCanvas,
   BoardEditorProvider,
+  BoardEditorShapePolygonDone,
 } from "../../react/components/board-editor";
 import { BoardEditorSelectionToolbar } from "../../react/components/board-editor-selection-toolbar";
 import { BoardEditorSecondaryToolbar } from "../../react/components/board-editor-secondary-toolbar";
@@ -11,6 +12,7 @@ import { BoardEditorToolControl } from "../../react/components/board-editor-tool
 import { BoardEditorToolbar } from "../../react/components/board-editor-toolbar";
 import { createArrowTool } from "../../tools/arrow-tool";
 import { handTool } from "../../tools/hand-tool";
+import { createShapeTool } from "../../tools/shape-tool";
 import { selectTool } from "../../tools/select-tool";
 import { footballBoardExample } from "./football-board-example";
 
@@ -64,10 +66,63 @@ const footballArrowTool = createArrowTool({
   ],
 });
 
+const footballShapeTool = createShapeTool({
+  presets: [
+    {
+      id: "shape-rectangle",
+      label: "Rectangle",
+      iconId: "shape-rectangle",
+      draftStyle: {
+        kind: "rectangle",
+      },
+    },
+    {
+      id: "shape-circle",
+      label: "Circle",
+      iconId: "shape-circle",
+      draftStyle: {
+        kind: "circle",
+      },
+    },
+    {
+      id: "shape-ellipse",
+      label: "Ellipse",
+      iconId: "shape-ellipse",
+      draftStyle: {
+        kind: "ellipse",
+      },
+    },
+    {
+      id: "shape-triangle",
+      label: "Triangle",
+      iconId: "shape-triangle",
+      draftStyle: {
+        kind: "triangle",
+      },
+    },
+    {
+      id: "shape-diamond",
+      label: "Diamond",
+      iconId: "shape-diamond",
+      draftStyle: {
+        kind: "diamond",
+      },
+    },
+    {
+      id: "shape-polygon",
+      label: "Polygon",
+      iconId: "shape-polygon",
+      draftStyle: {
+        kind: "polygon",
+      },
+    },
+  ],
+});
+
 const store = createBoardEditorStore({
   initialBoard: footballBoardExample,
   initialToolId: selectTool.id,
-  tools: [selectTool, footballArrowTool, handTool],
+  tools: [selectTool, footballArrowTool, footballShapeTool, handTool],
 });
 
 export function FootballExampleApp() {
@@ -76,6 +131,7 @@ export function FootballExampleApp() {
       <BoardEditor className="relative h-dvh w-full overflow-hidden">
         <BoardEditorCanvas />
         <BoardEditorArrowRouteDone />
+        <BoardEditorShapePolygonDone />
         <BoardEditorSelectionToolbar />
         <div className="pointer-events-none absolute inset-y-4 left-4 flex items-center">
           <div className="pointer-events-auto flex items-center gap-3">
@@ -83,6 +139,7 @@ export function FootballExampleApp() {
               <BoardEditorToolControl toolId="select" />
               <BoardEditorToolControl toolId="hand" />
               <BoardEditorToolControl toolId="arrow" />
+              <BoardEditorToolControl toolId="shape" />
             </BoardEditorToolbar>
             <BoardEditorSecondaryToolbar className="flex-col" />
           </div>

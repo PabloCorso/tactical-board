@@ -141,6 +141,69 @@ function renderArrowActionIcon(iconId: string): IconRender {
   );
 }
 
+function renderShapeActionIcon(iconId: string): IconRender {
+  return (
+    <span className="flex h-5 w-10 items-center justify-center">
+      <svg
+        aria-hidden="true"
+        className="h-5 w-10"
+        fill="none"
+        viewBox="0 0 40 20"
+      >
+        {iconId === "shape-circle" ? (
+          <circle
+            cx="20"
+            cy="10"
+            r="6"
+            stroke="currentColor"
+            strokeWidth="2.25"
+          />
+        ) : iconId === "shape-ellipse" ? (
+          <ellipse
+            cx="20"
+            cy="10"
+            rx="11"
+            ry="6"
+            stroke="currentColor"
+            strokeWidth="2.25"
+          />
+        ) : iconId === "shape-triangle" ? (
+          <path
+            d="M20 4 L31 16 L9 16 Z"
+            stroke="currentColor"
+            strokeLinejoin="round"
+            strokeWidth="2.25"
+          />
+        ) : iconId === "shape-diamond" ? (
+          <path
+            d="M20 4 L31 10 L20 16 L9 10 Z"
+            stroke="currentColor"
+            strokeLinejoin="round"
+            strokeWidth="2.25"
+          />
+        ) : iconId === "shape-polygon" ? (
+          <path
+            d="M10 13 L15 5 L28 6 L31 14 L18 16 Z"
+            stroke="currentColor"
+            strokeLinejoin="round"
+            strokeWidth="2.25"
+          />
+        ) : (
+          <rect
+            x="9"
+            y="4"
+            width="22"
+            height="12"
+            rx="2"
+            stroke="currentColor"
+            strokeWidth="2.25"
+          />
+        )}
+      </svg>
+    </span>
+  );
+}
+
 function getSecondaryActionIcon(action: ToolActionDefinition): IconRender {
   switch (action.iconId ?? action.id) {
     case "duplicate-selection":
@@ -155,6 +218,13 @@ function getSecondaryActionIcon(action: ToolActionDefinition): IconRender {
     case "arrow-double":
     case "arrow-polyline":
       return renderArrowActionIcon(action.iconId ?? action.id);
+    case "shape-rectangle":
+    case "shape-circle":
+    case "shape-ellipse":
+    case "shape-triangle":
+    case "shape-diamond":
+    case "shape-polygon":
+      return renderShapeActionIcon(action.iconId ?? action.id);
     default:
       return undefined;
   }
