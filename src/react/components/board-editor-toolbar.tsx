@@ -12,7 +12,7 @@ export function BoardEditorToolbar({
   return (
     <aside
       className={cn(
-        "mx-auto flex w-fit flex-wrap items-center justify-center gap-2 rounded-[20px] border border-white/8 bg-white/5 p-2 backdrop-blur-sm",
+        "mx-auto flex w-fit flex-wrap items-center justify-center gap-2 rounded-[20px] border border-white/10 bg-slate-950/80 p-2",
         className,
       )}
     >

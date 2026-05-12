@@ -31,8 +31,8 @@ export function BoardEditorToolbarButton({
         className={cn(
           "inline-flex min-h-10 min-w-10 cursor-pointer items-center justify-center rounded-[14px] border px-3 text-inherit transition-[background-color,border-color,color] duration-150",
           active
-            ? "border-white/12 bg-white/14 text-white"
-            : "border-transparent bg-transparent text-neutral-400 hover:border-white/10 hover:bg-white/6 hover:text-neutral-100",
+            ? "border-slate-600 bg-slate-800 text-slate-50"
+            : "border-transparent bg-transparent text-slate-400 hover:border-slate-700 hover:bg-slate-900 hover:text-slate-100",
           disabled ? "cursor-not-allowed opacity-50" : undefined,
           className,
         )}

@@ -5,10 +5,8 @@
     font-family: "IBM Plex Sans", "Avenir Next", system-ui, sans-serif;
     line-height: 1.5;
     font-weight: 400;
-    color: #f3efdf;
-    background:
-      radial-gradient(circle at top, rgb(244 208 63 / 0.08), transparent 28%),
-      linear-gradient(180deg, #0c241e 0%, #081512 100%);
+    color: rgb(241 245 249);
+    background: rgb(2 6 23);
     font-synthesis: none;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;

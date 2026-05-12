@@ -62,7 +62,7 @@ export function Tooltip({ children, content, sideOffset = 10 }: TooltipProps) {
     open && content && position
       ? createPortal(
           <div
-            className="pointer-events-none fixed z-50 -translate-x-1/2 -translate-y-full rounded-lg border border-white/10 bg-neutral-900 px-2.5 py-1.5 text-xs font-medium whitespace-nowrap text-neutral-100 shadow-[0_12px_32px_rgba(0,0,0,0.28)]"
+            className="pointer-events-none fixed z-50 -translate-x-1/2 -translate-y-full rounded-lg border border-slate-700 bg-slate-950 px-2.5 py-1.5 text-xs font-medium whitespace-nowrap text-slate-100 shadow-lg shadow-black/25"
             id={tooltipId}
             role="tooltip"
             style={

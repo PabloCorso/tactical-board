@@ -13,7 +13,7 @@ import { footballBoardExample } from "./football-board-example";
 
 const store = createBoardEditorStore({
   initialBoard: footballBoardExample,
-  initialToolId: "select",
+  initialToolId: selectTool.id,
   tools: [selectTool, handTool],
 });
 
@@ -22,11 +22,15 @@ export function FootballExampleApp() {
     <BoardEditorProvider store={store}>
       <BoardEditor className="relative h-dvh w-full overflow-hidden p-4">
         <BoardEditorCanvas />
-        <BoardEditorSecondaryToolbar className="absolute inset-x-4 bottom-20 mx-auto" />
-        <BoardEditorToolbar className="absolute inset-x-4 bottom-4 mx-auto">
-          <BoardEditorToolControl toolId="select" />
-          <BoardEditorToolControl toolId="hand" />
-        </BoardEditorToolbar>
+        <div className="pointer-events-none absolute inset-y-4 left-4 flex items-center">
+          <div className="pointer-events-auto flex items-center gap-3">
+            <BoardEditorToolbar className="flex-col">
+              <BoardEditorToolControl toolId="select" />
+              <BoardEditorToolControl toolId="hand" />
+            </BoardEditorToolbar>
+            <BoardEditorSecondaryToolbar className="flex-col" />
+          </div>
+        </div>
       </BoardEditor>
     </BoardEditorProvider>
   );

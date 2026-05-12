@@ -3,6 +3,7 @@ import type { BoardEditorState } from "../editor/types";
 import type { CanvasRect } from "../editor/board-editor-controller";
 import type {
   CanvasObjectRenderer,
+  CanvasOverlayItem,
   CanvasOverlayRenderer,
 } from "../../rendering/canvas/types";
 
