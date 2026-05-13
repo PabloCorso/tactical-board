@@ -10,6 +10,7 @@ import {
   type ArrowHeadStyle,
 } from "../core/objects/arrow-object";
 import { createBoardSpaceProjection } from "../core/geometry/board-space-projection";
+import { scaleCanvasDashStyle } from "../rendering/canvas/style-scale";
 import type {
   CanvasObjectHitTestInput,
   CanvasObjectRenderInput,
@@ -330,7 +331,9 @@ function renderArrow({
   context.lineCap = "round";
   context.lineJoin = "round";
   context.setLineDash(
-    arrow.props.lineStyle === "dashed" ? arrow.props.dashStyle : [],
+    arrow.props.lineStyle === "dashed"
+      ? scaleCanvasDashStyle(arrow.props.dashStyle, surfaceTransform.zoom)
+      : [],
   );
 
   if (arrow.props.geometry === "polyline") {
@@ -391,6 +394,7 @@ function renderArrow({
         arrow.props.bodyStyle === "curved" ? controlPoint : undefined,
       bodyStyle: arrow.props.bodyStyle,
       strokeWidth,
+      styleScale: surfaceTransform.zoom,
     })) {
       drawArrowPath(context, polyline);
       context.stroke();

@@ -7,9 +7,14 @@ import {
   createArrowObject,
   getArrowCurveHandlePoint,
 } from "../objects/arrow-object";
+import {
+  createEquipmentObject,
+  type EquipmentDefinition,
+} from "../objects/equipment-object";
 import { createPlayerObject } from "../objects/player-object";
 import { createShapeObject } from "../objects/shape-object";
 import { createArrowTool, setArrowDraftStyle } from "../../tools/arrow-tool";
+import { createEquipmentTool } from "../../tools/equipment-tool";
 import { createPlayerTool, setPlayerDraftStyle } from "../../tools/player-tool";
 import { createShapeTool } from "../../tools/shape-tool";
 import { selectTool } from "../../tools/select-tool";
@@ -494,6 +499,83 @@ describe("createBoardEditorController", () => {
     });
   });
 
+  it("places equipment using the selected catalog definition", () => {
+    const equipmentDefinitions: EquipmentDefinition[] = [
+      {
+        kind: "cone",
+        label: "Cone",
+        family: "cone",
+        defaultSize: { width: 1.8, height: 2.2 },
+        color: "#ff6b35",
+        capabilities: { color: true },
+        lockedAspectRatio: true,
+      },
+    ];
+    const equipmentTool = createEquipmentTool({
+      definitions: equipmentDefinitions,
+    });
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+          unit: "m",
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      initialToolId: equipmentTool.id,
+      tools: [selectTool, equipmentTool],
+    });
+    const toolApi = createToolApi(store);
+    equipmentTool.registerRenderers?.(toolApi);
+
+    const controller = createBoardEditorController(store);
+    const canvasRect = {
+      left: 0,
+      top: 0,
+      width: 1000,
+      height: 500,
+    };
+    const projection = createBoardSpaceProjection({
+      surface: store.getState().board.surface,
+      viewport: store.getState().ui.viewport,
+      canvasRect,
+      surfaceInset: 14,
+    });
+    const point = projection.worldToCanvas({ x: 16, y: 12 });
+
+    controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: point,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    expect(store.getState().board.objects.byId["equipment-1"]).toMatchObject({
+      type: "equipment",
+      position: { x: 16, y: 12 },
+      size: { width: 1.8, height: 2.2 },
+      props: {
+        kind: "cone",
+        color: "#ff6b35",
+        definition: {
+          family: "cone",
+          lockedAspectRatio: true,
+        },
+      },
+    });
+  });
+
   it("resizes a selected player by dragging a selection handle", () => {
     const playerTool = createPlayerTool();
     const existingPlayer = createPlayerObject({
@@ -646,6 +728,139 @@ describe("createBoardEditorController", () => {
 
     expect(
       store.getState().board.objects.byId[existingPlayer.id],
+    ).toMatchObject({
+      rotation: 90,
+    });
+  });
+
+  it("resizes and rotates selected equipment using selection handles", () => {
+    const equipmentTool = createEquipmentTool({
+      definitions: [
+        {
+          kind: "goal",
+          label: "Goal",
+          family: "frame",
+          defaultSize: { width: 6, height: 2 },
+          color: "#ffffff",
+          capabilities: { color: true },
+          lockedAspectRatio: true,
+        },
+      ],
+    });
+    const existingEquipment = createEquipmentObject({
+      id: "equipment-1",
+      position: { x: 10, y: 10 },
+      rotation: 0,
+      size: { width: 6, height: 2, mode: "world", unit: "m" },
+      kind: "goal",
+      color: "#ffffff",
+      definition: {
+        kind: "goal",
+        label: "Goal",
+        family: "frame",
+        color: "#ffffff",
+        capabilities: { color: true },
+        lockedAspectRatio: true,
+      },
+    });
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+          unit: "m",
+        },
+        objects: {
+          byId: {
+            [existingEquipment.id]: existingEquipment,
+          },
+          order: [existingEquipment.id],
+        },
+        style: {},
+      },
+      initialToolId: selectTool.id,
+      tools: [selectTool, equipmentTool],
+    });
+    const toolApi = createToolApi(store);
+    equipmentTool.registerRenderers?.(toolApi);
+    setSelectedObjectIds(toolApi, [existingEquipment.id]);
+
+    const controller = createBoardEditorController(store);
+    const canvasRect = {
+      left: 0,
+      top: 0,
+      width: 1000,
+      height: 500,
+    };
+    const projection = createBoardSpaceProjection({
+      surface: store.getState().board.surface,
+      viewport: store.getState().ui.viewport,
+      canvasRect,
+      surfaceInset: 14,
+    });
+
+    const bottomRightHandle = projection.worldToCanvas({ x: 13, y: 11 });
+    const nextBottomRightHandle = projection.worldToCanvas({ x: 16, y: 12 });
+
+    controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: bottomRightHandle,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+    controller.dispatchPointerEvent("onPointerMove", {
+      clientPoint: nextBottomRightHandle,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    expect(
+      store.getState().board.objects.byId[existingEquipment.id],
+    ).toMatchObject({
+      size: { width: 12, height: 4 },
+    });
+
+    const resizedEquipment = store.getState().board.objects.byId[
+      existingEquipment.id
+    ];
+    const resizedBounds = projection.getObjectCanvasBounds(resizedEquipment);
+    const rotationHandle = {
+      x: resizedBounds.x + resizedBounds.width / 2,
+      y: resizedBounds.y - 20,
+    };
+    const rightOfCenter = projection.worldToCanvas({ x: 12, y: 10 });
+
+    controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: rotationHandle,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+    controller.dispatchPointerEvent("onPointerMove", {
+      clientPoint: rightOfCenter,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    expect(
+      store.getState().board.objects.byId[existingEquipment.id],
     ).toMatchObject({
       rotation: 90,
     });

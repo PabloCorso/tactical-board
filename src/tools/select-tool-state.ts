@@ -65,6 +65,23 @@ interface SelectPlayerRotateInteraction {
   center: Point;
 }
 
+interface SelectEquipmentResizeInteraction {
+  mode: "equipment-resize";
+  objectId: ObjectId;
+  center: Point;
+  initialSize: {
+    width: number;
+    height: number;
+  };
+  lockedAspectRatio: boolean;
+}
+
+interface SelectEquipmentRotateInteraction {
+  mode: "equipment-rotate";
+  objectId: ObjectId;
+  center: Point;
+}
+
 export type SelectToolInteraction =
   | SelectDragInteraction
   | SelectMarqueeInteraction
@@ -73,7 +90,9 @@ export type SelectToolInteraction =
   | SelectArrowCurveInteraction
   | SelectShapeResizeInteraction
   | SelectPlayerResizeInteraction
-  | SelectPlayerRotateInteraction;
+  | SelectPlayerRotateInteraction
+  | SelectEquipmentResizeInteraction
+  | SelectEquipmentRotateInteraction;
 
 export interface SelectToolState {
   selectedObjectIds: ObjectId[];

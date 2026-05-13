@@ -21,6 +21,28 @@ export type BoardEditorSecondaryToolbarProps = {
 
 const EMPTY_SECONDARY_ACTIONS: [] = [];
 
+function getContrastingTextColor(color: string) {
+  const normalized = color.trim().replace("#", "");
+  const expanded =
+    normalized.length === 3
+      ? normalized
+          .split("")
+          .map((part) => part + part)
+          .join("")
+      : normalized;
+
+  if (!/^[\da-f]{6}$/i.test(expanded)) {
+    return "#ffffff";
+  }
+
+  const red = Number.parseInt(expanded.slice(0, 2), 16);
+  const green = Number.parseInt(expanded.slice(2, 4), 16);
+  const blue = Number.parseInt(expanded.slice(4, 6), 16);
+  const luminance = (red * 299 + green * 587 + blue * 114) / 1000;
+
+  return luminance > 160 ? "#111827" : "#ffffff";
+}
+
 function renderArrowActionIcon(
   variant: ToolActionIcon & { kind: "arrow" },
 ): IconRender {
@@ -219,9 +241,15 @@ function getSecondaryActionIcon(action: ToolActionDefinition): IconRender {
     case "color":
       return (
         <span
-          className="border-default inline-flex h-5 w-5 rounded-full border"
+          className="border-default inline-flex h-7 w-7 items-center justify-center rounded-full border text-xs font-bold"
           style={{ backgroundColor: action.icon.value }}
         >
+          <span
+            style={{ color: getContrastingTextColor(action.icon.value) }}
+            className="drop-shadow-[0_1px_1px_rgba(0,0,0,0.25)]"
+          >
+            {action.label}
+          </span>
           <span className="sr-only">{action.icon.value}</span>
         </span>
       );
@@ -253,22 +281,30 @@ export function BoardEditorSecondaryToolbar({
   }
 
   return (
-    <BoardEditorToolbar className={cn("items-stretch", className)}>
+    <BoardEditorToolbar
+      className={cn("items-stretch gap-0.5 p-0.5", className)}
+    >
       {secondaryActions.map((action) => {
         const icon = getSecondaryActionIcon(action);
+        const accessibleLabel = action.tooltip || action.label || action.id;
+        const isIconOnly = action.icon?.kind === "color" || !action.label;
 
         return (
           <BoardEditorToolbarButton
-            aria-label={action.label}
+            aria-label={accessibleLabel}
             active={action.active}
-            className="w-full justify-start"
+            className={cn(
+              isIconOnly
+                ? "aspect-square rounded-full px-0"
+                : "w-full justify-start",
+            )}
             disabled={action.disabled}
             iconBefore={icon}
             key={action.id}
             onClick={() => action.onSelect(toolApi)}
-            tooltip={action.tooltip ?? action.label}
+            tooltip={action.tooltip ?? accessibleLabel}
           >
-            {action.label}
+            {isIconOnly ? undefined : action.label}
           </BoardEditorToolbarButton>
         );
       })}

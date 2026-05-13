@@ -225,19 +225,19 @@ function sampleQuadraticSegment(
   return sampleQuadraticCurve(start, controlPoint, end, sampleCount).slice(1);
 }
 
-export function getArrowWavyPoints(start: Point, end: Point) {
+export function getArrowWavyPoints(start: Point, end: Point, styleScale = 1) {
   const { dx, dy, length } = getArrowVector(start, end);
   const normal = getArrowNormal(start, end);
-  const tailLength = Math.min(WAVE_TAIL_LENGTH, length * 0.25);
+  const tailLength = Math.min(WAVE_TAIL_LENGTH * styleScale, length * 0.25);
   const waveLength = Math.max(length - tailLength, 0);
   const segmentCount = Math.max(
     MIN_WAVE_SEGMENTS,
-    Math.round(waveLength / FIXED_WAVE_SEGMENT_LENGTH),
+    Math.round(waveLength / (FIXED_WAVE_SEGMENT_LENGTH * styleScale)),
   );
   const segmentLength =
     segmentCount > 0 ? waveLength / segmentCount : waveLength;
   const amplitude = Math.min(
-    FIXED_WAVE_AMPLITUDE,
+    FIXED_WAVE_AMPLITUDE * styleScale,
     segmentLength * 1.4,
     length * 0.7,
   );
@@ -320,8 +320,12 @@ export function getArrowBodyPolylines(
     | "controlPoint"
     | "curveOffset"
     | "bodyStyle"
-  >,
+  > & {
+    styleScale?: number;
+  },
 ) {
+  const styleScale = props.styleScale ?? 1;
+
   if (props.geometry === "polyline") {
     return [getArrowPolylinePoints(props)];
   }
@@ -340,7 +344,7 @@ export function getArrowBodyPolylines(
         ),
       ];
     case "wavy":
-      return [getArrowWavyPoints(props.start, props.end)];
+      return [getArrowWavyPoints(props.start, props.end, styleScale)];
     case "double": {
       return [
         [
@@ -348,13 +352,13 @@ export function getArrowBodyPolylines(
             props.start,
             props.start,
             props.end,
-            DOUBLE_LINE_OFFSET,
+            DOUBLE_LINE_OFFSET * styleScale,
           ),
           offsetPointByNormal(
             props.end,
             props.start,
             props.end,
-            DOUBLE_LINE_OFFSET,
+            DOUBLE_LINE_OFFSET * styleScale,
           ),
         ],
         [
@@ -362,13 +366,13 @@ export function getArrowBodyPolylines(
             props.start,
             props.start,
             props.end,
-            -DOUBLE_LINE_OFFSET,
+            -DOUBLE_LINE_OFFSET * styleScale,
           ),
           offsetPointByNormal(
             props.end,
             props.start,
             props.end,
-            -DOUBLE_LINE_OFFSET,
+            -DOUBLE_LINE_OFFSET * styleScale,
           ),
         ],
       ];

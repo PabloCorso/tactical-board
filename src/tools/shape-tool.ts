@@ -7,6 +7,7 @@ import {
   type ShapeObject,
 } from "../core/objects/shape-object";
 import { createBoardSpaceProjection } from "../core/geometry/board-space-projection";
+import { scaleCanvasDashStyle, scaleCanvasStyleValue } from "../rendering/canvas/style-scale";
 import type {
   CanvasObjectHitTestInput,
   CanvasObjectRenderInput,
@@ -155,8 +156,9 @@ function drawShapePath(context: CanvasRenderingContext2D, points: Point[]) {
 function createDiagonalStripePattern(
   context: CanvasRenderingContext2D,
   color: string,
+  zoom: number,
 ) {
-  const tileSize = 18;
+  const tileSize = scaleCanvasStyleValue(18, zoom);
   const patternCanvas = document.createElement("canvas");
   patternCanvas.width = tileSize;
   patternCanvas.height = tileSize;
@@ -167,7 +169,7 @@ function createDiagonalStripePattern(
   }
 
   patternContext.strokeStyle = color;
-  patternContext.lineWidth = 2.25;
+  patternContext.lineWidth = scaleCanvasStyleValue(2.25, zoom);
   patternContext.lineCap = "butt";
   patternContext.setLineDash([]);
   patternContext.beginPath();
@@ -205,7 +207,9 @@ function renderShape({
   context.lineCap = "round";
   context.lineJoin = "round";
   context.setLineDash(
-    shape.props.lineStyle === "dashed" ? shape.props.dashStyle : [],
+    shape.props.lineStyle === "dashed"
+      ? scaleCanvasDashStyle(shape.props.dashStyle, surfaceTransform.zoom)
+      : [],
   );
 
   if (shape.props.kind === "oval") {
@@ -235,6 +239,7 @@ function renderShape({
       const stripePattern = createDiagonalStripePattern(
         context,
         shape.props.color,
+        surfaceTransform.zoom,
       );
 
       if (stripePattern) {

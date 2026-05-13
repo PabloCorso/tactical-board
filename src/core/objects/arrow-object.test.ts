@@ -80,6 +80,20 @@ describe("createArrowObject", () => {
     expect(getPeakOffset(longPoints)).toBeGreaterThan(2.5);
   });
 
+  it("keeps wavy arrow geometry stable relative to zoom", () => {
+    const zoomOnePoints = getArrowWavyPoints({ x: 0, y: 0 }, { x: 20, y: 0 }, 1);
+    const zoomTwoPoints = getArrowWavyPoints({ x: 0, y: 0 }, { x: 40, y: 0 }, 2);
+
+    expect(zoomTwoPoints).toHaveLength(zoomOnePoints.length);
+
+    zoomOnePoints.forEach((point, index) => {
+      expect(zoomTwoPoints[index]).toEqual({
+        x: point.x * 2,
+        y: point.y * 2,
+      });
+    });
+  });
+
   it("uses the shared default stroke width when omitted", () => {
     const arrow = createArrowObject({
       id: "arrow-default-stroke",

@@ -24,6 +24,12 @@ import {
   type ArrowObject,
 } from "../core/objects/arrow-object";
 import {
+  EQUIPMENT_OBJECT_TYPE,
+  resizeEquipmentObject,
+  rotateEquipmentObject,
+  type EquipmentObject,
+} from "../core/objects/equipment-object";
+import {
   PLAYER_OBJECT_TYPE,
   resizePlayerObject,
   rotatePlayerObject,
@@ -58,6 +64,11 @@ const PLAYER_RESIZE_HANDLE_HIT_RADIUS_PX = 12;
 const PLAYER_ROTATE_HANDLE_RADIUS_PX = 5;
 const PLAYER_ROTATE_HANDLE_HIT_RADIUS_PX = 12;
 const PLAYER_ROTATE_HANDLE_OFFSET_PX = 20;
+const EQUIPMENT_RESIZE_HANDLE_RADIUS_PX = 5;
+const EQUIPMENT_RESIZE_HANDLE_HIT_RADIUS_PX = 12;
+const EQUIPMENT_ROTATE_HANDLE_RADIUS_PX = 5;
+const EQUIPMENT_ROTATE_HANDLE_HIT_RADIUS_PX = 12;
+const EQUIPMENT_ROTATE_HANDLE_OFFSET_PX = 20;
 const DISABLED_SELECTION_ACTIONS: ToolActionDefinition[] = [
   {
     id: "duplicate-selection",
@@ -180,6 +191,50 @@ function getPlayerRotateHandleCanvasPoint(
   return {
     x: bounds.x + bounds.width / 2,
     y: bounds.y - PLAYER_ROTATE_HANDLE_OFFSET_PX,
+  };
+}
+
+function getEquipmentResizeHandlePoints(equipment: EquipmentObject) {
+  const halfWidth = (equipment.size?.width ?? 0) / 2;
+  const halfHeight = (equipment.size?.height ?? 0) / 2;
+
+  return [
+    {
+      point: {
+        x: equipment.position.x - halfWidth,
+        y: equipment.position.y - halfHeight,
+      },
+    },
+    {
+      point: {
+        x: equipment.position.x + halfWidth,
+        y: equipment.position.y - halfHeight,
+      },
+    },
+    {
+      point: {
+        x: equipment.position.x + halfWidth,
+        y: equipment.position.y + halfHeight,
+      },
+    },
+    {
+      point: {
+        x: equipment.position.x - halfWidth,
+        y: equipment.position.y + halfHeight,
+      },
+    },
+  ];
+}
+
+function getEquipmentRotateHandleCanvasPoint(
+  projection: ReturnType<typeof createBoardSpaceProjection>,
+  equipment: EquipmentObject,
+) {
+  const bounds = projection.getObjectCanvasBounds(equipment);
+
+  return {
+    x: bounds.x + bounds.width / 2,
+    y: bounds.y - EQUIPMENT_ROTATE_HANDLE_OFFSET_PX,
   };
 }
 
@@ -695,6 +750,93 @@ function getSelectedPlayerRotateHandleAtPoint(
   return undefined;
 }
 
+function getSelectedEquipmentResizeHandleAtPoint(
+  state: BoardEditorState,
+  selectState: SelectToolState,
+  event: ToolPointerEvent,
+) {
+  if (selectState.selectedObjectIds.length !== 1) {
+    return undefined;
+  }
+
+  const object = state.board.objects.byId[selectState.selectedObjectIds[0]];
+  if (object?.type !== EQUIPMENT_OBJECT_TYPE || object.locked) {
+    return undefined;
+  }
+
+  const projection = createBoardSpaceProjection({
+    surface: state.board.surface,
+    viewport: state.ui.viewport,
+    canvasRect: event.canvasRect,
+    surfaceInset: SURFACE_INSET,
+  });
+  const canvasPoint = projection.worldToCanvas(event.point);
+  const equipment = object as EquipmentObject;
+
+  for (const { point } of getEquipmentResizeHandlePoints(equipment)) {
+    const handleCanvasPoint = projection.worldToCanvas(point);
+    const distance = Math.hypot(
+      canvasPoint.x - handleCanvasPoint.x,
+      canvasPoint.y - handleCanvasPoint.y,
+    );
+
+    if (distance <= EQUIPMENT_RESIZE_HANDLE_HIT_RADIUS_PX) {
+      return {
+        objectId: equipment.id,
+        center: equipment.position,
+        initialSize: {
+          width: equipment.size?.width ?? 0,
+          height: equipment.size?.height ?? 0,
+        },
+        lockedAspectRatio:
+          equipment.props.definition.lockedAspectRatio !== false,
+      };
+    }
+  }
+
+  return undefined;
+}
+
+function getSelectedEquipmentRotateHandleAtPoint(
+  state: BoardEditorState,
+  selectState: SelectToolState,
+  event: ToolPointerEvent,
+) {
+  if (selectState.selectedObjectIds.length !== 1) {
+    return undefined;
+  }
+
+  const object = state.board.objects.byId[selectState.selectedObjectIds[0]];
+  if (object?.type !== EQUIPMENT_OBJECT_TYPE || object.locked) {
+    return undefined;
+  }
+
+  const projection = createBoardSpaceProjection({
+    surface: state.board.surface,
+    viewport: state.ui.viewport,
+    canvasRect: event.canvasRect,
+    surfaceInset: SURFACE_INSET,
+  });
+  const canvasPoint = projection.worldToCanvas(event.point);
+  const handleCanvasPoint = getEquipmentRotateHandleCanvasPoint(
+    projection,
+    object as EquipmentObject,
+  );
+  const distance = Math.hypot(
+    canvasPoint.x - handleCanvasPoint.x,
+    canvasPoint.y - handleCanvasPoint.y,
+  );
+
+  if (distance <= EQUIPMENT_ROTATE_HANDLE_HIT_RADIUS_PX) {
+    return {
+      objectId: object.id,
+      center: object.position,
+    };
+  }
+
+  return undefined;
+}
+
 export function getSelectOverlayItems(
   state: BoardEditorState,
 ): Array<CanvasRectOverlayItem | SelectionOverlayItem> {
@@ -878,6 +1020,47 @@ export function registerSelectOverlayRenderer(
         context.stroke();
       }
 
+      if (
+        selectionOverlay.object.type === EQUIPMENT_OBJECT_TYPE &&
+        !selectionOverlay.object.locked
+      ) {
+        const equipment = selectionOverlay.object as EquipmentObject;
+        context.fillStyle = colors.white;
+
+        for (const { point } of getEquipmentResizeHandlePoints(equipment)) {
+          const handlePoint = surfaceTransform.worldToCanvas(point);
+          context.beginPath();
+          context.arc(
+            handlePoint.x,
+            handlePoint.y,
+            EQUIPMENT_RESIZE_HANDLE_RADIUS_PX,
+            0,
+            Math.PI * 2,
+          );
+          context.fill();
+          context.stroke();
+        }
+
+        const rotateHandlePoint = getEquipmentRotateHandleCanvasPoint(
+          surfaceTransform,
+          equipment,
+        );
+        context.beginPath();
+        context.moveTo(bounds.x + bounds.width / 2, bounds.y);
+        context.lineTo(rotateHandlePoint.x, rotateHandlePoint.y);
+        context.stroke();
+        context.beginPath();
+        context.arc(
+          rotateHandlePoint.x,
+          rotateHandlePoint.y,
+          EQUIPMENT_ROTATE_HANDLE_RADIUS_PX,
+          0,
+          Math.PI * 2,
+        );
+        context.fill();
+        context.stroke();
+      }
+
       context.restore();
     },
   );
@@ -933,6 +1116,42 @@ function beginSelectionInteraction(
   selectState: SelectToolState,
 ) {
   const state = api.getState();
+  const equipmentResizeHit = getSelectedEquipmentResizeHandleAtPoint(
+    state,
+    selectState,
+    event,
+  );
+  if (equipmentResizeHit) {
+    setSelectState(api, {
+      selectedObjectIds: [equipmentResizeHit.objectId],
+      interaction: {
+        mode: "equipment-resize",
+        objectId: equipmentResizeHit.objectId,
+        center: equipmentResizeHit.center,
+        initialSize: equipmentResizeHit.initialSize,
+        lockedAspectRatio: equipmentResizeHit.lockedAspectRatio,
+      },
+    });
+    return;
+  }
+
+  const equipmentRotateHit = getSelectedEquipmentRotateHandleAtPoint(
+    state,
+    selectState,
+    event,
+  );
+  if (equipmentRotateHit) {
+    setSelectState(api, {
+      selectedObjectIds: [equipmentRotateHit.objectId],
+      interaction: {
+        mode: "equipment-rotate",
+        objectId: equipmentRotateHit.objectId,
+        center: equipmentRotateHit.center,
+      },
+    });
+    return;
+  }
+
   const playerResizeHit = getSelectedPlayerResizeHandleAtPoint(
     state,
     selectState,
@@ -1312,6 +1531,64 @@ function updatePlayerRotateInteraction(
   });
 }
 
+function updateEquipmentResizeInteraction(
+  event: ToolPointerEvent,
+  api: ToolApi,
+  interaction: Extract<
+    NonNullable<SelectToolState["interaction"]>,
+    { mode: "equipment-resize" }
+  >,
+) {
+  api.updateObjects([interaction.objectId], (object) => {
+    if (object.type !== EQUIPMENT_OBJECT_TYPE || object.locked) {
+      return object;
+    }
+
+    const width = Math.max(Math.abs(event.point.x - interaction.center.x) * 2, 0.25);
+    const height = Math.max(
+      Math.abs(event.point.y - interaction.center.y) * 2,
+      0.25,
+    );
+
+    if (!interaction.lockedAspectRatio) {
+      return resizeEquipmentObject(object as EquipmentObject, { width, height });
+    }
+
+    const baseWidth = Math.max(interaction.initialSize.width, 0.25);
+    const baseHeight = Math.max(interaction.initialSize.height, 0.25);
+    const scale = Math.max(width / baseWidth, height / baseHeight, 0.125);
+
+    return resizeEquipmentObject(object as EquipmentObject, {
+      width: baseWidth * scale,
+      height: baseHeight * scale,
+    });
+  });
+}
+
+function updateEquipmentRotateInteraction(
+  event: ToolPointerEvent,
+  api: ToolApi,
+  interaction: Extract<
+    NonNullable<SelectToolState["interaction"]>,
+    { mode: "equipment-rotate" }
+  >,
+) {
+  api.updateObjects([interaction.objectId], (object) => {
+    if (object.type !== EQUIPMENT_OBJECT_TYPE || object.locked) {
+      return object;
+    }
+
+    const dx = event.point.x - interaction.center.x;
+    const dy = event.point.y - interaction.center.y;
+    if (dx === 0 && dy === 0) {
+      return object;
+    }
+
+    const rotation = (Math.atan2(dy, dx) * 180) / Math.PI + 90;
+    return rotateEquipmentObject(object as EquipmentObject, rotation);
+  });
+}
+
 function updateSelectionInteraction(event: ToolPointerEvent, api: ToolApi) {
   const selectState = getSelectToolState(api.getState().toolState);
   const interaction = selectState.interaction;
@@ -1343,6 +1620,12 @@ function updateSelectionInteraction(event: ToolPointerEvent, api: ToolApi) {
       return;
     case "player-rotate":
       updatePlayerRotateInteraction(event, api, interaction);
+      return;
+    case "equipment-resize":
+      updateEquipmentResizeInteraction(event, api, interaction);
+      return;
+    case "equipment-rotate":
+      updateEquipmentRotateInteraction(event, api, interaction);
       return;
   }
 }

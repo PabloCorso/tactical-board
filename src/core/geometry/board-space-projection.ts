@@ -8,6 +8,7 @@ const DEFAULT_MINIMUM_HIT_RADIUS_PX = 24;
 
 export interface BoardSpaceProjection {
   frame: Rect;
+  zoom: number;
   pixelsPerUnit: number;
   worldOrigin: Point;
   worldToCanvas: (point: Point) => Point;
@@ -79,6 +80,7 @@ export function createBoardSpaceProjection({
 
   return {
     frame: surfaceTransform.frame,
+    zoom: viewport.zoom,
     pixelsPerUnit: surfaceTransform.pixelsPerUnit,
     worldOrigin: surfaceTransform.worldOrigin,
     worldToCanvas: surfaceTransform.worldToCanvas,

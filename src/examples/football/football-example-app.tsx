@@ -11,12 +11,23 @@ import { BoardEditorSelectionToolbar } from "../../react/components/board-editor
 import { BoardEditorSecondaryToolbar } from "../../react/components/board-editor-secondary-toolbar";
 import { BoardEditorToolControl } from "../../react/components/board-editor-tool-control";
 import { BoardEditorToolbar } from "../../react/components/board-editor-toolbar";
+import { DEFAULT_PRESET_COLORS } from "../../react/components/ui/color-picker";
 import { createArrowTool } from "../../tools/arrow-tool";
 import { handTool } from "../../tools/hand-tool";
+import { createEquipmentTool } from "../../tools/equipment-tool";
 import { createPlayerTool } from "../../tools/player-tool";
 import { createShapeTool } from "../../tools/shape-tool";
 import { selectTool } from "../../tools/select-tool";
 import { footballBoardExample } from "./football-board-example";
+
+const FOOTBALL_PLAYER_PRESET_COLORS = [
+  DEFAULT_PRESET_COLORS[2],
+  DEFAULT_PRESET_COLORS[7],
+  ...DEFAULT_PRESET_COLORS.slice(0, 11).filter(
+    (color) =>
+      color !== DEFAULT_PRESET_COLORS[2] && color !== DEFAULT_PRESET_COLORS[7],
+  ),
+];
 
 const footballArrowTool = createArrowTool({
   presets: [
@@ -114,30 +125,17 @@ const footballShapeTool = createShapeTool({
 });
 
 const footballPlayerTool = createPlayerTool({
-  presets: [
-    {
-      id: "team-home",
-      label: "Home",
-      draftStyle: {
-        color: "#1f6feb",
-      },
+  presets: FOOTBALL_PLAYER_PRESET_COLORS.map((color, index) => ({
+    id: `team-color-${index + 1}`,
+    label: String(index + 1),
+    tooltip: `Player color ${color}`,
+    draftStyle: {
+      color,
     },
-    {
-      id: "team-away",
-      label: "Away",
-      draftStyle: {
-        color: "#ff6b35",
-      },
-    },
-    {
-      id: "neutral",
-      label: "Neutral",
-      draftStyle: {
-        color: "#111827",
-      },
-    },
-  ],
+  })),
 });
+
+const footballEquipmentTool = createEquipmentTool();
 
 const store = createBoardEditorStore({
   initialBoard: footballBoardExample,
@@ -146,6 +144,7 @@ const store = createBoardEditorStore({
     selectTool,
     handTool,
     footballPlayerTool,
+    footballEquipmentTool,
     footballArrowTool,
     footballShapeTool,
   ],
@@ -166,6 +165,7 @@ export function FootballExampleApp() {
               <BoardEditorToolControl toolId="select" />
               <BoardEditorToolControl toolId="hand" />
               <BoardEditorToolControl toolId="player" />
+              <BoardEditorToolControl toolId="equipment" />
               <BoardEditorToolControl toolId="arrow" />
               <BoardEditorToolControl toolId="shape" />
             </BoardEditorToolbar>

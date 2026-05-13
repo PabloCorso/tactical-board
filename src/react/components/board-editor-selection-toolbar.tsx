@@ -7,6 +7,10 @@ import {
   type ArrowObject,
 } from "../../core/objects/arrow-object";
 import {
+  EQUIPMENT_OBJECT_TYPE,
+  type EquipmentObject,
+} from "../../core/objects/equipment-object";
+import {
   PLAYER_OBJECT_TYPE,
   type PlayerObject,
 } from "../../core/objects/player-object";
@@ -19,6 +23,7 @@ import { getSelectToolState } from "../../tools/select-tool-state";
 import { useBoardEditorStore } from "../hooks/use-board-editor-store";
 import { useBoardEditorContext } from "./board-editor-context";
 import { BoardEditorArrowSelectionToolbar } from "./board-editor-selection-toolbar-arrow";
+import { BoardEditorEquipmentSelectionToolbar } from "./board-editor-selection-toolbar-equipment";
 import { BoardEditorShapeSelectionToolbar } from "./board-editor-selection-toolbar-shape";
 import type { BoardEditorSelectionToolbarRenderer } from "./board-editor-selection-toolbar-types";
 
@@ -91,6 +96,12 @@ const selectionToolbarRenderers: Record<
     <BoardEditorPlayerSelectionToolbar
       {...props}
       selectedObject={props.selectedObject as PlayerObject}
+    />
+  ),
+  [EQUIPMENT_OBJECT_TYPE]: (props) => (
+    <BoardEditorEquipmentSelectionToolbar
+      {...props}
+      selectedObject={props.selectedObject as EquipmentObject}
     />
   ),
 };
