@@ -1,8 +1,4 @@
-import type {
-  ToolActionDefinition,
-  ToolApi,
-  ToolDefinition,
-} from "../core/tools/types";
+import type { ToolActionDefinition, ToolDefinition } from "../core/tools/types";
 import type {
   CanvasObjectHitTestInput,
   CanvasObjectRenderInput,
