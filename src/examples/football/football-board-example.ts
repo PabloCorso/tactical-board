@@ -1,5 +1,6 @@
 import { createBoard } from "../../core/board/create-board";
 import { createArrowObject } from "../../core/objects/arrow-object";
+import { createEquipmentObject } from "../../core/objects/equipment-object";
 import { createPlayerObject } from "../../core/objects/player-object";
 import {
   createShapeObject,
@@ -8,6 +9,10 @@ import {
   type ShapeLineStyle,
 } from "../../core/objects/shape-object";
 import type { BoardSurfaceMarking } from "../../core/board/types";
+import {
+  FOOTBALL_EQUIPMENT_DEFINITIONS,
+  FOOTBALL_PLAYER_PRESET_COLORS,
+} from "./football-example-catalog";
 
 const pitchMetrics = {
   field: { length: 105, width: 68 },
@@ -213,6 +218,8 @@ const surfaceWidth =
   pitchMetrics.field.length + pitchMetrics.perimeter.touchline * 2;
 const surfaceHeight =
   pitchMetrics.field.width + pitchMetrics.perimeter.goalLine * 2;
+const fieldStartX = pitchMetrics.perimeter.touchline;
+const fieldStartY = pitchMetrics.perimeter.goalLine;
 
 const arrowBodyStyles = ["straight", "curved", "wavy", "double"] as const;
 const arrowHeadStyles = ["none", "triangle"] as const;
@@ -253,8 +260,8 @@ const arrowExampleEntries = arrowBodyStyles.flatMap((bodyStyle, bodyIndex) =>
           `start-${startHead}`,
           `end-${endHead}`,
         ].join("-");
-        const startX = 28 + column * 11;
-        const startY = 10 + row * 9;
+        const startX = fieldStartX + 67 + column * 8;
+        const startY = fieldStartY + 6 + row * 5.7;
 
         return [
           id,
@@ -292,8 +299,8 @@ const shapeExampleEntries = shapeKinds.flatMap((kind, row) =>
           fillStyle,
           bordered ? "bordered" : "borderless",
         ].join("-");
-        const startX = 64 + column * 7;
-        const startY = 10 + row * 10;
+        const startX = fieldStartX + 4 + column * 5.1;
+        const startY = fieldStartY + 6 + row * 5.3;
         const endX = startX + 4.5;
         const endY = startY + 4.5;
 
@@ -330,6 +337,68 @@ const shapeExampleEntries = shapeKinds.flatMap((kind, row) =>
 const shapeExampleObjects = Object.fromEntries(shapeExampleEntries);
 const shapeExampleOrder = shapeExampleEntries.map(([id]) => id);
 
+const playerExampleEntries = FOOTBALL_PLAYER_PRESET_COLORS.map((color, index) => {
+  const column = index % 4;
+  const row = Math.floor(index / 4);
+  const id = `player-example-${index + 1}`;
+
+  return [
+    id,
+    createPlayerObject({
+      id,
+      position: {
+        x: fieldStartX + 6 + column * 4.6,
+        y: fieldStartY + 45 + row * 4.8,
+      },
+      color,
+      label: String(index + 1),
+    }),
+  ] as const;
+});
+
+const playerExampleObjects = Object.fromEntries(playerExampleEntries);
+const playerExampleOrder = playerExampleEntries.map(([id]) => id);
+
+const equipmentExampleLabels: Record<string, string | undefined> = {
+  "soccer-ball": "8",
+  mannequin: "D",
+  pole: "1",
+};
+
+const equipmentExampleEntries = FOOTBALL_EQUIPMENT_DEFINITIONS.map(
+  (definition, index) => {
+    const column = index % 4;
+    const row = Math.floor(index / 4);
+    const id = `equipment-example-${definition.kind}`;
+
+    return [
+      id,
+      createEquipmentObject({
+        id,
+        position: {
+          x: fieldStartX + 31 + column * 12,
+          y: fieldStartY + 44 + row * 8.5,
+        },
+        rotation: 0,
+        size: {
+          width: definition.defaultSize.width,
+          height: definition.defaultSize.height,
+          mode: "world",
+          unit: "m",
+        },
+        unit: "m",
+        kind: definition.kind,
+        label: equipmentExampleLabels[definition.kind],
+        color: definition.color,
+        definition,
+      }),
+    ] as const;
+  },
+);
+
+const equipmentExampleObjects = Object.fromEntries(equipmentExampleEntries);
+const equipmentExampleOrder = equipmentExampleEntries.map(([id]) => id);
+
 export const footballBoardExample = createBoard({
   id: "football-example-board",
   version: 1,
@@ -349,16 +418,17 @@ export const footballBoardExample = createBoard({
   },
   objects: {
     byId: {
-      "player-example": createPlayerObject({
-        id: "player-example",
-        position: { x: 10, y: 10 },
-        color: "#1f6feb",
-        label: "1",
-      }),
+      ...playerExampleObjects,
+      ...equipmentExampleObjects,
       ...arrowExampleObjects,
       ...shapeExampleObjects,
     },
-    order: ["player-example", ...arrowExampleOrder, ...shapeExampleOrder],
+    order: [
+      ...playerExampleOrder,
+      ...equipmentExampleOrder,
+      ...arrowExampleOrder,
+      ...shapeExampleOrder,
+    ],
   },
   style: {},
 });

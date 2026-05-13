@@ -12,7 +12,7 @@ export interface EquipmentToolState {
 
 export const DEFAULT_EQUIPMENT_TOOL_STATE: EquipmentToolState = {
   draftStyle: {
-    kind: "ball",
+    kind: "",
   },
 };
 

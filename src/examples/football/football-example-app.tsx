@@ -11,23 +11,17 @@ import { BoardEditorSelectionToolbar } from "../../react/components/board-editor
 import { BoardEditorSecondaryToolbar } from "../../react/components/board-editor-secondary-toolbar";
 import { BoardEditorToolControl } from "../../react/components/board-editor-tool-control";
 import { BoardEditorToolbar } from "../../react/components/board-editor-toolbar";
-import { DEFAULT_PRESET_COLORS } from "../../react/components/ui/color-picker";
 import { createArrowTool } from "../../tools/arrow-tool";
 import { handTool } from "../../tools/hand-tool";
 import { createEquipmentTool } from "../../tools/equipment-tool";
 import { createPlayerTool } from "../../tools/player-tool";
 import { createShapeTool } from "../../tools/shape-tool";
 import { selectTool } from "../../tools/select-tool";
+import {
+  FOOTBALL_EQUIPMENT_DEFINITIONS,
+  FOOTBALL_PLAYER_PRESET_COLORS,
+} from "./football-example-catalog";
 import { footballBoardExample } from "./football-board-example";
-
-const FOOTBALL_PLAYER_PRESET_COLORS = [
-  DEFAULT_PRESET_COLORS[2],
-  DEFAULT_PRESET_COLORS[7],
-  ...DEFAULT_PRESET_COLORS.slice(0, 11).filter(
-    (color) =>
-      color !== DEFAULT_PRESET_COLORS[2] && color !== DEFAULT_PRESET_COLORS[7],
-  ),
-];
 
 const footballArrowTool = createArrowTool({
   presets: [
@@ -135,7 +129,9 @@ const footballPlayerTool = createPlayerTool({
   })),
 });
 
-const footballEquipmentTool = createEquipmentTool();
+const footballEquipmentTool = createEquipmentTool({
+  definitions: FOOTBALL_EQUIPMENT_DEFINITIONS,
+});
 
 const store = createBoardEditorStore({
   initialBoard: footballBoardExample,
