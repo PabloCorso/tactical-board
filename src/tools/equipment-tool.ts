@@ -174,7 +174,8 @@ function renderEquipment({
   const bounds = surfaceTransform.getObjectCanvasBounds(equipment);
   const width = Math.max(8, Math.abs(bounds.width));
   const height = Math.max(8, Math.abs(bounds.height));
-  const color = equipment.props.color ?? equipment.props.definition.color ?? "#111827";
+  const color =
+    equipment.props.color ?? equipment.props.definition.color ?? "#111827";
   const strokeWidth = Math.max(1.5, Math.min(width, height) * 0.08);
 
   context.save();
@@ -204,7 +205,12 @@ function renderEquipment({
       context.fill();
       context.globalAlpha *= 0.28;
       context.fillStyle = "#ffffff";
-      context.fillRect(-width * 0.18, -height * 0.05, width * 0.36, height * 0.16);
+      context.fillRect(
+        -width * 0.18,
+        -height * 0.05,
+        width * 0.36,
+        height * 0.16,
+      );
       break;
     case "frame":
       context.fillStyle = "transparent";
@@ -212,7 +218,12 @@ function renderEquipment({
       break;
     case "ladder": {
       const railInset = height * 0.28;
-      context.strokeRect(-width / 2, -height / 2 + railInset, width, height - railInset * 2);
+      context.strokeRect(
+        -width / 2,
+        -height / 2 + railInset,
+        width,
+        height - railInset * 2,
+      );
       const rungCount = Math.max(3, Math.round(width / 20));
       for (let index = 1; index < rungCount; index += 1) {
         const x = -width / 2 + (width / rungCount) * index;
@@ -225,10 +236,22 @@ function renderEquipment({
     }
     case "mannequin":
       context.beginPath();
-      context.arc(0, -height * 0.28, Math.min(width, height) * 0.16, 0, Math.PI * 2);
+      context.arc(
+        0,
+        -height * 0.28,
+        Math.min(width, height) * 0.16,
+        0,
+        Math.PI * 2,
+      );
       context.stroke();
       context.beginPath();
-      context.roundRect(-width * 0.25, -height * 0.1, width * 0.5, height * 0.52, 8);
+      context.roundRect(
+        -width * 0.25,
+        -height * 0.1,
+        width * 0.5,
+        height * 0.52,
+        8,
+      );
       context.stroke();
       context.beginPath();
       context.moveTo(-width * 0.18, height * 0.42);
@@ -323,7 +346,8 @@ export function createEquipmentTool(
     getSecondaryActions: createPresetSecondaryActions(definitions),
     onActivate: (api) => {
       const currentState = getEquipmentToolState(api.getState().toolState);
-      const fallbackKind = definitions[0]?.kind ?? DEFAULT_EQUIPMENT_TOOL_STATE.draftStyle.kind;
+      const fallbackKind =
+        definitions[0]?.kind ?? DEFAULT_EQUIPMENT_TOOL_STATE.draftStyle.kind;
       api.setToolState(EQUIPMENT_TOOL_ID, {
         ...currentState,
         draftStyle: {

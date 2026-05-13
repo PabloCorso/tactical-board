@@ -74,7 +74,10 @@ function normalizeEquipmentSize(
   unit?: MeasurementUnit,
 ): BoardObjectSize {
   return {
-    width: Math.max(size?.width ?? MIN_EQUIPMENT_DIMENSION, MIN_EQUIPMENT_DIMENSION),
+    width: Math.max(
+      size?.width ?? MIN_EQUIPMENT_DIMENSION,
+      MIN_EQUIPMENT_DIMENSION,
+    ),
     height: Math.max(
       size?.height ?? size?.width ?? MIN_EQUIPMENT_DIMENSION,
       MIN_EQUIPMENT_DIMENSION,

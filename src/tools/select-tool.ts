@@ -1544,14 +1544,20 @@ function updateEquipmentResizeInteraction(
       return object;
     }
 
-    const width = Math.max(Math.abs(event.point.x - interaction.center.x) * 2, 0.25);
+    const width = Math.max(
+      Math.abs(event.point.x - interaction.center.x) * 2,
+      0.25,
+    );
     const height = Math.max(
       Math.abs(event.point.y - interaction.center.y) * 2,
       0.25,
     );
 
     if (!interaction.lockedAspectRatio) {
-      return resizeEquipmentObject(object as EquipmentObject, { width, height });
+      return resizeEquipmentObject(object as EquipmentObject, {
+        width,
+        height,
+      });
     }
 
     const baseWidth = Math.max(interaction.initialSize.width, 0.25);

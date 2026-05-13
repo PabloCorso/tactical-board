@@ -830,9 +830,8 @@ describe("createBoardEditorController", () => {
       size: { width: 12, height: 4 },
     });
 
-    const resizedEquipment = store.getState().board.objects.byId[
-      existingEquipment.id
-    ];
+    const resizedEquipment =
+      store.getState().board.objects.byId[existingEquipment.id];
     const resizedBounds = projection.getObjectCanvasBounds(resizedEquipment);
     const rotationHandle = {
       x: resizedBounds.x + resizedBounds.width / 2,

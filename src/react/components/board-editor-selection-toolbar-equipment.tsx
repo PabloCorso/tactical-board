@@ -51,7 +51,9 @@ export function BoardEditorEquipmentSelectionToolbar({
               <input
                 aria-label="Equipment label"
                 className="text-primary w-18 bg-transparent text-center text-sm font-medium outline-none"
-                onChange={(event) => updateEquipment({ label: event.target.value })}
+                onChange={(event) =>
+                  updateEquipment({ label: event.target.value })
+                }
                 value={selectedObject.props.label ?? ""}
               />
             </label>

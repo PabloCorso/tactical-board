@@ -7,7 +7,10 @@ import {
   type ShapeObject,
 } from "../core/objects/shape-object";
 import { createBoardSpaceProjection } from "../core/geometry/board-space-projection";
-import { scaleCanvasDashStyle, scaleCanvasStyleValue } from "../rendering/canvas/style-scale";
+import {
+  scaleCanvasDashStyle,
+  scaleCanvasStyleValue,
+} from "../rendering/canvas/style-scale";
 import type {
   CanvasObjectHitTestInput,
   CanvasObjectRenderInput,

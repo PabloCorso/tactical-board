@@ -81,8 +81,16 @@ describe("createArrowObject", () => {
   });
 
   it("keeps wavy arrow geometry stable relative to zoom", () => {
-    const zoomOnePoints = getArrowWavyPoints({ x: 0, y: 0 }, { x: 20, y: 0 }, 1);
-    const zoomTwoPoints = getArrowWavyPoints({ x: 0, y: 0 }, { x: 40, y: 0 }, 2);
+    const zoomOnePoints = getArrowWavyPoints(
+      { x: 0, y: 0 },
+      { x: 20, y: 0 },
+      1,
+    );
+    const zoomTwoPoints = getArrowWavyPoints(
+      { x: 0, y: 0 },
+      { x: 40, y: 0 },
+      2,
+    );
 
     expect(zoomTwoPoints).toHaveLength(zoomOnePoints.length);
 
