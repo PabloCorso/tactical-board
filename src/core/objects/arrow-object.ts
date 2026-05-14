@@ -359,36 +359,18 @@ export function getArrowBodyPolylines(
       return [getArrowWavyPoints(props.start, props.end, styleScale)];
     case "double": {
       const lineOffset =
-        DOUBLE_LINE_OFFSET * getArrowBodyStyleScale(props.bodyStyle) * styleScale;
+        DOUBLE_LINE_OFFSET *
+        getArrowBodyStyleScale(props.bodyStyle) *
+        styleScale;
 
       return [
         [
-          offsetPointByNormal(
-            props.start,
-            props.start,
-            props.end,
-            lineOffset,
-          ),
-          offsetPointByNormal(
-            props.end,
-            props.start,
-            props.end,
-            lineOffset,
-          ),
+          offsetPointByNormal(props.start, props.start, props.end, lineOffset),
+          offsetPointByNormal(props.end, props.start, props.end, lineOffset),
         ],
         [
-          offsetPointByNormal(
-            props.start,
-            props.start,
-            props.end,
-            -lineOffset,
-          ),
-          offsetPointByNormal(
-            props.end,
-            props.start,
-            props.end,
-            -lineOffset,
-          ),
+          offsetPointByNormal(props.start, props.start, props.end, -lineOffset),
+          offsetPointByNormal(props.end, props.start, props.end, -lineOffset),
         ],
       ];
     }
