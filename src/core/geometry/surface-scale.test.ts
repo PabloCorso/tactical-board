@@ -34,9 +34,7 @@ describe("surface scale", () => {
     const surface = { width: 115, height: 74, basePixelsPerUnit: 8 };
     const frame = { width: 300, height: 200 };
 
-    expect(getSurfaceFitPixelsPerUnit(surface, frame)).toBeCloseTo(
-      300 / 115,
-    );
+    expect(getSurfaceFitPixelsPerUnit(surface, frame)).toBeCloseTo(300 / 115);
     expect(getViewportZoomToFitSurface(surface, frame)).toBe(0.5);
   });
 });

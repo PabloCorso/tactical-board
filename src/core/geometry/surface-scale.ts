@@ -16,7 +16,9 @@ export function getSurfaceBasePixelsPerUnit(
   surface: Pick<BoardSurfaceConfig, "width" | "height" | "basePixelsPerUnit">,
   frame: Pick<Rect, "width" | "height">,
 ) {
-  return surface.basePixelsPerUnit ?? getSurfaceFitPixelsPerUnit(surface, frame);
+  return (
+    surface.basePixelsPerUnit ?? getSurfaceFitPixelsPerUnit(surface, frame)
+  );
 }
 
 export function getViewportZoomToFitSurface(
@@ -26,5 +28,7 @@ export function getViewportZoomToFitSurface(
   const fitPixelsPerUnit = getSurfaceFitPixelsPerUnit(surface, frame);
   const basePixelsPerUnit = getSurfaceBasePixelsPerUnit(surface, frame);
 
-  return clampViewportZoom(fitPixelsPerUnit / Math.max(basePixelsPerUnit, 1e-9));
+  return clampViewportZoom(
+    fitPixelsPerUnit / Math.max(basePixelsPerUnit, 1e-9),
+  );
 }

@@ -2,7 +2,10 @@ import type { ComponentProps } from "react";
 import { CornersOutIcon, MinusIcon, PlusIcon } from "@phosphor-icons/react";
 import { useBoardEditorStore } from "../hooks/use-board-editor-store";
 import { useBoardEditorContext } from "./board-editor-context";
-import { BoardEditorToolbar, BoardEditorToolbarButton } from "./board-editor-toolbar";
+import {
+  BoardEditorToolbar,
+  BoardEditorToolbarButton,
+} from "./board-editor-toolbar";
 import { cn } from "./misc";
 import {
   getViewportForZoomAtCanvasPoint,

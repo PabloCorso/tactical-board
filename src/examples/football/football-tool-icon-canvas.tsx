@@ -101,7 +101,10 @@ export function createCenteredObjectIconProjection(
   const inset = 2;
   const usableWidth = Math.max(width - inset * 2, 1);
   const usableHeight = Math.max(height - inset * 2, 1);
-  const scale = Math.min(usableWidth / objectWidth, usableHeight / objectHeight);
+  const scale = Math.min(
+    usableWidth / objectWidth,
+    usableHeight / objectHeight,
+  );
   const offsetX = inset + (usableWidth - objectWidth * scale) / 2;
   const offsetY = inset + (usableHeight - objectHeight * scale) / 2;
 

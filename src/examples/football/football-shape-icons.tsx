@@ -1,9 +1,15 @@
 import { useMemo } from "react";
-import { createShapeObject, type ShapeKind } from "../../core/objects/shape-object";
+import {
+  createShapeObject,
+  type ShapeKind,
+} from "../../core/objects/shape-object";
 import { useBoardEditorContext } from "../../react/components/board-editor-context";
 import { useBoardEditorStore } from "../../react/hooks/use-board-editor-store";
 import { renderShape } from "../../tools/shape-tool";
-import { getShapeToolState, type ShapeDraftStyle } from "../../tools/shape-tool-state";
+import {
+  getShapeToolState,
+  type ShapeDraftStyle,
+} from "../../tools/shape-tool-state";
 import { FootballToolIconCanvas } from "./football-tool-icon-canvas";
 
 export function FootballShapePresetIcon({
@@ -17,7 +23,10 @@ export function FootballShapePresetIcon({
   width?: number;
   height?: number;
 }) {
-  const shape = useMemo(() => createShapeIconPreviewObject(draftStyle), [draftStyle]);
+  const shape = useMemo(
+    () => createShapeIconPreviewObject(draftStyle),
+    [draftStyle],
+  );
 
   return (
     <FootballToolIconCanvas

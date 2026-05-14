@@ -7,7 +7,10 @@ import type { BoardSpaceProjection } from "../../core/geometry/board-space-proje
 import { useBoardEditorContext } from "../../react/components/board-editor-context";
 import { useBoardEditorStore } from "../../react/hooks/use-board-editor-store";
 import { renderArrow } from "../../tools/arrow-tool";
-import { getArrowToolState, type ArrowDraftStyle } from "../../tools/arrow-tool-state";
+import {
+  getArrowToolState,
+  type ArrowDraftStyle,
+} from "../../tools/arrow-tool-state";
 import { FootballToolIconCanvas } from "./football-tool-icon-canvas";
 
 const ARROW_ICON_WORLD_WIDTH = 8;
@@ -35,9 +38,10 @@ export function FootballArrowPresetIcon({
   width?: number;
   height?: number;
 }) {
-  const previewArrow = useMemo(() => createArrowIconPreviewObject(draftStyle), [
-    draftStyle,
-  ]);
+  const previewArrow = useMemo(
+    () => createArrowIconPreviewObject(draftStyle),
+    [draftStyle],
+  );
 
   return (
     <FootballToolIconCanvas

@@ -1,10 +1,17 @@
 import { useMemo } from "react";
 import type { BoardEditorState } from "../../core/editor/types";
-import { createPlayerObject, PLAYER_OBJECT_TYPE } from "../../core/objects/player-object";
+import {
+  createPlayerObject,
+  PLAYER_OBJECT_TYPE,
+} from "../../core/objects/player-object";
 import { useBoardEditorContext } from "../../react/components/board-editor-context";
 import { useBoardEditorStore } from "../../react/hooks/use-board-editor-store";
 import { renderPlayer } from "../../tools/player-tool";
-import { getPlayerToolState, PLAYER_TOOL_ID, type PlayerDraftStyle } from "../../tools/player-tool-state";
+import {
+  getPlayerToolState,
+  PLAYER_TOOL_ID,
+  type PlayerDraftStyle,
+} from "../../tools/player-tool-state";
 import { FOOTBALL_PLAYER_PRESET_COLORS } from "./football-example-catalog";
 import { FootballToolIconCanvas } from "./football-tool-icon-canvas";
 
@@ -104,7 +111,8 @@ export function FootballPlayerToolIcon() {
     () => getPlayerToolState(toolState).draftStyle,
     [toolState],
   );
-  const color = draftStyle.color || (FOOTBALL_PLAYER_PRESET_COLORS[0] ?? "#111827");
+  const color =
+    draftStyle.color || (FOOTBALL_PLAYER_PRESET_COLORS[0] ?? "#111827");
   const label = useMemo(
     () => getCurrentPlayerLabel({ toolState, board }, color),
     [board, color, toolState],
