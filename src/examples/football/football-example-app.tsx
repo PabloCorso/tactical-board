@@ -8,7 +8,6 @@ import {
   BoardEditorShapePolygonDone,
 } from "../../react/components/board-editor";
 import { BoardEditorSelectionToolbar } from "../../react/components/board-editor-selection-toolbar";
-import { BoardEditorSecondaryToolbar } from "../../react/components/board-editor-secondary-toolbar";
 import { BoardEditorToolControl } from "../../react/components/board-editor-tool-control";
 import { BoardEditorToolbar } from "../../react/components/board-editor-toolbar";
 import { ArrowTool } from "../../tools/arrow-tool";
@@ -22,113 +21,28 @@ import {
   FOOTBALL_EQUIPMENT_DEFINITIONS,
   FOOTBALL_EQUIPMENT_RENDERERS,
 } from "./equipment";
-import { FOOTBALL_PLAYER_PRESET_COLORS } from "./football-example-catalog";
 import { footballBoardExample } from "./football-board-example";
+import {
+  FOOTBALL_ARROW_PRESETS,
+  FOOTBALL_PLAYER_PRESETS,
+  FOOTBALL_SHAPE_PRESETS,
+  FootballSecondaryToolbar,
+} from "./football-secondary-toolbar";
 
 const footballArrowTool = new ArrowTool({
-  presets: [
-    {
-      id: "run",
-      label: "Run",
-      icon: { kind: "arrow", value: "straight-solid" },
-      draftStyle: {
-        geometry: "simple",
-        bodyStyle: "straight",
-      },
-    },
-    {
-      id: "dribble",
-      label: "Dribble",
-      icon: { kind: "arrow", value: "wavy" },
-      draftStyle: {
-        geometry: "simple",
-        bodyStyle: "wavy",
-      },
-    },
-    {
-      id: "lofted-pass",
-      label: "Lofted pass",
-      icon: { kind: "arrow", value: "curved-solid" },
-      draftStyle: {
-        geometry: "simple",
-        bodyStyle: "curved",
-      },
-    },
-    {
-      id: "screen",
-      label: "Screen",
-      icon: { kind: "arrow", value: "double" },
-      draftStyle: {
-        geometry: "simple",
-        bodyStyle: "double",
-      },
-    },
-    {
-      id: "route",
-      label: "Route",
-      icon: { kind: "arrow", value: "polyline" },
-      draftStyle: {
-        geometry: "polyline",
-        bodyStyle: "straight",
-      },
-    },
-  ],
+  presets: FOOTBALL_ARROW_PRESETS.map(
+    ({ variant: _variant, ...preset }) => preset,
+  ),
 });
 
 const footballShapeTool = new ShapeTool({
-  presets: [
-    {
-      id: "shape-rectangle",
-      label: "Rectangle",
-      icon: { kind: "shape", value: "rectangle" },
-      draftStyle: {
-        kind: "rectangle",
-      },
-    },
-    {
-      id: "shape-oval",
-      label: "Oval",
-      icon: { kind: "shape", value: "oval" },
-      draftStyle: {
-        kind: "oval",
-      },
-    },
-    {
-      id: "shape-triangle",
-      label: "Triangle",
-      icon: { kind: "shape", value: "triangle" },
-      draftStyle: {
-        kind: "triangle",
-      },
-    },
-    {
-      id: "shape-diamond",
-      label: "Diamond",
-      icon: { kind: "shape", value: "diamond" },
-      draftStyle: {
-        kind: "diamond",
-      },
-    },
-    {
-      id: "shape-polygon",
-      label: "Polygon",
-      icon: { kind: "shape", value: "polygon" },
-      draftStyle: {
-        kind: "polygon",
-      },
-    },
-  ],
+  presets: FOOTBALL_SHAPE_PRESETS.map(
+    ({ variant: _variant, ...preset }) => preset,
+  ),
 });
 
 const footballPlayerTool = new PlayerTool({
-  presets: FOOTBALL_PLAYER_PRESET_COLORS.map((color, index) => ({
-    id: `team-color-${index + 1}`,
-    label: String(index + 1),
-    tooltip: `Player color ${color}`,
-    draftStyle: {
-      color,
-    },
-  })),
+  presets: FOOTBALL_PLAYER_PRESETS,
 });
 
 const footballEquipmentTool = new EquipmentTool({
@@ -170,7 +84,7 @@ export function FootballExampleApp() {
               <BoardEditorToolControl toolId="arrow" />
               <BoardEditorToolControl toolId="shape" />
             </BoardEditorToolbar>
-            <BoardEditorSecondaryToolbar className="flex-col" />
+            <FootballSecondaryToolbar className="flex-col" />
           </div>
         </div>
       </BoardEditor>

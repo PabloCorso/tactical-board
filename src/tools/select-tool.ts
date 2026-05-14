@@ -1,6 +1,5 @@
 import type { BoardEditorState } from "../core/editor/types";
 import type {
-  ToolActionDefinition,
   ToolApi,
   ToolCapabilityRegistrationApi,
   ToolDefinition,
@@ -26,63 +25,18 @@ import {
   type SelectToolState,
   SELECT_TOOL_ID,
 } from "./select-tool-state";
-import { clearSelection, setSelectedObjectIds } from "./select-tool-actions";
+import { clearSelection } from "./select-tool-actions";
 import colors from "tailwindcss/colors";
 
 const SURFACE_INSET = 14;
 const DEFAULT_SELECTION_COLOR = colors.sky[400];
 const SELECTION_OVERLAY_KIND = "select:selection-ring";
 
-const DISABLED_SELECTION_ACTIONS: ToolActionDefinition[] = [
-  {
-    id: "duplicate-selection",
-    label: "Duplicate",
-    icon: { kind: "system", value: "duplicate" },
-    tooltip: "Duplicate",
-    disabled: true,
-    onSelect: duplicateSelection,
-  },
-  {
-    id: "delete-selection",
-    label: "Delete",
-    icon: { kind: "system", value: "delete" },
-    tooltip: "Delete",
-    disabled: true,
-    onSelect: deleteSelection,
-  },
-];
-
-const ENABLED_SELECTION_ACTIONS: ToolActionDefinition[] = [
-  {
-    id: "duplicate-selection",
-    label: "Duplicate",
-    icon: { kind: "system", value: "duplicate" },
-    tooltip: "Duplicate",
-    disabled: false,
-    onSelect: duplicateSelection,
-  },
-  {
-    id: "delete-selection",
-    label: "Delete",
-    icon: { kind: "system", value: "delete" },
-    tooltip: "Delete",
-    disabled: false,
-    onSelect: deleteSelection,
-  },
-];
-
 let cachedSelectionOverlayItems:
   | {
       objectsById: BoardEditorState["board"]["objects"]["byId"];
       selectState: SelectToolState;
       overlays: Array<CanvasRectOverlayItem | SelectionOverlayItem>;
-    }
-  | undefined;
-
-let cachedSecondaryActions:
-  | {
-      selectState: SelectToolState;
-      actions: ToolActionDefinition[];
     }
   | undefined;
 
@@ -97,10 +51,6 @@ type SelectionOverlayItem = {
 export class SelectTool extends BoardEditorTool implements ToolDefinition {
   readonly id = SELECT_TOOL_ID;
   readonly label = "Select";
-
-  getSecondaryActions(state: BoardEditorState) {
-    return getSelectSecondaryActions(state);
-  }
 
   getOverlayItems(state: BoardEditorState) {
     return getSelectOverlayItems(state);
@@ -322,41 +272,6 @@ function setSelectState(api: ToolApi, value: Partial<SelectToolState>) {
     ...selectState,
     ...value,
   } satisfies SelectToolState);
-}
-
-function duplicateSelection(api: ToolApi) {
-  const { selectedObjectIds } = getSelectToolState(api.getState().toolState);
-  const duplicateIds = api.duplicateObjects(selectedObjectIds);
-
-  setSelectedObjectIds(api, duplicateIds);
-}
-
-function deleteSelection(api: ToolApi) {
-  const { selectedObjectIds } = getSelectToolState(api.getState().toolState);
-  api.deleteObjects(selectedObjectIds);
-  clearSelection(api);
-}
-
-function getSelectSecondaryActions(
-  state: BoardEditorState,
-): ToolActionDefinition[] {
-  const selectState = getSelectToolState(state.toolState);
-
-  if (cachedSecondaryActions?.selectState === selectState) {
-    return cachedSecondaryActions.actions;
-  }
-
-  const actions =
-    selectState.selectedObjectIds.length > 0
-      ? ENABLED_SELECTION_ACTIONS
-      : DISABLED_SELECTION_ACTIONS;
-
-  cachedSecondaryActions = {
-    selectState,
-    actions,
-  };
-
-  return actions;
 }
 
 function beginSelectionInteraction(

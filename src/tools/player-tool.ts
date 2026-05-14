@@ -1,10 +1,5 @@
 import type { BoardEditorState } from "../core/editor/types";
-import type {
-  ToolActionDefinition,
-  ToolActionIcon,
-  ToolApi,
-  ToolDefinition,
-} from "../core/tools/types";
+import type { ToolApi, ToolDefinition } from "../core/tools/types";
 import { BoardEditorTool } from "../core/tools/tool";
 import { defineObjectDefinition } from "../core/objects/types";
 import {
@@ -28,10 +23,9 @@ import {
 
 type PlayerToolLabelStrategy = "numeric-by-color" | "none";
 
-type PlayerToolPreset = {
+export type PlayerToolPreset = {
   id: string;
   label: string;
-  icon?: ToolActionIcon;
   tooltip?: string;
   draftStyle: Partial<PlayerDraftStyle>;
 };
@@ -56,20 +50,11 @@ export class PlayerTool extends BoardEditorTool implements ToolDefinition {
 
   private readonly labelStrategy: PlayerToolLabelStrategy;
   private readonly presets: PlayerToolPreset[];
-  private readonly getPresetActions?;
 
   constructor(options: CreatePlayerToolOptions = {}) {
     super();
     this.labelStrategy = options.labelStrategy ?? "numeric-by-color";
     this.presets = options.presets ?? [];
-    this.getPresetActions =
-      this.presets.length > 0
-        ? createPresetSecondaryActions(this.presets, this.labelStrategy)
-        : undefined;
-  }
-
-  getSecondaryActions(state: BoardEditorState) {
-    return this.getPresetActions?.(state) ?? [];
   }
 
   onActivate(api: ToolApi) {
@@ -190,57 +175,6 @@ function createPlayerId(existingIds: Record<string, unknown>) {
   return `player-${index}`;
 }
 
-function isPlayerPresetActive(
-  draftStyle: PlayerDraftStyle,
-  presetDraftStyle: Partial<PlayerDraftStyle>,
-) {
-  return (
-    Object.entries(presetDraftStyle) as Array<
-      [keyof PlayerDraftStyle, PlayerDraftStyle[keyof PlayerDraftStyle]]
-    >
-  ).every(([key, value]) => {
-    const currentValue = draftStyle[key];
-
-    if (typeof value === "object" && value !== null) {
-      return JSON.stringify(currentValue) === JSON.stringify(value);
-    }
-
-    return currentValue === value;
-  });
-}
-
-function setPlayerToolState(
-  api: ToolApi,
-  updater: (
-    state: ReturnType<typeof getPlayerToolState>,
-  ) => ReturnType<typeof getPlayerToolState>,
-) {
-  api.setToolState(
-    PLAYER_TOOL_ID,
-    updater(getPlayerToolState(api.getState().toolState)),
-  );
-}
-
-function setPlayerDraftStyle(
-  api: ToolApi,
-  draftStyle: Partial<PlayerDraftStyle>,
-) {
-  setPlayerToolState(api, (state) => ({
-    ...state,
-    draftStyle: {
-      ...state.draftStyle,
-      ...draftStyle,
-    },
-  }));
-}
-
-function applyPlayerPreset(
-  api: ToolApi,
-  preset: Pick<PlayerToolPreset, "draftStyle">,
-) {
-  setPlayerDraftStyle(api, preset.draftStyle);
-}
-
 function renderPlayer({
   context,
   object,
@@ -331,41 +265,6 @@ function getNextNumericLabelFromState(
     ) + 1;
 
   return String(Math.max(nextLabelFromState, nextLabelFromBoard));
-}
-
-function createPresetSecondaryActions(
-  presets: PlayerToolPreset[],
-  labelStrategy: PlayerToolLabelStrategy,
-): (state: BoardEditorState) => ToolActionDefinition[] {
-  return (state) => {
-    const playerState = getPlayerToolState(state.toolState);
-
-    return presets.map((preset): ToolActionDefinition => {
-      const numericLabel =
-        labelStrategy === "numeric-by-color" &&
-        typeof preset.draftStyle.color === "string"
-          ? getNextNumericLabelFromState(
-              state,
-              playerState,
-              preset.draftStyle.color,
-            )
-          : undefined;
-
-      return {
-        id: preset.id,
-        label: numericLabel ?? preset.label,
-        icon:
-          preset.icon ??
-          (preset.draftStyle.color
-            ? { kind: "color", value: preset.draftStyle.color }
-            : undefined),
-        tooltip: preset.tooltip ?? preset.label,
-        disabled: false,
-        active: isPlayerPresetActive(playerState.draftStyle, preset.draftStyle),
-        onSelect: (api) => applyPlayerPreset(api, preset),
-      };
-    });
-  };
 }
 
 function getNextNumericLabel(

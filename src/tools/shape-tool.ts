@@ -1,5 +1,4 @@
 import type { Point } from "../core/board/types";
-import type { BoardEditorState } from "../core/editor/types";
 import {
   createShapeObject,
   getShapePoints,
@@ -15,12 +14,7 @@ import type {
   CanvasObjectHitTestInput,
   CanvasObjectRenderInput,
 } from "../rendering/canvas/types";
-import type {
-  ToolActionIcon,
-  ToolActionDefinition,
-  ToolApi,
-  ToolDefinition,
-} from "../core/tools/types";
+import type { ToolApi, ToolDefinition } from "../core/tools/types";
 import { BoardEditorTool } from "../core/tools/tool";
 import { defineObjectDefinition } from "../core/objects/types";
 import {
@@ -35,10 +29,9 @@ const PREVIEW_OPACITY = 0.55;
 const MIN_HIT_DISTANCE_PX = 10;
 const POLYGON_FINISH_HIT_RADIUS_PX = 12;
 
-type ShapeToolPreset = {
+export type ShapeToolPreset = {
   id: string;
   label: string;
-  icon?: ToolActionIcon;
   tooltip?: string;
   draftStyle: Partial<ShapeDraftStyle>;
 };
@@ -57,19 +50,10 @@ export class ShapeTool extends BoardEditorTool implements ToolDefinition {
   readonly label = "Shape";
 
   private readonly presets: ShapeToolPreset[];
-  private readonly getPresetActions?;
 
   constructor(options: CreateShapeToolOptions = {}) {
     super();
     this.presets = options.presets ?? [];
-    this.getPresetActions =
-      this.presets.length > 0
-        ? createPresetSecondaryActions(this.presets)
-        : undefined;
-  }
-
-  getSecondaryActions(state: BoardEditorState) {
-    return this.getPresetActions?.(state) ?? [];
   }
 
   onActivate(api: ToolApi) {
@@ -169,29 +153,6 @@ export class ShapeTool extends BoardEditorTool implements ToolDefinition {
     ]);
     cancelPendingShape(api);
   }
-}
-
-function isShapePresetActive(
-  draftStyle: ShapeDraftStyle,
-  presetDraftStyle: Partial<ShapeDraftStyle>,
-) {
-  return (
-    Object.entries(presetDraftStyle) as Array<
-      [keyof ShapeDraftStyle, ShapeDraftStyle[keyof ShapeDraftStyle]]
-    >
-  ).every(([key, value]) => {
-    const currentValue = draftStyle[key];
-
-    if (Array.isArray(value)) {
-      return (
-        Array.isArray(currentValue) &&
-        currentValue.length === value.length &&
-        currentValue.every((part, index) => part === value[index])
-      );
-    }
-
-    return currentValue === value;
-  });
 }
 
 function createShapeId(existingIds: Record<string, unknown>) {
@@ -514,26 +475,6 @@ function hitTestShape({
     shape.props.fillStyle !== "none" &&
     isPointInsidePolygon(canvasPoint, points)
   );
-}
-
-function createPresetSecondaryActions(
-  presets: ShapeToolPreset[],
-): (state: BoardEditorState) => ToolActionDefinition[] {
-  return (state) => {
-    const shapeState = getShapeToolState(state.toolState);
-
-    return presets.map(
-      (preset): ToolActionDefinition => ({
-        id: preset.id,
-        label: preset.label,
-        icon: preset.icon,
-        tooltip: preset.tooltip ?? preset.label,
-        disabled: false,
-        onSelect: (api) => applyShapePreset(api, preset),
-        active: isShapePresetActive(shapeState.draftStyle, preset.draftStyle),
-      }),
-    );
-  };
 }
 
 function getPendingShapePreview(

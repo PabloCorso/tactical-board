@@ -37,25 +37,6 @@ export interface ToolWheelEvent {
   deltaY: number;
 }
 
-export type ToolActionIcon =
-  | { kind: "system"; value: "duplicate" | "delete" }
-  | { kind: "color"; value: string }
-  | {
-      kind: "arrow";
-      value:
-        | "straight-solid"
-        | "straight-dashed"
-        | "curved-solid"
-        | "curved-dashed"
-        | "wavy"
-        | "double"
-        | "polyline";
-    }
-  | {
-      kind: "shape";
-      value: "rectangle" | "oval" | "triangle" | "diamond" | "polygon";
-    };
-
 export interface ToolApi {
   getState: () => BoardEditorState;
   addObjects: (
@@ -92,16 +73,6 @@ export interface ToolApi {
   registerObjectDefinition: (definition: ObjectDefinition) => void;
 }
 
-export interface ToolActionDefinition {
-  id: string;
-  label: string;
-  icon?: ToolActionIcon;
-  tooltip?: string;
-  active?: boolean;
-  disabled?: boolean;
-  onSelect: (api: ToolApi) => void;
-}
-
 export interface ToolCapabilityRegistrationApi {
   registerObjectRenderer: (
     objectType: string,
@@ -121,7 +92,6 @@ export interface ToolCapabilityRegistrationApi {
 export interface ToolDefinition {
   id: ToolId;
   label: string;
-  getSecondaryActions?: (state: BoardEditorState) => ToolActionDefinition[];
   getOverlayItems?: (state: BoardEditorState) => CanvasOverlayItem[];
   registerCapabilities?: (api: ToolCapabilityRegistrationApi) => void;
   onActivate?: (api: ToolApi) => void;

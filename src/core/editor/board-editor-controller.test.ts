@@ -536,7 +536,7 @@ describe("createBoardEditorController", () => {
     });
   });
 
-  it("shows the next per-color player number in preset secondary actions", () => {
+  it("places the next per-color player number after existing players", () => {
     const playerTool = new PlayerTool({
       presets: FOOTBALL_PLAYER_PRESET_COLORS.slice(0, 6).map(
         (color, index) => ({
@@ -577,18 +577,23 @@ describe("createBoardEditorController", () => {
       tools: [selectTool, playerTool],
     });
 
-    const secondaryActions =
-      playerTool.getSecondaryActions?.(store.getState()) ?? [];
+    store.getState().actions.setActiveTool(playerTool.id);
+    createBoardEditorController(store).dispatchPointerEvent("onPointerDown", {
+      clientPoint: { x: 40, y: 20 },
+      canvasRect: { left: 0, top: 0, width: 800, height: 400 },
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+    });
 
-    expect(secondaryActions).toHaveLength(6);
-    expect(secondaryActions.map((action) => action.label)).toEqual([
-      "2",
-      "2",
-      "2",
-      "2",
-      "2",
-      "2",
-    ]);
+    const placedPlayers = Object.values(
+      store.getState().board.objects.byId,
+    ).filter((object): object is PlayerObject => object.type === "player");
+
+    expect(placedPlayers).toHaveLength(7);
+    expect(placedPlayers.at(-1)?.props.label).toBe("2");
   });
 
   it("places equipment using the selected catalog definition", () => {

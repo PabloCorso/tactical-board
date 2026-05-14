@@ -1,6 +1,4 @@
-import type { BoardEditorState } from "../core/editor/types";
 import type {
-  ToolActionDefinition,
   ToolApi,
   ToolCapabilityRegistrationApi,
   ToolDefinition,
@@ -80,10 +78,6 @@ export class EquipmentTool extends BoardEditorTool implements ToolDefinition {
       options.definitions.map((definition) => [definition.kind, definition]),
     );
     this.renderEquipment = createEquipmentRenderer(options.renderersByKind);
-  }
-
-  getSecondaryActions(state: BoardEditorState) {
-    return createPresetSecondaryActions(this.definitions)(state);
   }
 
   onActivate(api: ToolApi) {
@@ -286,32 +280,4 @@ function hitTestEquipment({
   }
 
   return Math.abs(localX) <= width / 2 && Math.abs(localY) <= height / 2;
-}
-
-function createPresetSecondaryActions(
-  definitions: EquipmentDefinition[],
-): (state: BoardEditorState) => ToolActionDefinition[] {
-  return (state) => {
-    const equipmentState = getEquipmentToolState(state.toolState);
-
-    return definitions.map(
-      (definition): ToolActionDefinition => ({
-        id: `equipment-${definition.kind}`,
-        label: definition.label,
-        tooltip: definition.label,
-        active: equipmentState.draftStyle.kind === definition.kind,
-        disabled: false,
-        onSelect: (api) => {
-          const currentState = getEquipmentToolState(api.getState().toolState);
-          api.setToolState(EQUIPMENT_TOOL_ID, {
-            ...currentState,
-            draftStyle: {
-              ...currentState.draftStyle,
-              kind: definition.kind,
-            },
-          });
-        },
-      }),
-    );
-  };
 }
