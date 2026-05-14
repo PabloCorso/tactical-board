@@ -13,12 +13,11 @@ import { BoardEditorEquipmentSelectionToolbar } from "../react/components/board-
 import {
   drawClosedCanvasPath,
   getCornerHandleCanvasPoint,
-  getExpandedCanvasRectPoints,
-  getRotatedRectWorldPoints,
   getRotationFromPointer,
   getSelectionToolbarAnchorFromSelectionChrome,
   renderRotateHandleIcon,
 } from "./selection-geometry";
+import { getEquipmentSelectionOutlineCanvasPoints } from "./equipment-geometry";
 
 const EQUIPMENT_RESIZE_HANDLE_RADIUS_PX = 5;
 const EQUIPMENT_RESIZE_HANDLE_HIT_RADIUS_PX = 12;
@@ -26,8 +25,6 @@ const EQUIPMENT_ROTATE_HANDLE_RADIUS_PX = 13;
 const EQUIPMENT_ROTATE_HANDLE_HIT_RADIUS_PX = 18;
 const ROTATE_HANDLE_CORNER_INDEX = 3;
 const ROTATE_HANDLE_CORNER_OFFSET_PX = 18;
-const EQUIPMENT_MIN_SELECTION_PADDING_PX = 1.5;
-const EQUIPMENT_SELECTION_PADDING_RATIO = 0.08;
 type EquipmentSelectionSession = ObjectSelectionSession & {
   kind: "resize" | "rotate";
   center: EquipmentObject["position"];
@@ -39,41 +36,6 @@ type EquipmentSelectionSession = ObjectSelectionSession & {
   };
   lockedAspectRatio?: boolean;
 };
-
-function getEquipmentSelectionPaddingPx(
-  projection: Parameters<
-    NonNullable<ObjectSelectionAdapter<EquipmentObject>["renderSelection"]>
-  >[0]["projection"],
-  equipment: EquipmentObject,
-) {
-  const bounds = projection.getObjectCanvasBounds(equipment);
-  const width = Math.max(8, Math.abs(bounds.width));
-  const height = Math.max(8, Math.abs(bounds.height));
-
-  return (
-    Math.max(
-      EQUIPMENT_MIN_SELECTION_PADDING_PX,
-      Math.min(width, height) * EQUIPMENT_SELECTION_PADDING_RATIO,
-    ) / 2
-  );
-}
-
-function getEquipmentSelectionOutlineCanvasPoints(
-  projection: Parameters<
-    NonNullable<ObjectSelectionAdapter<EquipmentObject>["renderSelection"]>
-  >[0]["projection"],
-  equipment: EquipmentObject,
-) {
-  return getExpandedCanvasRectPoints(
-    getRotatedRectWorldPoints({
-      center: equipment.position,
-      width: equipment.size?.width ?? 0,
-      height: equipment.size?.height ?? 0,
-      rotation: equipment.rotation,
-    }).map((point) => projection.worldToCanvas(point)),
-    getEquipmentSelectionPaddingPx(projection, equipment),
-  );
-}
 
 function getEquipmentRotateHandleCanvasPoint(
   projection: Parameters<

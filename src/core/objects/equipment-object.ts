@@ -30,6 +30,13 @@ export interface EquipmentCapabilities {
   label?: boolean;
 }
 
+export interface EquipmentSelectionBounds {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+}
+
 export interface EquipmentDefinitionSnapshot {
   kind: string;
   label: string;
@@ -38,6 +45,7 @@ export interface EquipmentDefinitionSnapshot {
   appearance?: ObjectAppearance;
   capabilities?: EquipmentCapabilities;
   lockedAspectRatio?: boolean;
+  selectionBounds?: EquipmentSelectionBounds;
 }
 
 export interface EquipmentObjectProps extends Record<string, unknown> {

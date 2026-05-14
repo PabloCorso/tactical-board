@@ -27,6 +27,12 @@ export const soccerBallEquipment: FootballEquipmentSpec = {
     defaultSize: { width: 1.5, height: 1.5 },
     color: "#ffffff",
     lockedAspectRatio: true,
+    selectionBounds: {
+      left: -0.391,
+      top: -0.391,
+      right: 0.391,
+      bottom: 0.391,
+    },
   },
   renderer: ({ context, width, height }) => {
     const scale = Math.min(width, height) / 256;

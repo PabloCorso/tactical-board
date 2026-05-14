@@ -114,6 +114,12 @@ export const coneEquipment: FootballEquipmentSpec = {
     color: "#ff6b35",
     capabilities: { color: true },
     lockedAspectRatio: true,
+    selectionBounds: {
+      left: -0.44,
+      top: -0.4,
+      right: 0.44,
+      bottom: 0.44,
+    },
   },
   renderer: ({ context, color, width, height }) => {
     renderConeMarkerCanvas(context, color, Math.min(width, height));

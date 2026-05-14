@@ -59,6 +59,12 @@ export const discConeEquipment: FootballEquipmentSpec = {
     color: "#ffc857",
     capabilities: { color: true },
     lockedAspectRatio: true,
+    selectionBounds: {
+      left: -0.307,
+      top: -0.307,
+      right: 0.307,
+      bottom: 0.307,
+    },
   },
   renderer: ({ context, color, width, height }) => {
     const ringPath = getDiscConeRingPath();

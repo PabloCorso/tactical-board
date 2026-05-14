@@ -17,6 +17,12 @@ export const ladderEquipment: FootballEquipmentSpec = {
     color: "#0f172a",
     capabilities: { color: true },
     lockedAspectRatio: true,
+    selectionBounds: {
+      left: -0.553,
+      top: -0.515,
+      right: 0.553,
+      bottom: 0.515,
+    },
   },
   renderer: ({ context, color, width, height }) => {
     const leftX = -width / 2;

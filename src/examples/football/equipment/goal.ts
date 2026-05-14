@@ -94,6 +94,12 @@ export const goalEquipment: FootballEquipmentSpec = {
     color: "#ffffff",
     capabilities: { color: true },
     lockedAspectRatio: true,
+    selectionBounds: {
+      left: -0.383,
+      top: -0.265,
+      right: 0.383,
+      bottom: 0.355,
+    },
   },
   renderer: ({ context, color, width, height }) => {
     const scaleX = width / GOAL_SOURCE.width;

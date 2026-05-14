@@ -64,6 +64,12 @@ export const hurdleEquipment: FootballEquipmentSpec = {
     color: "#f97316",
     capabilities: { color: true },
     lockedAspectRatio: true,
+    selectionBounds: {
+      left: -0.485,
+      top: -0.175,
+      right: 0.385,
+      bottom: 0.535,
+    },
   },
   renderer: ({ context, color, width, height }) => {
     const strokeWidth = Math.max(

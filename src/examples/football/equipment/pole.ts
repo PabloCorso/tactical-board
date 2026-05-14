@@ -14,6 +14,12 @@ export const poleEquipment: FootballEquipmentSpec = {
     color: POLE_COLOR,
     capabilities: { color: true },
     lockedAspectRatio: true,
+    selectionBounds: {
+      left: -0.44,
+      top: -0.45,
+      right: 0.44,
+      bottom: 0.58,
+    },
   },
   renderer: ({ context, color, width, height }) => {
     const coneSize = width;

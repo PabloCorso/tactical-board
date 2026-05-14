@@ -12,6 +12,12 @@ export const hoopEquipment: FootballEquipmentSpec = {
     color: "#ef4444",
     capabilities: { color: true },
     lockedAspectRatio: true,
+    selectionBounds: {
+      left: -0.563,
+      top: -0.563,
+      right: 0.563,
+      bottom: 0.563,
+    },
   },
   renderer: ({ context, color, width, height }) => {
     const radius = Math.min(width, height) / 2;
