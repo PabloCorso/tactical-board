@@ -6,7 +6,10 @@ import type {
   ShapeLineStyle,
   ShapeObjectProps,
 } from "../core/objects/shape-object";
-import { DEFAULT_SHAPE_DASH_STYLE } from "../core/objects/shape-object";
+import {
+  DEFAULT_SHAPE_DASH_STYLE,
+  DEFAULT_SHAPE_STROKE_WIDTH,
+} from "../core/objects/shape-object";
 
 export const SHAPE_TOOL_ID = "shape";
 
@@ -30,7 +33,7 @@ export const DEFAULT_SHAPE_TOOL_STATE: ShapeToolState = {
   draftStyle: {
     kind: "rectangle",
     color: "#000000",
-    strokeWidth: 0.4,
+    strokeWidth: DEFAULT_SHAPE_STROKE_WIDTH,
     lineStyle: "solid",
     dashStyle: [...DEFAULT_SHAPE_DASH_STYLE],
     fillStyle: "solid",

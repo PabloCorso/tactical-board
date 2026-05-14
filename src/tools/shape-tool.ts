@@ -10,6 +10,7 @@ import {
   scaleCanvasDashStyle,
   scaleCanvasStyleValue,
 } from "../rendering/canvas/style-scale";
+import { getWorldCanvasStrokeWidth } from "../rendering/canvas/object-render-scale";
 import type {
   CanvasObjectHitTestInput,
   CanvasObjectRenderInput,
@@ -28,6 +29,8 @@ import { shapeSelectionAdapter } from "./shape-selection";
 const PREVIEW_OPACITY = 0.55;
 const MIN_HIT_DISTANCE_PX = 10;
 const POLYGON_FINISH_HIT_RADIUS_PX = 12;
+const DIAGONAL_STRIPE_TILE_SIZE_PX = 11;
+const DIAGONAL_STRIPE_LINE_WIDTH_PX = 2.25;
 
 export type ShapeToolPreset = {
   id: string;
@@ -216,19 +219,6 @@ export function completePendingPolygon(api: ToolApi) {
   cancelPendingShape(api);
 }
 
-function drawShapePath(context: CanvasRenderingContext2D, points: Point[]) {
-  if (points.length === 0) {
-    return;
-  }
-
-  context.beginPath();
-  context.moveTo(points[0].x, points[0].y);
-
-  for (const point of points.slice(1)) {
-    context.lineTo(point.x, point.y);
-  }
-}
-
 function rotatePointAround(point: Point, center: Point, rotation = 0): Point {
   const angle = (rotation * Math.PI) / 180;
   const dx = point.x - center.x;
@@ -251,49 +241,148 @@ function getRenderedShapeCanvasPoints(
     .map((point) => surfaceTransform.worldToCanvas(point));
 }
 
-function createDiagonalStripePattern(
-  context: CanvasRenderingContext2D,
-  color: string,
-  zoom: number,
+function createRenderedShapePath(
+  shape: ShapeObject,
+  surfaceTransform: CanvasObjectRenderInput["surfaceTransform"],
 ) {
-  const tileSize = scaleCanvasStyleValue(18, zoom);
-  const patternCanvas = document.createElement("canvas");
-  patternCanvas.width = tileSize;
-  patternCanvas.height = tileSize;
-  const patternContext = patternCanvas.getContext("2d");
+  const path = new Path2D();
 
-  if (!patternContext) {
-    return undefined;
+  if (shape.props.kind === "oval") {
+    const center = surfaceTransform.worldToCanvas(shape.position);
+    const width = (shape.size?.width ?? 0) * surfaceTransform.pixelsPerUnit;
+    const height =
+      (shape.size?.height ?? shape.size?.width ?? 0) *
+      surfaceTransform.pixelsPerUnit;
+
+    path.ellipse(
+      center.x,
+      center.y,
+      Math.abs(width) / 2,
+      Math.abs(height) / 2,
+      ((shape.rotation ?? 0) * Math.PI) / 180,
+      0,
+      Math.PI * 2,
+    );
+
+    return path;
   }
 
-  patternContext.strokeStyle = color;
-  patternContext.lineWidth = scaleCanvasStyleValue(2.25, zoom);
-  patternContext.lineCap = "butt";
-  patternContext.setLineDash([]);
-  patternContext.beginPath();
-  patternContext.moveTo(-tileSize, tileSize);
-  patternContext.lineTo(0, 0);
-  patternContext.moveTo(0, tileSize);
-  patternContext.lineTo(tileSize, 0);
-  patternContext.moveTo(tileSize, tileSize);
-  patternContext.lineTo(tileSize * 2, 0);
-  patternContext.stroke();
+  const points = getRenderedShapeCanvasPoints(shape, surfaceTransform);
 
-  return context.createPattern(patternCanvas, "repeat") ?? undefined;
+  if (points.length === 0) {
+    return path;
+  }
+
+  path.moveTo(points[0].x, points[0].y);
+
+  for (const point of points.slice(1)) {
+    path.lineTo(point.x, point.y);
+  }
+
+  path.closePath();
+
+  return path;
 }
 
-function renderShape({
+function getRenderedShapeCanvasBounds(
+  shape: ShapeObject,
+  surfaceTransform: CanvasObjectRenderInput["surfaceTransform"],
+) {
+  if (shape.props.kind === "oval") {
+    const center = surfaceTransform.worldToCanvas(shape.position);
+    const width = (shape.size?.width ?? 0) * surfaceTransform.pixelsPerUnit;
+    const height =
+      (shape.size?.height ?? shape.size?.width ?? 0) *
+      surfaceTransform.pixelsPerUnit;
+    const radius = Math.hypot(width, height) / 2;
+
+    return {
+      minX: center.x - radius,
+      maxX: center.x + radius,
+      minY: center.y - radius,
+      maxY: center.y + radius,
+    };
+  }
+
+  const points = getRenderedShapeCanvasPoints(shape, surfaceTransform);
+
+  if (points.length === 0) {
+    const center = surfaceTransform.worldToCanvas(shape.position);
+
+    return {
+      minX: center.x,
+      maxX: center.x,
+      minY: center.y,
+      maxY: center.y,
+    };
+  }
+
+  return {
+    minX: Math.min(...points.map((point) => point.x)),
+    maxX: Math.max(...points.map((point) => point.x)),
+    minY: Math.min(...points.map((point) => point.y)),
+    maxY: Math.max(...points.map((point) => point.y)),
+  };
+}
+
+function fillDiagonalStripes(
+  context: CanvasRenderingContext2D,
+  path: Path2D,
+  bounds: ReturnType<typeof getRenderedShapeCanvasBounds>,
+  color: string,
+  surfaceTransform: CanvasObjectRenderInput["surfaceTransform"],
+) {
+  const tileSize = scaleCanvasStyleValue(
+    DIAGONAL_STRIPE_TILE_SIZE_PX,
+    surfaceTransform.zoom,
+  );
+  const lineWidth = scaleCanvasStyleValue(
+    DIAGONAL_STRIPE_LINE_WIDTH_PX,
+    surfaceTransform.zoom,
+  );
+  const worldOriginCanvasPoint = surfaceTransform.worldToCanvas(
+    surfaceTransform.worldOrigin,
+  );
+  const phase = worldOriginCanvasPoint.x + worldOriginCanvasPoint.y;
+  const extent = Math.max(bounds.maxX - bounds.minX, bounds.maxY - bounds.minY);
+  const minSum = bounds.minX + bounds.minY - extent;
+  const maxSum = bounds.maxX + bounds.maxY + extent;
+  const startIndex = Math.floor((minSum - phase) / tileSize);
+  const endIndex = Math.ceil((maxSum - phase) / tileSize);
+  const startX = bounds.minX - extent;
+  const endX = bounds.maxX + extent;
+
+  context.save();
+  context.clip(path);
+  context.strokeStyle = color;
+  context.lineWidth = lineWidth;
+  context.lineCap = "butt";
+  context.setLineDash([]);
+  context.beginPath();
+
+  for (let index = startIndex; index <= endIndex; index += 1) {
+    const sum = phase + index * tileSize;
+    context.moveTo(startX, sum - startX);
+    context.lineTo(endX, sum - endX);
+  }
+
+  context.stroke();
+  context.restore();
+}
+
+export function renderShape({
   context,
   object,
   appearance,
   surfaceTransform,
 }: CanvasObjectRenderInput) {
   const shape = object as ShapeObject;
-  const strokeWidth = Math.max(
-    1.5,
-    shape.props.strokeWidth * surfaceTransform.pixelsPerUnit,
+  const path = createRenderedShapePath(shape, surfaceTransform);
+  const bounds = getRenderedShapeCanvasBounds(shape, surfaceTransform);
+  const strokeWidth = getWorldCanvasStrokeWidth(
+    shape.props.strokeWidth,
+    surfaceTransform.pixelsPerUnit,
   );
-  const points = getRenderedShapeCanvasPoints(shape, surfaceTransform);
 
   context.save();
   context.globalAlpha = appearance === "preview" ? PREVIEW_OPACITY : 1;
@@ -308,52 +397,26 @@ function renderShape({
       : [],
   );
 
-  if (shape.props.kind === "oval") {
-    const center = surfaceTransform.worldToCanvas(shape.position);
-    const width = (shape.size?.width ?? 0) * surfaceTransform.pixelsPerUnit;
-    const height =
-      (shape.size?.height ?? shape.size?.width ?? 0) *
-      surfaceTransform.pixelsPerUnit;
-    context.beginPath();
-    context.translate(center.x, center.y);
-    context.rotate(((shape.rotation ?? 0) * Math.PI) / 180);
-    context.ellipse(
-      0,
-      0,
-      Math.abs(width) / 2,
-      Math.abs(height) / 2,
-      0,
-      0,
-      Math.PI * 2,
-    );
-  } else {
-    drawShapePath(context, points);
-    context.closePath();
-  }
-
   if (shape.props.fillStyle !== "none") {
     context.save();
     context.globalAlpha *= shape.props.fillOpacity;
     context.fillStyle = shape.props.color;
-    context.fill();
+    context.fill(path);
 
     if (shape.props.fillStyle === "diagonal-stripes") {
-      const stripePattern = createDiagonalStripePattern(
+      fillDiagonalStripes(
         context,
+        path,
+        bounds,
         shape.props.color,
-        surfaceTransform.zoom,
+        surfaceTransform,
       );
-
-      if (stripePattern) {
-        context.fillStyle = stripePattern;
-        context.fill();
-      }
     }
     context.restore();
   }
 
   if (shape.props.bordered) {
-    context.stroke();
+    context.stroke(path);
   }
 
   context.restore();

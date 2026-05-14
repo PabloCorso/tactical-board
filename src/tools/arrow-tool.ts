@@ -11,6 +11,10 @@ import {
 } from "../core/objects/arrow-object";
 import { createBoardSpaceProjection } from "../core/geometry/board-space-projection";
 import { scaleCanvasDashStyle } from "../rendering/canvas/style-scale";
+import {
+  getArrowHeadLength,
+  getWorldCanvasStrokeWidth,
+} from "../rendering/canvas/object-render-scale";
 import type {
   CanvasObjectHitTestInput,
   CanvasObjectRenderInput,
@@ -217,10 +221,6 @@ export function finishPendingArrow(api: ToolApi) {
   cancelPendingArrow(api);
 }
 
-function getArrowHeadLength(strokeWidth: number) {
-  return Math.max(10, strokeWidth * 4.5);
-}
-
 function getArrowHeadBodyInset(strokeWidth: number) {
   const spread = Math.PI / 7;
   return getArrowHeadLength(strokeWidth) * Math.cos(spread);
@@ -392,9 +392,9 @@ export function renderArrow({
   surfaceTransform,
 }: CanvasObjectRenderInput) {
   const arrow = object as unknown as ArrowObject;
-  const strokeWidth = Math.max(
-    1.5,
-    arrow.props.strokeWidth * surfaceTransform.pixelsPerUnit,
+  const strokeWidth = getWorldCanvasStrokeWidth(
+    arrow.props.strokeWidth,
+    surfaceTransform.pixelsPerUnit,
   );
 
   context.save();

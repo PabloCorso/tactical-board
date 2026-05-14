@@ -1,4 +1,5 @@
 import type { BoardSurfaceConfig, Point } from "../board/types";
+import { getSurfaceBasePixelsPerUnit } from "./surface-scale";
 
 export interface Rect {
   x: number;
@@ -25,10 +26,7 @@ export function createBoardSurfaceTransform({
   zoom?: number;
 }): BoardSurfaceTransform {
   const worldOrigin = surface.origin ?? { x: 0, y: 0 };
-  const basePixelsPerUnit = Math.min(
-    frame.width / Math.max(surface.width, 1),
-    frame.height / Math.max(surface.height, 1),
-  );
+  const basePixelsPerUnit = getSurfaceBasePixelsPerUnit(surface, frame);
   const pixelsPerUnit = basePixelsPerUnit * zoom;
   const renderWidth = surface.width * pixelsPerUnit;
   const renderHeight = surface.height * pixelsPerUnit;

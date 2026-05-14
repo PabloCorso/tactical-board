@@ -20,6 +20,11 @@ import {
   PLAYER_TOOL_ID,
   type PlayerDraftStyle,
 } from "./player-tool-state";
+import {
+  getAbsoluteCanvasExtent,
+  getPlayerBorderWidth,
+  getPlayerLabelFontSize,
+} from "../rendering/canvas/object-render-scale";
 
 type PlayerToolLabelStrategy = "numeric-by-color" | "none";
 
@@ -41,7 +46,6 @@ const playerObjectDefinition = defineObjectDefinition({
 });
 
 const PREVIEW_OPACITY = 0.55;
-const DEFAULT_PLAYER_BORDER_WIDTH_PX = 3;
 const DEFAULT_PLAYER_BORDER_COLOR = "#000000";
 
 export class PlayerTool extends BoardEditorTool implements ToolDefinition {
@@ -223,7 +227,7 @@ function createPlayerId(existingIds: Record<string, unknown>) {
   return `player-${index}`;
 }
 
-function renderPlayer({
+export function renderPlayer({
   context,
   object,
   appearance,
@@ -232,8 +236,8 @@ function renderPlayer({
 }: CanvasObjectRenderInput) {
   const player = object as PlayerObject;
   const bounds = surfaceTransform.getObjectCanvasBounds(player);
-  const width = Math.max(8, Math.abs(bounds.width));
-  const height = Math.max(8, Math.abs(bounds.height));
+  const width = getAbsoluteCanvasExtent(bounds.width);
+  const height = getAbsoluteCanvasExtent(bounds.height);
   const radius = Math.min(width, height) / 2;
   const textColor = getContrastingTextColor(player.props.color);
 
@@ -257,13 +261,13 @@ function renderPlayer({
     context.fill();
 
     context.strokeStyle = DEFAULT_PLAYER_BORDER_COLOR;
-    context.lineWidth = DEFAULT_PLAYER_BORDER_WIDTH_PX;
+    context.lineWidth = getPlayerBorderWidth(radius);
     context.stroke();
   }
 
   if (player.props.label) {
     context.fillStyle = textColor;
-    context.font = `700 ${Math.max(12, radius * 0.95)}px "ui-rounded", "SF Pro Display", sans-serif`;
+    context.font = `700 ${getPlayerLabelFontSize(radius)}px "ui-rounded", "SF Pro Display", sans-serif`;
     context.textAlign = "center";
     context.textBaseline = "middle";
     context.fillText(String(player.props.label), 0, 1);

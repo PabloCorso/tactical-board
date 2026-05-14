@@ -702,7 +702,7 @@ describe("createBoardEditorController", () => {
         },
         style: {},
       },
-      initialToolId: playerTool.id,
+      initialToolId: selectTool.id,
       tools: [selectTool, playerTool],
     });
 

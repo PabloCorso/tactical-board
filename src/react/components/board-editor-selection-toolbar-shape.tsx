@@ -4,7 +4,11 @@ import type {
   ShapeLineStyle,
   ShapeObject,
 } from "../../core/objects/shape-object";
-import { updateShapeObject } from "../../core/objects/shape-object";
+import {
+  THICK_SHAPE_STROKE_WIDTH,
+  THIN_SHAPE_STROKE_WIDTH,
+  updateShapeObject,
+} from "../../core/objects/shape-object";
 import { createToolApi } from "../../core/editor/create-tool-api";
 import { useBoardEditorContext } from "./board-editor-context";
 import {
@@ -17,9 +21,21 @@ import type { BoardEditorSelectionToolbarRendererProps } from "./board-editor-se
 import { ColorPicker, DEFAULT_PRESET_COLORS } from "./ui/color-picker";
 
 const WEIGHT_OPTIONS = [
-  { label: "Thin", value: "0.4", strokeWidth: 0.4 },
-  { label: "Thick", value: "0.6", strokeWidth: 0.6 },
+  {
+    label: "Thin",
+    value: String(THIN_SHAPE_STROKE_WIDTH),
+    strokeWidth: THIN_SHAPE_STROKE_WIDTH,
+  },
+  {
+    label: "Thick",
+    value: String(THICK_SHAPE_STROKE_WIDTH),
+    strokeWidth: THICK_SHAPE_STROKE_WIDTH,
+  },
 ] as const;
+
+function getWeightPreviewHeight(strokeWidth: number) {
+  return strokeWidth >= THICK_SHAPE_STROKE_WIDTH ? 4 : 3;
+}
 
 const LINE_STYLE_OPTIONS: Array<{
   value: ShapeLineStyle;
@@ -114,12 +130,7 @@ function ShapeWeightPopoverContent({
                 className="rounded-full bg-current"
                 style={{
                   width: 28,
-                  height:
-                    option.strokeWidth >= 0.6
-                      ? 4.5
-                      : option.strokeWidth >= 0.4
-                        ? 3.5
-                        : 2.5,
+                  height: getWeightPreviewHeight(option.strokeWidth),
                 }}
               />
             </span>
@@ -301,12 +312,9 @@ export function BoardEditorShapeSelectionToolbar({
                   className="rounded-full bg-current"
                   style={{
                     width: 28,
-                    height:
-                      selectedObject.props.strokeWidth >= 0.6
-                        ? 4.5
-                        : selectedObject.props.strokeWidth >= 0.4
-                          ? 3.5
-                          : 2.5,
+                    height: getWeightPreviewHeight(
+                      selectedObject.props.strokeWidth,
+                    ),
                   }}
                 />
               </span>

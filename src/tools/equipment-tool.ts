@@ -19,6 +19,10 @@ import {
 } from "../core/objects/equipment-object";
 import type { MeasurementUnit } from "../core/board/types";
 import { renderObjectAppearanceAsset } from "../rendering/canvas/object-appearance-renderer";
+import {
+  getAbsoluteCanvasExtent,
+  getRelativeCanvasStrokeWidth,
+} from "../rendering/canvas/object-render-scale";
 import { clearSelection } from "./select-tool-actions";
 import { equipmentSelectionAdapter } from "./equipment-selection";
 import {
@@ -209,7 +213,7 @@ function renderEquipmentFrame(
   context.stroke();
 }
 
-function createEquipmentRenderer(
+export function createEquipmentRenderer(
   renderersByKind: EquipmentCanvasRendererRegistry = {},
 ): CanvasObjectRenderer {
   return ({
@@ -221,11 +225,14 @@ function createEquipmentRenderer(
   }: CanvasObjectRenderInput) => {
     const equipment = object as EquipmentObject;
     const bounds = surfaceTransform.getObjectCanvasBounds(equipment);
-    const width = Math.max(8, Math.abs(bounds.width));
-    const height = Math.max(8, Math.abs(bounds.height));
+    const width = getAbsoluteCanvasExtent(bounds.width);
+    const height = getAbsoluteCanvasExtent(bounds.height);
     const color =
       equipment.props.color ?? equipment.props.definition.color ?? "#111827";
-    const strokeWidth = Math.max(1.5, Math.min(width, height) * 0.08);
+    const strokeWidth = getRelativeCanvasStrokeWidth(
+      Math.min(width, height),
+      0.08,
+    );
 
     context.save();
     context.globalAlpha = appearance === "preview" ? PREVIEW_OPACITY : 1;

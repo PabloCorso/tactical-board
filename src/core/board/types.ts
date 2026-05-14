@@ -50,6 +50,7 @@ export interface ObjectIndex {
 export interface BoardSurfaceConfig {
   width: number;
   height: number;
+  basePixelsPerUnit?: number;
   unit?: MeasurementUnit;
   origin?: Point;
   background?: string;

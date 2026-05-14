@@ -58,6 +58,10 @@ const WEIGHT_OPTIONS = [
   },
 ] as const;
 
+function getWeightPreviewHeight(strokeWidth: number) {
+  return strokeWidth >= THICK_ARROW_STROKE_WIDTH ? 4 : 3;
+}
+
 const LINE_STYLE_OPTIONS: Array<{
   value: ArrowLineStyle;
   label: string;
@@ -255,12 +259,7 @@ function ArrowWeightPopoverContent({
                 className="rounded-full bg-current"
                 style={{
                   width: 28,
-                  height:
-                    option.strokeWidth >= 0.6
-                      ? 4.5
-                      : option.strokeWidth >= 0.4
-                        ? 3.5
-                        : 2.5,
+                  height: getWeightPreviewHeight(option.strokeWidth),
                 }}
               />
             </span>
@@ -376,12 +375,9 @@ export function BoardEditorArrowSelectionToolbar({
                   className="rounded-full bg-current"
                   style={{
                     width: 28,
-                    height:
-                      selectedObject.props.strokeWidth >= 0.6
-                        ? 4.5
-                        : selectedObject.props.strokeWidth >= 0.4
-                          ? 3.5
-                          : 2.5,
+                    height: getWeightPreviewHeight(
+                      selectedObject.props.strokeWidth,
+                    ),
                   }}
                 />
               </span>

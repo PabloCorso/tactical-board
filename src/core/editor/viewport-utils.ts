@@ -3,6 +3,12 @@ import type { BoardViewport } from "./types";
 import { createBoardSpaceProjection } from "../geometry/board-space-projection";
 import type { CanvasRect } from "./board-editor-controller";
 import type { BoardSurfaceConfig } from "../board/types";
+import { getViewportZoomToFitSurface } from "../geometry/surface-scale";
+import {
+  clampViewportZoom,
+  MAX_VIEWPORT_ZOOM,
+  MIN_VIEWPORT_ZOOM,
+} from "./viewport-zoom";
 
 const SURFACE_INSET = 14;
 
@@ -11,14 +17,9 @@ export const DEFAULT_VIEWPORT: BoardViewport = {
   zoom: 1,
 };
 
-export const MIN_VIEWPORT_ZOOM = 0.5;
-export const MAX_VIEWPORT_ZOOM = 4;
+export { MAX_VIEWPORT_ZOOM, MIN_VIEWPORT_ZOOM };
 export const VIEWPORT_ZOOM_STEP_FACTOR = 1.2;
 export const VIEWPORT_WHEEL_ZOOM_SENSITIVITY = 0.0015;
-
-export function clampViewportZoom(zoom: number) {
-  return Math.min(MAX_VIEWPORT_ZOOM, Math.max(MIN_VIEWPORT_ZOOM, zoom));
-}
 
 export function getViewportForZoomAtCanvasPoint({
   surface,
@@ -64,5 +65,23 @@ export function getViewportForZoomAtCanvasPoint({
       x: nextViewport.pan.x + anchorCanvasPoint.x - nextCanvasPoint.x,
       y: nextViewport.pan.y + anchorCanvasPoint.y - nextCanvasPoint.y,
     },
+  };
+}
+
+export function getViewportToFitSurface({
+  surface,
+  canvasRect,
+}: {
+  surface: BoardSurfaceConfig;
+  canvasRect: Pick<CanvasRect, "width" | "height">;
+}): BoardViewport {
+  const frame = {
+    width: canvasRect.width - SURFACE_INSET * 2,
+    height: canvasRect.height - SURFACE_INSET * 2,
+  };
+
+  return {
+    pan: { x: 0, y: 0 },
+    zoom: getViewportZoomToFitSurface(surface, frame),
   };
 }

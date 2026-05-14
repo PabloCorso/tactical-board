@@ -411,6 +411,7 @@ export const footballBoardExample = createBoard({
   surface: {
     width: surfaceWidth,
     height: surfaceHeight,
+    basePixelsPerUnit: 8,
     unit: "m",
     background: pitchColors.outer,
     markings: createFootballPitchMarkings(),

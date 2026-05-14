@@ -3,8 +3,8 @@ import { scaleCanvasDashStyle, scaleCanvasStyleValue } from "./style-scale";
 
 describe("canvas style scaling", () => {
   it("scales dash arrays with viewport zoom", () => {
-    expect(scaleCanvasDashStyle([8, 10], 0.5)).toEqual([4, 5]);
-    expect(scaleCanvasDashStyle([8, 10], 2)).toEqual([16, 20]);
+    expect(scaleCanvasDashStyle([8, 4], 0.5)).toEqual([4, 2]);
+    expect(scaleCanvasDashStyle([8, 4], 2)).toEqual([16, 8]);
   });
 
   it("scales scalar style values with viewport zoom", () => {

@@ -1,4 +1,10 @@
-import type { PropsWithChildren, ReactNode } from "react";
+import {
+  createContext,
+  type ComponentPropsWithRef,
+  type PropsWithChildren,
+  type ReactNode,
+  useContext,
+} from "react";
 import { CaretDownIcon } from "@phosphor-icons/react";
 import { cn } from "./misc";
 import { Button, type ButtonProps } from "./ui/button";
@@ -6,23 +12,40 @@ import type { IconRender } from "./ui/icon";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
+type BoardEditorToolbarOrientation = "horizontal" | "vertical";
+
+type BoardEditorToolbarContextValue = {
+  orientation: BoardEditorToolbarOrientation;
+};
+
+const BoardEditorToolbarContext = createContext<BoardEditorToolbarContextValue>(
+  { orientation: "horizontal" },
+);
+
 export type BoardEditorToolbarProps = PropsWithChildren & {
   className?: string;
+  orientation?: BoardEditorToolbarOrientation;
 };
 
 export function BoardEditorToolbar({
   children,
   className,
+  orientation = "horizontal",
 }: BoardEditorToolbarProps) {
   return (
-    <aside
-      className={cn(
-        "border-default bg-surface/90 mx-auto flex w-max flex-nowrap items-center justify-center gap-2 rounded-[20px] border p-2 shadow-lg backdrop-blur-sm",
-        className,
-      )}
-    >
-      {children}
-    </aside>
+    <BoardEditorToolbarContext.Provider value={{ orientation }}>
+      <aside
+        role="toolbar"
+        aria-orientation={orientation}
+        className={cn(
+          "bg-surface/90 mx-auto inline-flex w-max flex-nowrap items-center justify-center gap-1.5 rounded-xl border p-1.5 shadow-lg backdrop-blur-sm",
+          "aria-[orientation=vertical]:flex-col",
+          className,
+        )}
+      >
+        {children}
+      </aside>
+    </BoardEditorToolbarContext.Provider>
   );
 }
 
@@ -48,6 +71,32 @@ export function BoardEditorToolbarButton({
       </TooltipTrigger>
       <TooltipContent>{tooltip || ariaLabel}</TooltipContent>
     </Tooltip>
+  );
+}
+
+export type BoardEditorToolbarSeparatorProps = ComponentPropsWithRef<"div"> & {
+  orientation?: BoardEditorToolbarOrientation;
+};
+
+export function BoardEditorToolbarSeparator({
+  orientation: orientationProp,
+  className,
+  ...props
+}: BoardEditorToolbarSeparatorProps) {
+  const { orientation } = useContext(BoardEditorToolbarContext);
+
+  return (
+    <div
+      role="separator"
+      aria-orientation={orientationProp ?? orientation}
+      className={cn(
+        "bg-border shrink-0",
+        "aria-[orientation=horizontal]:mx-0.5 aria-[orientation=horizontal]:h-6 aria-[orientation=horizontal]:w-px",
+        "aria-[orientation=vertical]:my-0.5 aria-[orientation=vertical]:h-px aria-[orientation=vertical]:w-6",
+        className,
+      )}
+      {...props}
+    />
   );
 }
 

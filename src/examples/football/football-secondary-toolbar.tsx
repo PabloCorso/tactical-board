@@ -36,6 +36,7 @@ import { FOOTBALL_PLAYER_PRESET_COLORS } from "./football-example-catalog";
 import {
   FootballArrowPresetIcon,
   FootballEquipmentDefinitionIcon,
+  FootballPlayerPresetIcon,
   FootballShapePresetIcon,
 } from "./football-tool-icons";
 
@@ -147,28 +148,6 @@ export const FOOTBALL_PLAYER_PRESETS: PlayerToolPreset[] =
       color,
     },
   }));
-
-function getContrastingTextColor(color: string) {
-  const normalized = color.trim().replace("#", "");
-  const expanded =
-    normalized.length === 3
-      ? normalized
-          .split("")
-          .map((part) => part + part)
-          .join("")
-      : normalized;
-
-  if (!/^[\da-f]{6}$/i.test(expanded)) {
-    return "#ffffff";
-  }
-
-  const red = Number.parseInt(expanded.slice(0, 2), 16);
-  const green = Number.parseInt(expanded.slice(2, 4), 16);
-  const blue = Number.parseInt(expanded.slice(4, 6), 16);
-  const luminance = (red * 299 + green * 587 + blue * 114) / 1000;
-
-  return luminance > 160 ? "#111827" : "#ffffff";
-}
 
 function matchesDraftStyle<T extends Record<string, unknown>>(
   current: T,
@@ -307,17 +286,16 @@ export function FootballSecondaryToolbar({
               className="aspect-square rounded-full px-0"
               iconBefore={
                 typeof color === "string" ? (
-                  <span
-                    className="border-default inline-flex h-7 w-7 items-center justify-center rounded-full border text-xs font-bold"
-                    style={{ backgroundColor: color }}
-                  >
-                    <span
-                      className="drop-shadow-[0_1px_1px_rgba(0,0,0,0.25)]"
-                      style={{ color: getContrastingTextColor(color) }}
-                    >
-                      {label}
-                    </span>
-                  </span>
+                  <FootballPlayerPresetIcon
+                    draftStyle={{
+                      ...playerState.draftStyle,
+                      ...preset.draftStyle,
+                    }}
+                    label={label}
+                    className="h-7 w-7"
+                    width={28}
+                    height={28}
+                  />
                 ) : undefined
               }
               key={preset.id}
@@ -440,9 +418,10 @@ export function FootballSecondaryToolbar({
             className="w-full justify-start"
             iconBefore={
               <FootballShapePresetIcon
-                kind={preset.variant}
-                color="currentColor"
-                fillOpacity={0}
+                draftStyle={{
+                  ...shapeState.draftStyle,
+                  ...preset.draftStyle,
+                }}
               />
             }
             key={preset.id}
