@@ -34,7 +34,10 @@ export function getEquipmentSelectionOutlineCanvasPoints(
   equipment: EquipmentObject,
 ) {
   const center = projection.worldToCanvas(equipment.position);
-  const { width, height } = getEquipmentRenderedCanvasSize(projection, equipment);
+  const { width, height } = getEquipmentRenderedCanvasSize(
+    projection,
+    equipment,
+  );
   const bounds =
     equipment.props.definition.selectionBounds ?? DEFAULT_SELECTION_BOUNDS;
   const angle = ((equipment.rotation ?? 0) * Math.PI) / 180;
