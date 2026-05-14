@@ -4,10 +4,10 @@ import type { Viewport } from "../../core/geometry/types";
 import { createCanvasRenderer } from "../../rendering/canvas/create-canvas-renderer";
 import type { CanvasRenderer } from "../../rendering/canvas/types";
 
-interface UseCanvasRendererOptions {
+type UseCanvasRendererOptions = {
   board: Board;
   viewport: Viewport;
-}
+};
 
 export function useCanvasRenderer({
   board,

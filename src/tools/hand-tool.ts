@@ -1,12 +1,12 @@
 import type { ToolApi, ToolDefinition } from "../core/tools/types";
 import { BoardEditorTool } from "../core/tools/tool";
 
-interface HandToolState {
+type HandToolState = {
   lastClientPoint: {
     x: number;
     y: number;
   };
-}
+};
 
 export class HandTool extends BoardEditorTool implements ToolDefinition {
   readonly id = "hand";

@@ -86,13 +86,13 @@ let cachedSecondaryActions:
     }
   | undefined;
 
-interface SelectionOverlayItem {
+type SelectionOverlayItem = {
   kind: typeof SELECTION_OVERLAY_KIND;
   object: BoardObject;
   color: string;
   selectionAdapter?: ObjectSelectionAdapter;
   [key: string]: unknown;
-}
+};
 
 export class SelectTool extends BoardEditorTool implements ToolDefinition {
   readonly id = SELECT_TOOL_ID;

@@ -14,7 +14,7 @@ import {
 
 export const ARROW_TOOL_ID = "arrow";
 
-export interface ArrowDraftStyle {
+export type ArrowDraftStyle = {
   geometry: ArrowGeometry;
   color: string;
   strokeWidth: number;
@@ -23,12 +23,12 @@ export interface ArrowDraftStyle {
   bodyStyle: ArrowBodyStyle;
   startHead: ArrowHeadStyle;
   endHead: ArrowHeadStyle;
-}
+};
 
-export interface ArrowToolState {
+export type ArrowToolState = {
   draftStyle: ArrowDraftStyle;
   pendingPoints: Point[];
-}
+};
 
 export const DEFAULT_ARROW_TOOL_STATE: ArrowToolState = {
   draftStyle: {

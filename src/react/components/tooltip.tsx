@@ -8,16 +8,16 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 
-export interface TooltipProps {
+export type TooltipProps = {
   children: ReactNode;
   content?: ReactNode;
   sideOffset?: number;
-}
+};
 
-interface TooltipPosition {
+type TooltipPosition = {
   left: number;
   top: number;
-}
+};
 
 export function Tooltip({ children, content, sideOffset = 10 }: TooltipProps) {
   const triggerRef = useRef<HTMLSpanElement>(null);

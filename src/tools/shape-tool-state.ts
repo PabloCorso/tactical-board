@@ -10,7 +10,7 @@ import { DEFAULT_SHAPE_DASH_STYLE } from "../core/objects/shape-object";
 
 export const SHAPE_TOOL_ID = "shape";
 
-export interface ShapeDraftStyle {
+export type ShapeDraftStyle = {
   kind: ShapeKind;
   color: string;
   strokeWidth: number;
@@ -19,12 +19,12 @@ export interface ShapeDraftStyle {
   fillStyle: ShapeFillStyle;
   bordered: boolean;
   fillOpacity: number;
-}
+};
 
-export interface ShapeToolState {
+export type ShapeToolState = {
   draftStyle: ShapeDraftStyle;
   pendingPoints: Point[];
-}
+};
 
 export const DEFAULT_SHAPE_TOOL_STATE: ShapeToolState = {
   draftStyle: {

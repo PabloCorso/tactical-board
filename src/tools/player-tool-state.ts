@@ -7,16 +7,16 @@ import type { ObjectAppearance } from "../core/objects/object-appearance";
 
 export const PLAYER_TOOL_ID = "player";
 
-export interface PlayerDraftStyle {
+export type PlayerDraftStyle = {
   color: string;
   size: number;
   appearance: ObjectAppearance;
-}
+};
 
-export interface PlayerToolState {
+export type PlayerToolState = {
   draftStyle: PlayerDraftStyle;
   nextNumericLabelByColor: Record<string, number>;
-}
+};
 
 export const DEFAULT_PLAYER_TOOL_STATE: PlayerToolState = {
   draftStyle: {

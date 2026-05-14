@@ -28,18 +28,18 @@ import {
 
 type PlayerToolLabelStrategy = "numeric-by-color" | "none";
 
-interface PlayerToolPreset {
+type PlayerToolPreset = {
   id: string;
   label: string;
   icon?: ToolActionIcon;
   tooltip?: string;
   draftStyle: Partial<PlayerDraftStyle>;
-}
+};
 
-interface CreatePlayerToolOptions {
+type CreatePlayerToolOptions = {
   presets?: PlayerToolPreset[];
   labelStrategy?: PlayerToolLabelStrategy;
-}
+};
 
 const playerObjectDefinition = defineObjectDefinition({
   type: PLAYER_OBJECT_TYPE,

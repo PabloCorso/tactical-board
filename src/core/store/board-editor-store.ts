@@ -22,7 +22,7 @@ import type {
   CanvasOverlayRendererRegistry,
 } from "../../rendering/canvas/types";
 
-export interface CreateBoardEditorStoreOptions {
+export type CreateBoardEditorStoreOptions = {
   initialBoard: Board;
   tools?: ToolRegistration[];
   initialToolId?: ToolId;
@@ -30,7 +30,7 @@ export interface CreateBoardEditorStoreOptions {
   objectHitTesters?: CanvasObjectHitTesterRegistry;
   overlayRenderers?: CanvasOverlayRendererRegistry;
   objectDefinitions?: ObjectDefinition[];
-}
+};
 
 export type BoardEditorStore = StoreApi<BoardEditorState>;
 

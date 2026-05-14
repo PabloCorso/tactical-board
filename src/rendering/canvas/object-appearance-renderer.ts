@@ -2,11 +2,11 @@ import type { ObjectAppearance } from "../../core/objects/object-appearance";
 
 type AppearanceImageStatus = "loading" | "loaded" | "error";
 
-interface AppearanceImageCacheEntry {
+type AppearanceImageCacheEntry = {
   image: HTMLImageElement;
   listeners: Set<() => void>;
   status: AppearanceImageStatus;
-}
+};
 
 const appearanceImageCache = new Map<string, AppearanceImageCacheEntry>();
 

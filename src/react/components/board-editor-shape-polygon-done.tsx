@@ -4,7 +4,7 @@ import { useBoardEditorStore } from "../hooks/use-board-editor-store";
 import { useBoardEditorContext } from "./board-editor-context";
 import { Button } from "./ui/button";
 import { getShapeToolState, SHAPE_TOOL_ID } from "../../tools/shape-tool-state";
-import { finishPendingPolygon } from "../../tools/shape-tool";
+import { completePendingPolygon } from "../../tools/shape-tool";
 
 const BUTTON_OFFSET_PX = 12;
 
@@ -49,7 +49,7 @@ export function BoardEditorShapePolygonDone() {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => finishPendingPolygon(toolApi)}
+          onClick={() => completePendingPolygon(toolApi)}
         >
           Done
         </Button>

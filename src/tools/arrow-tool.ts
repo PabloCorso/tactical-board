@@ -36,17 +36,17 @@ const PREVIEW_OPACITY = 0.55;
 const MIN_HIT_DISTANCE_PX = 10;
 const POLYLINE_FINISH_HIT_RADIUS_PX = 12;
 
-export interface ArrowToolPreset {
+export type ArrowToolPreset = {
   id: string;
   label: string;
   icon?: ToolActionIcon;
   tooltip?: string;
   draftStyle: Partial<ArrowDraftStyle>;
-}
+};
 
-export interface CreateArrowToolOptions {
+export type CreateArrowToolOptions = {
   presets?: ArrowToolPreset[];
-}
+};
 
 const arrowObjectDefinition = defineObjectDefinition({
   type: ARROW_OBJECT_TYPE,

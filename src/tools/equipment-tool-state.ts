@@ -2,13 +2,13 @@ import type { BoardEditorToolState } from "../core/editor/types";
 
 export const EQUIPMENT_TOOL_ID = "equipment";
 
-export interface EquipmentDraftStyle {
+export type EquipmentDraftStyle = {
   kind: string;
-}
+};
 
-export interface EquipmentToolState {
+export type EquipmentToolState = {
   draftStyle: EquipmentDraftStyle;
-}
+};
 
 export const DEFAULT_EQUIPMENT_TOOL_STATE: EquipmentToolState = {
   draftStyle: {

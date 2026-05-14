@@ -30,19 +30,19 @@ import {
 
 const PREVIEW_OPACITY = 0.55;
 
-interface CreateEquipmentToolOptions {
+type CreateEquipmentToolOptions = {
   definitions: EquipmentDefinition[];
   renderersByKind?: EquipmentCanvasRendererRegistry;
-}
+};
 
-export interface EquipmentCanvasRenderInput {
+export type EquipmentCanvasRenderInput = {
   context: CanvasRenderingContext2D;
   equipment: EquipmentObject;
   color: string;
   width: number;
   height: number;
   strokeWidth: number;
-}
+};
 
 export type EquipmentCanvasRenderer = (
   input: EquipmentCanvasRenderInput,

@@ -35,17 +35,17 @@ const PREVIEW_OPACITY = 0.55;
 const MIN_HIT_DISTANCE_PX = 10;
 const POLYGON_FINISH_HIT_RADIUS_PX = 12;
 
-interface ShapeToolPreset {
+type ShapeToolPreset = {
   id: string;
   label: string;
   icon?: ToolActionIcon;
   tooltip?: string;
   draftStyle: Partial<ShapeDraftStyle>;
-}
+};
 
-interface CreateShapeToolOptions {
+type CreateShapeToolOptions = {
   presets?: ShapeToolPreset[];
-}
+};
 
 const shapeObjectDefinition = defineObjectDefinition({
   type: SHAPE_OBJECT_TYPE,
@@ -108,7 +108,7 @@ export class ShapeTool extends BoardEditorTool implements ToolDefinition {
 
     if (shapeState.draftStyle.kind === "polygon") {
       if (shouldFinishPolygon(api, pendingPoints, event.point, event)) {
-        finishPendingPolygon(api);
+        completePendingPolygon(api);
         return;
       }
 
@@ -233,7 +233,7 @@ function cancelPendingShape(api: ToolApi) {
   api.clearPreviewObjects();
 }
 
-export function finishPendingPolygon(api: ToolApi) {
+export function completePendingPolygon(api: ToolApi) {
   const state = api.getState();
   const shapeState = getShapeToolState(state.toolState);
 

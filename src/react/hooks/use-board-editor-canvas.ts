@@ -2,9 +2,9 @@ import { useEffect, useMemo, useRef } from "react";
 import { createBoardEditorRuntime } from "../../core/editor/board-editor-runtime";
 import type { BoardEditorStore } from "../../core/store/board-editor-store";
 
-interface UseBoardEditorCanvasOptions {
+type UseBoardEditorCanvasOptions = {
   store: BoardEditorStore;
-}
+};
 
 export function useBoardEditorCanvas({ store }: UseBoardEditorCanvasOptions) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);

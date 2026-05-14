@@ -4,28 +4,28 @@ import type { ObjectSelectionInteraction } from "../core/objects/object-selectio
 
 export const SELECT_TOOL_ID = "select";
 
-interface SelectDragInteraction {
+type SelectDragInteraction = {
   mode: "drag";
   dragObjectIds: ObjectId[];
   lastPoint: Point;
-}
+};
 
-interface SelectMarqueeInteraction {
+type SelectMarqueeInteraction = {
   mode: "marquee";
   origin: Point;
   current: Point;
   baseSelection: ObjectId[];
-}
+};
 
 export type SelectToolInteraction =
   | SelectDragInteraction
   | SelectMarqueeInteraction
   | ObjectSelectionInteraction;
 
-export interface SelectToolState {
+export type SelectToolState = {
   selectedObjectIds: ObjectId[];
   interaction?: SelectToolInteraction;
-}
+};
 
 export function getSelectToolState(
   toolState: BoardEditorToolState,
