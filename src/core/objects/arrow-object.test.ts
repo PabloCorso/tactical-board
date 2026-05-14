@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   createArrowObject,
   DEFAULT_ARROW_STROKE_WIDTH,
+  getArrowBodyPolylines,
+  getArrowBodyStrokeWidth,
+  getArrowBodyStyleScale,
   getArrowCurveHandlePoint,
   getArrowCurveOffsetFromHandlePoint,
   getArrowWavyPoints,
@@ -41,6 +44,24 @@ describe("createArrowObject", () => {
 
     expect(arrow.position.x).toBeCloseTo(15);
     expect(arrow.position.y).toBeCloseTo(10);
+  });
+
+  it("keeps double arrow lines tightly spaced", () => {
+    const [topLine, bottomLine] = getArrowBodyPolylines({
+      geometry: "simple",
+      start: { x: 10, y: 10 },
+      end: { x: 20, y: 10 },
+      bodyStyle: "double",
+    });
+
+    expect(topLine?.[0]?.y).toBeCloseTo(10.9);
+    expect(bottomLine?.[0]?.y).toBeCloseTo(9.1);
+    expect(getArrowBodyStyleScale("double")).toBe(0.3);
+  });
+
+  it("uses half-width body strokes for double arrows", () => {
+    expect(getArrowBodyStrokeWidth(8, "double")).toBe(4);
+    expect(getArrowBodyStrokeWidth(8, "straight")).toBe(8);
   });
 
   it("derives start, end, and bounds from polyline points", () => {

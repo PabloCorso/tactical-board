@@ -91,7 +91,6 @@ export function ColorPicker({
             !isPresetColor && "ring-offset-surface ring-2 ring-offset-2",
           )}
           aria-label="Choose custom color"
-          title={`Custom color ${value}`}
         >
           <span
             className={cn(

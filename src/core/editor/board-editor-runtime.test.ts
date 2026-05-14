@@ -3,6 +3,7 @@ import { createBoardEditorRuntime } from "./board-editor-runtime";
 import { createBoardEditorStore } from "../store/board-editor-store";
 import { SELECT_TOOL_ID } from "../../tools/select-tool-state";
 import * as canvasRendererModule from "../../rendering/canvas/create-canvas-renderer";
+import { getViewportToFitSurface } from "./viewport-utils";
 
 function createCanvasStub(): HTMLCanvasElement {
   return {
@@ -32,6 +33,58 @@ function createCanvasStub(): HTMLCanvasElement {
 }
 
 describe("createBoardEditorRuntime", () => {
+  it("fits the initial viewport to the mounted canvas", () => {
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+          basePixelsPerUnit: 8,
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      tools: [
+        {
+          id: SELECT_TOOL_ID,
+          label: "Select",
+        },
+      ],
+    });
+    const runtime = createBoardEditorRuntime({ store });
+    const canvas = createCanvasStub();
+    const originalRequestAnimationFrame = globalThis.requestAnimationFrame;
+    const originalCancelAnimationFrame = globalThis.cancelAnimationFrame;
+    vi.stubGlobal(
+      "requestAnimationFrame",
+      vi.fn(() => 1),
+    );
+    vi.stubGlobal("cancelAnimationFrame", vi.fn());
+
+    runtime.mount(canvas);
+
+    expect(store.getState().ui.viewport).toEqual(
+      getViewportToFitSurface({
+        surface: store.getState().board.surface,
+        canvasRect: {
+          width: canvas.clientWidth,
+          height: canvas.clientHeight,
+        },
+      }),
+    );
+
+    runtime.unmount();
+    vi.unstubAllGlobals();
+    globalThis.requestAnimationFrame = originalRequestAnimationFrame;
+    globalThis.cancelAnimationFrame = originalCancelAnimationFrame;
+  });
+
   it("registers tool capabilities once even when registration updates the store", () => {
     const registerCapabilities = vi.fn(
       ({

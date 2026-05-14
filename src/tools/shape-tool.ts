@@ -31,6 +31,10 @@ const MIN_HIT_DISTANCE_PX = 10;
 const POLYGON_FINISH_HIT_RADIUS_PX = 12;
 const DIAGONAL_STRIPE_TILE_SIZE_PX = 11;
 const DIAGONAL_STRIPE_LINE_WIDTH_PX = 2.25;
+const DEFAULT_SHAPE_PREVIEW_SIZE = {
+  width: 8,
+  height: 6,
+} as const;
 
 export type ShapeToolPreset = {
   id: string;
@@ -66,9 +70,7 @@ export class ShapeTool extends BoardEditorTool implements ToolDefinition {
   }
 
   onDeactivate(api: ToolApi) {
-    if (getShapeToolState(api.getState().toolState).pendingPoints.length > 0) {
-      cancelPendingShape(api);
-    }
+    cancelPendingShape(api);
   }
 
   registerCapabilities(
@@ -85,6 +87,13 @@ export class ShapeTool extends BoardEditorTool implements ToolDefinition {
   ) {
     const state = api.getState();
     const shapeState = getShapeToolState(state.toolState);
+
+    if (shapeState.draftStyle.kind !== "polygon") {
+      clearSelection(api);
+      setPendingPoints(api, [event.point]);
+      return;
+    }
+
     const pendingPoints = shapeState.pendingPoints;
 
     if (pendingPoints.length === 0) {
@@ -93,26 +102,12 @@ export class ShapeTool extends BoardEditorTool implements ToolDefinition {
       return;
     }
 
-    if (shapeState.draftStyle.kind === "polygon") {
-      if (shouldFinishPolygon(api, pendingPoints, event.point, event)) {
-        completePendingPolygon(api);
-        return;
-      }
-
-      setPendingPoints(api, [...pendingPoints, event.point]);
+    if (shouldFinishPolygon(api, pendingPoints, event.point, event)) {
+      completePendingPolygon(api);
       return;
     }
 
-    const shapeId = createShapeId(state.board.objects.byId);
-    api.addObjects([
-      createShapeObject({
-        id: shapeId,
-        start: pendingPoints[0],
-        end: event.point,
-        ...shapeState.draftStyle,
-      }),
-    ]);
-    cancelPendingShape(api);
+    setPendingPoints(api, [...pendingPoints, event.point]);
   }
 
   onPointerMove(
@@ -139,20 +134,25 @@ export class ShapeTool extends BoardEditorTool implements ToolDefinition {
 
     if (
       shapeState.draftStyle.kind === "polygon" ||
-      shapeState.pendingPoints.length !== 1 ||
-      !event.draggedSincePointerDown
+      shapeState.pendingPoints.length !== 1
     ) {
       return;
     }
 
     const shapeId = createShapeId(state.board.objects.byId);
     api.addObjects([
-      createShapeObject({
-        id: shapeId,
-        start: shapeState.pendingPoints[0],
-        end: event.point,
-        ...shapeState.draftStyle,
-      }),
+      event.draggedSincePointerDown
+        ? createShapeObject({
+            id: shapeId,
+            start: shapeState.pendingPoints[0],
+            end: event.point,
+            ...shapeState.draftStyle,
+          })
+        : createDefaultShapePreview({
+            id: shapeId,
+            point: event.point,
+            draftStyle: shapeState.draftStyle,
+          }),
     ]);
     cancelPendingShape(api);
   }
@@ -545,7 +545,13 @@ function getPendingShapePreview(
   point: Point,
 ) {
   if (shapeState.pendingPoints.length === 0) {
-    return undefined;
+    return shapeState.draftStyle.kind === "polygon"
+      ? undefined
+      : createDefaultShapePreview({
+          id: "shape-preview",
+          point,
+          draftStyle: shapeState.draftStyle,
+        });
   }
 
   if (shapeState.draftStyle.kind === "polygon") {
@@ -561,6 +567,29 @@ function getPendingShapePreview(
     start: shapeState.pendingPoints[0],
     end: point,
     ...shapeState.draftStyle,
+  });
+}
+
+function createDefaultShapePreview({
+  id,
+  point,
+  draftStyle,
+}: {
+  id: string;
+  point: Point;
+  draftStyle: ReturnType<typeof getShapeToolState>["draftStyle"];
+}) {
+  return createShapeObject({
+    id,
+    start: {
+      x: point.x,
+      y: point.y,
+    },
+    end: {
+      x: point.x + DEFAULT_SHAPE_PREVIEW_SIZE.width,
+      y: point.y + DEFAULT_SHAPE_PREVIEW_SIZE.height,
+    },
+    ...draftStyle,
   });
 }
 

@@ -3,6 +3,7 @@ import type { CanvasRenderer } from "../../rendering/canvas/types";
 import { createBoardEditorController } from "./board-editor-controller";
 import type { BoardEditorStore } from "../store/board-editor-store";
 import type { ToolDefinition } from "../tools/types";
+import { DEFAULT_VIEWPORT, getViewportToFitSurface } from "./viewport-utils";
 
 export interface BoardEditorRuntime {
   mount: (canvas: HTMLCanvasElement) => void;
@@ -23,6 +24,7 @@ export function createBoardEditorRuntime({
   let frameId: number | null = null;
   let unsubscribe: (() => void) | null = null;
   let resizeObserver: ResizeObserver | null = null;
+  let hasAppliedInitialViewportFit = false;
 
   const registerToolCapabilities = (tool: ToolDefinition | undefined) => {
     if (!tool || registeredToolRendererIds.has(tool.id)) {
@@ -75,10 +77,30 @@ export function createBoardEditorRuntime({
       return;
     }
 
-    store.getState().actions.setCanvasRect({
+    const canvasRect = {
       width: Math.max(1, Math.floor(canvas.clientWidth)),
       height: Math.max(1, Math.floor(canvas.clientHeight)),
-    });
+    };
+    const state = store.getState();
+
+    state.actions.setCanvasRect(canvasRect);
+
+    if (
+      hasAppliedInitialViewportFit ||
+      state.ui.viewport.zoom !== DEFAULT_VIEWPORT.zoom ||
+      state.ui.viewport.pan.x !== DEFAULT_VIEWPORT.pan.x ||
+      state.ui.viewport.pan.y !== DEFAULT_VIEWPORT.pan.y
+    ) {
+      return;
+    }
+
+    state.actions.setViewport(
+      getViewportToFitSurface({
+        surface: state.board.surface,
+        canvasRect,
+      }),
+    );
+    hasAppliedInitialViewportFit = true;
   };
 
   const requestRender = () => {

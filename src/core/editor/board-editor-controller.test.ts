@@ -1548,7 +1548,7 @@ describe("createBoardEditorController", () => {
     });
   });
 
-  it("creates a rectangle shape across two clicks", () => {
+  it("shows a shape ghost preview at the pointer before placement", () => {
     const shapeTool = new ShapeTool();
     const store = createBoardEditorStore({
       initialBoard: {
@@ -1584,11 +1584,10 @@ describe("createBoardEditorController", () => {
       canvasRect,
       surfaceInset: 14,
     });
-    const startPoint = projection.worldToCanvas({ x: 10, y: 10 });
-    const endPoint = projection.worldToCanvas({ x: 24, y: 18 });
+    const previewPoint = projection.worldToCanvas({ x: 24, y: 18 });
 
-    controller.dispatchPointerEvent("onPointerDown", {
-      clientPoint: startPoint,
+    controller.dispatchPointerEvent("onPointerMove", {
+      clientPoint: previewPoint,
       pointerId: 1,
       ctrlKey: false,
       shiftKey: false,
@@ -1596,8 +1595,69 @@ describe("createBoardEditorController", () => {
       metaKey: false,
       canvasRect,
     });
+
+    expect(store.getState().rendering.previewObjects).toHaveLength(1);
+    expect(store.getState().rendering.previewObjects[0]).toMatchObject({
+      id: "shape-preview",
+      type: "shape",
+      position: { x: 28, y: 21 },
+      props: {
+        kind: "rectangle",
+        start: { x: 24, y: 18 },
+        end: { x: 32, y: 24 },
+      },
+    });
+  });
+
+  it("creates a rectangle shape with the default preview size on click", () => {
+    const shapeTool = new ShapeTool();
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      initialToolId: shapeTool.id,
+      tools: [selectTool, shapeTool],
+    });
+    const toolApi = createToolApi(store);
+    shapeTool.registerCapabilities?.(toolApi);
+
+    const controller = createBoardEditorController(store);
+    const canvasRect = {
+      left: 0,
+      top: 0,
+      width: 1000,
+      height: 500,
+    };
+    const projection = createBoardSpaceProjection({
+      surface: store.getState().board.surface,
+      viewport: store.getState().ui.viewport,
+      canvasRect,
+      surfaceInset: 14,
+    });
+    const clickPoint = projection.worldToCanvas({ x: 24, y: 18 });
+
     controller.dispatchPointerEvent("onPointerDown", {
-      clientPoint: endPoint,
+      clientPoint: clickPoint,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+    controller.dispatchPointerEvent("onPointerUp", {
+      clientPoint: clickPoint,
       pointerId: 1,
       ctrlKey: false,
       shiftKey: false,
@@ -1612,10 +1672,11 @@ describe("createBoardEditorController", () => {
     );
     expect(store.getState().board.objects.byId["shape-1"]).toMatchObject({
       type: "shape",
+      position: { x: 28, y: 21 },
       props: {
         kind: "rectangle",
-        start: { x: 10, y: 10 },
-        end: { x: 24, y: 18 },
+        start: { x: 24, y: 18 },
+        end: { x: 32, y: 24 },
       },
     });
   });

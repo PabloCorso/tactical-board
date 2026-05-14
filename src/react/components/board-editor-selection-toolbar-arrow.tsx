@@ -1,6 +1,4 @@
 import {
-  ArrowLeftIcon,
-  ArrowRightIcon,
   LineSegmentIcon,
   LineSegmentsIcon,
   TrashIcon,
@@ -16,6 +14,7 @@ import {
   type ArrowObject,
 } from "../../core/objects/arrow-object";
 import { createToolApi } from "../../core/editor/create-tool-api";
+import { BoardEditorArrowIcon } from "./board-editor-arrow-icon";
 import { useBoardEditorContext } from "./board-editor-context";
 import {
   BoardEditorToolbar,
@@ -92,62 +91,34 @@ function getHeadIcon(side: "start" | "end", head: ArrowHeadStyle): IconRender {
     return <LineSegmentIcon weight="bold" />;
   }
 
-  return side === "start" ? (
-    <ArrowLeftIcon weight="bold" />
-  ) : (
-    <ArrowRightIcon weight="bold" />
+  return (
+    <BoardEditorArrowIcon
+      draftStyle={{
+        geometry: "simple",
+        bodyStyle: "straight",
+        startHead: side === "start" ? "triangle" : "none",
+        endHead: side === "end" ? "triangle" : "none",
+      }}
+      width={20}
+      height={20}
+      layout="compact"
+    />
   );
 }
 
 function getBodyStyleIcon(bodyStyle: ArrowBodyStyle): IconRender {
   return (
-    <span className="flex h-5 w-10 items-center justify-center">
-      <svg
-        aria-hidden="true"
-        className="h-5 w-10"
-        fill="none"
-        viewBox="0 0 40 20"
-      >
-        {bodyStyle === "curved" ? (
-          <path
-            d="M5 14 C15 4, 25 4, 35 10"
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeWidth="2.5"
-          />
-        ) : bodyStyle === "wavy" ? (
-          <path
-            d="M4 10 C8 4, 12 16, 16 10 S24 4, 28 10 S32 16, 36 10"
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2.5"
-          />
-        ) : bodyStyle === "double" ? (
-          <>
-            <path
-              d="M5 7 L35 7"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeWidth="2.25"
-            />
-            <path
-              d="M5 13 L35 13"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeWidth="2.25"
-            />
-          </>
-        ) : (
-          <path
-            d="M5 10 L35 10"
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeWidth="2.5"
-          />
-        )}
-      </svg>
-    </span>
+    <BoardEditorArrowIcon
+      draftStyle={{
+        geometry: "simple",
+        bodyStyle,
+        startHead: "none",
+        endHead: "triangle",
+      }}
+      width={40}
+      height={20}
+      layout="wide"
+    />
   );
 }
 

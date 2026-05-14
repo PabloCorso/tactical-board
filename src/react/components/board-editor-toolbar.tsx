@@ -63,11 +63,7 @@ export function BoardEditorToolbarButton({
   return (
     <Tooltip>
       <TooltipTrigger>
-        <Button
-          title={ariaLabel}
-          variant={active ? "outline" : "ghost"}
-          {...props}
-        />
+        <Button variant={active ? "outline" : "ghost"} {...props} />
       </TooltipTrigger>
       <TooltipContent>{tooltip || ariaLabel}</TooltipContent>
     </Tooltip>

@@ -3,6 +3,7 @@ import {
   ARROW_OBJECT_TYPE,
   createArrowObject,
   getArrowBodyPolylines,
+  getArrowBodyStrokeWidth,
   getArrowControlPoint,
   getArrowPolylinePoints,
   type ArrowObject,
@@ -396,12 +397,15 @@ export function renderArrow({
     arrow.props.strokeWidth,
     surfaceTransform.pixelsPerUnit,
   );
+  const bodyStrokeWidth = getArrowBodyStrokeWidth(
+    strokeWidth,
+    arrow.props.bodyStyle,
+  );
 
   context.save();
   context.globalAlpha = appearance === "preview" ? PREVIEW_OPACITY : 1;
   context.strokeStyle = arrow.props.color;
   context.fillStyle = arrow.props.color;
-  context.lineWidth = strokeWidth;
   context.lineCap = "round";
   context.lineJoin = "round";
   context.setLineDash(
@@ -420,6 +424,7 @@ export function renderArrow({
       arrow.props.endHead,
     );
 
+    context.lineWidth = bodyStrokeWidth;
     drawArrowPath(context, geometry.pathPoints);
     context.stroke();
     drawArrowHead({
@@ -460,6 +465,7 @@ export function renderArrow({
         arrow.props.endHead,
       );
 
+    context.lineWidth = bodyStrokeWidth;
     for (const polyline of getArrowBodyPolylines({
       geometry: arrow.props.geometry,
       start: pathStart,

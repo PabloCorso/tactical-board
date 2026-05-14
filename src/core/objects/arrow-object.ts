@@ -19,6 +19,7 @@ const WAVE_SAMPLES_PER_SEGMENT = 8;
 const WAVE_TAIL_LENGTH = 2;
 const BODY_SAMPLE_COUNT = 24;
 const DOUBLE_LINE_OFFSET = 3;
+const DOUBLE_LINE_STYLE_SCALE = 0.4;
 const CURVE_HANDLE_OFFSET = 0.5;
 
 export interface ArrowObjectProps extends Record<string, unknown> {
@@ -310,6 +311,17 @@ export function getArrowPolylinePoints(
   return [clonePoint(props.start), clonePoint(props.end)];
 }
 
+export function getArrowBodyStyleScale(bodyStyle: ArrowBodyStyle) {
+  return bodyStyle === "double" ? DOUBLE_LINE_STYLE_SCALE : 1;
+}
+
+export function getArrowBodyStrokeWidth(
+  strokeWidth: number,
+  bodyStyle: ArrowBodyStyle,
+) {
+  return bodyStyle === "double" ? strokeWidth / 2 : strokeWidth;
+}
+
 export function getArrowBodyPolylines(
   props: Pick<
     ArrowObjectProps,
@@ -346,19 +358,22 @@ export function getArrowBodyPolylines(
     case "wavy":
       return [getArrowWavyPoints(props.start, props.end, styleScale)];
     case "double": {
+      const lineOffset =
+        DOUBLE_LINE_OFFSET * getArrowBodyStyleScale(props.bodyStyle) * styleScale;
+
       return [
         [
           offsetPointByNormal(
             props.start,
             props.start,
             props.end,
-            DOUBLE_LINE_OFFSET * styleScale,
+            lineOffset,
           ),
           offsetPointByNormal(
             props.end,
             props.start,
             props.end,
-            DOUBLE_LINE_OFFSET * styleScale,
+            lineOffset,
           ),
         ],
         [
@@ -366,13 +381,13 @@ export function getArrowBodyPolylines(
             props.start,
             props.start,
             props.end,
-            -DOUBLE_LINE_OFFSET * styleScale,
+            -lineOffset,
           ),
           offsetPointByNormal(
             props.end,
             props.start,
             props.end,
-            -DOUBLE_LINE_OFFSET * styleScale,
+            -lineOffset,
           ),
         ],
       ];
