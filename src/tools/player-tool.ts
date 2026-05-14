@@ -1,11 +1,12 @@
+import type { BoardEditorState } from "../core/editor/types";
 import type {
   ToolActionDefinition,
   ToolActionIcon,
   ToolApi,
   ToolDefinition,
 } from "../core/tools/types";
+import { BoardEditorTool } from "../core/tools/tool";
 import { defineObjectDefinition } from "../core/objects/types";
-import type { BoardEditorState } from "../core/editor/types";
 import {
   createPlayerObject,
   PLAYER_OBJECT_TYPE,
@@ -25,9 +26,9 @@ import {
   type PlayerDraftStyle,
 } from "./player-tool-state";
 
-export type PlayerToolLabelStrategy = "numeric-by-color" | "none";
+type PlayerToolLabelStrategy = "numeric-by-color" | "none";
 
-export interface PlayerToolPreset {
+interface PlayerToolPreset {
   id: string;
   label: string;
   icon?: ToolActionIcon;
@@ -35,12 +36,12 @@ export interface PlayerToolPreset {
   draftStyle: Partial<PlayerDraftStyle>;
 }
 
-export interface CreatePlayerToolOptions {
+interface CreatePlayerToolOptions {
   presets?: PlayerToolPreset[];
   labelStrategy?: PlayerToolLabelStrategy;
 }
 
-export const playerObjectDefinition = defineObjectDefinition({
+const playerObjectDefinition = defineObjectDefinition({
   type: PLAYER_OBJECT_TYPE,
   selection: playerSelectionAdapter,
 });
@@ -48,6 +49,97 @@ export const playerObjectDefinition = defineObjectDefinition({
 const PREVIEW_OPACITY = 0.55;
 const DEFAULT_PLAYER_BORDER_WIDTH_PX = 3;
 const DEFAULT_PLAYER_BORDER_COLOR = "#000000";
+
+export class PlayerTool extends BoardEditorTool implements ToolDefinition {
+  readonly id = PLAYER_TOOL_ID;
+  readonly label = "Player";
+
+  private readonly labelStrategy: PlayerToolLabelStrategy;
+  private readonly presets: PlayerToolPreset[];
+  private readonly getPresetActions?;
+
+  constructor(options: CreatePlayerToolOptions = {}) {
+    super();
+    this.labelStrategy = options.labelStrategy ?? "numeric-by-color";
+    this.presets = options.presets ?? [];
+    this.getPresetActions =
+      this.presets.length > 0
+        ? createPresetSecondaryActions(this.presets, this.labelStrategy)
+        : undefined;
+  }
+
+  getSecondaryActions(state: BoardEditorState) {
+    return this.getPresetActions?.(state) ?? [];
+  }
+
+  onActivate(api: ToolApi) {
+    const currentState = getPlayerToolState(api.getState().toolState);
+    const nextDraftStyle = {
+      ...DEFAULT_PLAYER_TOOL_STATE.draftStyle,
+      ...currentState.draftStyle,
+    };
+
+    if (this.presets.length > 0) {
+      Object.assign(nextDraftStyle, this.presets[0].draftStyle);
+    }
+
+    api.setToolState(PLAYER_TOOL_ID, {
+      ...currentState,
+      draftStyle: nextDraftStyle,
+    });
+  }
+
+  registerCapabilities(
+    api: Parameters<NonNullable<ToolDefinition["registerCapabilities"]>>[0],
+  ) {
+    api.registerObjectRenderer(PLAYER_OBJECT_TYPE, renderPlayer);
+    api.registerObjectHitTester(PLAYER_OBJECT_TYPE, hitTestPlayer);
+    api.registerObjectDefinition(playerObjectDefinition);
+  }
+
+  onPointerDown(
+    event: Parameters<NonNullable<ToolDefinition["onPointerDown"]>>[0],
+    api: ToolApi,
+  ) {
+    const state = api.getState();
+    const playerState = getPlayerToolState(state.toolState);
+    const playerId = createPlayerId(state.board.objects.byId);
+    const label =
+      this.labelStrategy === "numeric-by-color"
+        ? getNextNumericLabel(api, playerState, playerState.draftStyle.color)
+        : undefined;
+
+    clearSelection(api);
+    api.addObjects([
+      createPlayerObject({
+        id: playerId,
+        position: event.point,
+        rotation: 0,
+        size: {
+          width: playerState.draftStyle.size,
+          height: playerState.draftStyle.size,
+          mode: "world",
+          unit: state.board.surface.unit,
+        },
+        color: playerState.draftStyle.color,
+        appearance: playerState.draftStyle.appearance,
+        label,
+        unit: state.board.surface.unit,
+      }),
+    ]);
+
+    if (this.labelStrategy === "numeric-by-color") {
+      api.setToolState(PLAYER_TOOL_ID, {
+        ...playerState,
+        nextNumericLabelByColor: incrementNumericLabelForColor(
+          playerState,
+          playerState.draftStyle.color,
+          label,
+        ),
+      });
+    }
+  }
+}
 
 function normalizeColorKey(color: string) {
   return color.trim().toLowerCase();
@@ -129,7 +221,7 @@ function setPlayerToolState(
   );
 }
 
-export function setPlayerDraftStyle(
+function setPlayerDraftStyle(
   api: ToolApi,
   draftStyle: Partial<PlayerDraftStyle>,
 ) {
@@ -142,7 +234,7 @@ export function setPlayerDraftStyle(
   }));
 }
 
-export function applyPlayerPreset(
+function applyPlayerPreset(
   api: ToolApi,
   preset: Pick<PlayerToolPreset, "draftStyle">,
 ) {
@@ -244,7 +336,7 @@ function getNextNumericLabelFromState(
 function createPresetSecondaryActions(
   presets: PlayerToolPreset[],
   labelStrategy: PlayerToolLabelStrategy,
-): ToolDefinition["getSecondaryActions"] {
+): (state: BoardEditorState) => ToolActionDefinition[] {
   return (state) => {
     const playerState = getPlayerToolState(state.toolState);
 
@@ -300,83 +392,3 @@ function incrementNumericLabelForColor(
         : (playerState.nextNumericLabelByColor[colorKey] ?? 1) + 1,
   };
 }
-
-export function createPlayerTool(
-  options: CreatePlayerToolOptions = {},
-): ToolDefinition {
-  const labelStrategy = options.labelStrategy ?? "numeric-by-color";
-  const getSecondaryActions =
-    options.presets && options.presets.length > 0
-      ? createPresetSecondaryActions(options.presets, labelStrategy)
-      : undefined;
-
-  return {
-    id: PLAYER_TOOL_ID,
-    label: "Player",
-    getSecondaryActions,
-    onActivate: (api) => {
-      const currentState = getPlayerToolState(api.getState().toolState);
-      const nextDraftStyle = {
-        ...DEFAULT_PLAYER_TOOL_STATE.draftStyle,
-        ...currentState.draftStyle,
-      };
-
-      if (options.presets && options.presets.length > 0) {
-        Object.assign(nextDraftStyle, options.presets[0].draftStyle);
-      }
-
-      api.setToolState(PLAYER_TOOL_ID, {
-        ...currentState,
-        draftStyle: nextDraftStyle,
-      });
-    },
-    registerCapabilities: (api) => {
-      api.registerObjectRenderer(PLAYER_OBJECT_TYPE, renderPlayer);
-      api.registerObjectHitTester(PLAYER_OBJECT_TYPE, hitTestPlayer);
-      api.registerObjectDefinition(playerObjectDefinition);
-    },
-    onPointerDown: (event, api) => {
-      const state = api.getState();
-      const playerState = getPlayerToolState(state.toolState);
-      const playerId = createPlayerId(state.board.objects.byId);
-      const label =
-        labelStrategy === "numeric-by-color"
-          ? getNextNumericLabel(api, playerState, playerState.draftStyle.color)
-          : undefined;
-
-      clearSelection(api);
-      api.addObjects([
-        createPlayerObject({
-          id: playerId,
-          position: event.point,
-          rotation: 0,
-          size: {
-            width: playerState.draftStyle.size,
-            height: playerState.draftStyle.size,
-            mode: "world",
-            unit: state.board.surface.unit,
-          },
-          color: playerState.draftStyle.color,
-          appearance: playerState.draftStyle.appearance,
-          label,
-          unit: state.board.surface.unit,
-        }),
-      ]);
-
-      if (labelStrategy === "numeric-by-color") {
-        api.setToolState(PLAYER_TOOL_ID, {
-          ...playerState,
-          nextNumericLabelByColor: incrementNumericLabelForColor(
-            playerState,
-            playerState.draftStyle.color,
-            label,
-          ),
-        });
-      }
-    },
-    onPointerMove: () => {},
-    onPointerUp: () => {},
-  };
-}
-
-export const playerTool = createPlayerTool();

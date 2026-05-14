@@ -1,4 +1,5 @@
 import type { Point } from "../core/board/types";
+import type { BoardEditorState } from "../core/editor/types";
 import {
   createShapeObject,
   getShapePoints,
@@ -20,6 +21,7 @@ import type {
   ToolApi,
   ToolDefinition,
 } from "../core/tools/types";
+import { BoardEditorTool } from "../core/tools/tool";
 import { defineObjectDefinition } from "../core/objects/types";
 import {
   getShapeToolState,
@@ -33,7 +35,7 @@ const PREVIEW_OPACITY = 0.55;
 const MIN_HIT_DISTANCE_PX = 10;
 const POLYGON_FINISH_HIT_RADIUS_PX = 12;
 
-export interface ShapeToolPreset {
+interface ShapeToolPreset {
   id: string;
   label: string;
   icon?: ToolActionIcon;
@@ -41,14 +43,133 @@ export interface ShapeToolPreset {
   draftStyle: Partial<ShapeDraftStyle>;
 }
 
-export interface CreateShapeToolOptions {
+interface CreateShapeToolOptions {
   presets?: ShapeToolPreset[];
 }
 
-export const shapeObjectDefinition = defineObjectDefinition({
+const shapeObjectDefinition = defineObjectDefinition({
   type: SHAPE_OBJECT_TYPE,
   selection: shapeSelectionAdapter,
 });
+
+export class ShapeTool extends BoardEditorTool implements ToolDefinition {
+  readonly id = SHAPE_TOOL_ID;
+  readonly label = "Shape";
+
+  private readonly presets: ShapeToolPreset[];
+  private readonly getPresetActions?;
+
+  constructor(options: CreateShapeToolOptions = {}) {
+    super();
+    this.presets = options.presets ?? [];
+    this.getPresetActions =
+      this.presets.length > 0
+        ? createPresetSecondaryActions(this.presets)
+        : undefined;
+  }
+
+  getSecondaryActions(state: BoardEditorState) {
+    return this.getPresetActions?.(state) ?? [];
+  }
+
+  onActivate(api: ToolApi) {
+    if (this.presets.length > 0) {
+      applyShapePreset(api, this.presets[0]);
+    }
+  }
+
+  onDeactivate(api: ToolApi) {
+    if (getShapeToolState(api.getState().toolState).pendingPoints.length > 0) {
+      cancelPendingShape(api);
+    }
+  }
+
+  registerCapabilities(
+    api: Parameters<NonNullable<ToolDefinition["registerCapabilities"]>>[0],
+  ) {
+    api.registerObjectRenderer(SHAPE_OBJECT_TYPE, renderShape);
+    api.registerObjectHitTester(SHAPE_OBJECT_TYPE, hitTestShape);
+    api.registerObjectDefinition(shapeObjectDefinition);
+  }
+
+  onPointerDown(
+    event: Parameters<NonNullable<ToolDefinition["onPointerDown"]>>[0],
+    api: ToolApi,
+  ) {
+    const state = api.getState();
+    const shapeState = getShapeToolState(state.toolState);
+    const pendingPoints = shapeState.pendingPoints;
+
+    if (pendingPoints.length === 0) {
+      clearSelection(api);
+      setPendingPoints(api, [event.point]);
+      return;
+    }
+
+    if (shapeState.draftStyle.kind === "polygon") {
+      if (shouldFinishPolygon(api, pendingPoints, event.point, event)) {
+        finishPendingPolygon(api);
+        return;
+      }
+
+      setPendingPoints(api, [...pendingPoints, event.point]);
+      return;
+    }
+
+    const shapeId = createShapeId(state.board.objects.byId);
+    api.addObjects([
+      createShapeObject({
+        id: shapeId,
+        start: pendingPoints[0],
+        end: event.point,
+        ...shapeState.draftStyle,
+      }),
+    ]);
+    cancelPendingShape(api);
+  }
+
+  onPointerMove(
+    event: Parameters<NonNullable<ToolDefinition["onPointerMove"]>>[0],
+    api: ToolApi,
+  ) {
+    const shapeState = getShapeToolState(api.getState().toolState);
+    const preview = getPendingShapePreview(shapeState, event.point);
+
+    if (!preview) {
+      api.clearPreviewObjects();
+      return;
+    }
+
+    api.setPreviewObjects([preview]);
+  }
+
+  onPointerUp(
+    event: Parameters<NonNullable<ToolDefinition["onPointerUp"]>>[0],
+    api: ToolApi,
+  ) {
+    const state = api.getState();
+    const shapeState = getShapeToolState(state.toolState);
+
+    if (
+      shapeState.draftStyle.kind === "polygon" ||
+      shapeState.pendingPoints.length !== 1 ||
+      !event.draggedSincePointerDown
+    ) {
+      return;
+    }
+
+    const shapeId = createShapeId(state.board.objects.byId);
+    api.addObjects([
+      createShapeObject({
+        id: shapeId,
+        start: shapeState.pendingPoints[0],
+        end: event.point,
+        ...shapeState.draftStyle,
+      }),
+    ]);
+    cancelPendingShape(api);
+  }
+}
 
 function isShapePresetActive(
   draftStyle: ShapeDraftStyle,
@@ -83,7 +204,7 @@ function createShapeId(existingIds: Record<string, unknown>) {
   return `shape-${index}`;
 }
 
-export function applyShapePreset(
+function applyShapePreset(
   api: ToolApi,
   preset: Pick<ShapeToolPreset, "draftStyle">,
 ) {
@@ -94,21 +215,6 @@ export function applyShapePreset(
     draftStyle: {
       ...shapeState.draftStyle,
       ...preset.draftStyle,
-    },
-  });
-}
-
-export function setShapeDraftStyle(
-  api: ToolApi,
-  draftStyle: Partial<ShapeDraftStyle>,
-) {
-  const shapeState = getShapeToolState(api.getState().toolState);
-
-  api.setToolState(SHAPE_TOOL_ID, {
-    ...shapeState,
-    draftStyle: {
-      ...shapeState.draftStyle,
-      ...draftStyle,
     },
   });
 }
@@ -412,7 +518,7 @@ function hitTestShape({
 
 function createPresetSecondaryActions(
   presets: ShapeToolPreset[],
-): ToolDefinition["getSecondaryActions"] {
+): (state: BoardEditorState) => ToolActionDefinition[] {
   return (state) => {
     const shapeState = getShapeToolState(state.toolState);
 
@@ -482,103 +588,3 @@ function shouldFinishPolygon(
     POLYGON_FINISH_HIT_RADIUS_PX
   );
 }
-
-export function createShapeTool(
-  options: CreateShapeToolOptions = {},
-): ToolDefinition {
-  const getSecondaryActions =
-    options.presets && options.presets.length > 0
-      ? createPresetSecondaryActions(options.presets)
-      : undefined;
-
-  return {
-    id: SHAPE_TOOL_ID,
-    label: "Shape",
-    getSecondaryActions,
-    onActivate: (api) => {
-      if (options.presets && options.presets.length > 0) {
-        applyShapePreset(api, options.presets[0]);
-      }
-    },
-    onDeactivate: (api) => {
-      if (
-        getShapeToolState(api.getState().toolState).pendingPoints.length > 0
-      ) {
-        cancelPendingShape(api);
-      }
-    },
-    registerCapabilities: (api) => {
-      api.registerObjectRenderer(SHAPE_OBJECT_TYPE, renderShape);
-      api.registerObjectHitTester(SHAPE_OBJECT_TYPE, hitTestShape);
-      api.registerObjectDefinition(shapeObjectDefinition);
-    },
-    onPointerDown: (event, api) => {
-      const state = api.getState();
-      const shapeState = getShapeToolState(state.toolState);
-      const pendingPoints = shapeState.pendingPoints;
-
-      if (pendingPoints.length === 0) {
-        clearSelection(api);
-        setPendingPoints(api, [event.point]);
-        return;
-      }
-
-      if (shapeState.draftStyle.kind === "polygon") {
-        if (shouldFinishPolygon(api, pendingPoints, event.point, event)) {
-          finishPendingPolygon(api);
-          return;
-        }
-
-        setPendingPoints(api, [...pendingPoints, event.point]);
-        return;
-      }
-
-      const shapeId = createShapeId(state.board.objects.byId);
-      api.addObjects([
-        createShapeObject({
-          id: shapeId,
-          start: pendingPoints[0],
-          end: event.point,
-          ...shapeState.draftStyle,
-        }),
-      ]);
-      cancelPendingShape(api);
-    },
-    onPointerMove: (event, api) => {
-      const shapeState = getShapeToolState(api.getState().toolState);
-      const preview = getPendingShapePreview(shapeState, event.point);
-
-      if (!preview) {
-        api.clearPreviewObjects();
-        return;
-      }
-
-      api.setPreviewObjects([preview]);
-    },
-    onPointerUp: (event, api) => {
-      const state = api.getState();
-      const shapeState = getShapeToolState(state.toolState);
-
-      if (
-        shapeState.draftStyle.kind === "polygon" ||
-        shapeState.pendingPoints.length !== 1 ||
-        !event.draggedSincePointerDown
-      ) {
-        return;
-      }
-
-      const shapeId = createShapeId(state.board.objects.byId);
-      api.addObjects([
-        createShapeObject({
-          id: shapeId,
-          start: shapeState.pendingPoints[0],
-          end: event.point,
-          ...shapeState.draftStyle,
-        }),
-      ]);
-      cancelPendingShape(api);
-    },
-  };
-}
-
-export const shapeTool = createShapeTool();

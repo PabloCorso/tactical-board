@@ -1,5 +1,13 @@
-import type { ToolActionDefinition, ToolDefinition } from "../core/tools/types";
+import type { BoardEditorState } from "../core/editor/types";
+import type {
+  ToolActionDefinition,
+  ToolApi,
+  ToolCapabilityRegistrationApi,
+  ToolDefinition,
+  ToolPointerEvent,
+} from "../core/tools/types";
 import { defineObjectDefinition } from "../core/objects/types";
+import { BoardEditorTool } from "../core/tools/tool";
 import type {
   CanvasObjectHitTestInput,
   CanvasObjectRenderInput,
@@ -22,7 +30,7 @@ import {
 
 const PREVIEW_OPACITY = 0.55;
 
-export interface CreateEquipmentToolOptions {
+interface CreateEquipmentToolOptions {
   definitions: EquipmentDefinition[];
   renderersByKind?: EquipmentCanvasRendererRegistry;
 }
@@ -45,10 +53,97 @@ export type EquipmentCanvasRendererRegistry = Record<
   EquipmentCanvasRenderer
 >;
 
-export const equipmentObjectDefinition = defineObjectDefinition({
+const equipmentObjectDefinition = defineObjectDefinition({
   type: EQUIPMENT_OBJECT_TYPE,
   selection: equipmentSelectionAdapter,
 });
+
+export class EquipmentTool extends BoardEditorTool implements ToolDefinition {
+  readonly id = EQUIPMENT_TOOL_ID;
+  readonly label = "Equipment";
+
+  private readonly definitions: EquipmentDefinition[];
+  private readonly definitionsByKind: Record<string, EquipmentDefinition>;
+  private readonly renderEquipment;
+
+  constructor(options: CreateEquipmentToolOptions) {
+    super();
+
+    if (options.definitions.length === 0) {
+      throw new Error(
+        "createEquipmentTool requires at least one equipment definition",
+      );
+    }
+
+    this.definitions = options.definitions;
+    this.definitionsByKind = Object.fromEntries(
+      options.definitions.map((definition) => [definition.kind, definition]),
+    );
+    this.renderEquipment = createEquipmentRenderer(options.renderersByKind);
+  }
+
+  getSecondaryActions(state: BoardEditorState) {
+    return createPresetSecondaryActions(this.definitions)(state);
+  }
+
+  onActivate(api: ToolApi) {
+    const currentState = getEquipmentToolState(api.getState().toolState);
+    const fallbackKind =
+      this.definitions[0]?.kind ?? DEFAULT_EQUIPMENT_TOOL_STATE.draftStyle.kind;
+    api.setToolState(EQUIPMENT_TOOL_ID, {
+      ...currentState,
+      draftStyle: {
+        ...currentState.draftStyle,
+        kind: this.definitionsByKind[currentState.draftStyle.kind]
+          ? currentState.draftStyle.kind
+          : fallbackKind,
+      },
+    });
+  }
+
+  onDeactivate(api: ToolApi) {
+    api.clearPreviewObjects();
+  }
+
+  registerCapabilities(api: ToolCapabilityRegistrationApi) {
+    api.registerObjectRenderer(EQUIPMENT_OBJECT_TYPE, this.renderEquipment);
+    api.registerObjectHitTester(EQUIPMENT_OBJECT_TYPE, hitTestEquipment);
+    api.registerObjectDefinition(equipmentObjectDefinition);
+  }
+
+  onPointerDown(event: ToolPointerEvent, api: ToolApi) {
+    const state = api.getState();
+    const equipmentState = getEquipmentToolState(state.toolState);
+    const definition = findDefinition(
+      this.definitionsByKind,
+      equipmentState.draftStyle.kind,
+    );
+
+    if (!definition) {
+      return;
+    }
+
+    clearSelection(api);
+    api.addObjects([
+      createEquipmentObject({
+        id: createEquipmentId(state.board.objects.byId),
+        position: event.point,
+        rotation: 0,
+        size: {
+          width: definition.defaultSize.width,
+          height: definition.defaultSize.height,
+          mode: "world",
+          unit: state.board.surface.unit,
+        },
+        unit: state.board.surface.unit,
+        kind: definition.kind,
+        color: definition.color,
+        appearance: definition.appearance,
+        definition,
+      }),
+    ]);
+  }
+}
 
 function createEquipmentId(existingIds: Record<string, unknown>) {
   let index = 1;
@@ -195,7 +290,7 @@ function hitTestEquipment({
 
 function createPresetSecondaryActions(
   definitions: EquipmentDefinition[],
-): ToolDefinition["getSecondaryActions"] {
+): (state: BoardEditorState) => ToolActionDefinition[] {
   return (state) => {
     const equipmentState = getEquipmentToolState(state.toolState);
 
@@ -218,84 +313,5 @@ function createPresetSecondaryActions(
         },
       }),
     );
-  };
-}
-
-export function createEquipmentTool(
-  options: CreateEquipmentToolOptions,
-): ToolDefinition {
-  const definitions = options.definitions;
-  const renderEquipment = createEquipmentRenderer(options.renderersByKind);
-
-  if (definitions.length === 0) {
-    throw new Error(
-      "createEquipmentTool requires at least one equipment definition",
-    );
-  }
-
-  const definitionsByKind = Object.fromEntries(
-    definitions.map((definition) => [definition.kind, definition]),
-  );
-
-  return {
-    id: EQUIPMENT_TOOL_ID,
-    label: "Equipment",
-    getSecondaryActions: createPresetSecondaryActions(definitions),
-    onActivate: (api) => {
-      const currentState = getEquipmentToolState(api.getState().toolState);
-      const fallbackKind =
-        definitions[0]?.kind ?? DEFAULT_EQUIPMENT_TOOL_STATE.draftStyle.kind;
-      api.setToolState(EQUIPMENT_TOOL_ID, {
-        ...currentState,
-        draftStyle: {
-          ...currentState.draftStyle,
-          kind: definitionsByKind[currentState.draftStyle.kind]
-            ? currentState.draftStyle.kind
-            : fallbackKind,
-        },
-      });
-    },
-    onDeactivate: (api) => {
-      api.clearPreviewObjects();
-    },
-    registerCapabilities: (api) => {
-      api.registerObjectRenderer(EQUIPMENT_OBJECT_TYPE, renderEquipment);
-      api.registerObjectHitTester(EQUIPMENT_OBJECT_TYPE, hitTestEquipment);
-      api.registerObjectDefinition(equipmentObjectDefinition);
-    },
-    onPointerDown: (event, api) => {
-      const state = api.getState();
-      const equipmentState = getEquipmentToolState(state.toolState);
-      const definition = findDefinition(
-        definitionsByKind,
-        equipmentState.draftStyle.kind,
-      );
-
-      if (!definition) {
-        return;
-      }
-
-      clearSelection(api);
-      api.addObjects([
-        createEquipmentObject({
-          id: createEquipmentId(state.board.objects.byId),
-          position: event.point,
-          rotation: 0,
-          size: {
-            width: definition.defaultSize.width,
-            height: definition.defaultSize.height,
-            mode: "world",
-            unit: state.board.surface.unit,
-          },
-          unit: state.board.surface.unit,
-          kind: definition.kind,
-          color: definition.color,
-          appearance: definition.appearance,
-          definition,
-        }),
-      ]);
-    },
-    onPointerMove: () => {},
-    onPointerUp: () => {},
   };
 }

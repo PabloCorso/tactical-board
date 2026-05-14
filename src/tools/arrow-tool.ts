@@ -1,4 +1,5 @@
 import type { Point } from "../core/board/types";
+import type { BoardEditorState } from "../core/editor/types";
 import {
   ARROW_OBJECT_TYPE,
   createArrowObject,
@@ -21,6 +22,7 @@ import type {
   ToolApi,
   ToolDefinition,
 } from "../core/tools/types";
+import { BoardEditorTool } from "../core/tools/tool";
 import { defineObjectDefinition } from "../core/objects/types";
 import {
   ARROW_TOOL_ID,
@@ -46,10 +48,129 @@ export interface CreateArrowToolOptions {
   presets?: ArrowToolPreset[];
 }
 
-export const arrowObjectDefinition = defineObjectDefinition({
+const arrowObjectDefinition = defineObjectDefinition({
   type: ARROW_OBJECT_TYPE,
   selection: arrowSelectionAdapter,
 });
+
+export class ArrowTool extends BoardEditorTool implements ToolDefinition {
+  readonly id = ARROW_TOOL_ID;
+  readonly label = "Arrow";
+
+  private readonly presets: ArrowToolPreset[];
+  private readonly getPresetActions?;
+
+  constructor(options: CreateArrowToolOptions = {}) {
+    super();
+    this.presets = options.presets ?? [];
+    this.getPresetActions =
+      this.presets.length > 0
+        ? createPresetSecondaryActions(this.presets)
+        : undefined;
+  }
+
+  getSecondaryActions(state: BoardEditorState) {
+    return this.getPresetActions?.(state) ?? [];
+  }
+
+  onActivate(api: ToolApi) {
+    if (this.presets.length > 0) {
+      applyArrowPreset(api, this.presets[0]);
+    }
+  }
+
+  onDeactivate(api: ToolApi) {
+    if (getArrowToolState(api.getState().toolState).pendingPoints.length > 0) {
+      cancelPendingArrow(api);
+    }
+  }
+
+  registerCapabilities(
+    api: Parameters<NonNullable<ToolDefinition["registerCapabilities"]>>[0],
+  ) {
+    api.registerObjectRenderer(ARROW_OBJECT_TYPE, renderArrow);
+    api.registerObjectHitTester(ARROW_OBJECT_TYPE, hitTestArrow);
+    api.registerObjectDefinition(arrowObjectDefinition);
+  }
+
+  onPointerDown(
+    event: Parameters<NonNullable<ToolDefinition["onPointerDown"]>>[0],
+    api: ToolApi,
+  ) {
+    const state = api.getState();
+    const arrowState = getArrowToolState(state.toolState);
+    const pendingPoints = arrowState.pendingPoints;
+
+    if (pendingPoints.length === 0) {
+      clearSelection(api);
+      setPendingPoints(api, [event.point]);
+      return;
+    }
+
+    if (arrowState.draftStyle.geometry === "polyline") {
+      if (shouldFinishPolyline(api, pendingPoints, event.point, event)) {
+        finishPendingArrow(api);
+        return;
+      }
+
+      setPendingPoints(api, [...pendingPoints, event.point]);
+      return;
+    }
+
+    const arrowId = createArrowId(state.board.objects.byId);
+    api.addObjects([
+      createArrowObject({
+        id: arrowId,
+        start: pendingPoints[0],
+        end: event.point,
+        ...arrowState.draftStyle,
+      }),
+    ]);
+    cancelPendingArrow(api);
+  }
+
+  onPointerMove(
+    event: Parameters<NonNullable<ToolDefinition["onPointerMove"]>>[0],
+    api: ToolApi,
+  ) {
+    const arrowState = getArrowToolState(api.getState().toolState);
+    const preview = getPendingArrowPreview(arrowState, event.point);
+
+    if (!preview) {
+      api.clearPreviewObjects();
+      return;
+    }
+
+    api.setPreviewObjects([preview]);
+  }
+
+  onPointerUp(
+    event: Parameters<NonNullable<ToolDefinition["onPointerUp"]>>[0],
+    api: ToolApi,
+  ) {
+    const state = api.getState();
+    const arrowState = getArrowToolState(state.toolState);
+
+    if (
+      arrowState.draftStyle.geometry === "polyline" ||
+      arrowState.pendingPoints.length !== 1 ||
+      !event.draggedSincePointerDown
+    ) {
+      return;
+    }
+
+    const arrowId = createArrowId(state.board.objects.byId);
+    api.addObjects([
+      createArrowObject({
+        id: arrowId,
+        start: arrowState.pendingPoints[0],
+        end: event.point,
+        ...arrowState.draftStyle,
+      }),
+    ]);
+    cancelPendingArrow(api);
+  }
+}
 
 function isArrowPresetActive(
   draftStyle: ArrowDraftStyle,
@@ -84,22 +205,7 @@ function createArrowId(existingIds: Record<string, unknown>) {
   return `arrow-${index}`;
 }
 
-export function setArrowDraftStyle(
-  api: ToolApi,
-  draftStyle: Partial<ArrowDraftStyle>,
-) {
-  const arrowState = getArrowToolState(api.getState().toolState);
-
-  api.setToolState(ARROW_TOOL_ID, {
-    ...arrowState,
-    draftStyle: {
-      ...arrowState.draftStyle,
-      ...draftStyle,
-    },
-  });
-}
-
-export function applyArrowPreset(
+function applyArrowPreset(
   api: ToolApi,
   preset: Pick<ArrowToolPreset, "draftStyle">,
 ) {
@@ -503,7 +609,7 @@ function hitTestArrow({
 
 function createPresetSecondaryActions(
   presets: ArrowToolPreset[],
-): ToolDefinition["getSecondaryActions"] {
+): (state: BoardEditorState) => ToolActionDefinition[] {
   return (state) => {
     const arrowState = getArrowToolState(state.toolState);
 
@@ -573,103 +679,3 @@ function shouldFinishPolyline(
     POLYLINE_FINISH_HIT_RADIUS_PX
   );
 }
-
-export function createArrowTool(
-  options: CreateArrowToolOptions = {},
-): ToolDefinition {
-  const getSecondaryActions =
-    options.presets && options.presets.length > 0
-      ? createPresetSecondaryActions(options.presets)
-      : undefined;
-
-  return {
-    id: ARROW_TOOL_ID,
-    label: "Arrow",
-    getSecondaryActions,
-    onActivate: (api) => {
-      if (options.presets && options.presets.length > 0) {
-        applyArrowPreset(api, options.presets[0]);
-      }
-    },
-    onDeactivate: (api) => {
-      if (
-        getArrowToolState(api.getState().toolState).pendingPoints.length > 0
-      ) {
-        cancelPendingArrow(api);
-      }
-    },
-    registerCapabilities: (api) => {
-      api.registerObjectRenderer(ARROW_OBJECT_TYPE, renderArrow);
-      api.registerObjectHitTester(ARROW_OBJECT_TYPE, hitTestArrow);
-      api.registerObjectDefinition(arrowObjectDefinition);
-    },
-    onPointerDown: (event, api) => {
-      const state = api.getState();
-      const arrowState = getArrowToolState(state.toolState);
-      const pendingPoints = arrowState.pendingPoints;
-
-      if (pendingPoints.length === 0) {
-        clearSelection(api);
-        setPendingPoints(api, [event.point]);
-        return;
-      }
-
-      if (arrowState.draftStyle.geometry === "polyline") {
-        if (shouldFinishPolyline(api, pendingPoints, event.point, event)) {
-          finishPendingArrow(api);
-          return;
-        }
-
-        setPendingPoints(api, [...pendingPoints, event.point]);
-        return;
-      }
-
-      const arrowId = createArrowId(state.board.objects.byId);
-      api.addObjects([
-        createArrowObject({
-          id: arrowId,
-          start: pendingPoints[0],
-          end: event.point,
-          ...arrowState.draftStyle,
-        }),
-      ]);
-      cancelPendingArrow(api);
-    },
-    onPointerMove: (event, api) => {
-      const arrowState = getArrowToolState(api.getState().toolState);
-      const preview = getPendingArrowPreview(arrowState, event.point);
-
-      if (!preview) {
-        api.clearPreviewObjects();
-        return;
-      }
-
-      api.setPreviewObjects([preview]);
-    },
-    onPointerUp: (event, api) => {
-      const state = api.getState();
-      const arrowState = getArrowToolState(state.toolState);
-
-      if (
-        arrowState.draftStyle.geometry === "polyline" ||
-        arrowState.pendingPoints.length !== 1 ||
-        !event.draggedSincePointerDown
-      ) {
-        return;
-      }
-
-      const arrowId = createArrowId(state.board.objects.byId);
-      api.addObjects([
-        createArrowObject({
-          id: arrowId,
-          start: arrowState.pendingPoints[0],
-          end: event.point,
-          ...arrowState.draftStyle,
-        }),
-      ]);
-      cancelPendingArrow(api);
-    },
-  };
-}
-
-export const arrowTool = createArrowTool();

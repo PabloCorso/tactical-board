@@ -13,6 +13,7 @@ import type {
   ToolApi,
   ToolCapabilityRegistrationApi,
   ToolDefinition,
+  ToolRegistration,
   ToolRegistry,
 } from "../tools/types";
 import type {
@@ -23,7 +24,7 @@ import type {
 
 export interface CreateBoardEditorStoreOptions {
   initialBoard: Board;
-  tools?: ToolDefinition[];
+  tools?: ToolRegistration[];
   initialToolId?: ToolId;
   objectRenderers?: CanvasObjectRendererRegistry;
   objectHitTesters?: CanvasObjectHitTesterRegistry;
@@ -33,9 +34,15 @@ export interface CreateBoardEditorStoreOptions {
 
 export type BoardEditorStore = StoreApi<BoardEditorState>;
 
-function createToolRegistry(tools: ToolDefinition[] = []): ToolRegistry {
+function instantiateTool(tool: ToolRegistration): ToolDefinition {
+  return typeof tool === "function" ? new tool() : tool;
+}
+
+function createToolRegistry(tools: ToolRegistration[] = []): ToolRegistry {
   return {
-    definitions: Object.fromEntries(tools.map((tool) => [tool.id, tool])),
+    definitions: Object.fromEntries(
+      tools.map(instantiateTool).map((tool) => [tool.id, tool]),
+    ),
   };
 }
 
@@ -79,11 +86,12 @@ export function createBoardEditorStore({
   objectDefinitions = [],
 }: CreateBoardEditorStoreOptions): BoardEditorStore {
   const toolRegistry = createToolRegistry(tools);
+  const registeredTools = Object.values(toolRegistry.definitions);
   const objectRegistry = createObjectRegistry(objectDefinitions);
   const activeToolId =
     initialToolId && toolRegistry.definitions[initialToolId]
       ? initialToolId
-      : (tools[0]?.id ?? initialToolId ?? "");
+      : (registeredTools[0]?.id ?? initialToolId ?? "");
 
   const store = createStore<BoardEditorState>((set, get) => ({
     board: initialBoard,
@@ -497,7 +505,7 @@ export function createBoardEditorStore({
     registerObjectDefinition: store.getState().actions.registerObjectDefinition,
   };
 
-  for (const tool of tools) {
+  for (const tool of registeredTools) {
     tool.registerCapabilities?.(registrationApi);
   }
 

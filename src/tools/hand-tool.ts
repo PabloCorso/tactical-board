@@ -1,4 +1,5 @@
-import type { ToolDefinition } from "../core/tools/types";
+import type { ToolApi, ToolDefinition } from "../core/tools/types";
+import { BoardEditorTool } from "../core/tools/tool";
 
 interface HandToolState {
   lastClientPoint: {
@@ -7,15 +8,23 @@ interface HandToolState {
   };
 }
 
-export const handTool: ToolDefinition = {
-  id: "hand",
-  label: "Hand",
-  onPointerDown: (event, api) => {
+export class HandTool extends BoardEditorTool implements ToolDefinition {
+  readonly id = "hand";
+  readonly label = "Hand";
+
+  onPointerDown(
+    event: Parameters<NonNullable<ToolDefinition["onPointerDown"]>>[0],
+    api: ToolApi,
+  ) {
     api.setToolState("hand", {
       lastClientPoint: event.clientPoint,
     } satisfies HandToolState);
-  },
-  onPointerMove: (event, api) => {
+  }
+
+  onPointerMove(
+    event: Parameters<NonNullable<ToolDefinition["onPointerMove"]>>[0],
+    api: ToolApi,
+  ) {
     const toolState = api.getState().toolState.hand as
       | HandToolState
       | undefined;
@@ -30,8 +39,12 @@ export const handTool: ToolDefinition = {
     api.setToolState("hand", {
       lastClientPoint: event.clientPoint,
     } satisfies HandToolState);
-  },
-  onPointerUp: (_event, api) => {
+  }
+
+  onPointerUp(
+    _event: Parameters<NonNullable<ToolDefinition["onPointerUp"]>>[0],
+    api: ToolApi,
+  ) {
     api.clearToolState("hand");
-  },
-};
+  }
+}

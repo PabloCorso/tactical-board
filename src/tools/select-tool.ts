@@ -2,9 +2,11 @@ import type { BoardEditorState } from "../core/editor/types";
 import type {
   ToolActionDefinition,
   ToolApi,
+  ToolCapabilityRegistrationApi,
   ToolDefinition,
   ToolPointerEvent,
 } from "../core/tools/types";
+import { BoardEditorTool } from "../core/tools/tool";
 import { createBoardSpaceProjection } from "../core/geometry/board-space-projection";
 import type {
   CanvasOverlayItem,
@@ -90,6 +92,45 @@ interface SelectionOverlayItem {
   color: string;
   selectionAdapter?: ObjectSelectionAdapter;
   [key: string]: unknown;
+}
+
+export class SelectTool extends BoardEditorTool implements ToolDefinition {
+  readonly id = SELECT_TOOL_ID;
+  readonly label = "Select";
+
+  getSecondaryActions(state: BoardEditorState) {
+    return getSelectSecondaryActions(state);
+  }
+
+  getOverlayItems(state: BoardEditorState) {
+    return getSelectOverlayItems(state);
+  }
+
+  onDeactivate(api: ToolApi) {
+    clearSelection(api);
+  }
+
+  registerCapabilities(api: ToolCapabilityRegistrationApi) {
+    registerSelectOverlayRenderer(api.registerOverlayRenderer);
+  }
+
+  onPointerDown(event: ToolPointerEvent, api: ToolApi) {
+    beginSelectionInteraction(
+      event,
+      api,
+      getSelectToolState(api.getState().toolState),
+    );
+  }
+
+  onPointerMove(event: ToolPointerEvent, api: ToolApi) {
+    updateSelectionInteraction(event, api);
+  }
+
+  onPointerUp(_event: ToolPointerEvent, api: ToolApi) {
+    setSelectState(api, {
+      interaction: undefined,
+    });
+  }
 }
 
 function isSelectionOverlayItem(
@@ -216,7 +257,7 @@ function createSelectionOverlayItems(
   });
 }
 
-export function getSelectOverlayItems(
+function getSelectOverlayItems(
   state: BoardEditorState,
 ): Array<CanvasRectOverlayItem | SelectionOverlayItem> {
   const selectState = getSelectToolState(state.toolState);
@@ -247,7 +288,7 @@ export function getSelectOverlayItems(
   return overlays;
 }
 
-export function registerSelectOverlayRenderer(
+function registerSelectOverlayRenderer(
   registerOverlayRenderer: (
     overlayKind: string,
     renderer: CanvasOverlayRenderer,
@@ -505,31 +546,3 @@ function updateSelectionInteraction(event: ToolPointerEvent, api: ToolApi) {
       return;
   }
 }
-
-export const selectTool: ToolDefinition = {
-  id: SELECT_TOOL_ID,
-  label: "Select",
-  getSecondaryActions: getSelectSecondaryActions,
-  getOverlayItems: getSelectOverlayItems,
-  onDeactivate: (api) => {
-    clearSelection(api);
-  },
-  registerCapabilities: (api) => {
-    registerSelectOverlayRenderer(api.registerOverlayRenderer);
-  },
-  onPointerDown: (event, api) => {
-    beginSelectionInteraction(
-      event,
-      api,
-      getSelectToolState(api.getState().toolState),
-    );
-  },
-  onPointerMove: (event, api) => {
-    updateSelectionInteraction(event, api);
-  },
-  onPointerUp: (_event, api) => {
-    setSelectState(api, {
-      interaction: undefined,
-    });
-  },
-};

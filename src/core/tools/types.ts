@@ -132,6 +132,8 @@ export interface ToolDefinition {
   onWheel?: (event: ToolWheelEvent, api: ToolApi) => void;
 }
 
+export type ToolRegistration = ToolDefinition | (new () => ToolDefinition);
+
 export interface ToolRegistry {
   definitions: Record<ToolId, ToolDefinition>;
 }

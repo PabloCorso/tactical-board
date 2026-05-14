@@ -255,7 +255,8 @@ export function createBoardEditorController(
         metaKey: input.metaKey,
       };
 
-      handler(
+      handler.call(
+        currentTool,
         {
           ...toolPointerEvent,
           targetObjectId: getTargetObjectId(

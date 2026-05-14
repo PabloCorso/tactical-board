@@ -16,22 +16,58 @@ import {
   type PlayerObject,
 } from "../objects/player-object";
 import { createShapeObject, type ShapeObject } from "../objects/shape-object";
-import { createArrowTool, setArrowDraftStyle } from "../../tools/arrow-tool";
-import { createEquipmentTool } from "../../tools/equipment-tool";
-import { createPlayerTool, setPlayerDraftStyle } from "../../tools/player-tool";
-import { createShapeTool } from "../../tools/shape-tool";
-import { selectTool } from "../../tools/select-tool";
+import { ArrowTool } from "../../tools/arrow-tool";
+import { EquipmentTool } from "../../tools/equipment-tool";
+import { PlayerTool } from "../../tools/player-tool";
+import { ShapeTool } from "../../tools/shape-tool";
+import { SelectTool } from "../../tools/select-tool";
 import { setSelectedObjectIds } from "../../tools/select-tool-actions";
-import { getArrowToolState } from "../../tools/arrow-tool-state";
-import { getPlayerToolState } from "../../tools/player-tool-state";
-import { getSelectToolState } from "../../tools/select-tool-state";
+import {
+  ARROW_TOOL_ID,
+  getArrowToolState,
+} from "../../tools/arrow-tool-state";
+import {
+  getPlayerToolState,
+  PLAYER_TOOL_ID,
+} from "../../tools/player-tool-state";
+import {
+  getSelectToolState,
+  SELECT_TOOL_ID,
+} from "../../tools/select-tool-state";
 import { getShapeToolState } from "../../tools/shape-tool-state";
 import { FOOTBALL_PLAYER_PRESET_COLORS } from "../../examples/football/football-example-catalog";
 import { MAX_VIEWPORT_ZOOM, MIN_VIEWPORT_ZOOM } from "./viewport-utils";
 
 describe("createBoardEditorController", () => {
+  const selectTool = new SelectTool();
+  const setPlayerDraftStyle = (
+    toolApi: ReturnType<typeof createToolApi>,
+    draftStyle: Partial<ReturnType<typeof getPlayerToolState>["draftStyle"]>,
+  ) => {
+    const playerState = getPlayerToolState(toolApi.getState().toolState);
+    toolApi.setToolState(PLAYER_TOOL_ID, {
+      ...playerState,
+      draftStyle: {
+        ...playerState.draftStyle,
+        ...draftStyle,
+      },
+    });
+  };
+  const setArrowDraftStyle = (
+    toolApi: ReturnType<typeof createToolApi>,
+    draftStyle: Partial<ReturnType<typeof getArrowToolState>["draftStyle"]>,
+  ) => {
+    const arrowState = getArrowToolState(toolApi.getState().toolState);
+    toolApi.setToolState(ARROW_TOOL_ID, {
+      ...arrowState,
+      draftStyle: {
+        ...arrowState.draftStyle,
+        ...draftStyle,
+      },
+    });
+  };
   it("keeps the arrow tool in creation mode when pointer down hits an existing arrow", () => {
-    const arrowTool = createArrowTool();
+    const arrowTool = new ArrowTool();
     const existingArrow = createArrowObject({
       id: "arrow-1",
       start: { x: 10, y: 10 },
@@ -140,7 +176,7 @@ describe("createBoardEditorController", () => {
   });
 
   it("resizes a selected arrow by dragging an endpoint handle", () => {
-    const arrowTool = createArrowTool();
+    const arrowTool = new ArrowTool();
     const existingArrow = createArrowObject({
       id: "arrow-1",
       start: { x: 10, y: 10 },
@@ -169,7 +205,7 @@ describe("createBoardEditorController", () => {
         },
         style: {},
       },
-      initialToolId: selectTool.id,
+      initialToolId: SELECT_TOOL_ID,
       tools: [selectTool, arrowTool],
     });
     const toolApi = createToolApi(store);
@@ -222,8 +258,8 @@ describe("createBoardEditorController", () => {
   });
 
   it("resizes a selected shape by dragging a selection edge", () => {
-    const arrowTool = createArrowTool();
-    const shapeTool = createShapeTool();
+    const arrowTool = new ArrowTool();
+    const shapeTool = new ShapeTool();
     const existingShape = createShapeObject({
       id: "shape-1",
       kind: "rectangle",
@@ -251,7 +287,7 @@ describe("createBoardEditorController", () => {
         },
         style: {},
       },
-      initialToolId: selectTool.id,
+      initialToolId: SELECT_TOOL_ID,
       tools: [selectTool, arrowTool, shapeTool],
     });
     const toolApi = createToolApi(store);
@@ -304,7 +340,7 @@ describe("createBoardEditorController", () => {
   });
 
   it("places players with numeric labels sequenced by color", () => {
-    const playerTool = createPlayerTool();
+    const playerTool = new PlayerTool();
     const store = createBoardEditorStore({
       initialBoard: {
         id: "board-1",
@@ -435,7 +471,7 @@ describe("createBoardEditorController", () => {
   });
 
   it("seeds player numbering from existing players on the board", () => {
-    const playerTool = createPlayerTool();
+    const playerTool = new PlayerTool();
     const existingBluePlayer = createPlayerObject({
       id: "player-1",
       position: { x: 10, y: 10 },
@@ -504,7 +540,7 @@ describe("createBoardEditorController", () => {
   });
 
   it("shows the next per-color player number in preset secondary actions", () => {
-    const playerTool = createPlayerTool({
+    const playerTool = new PlayerTool({
       presets: FOOTBALL_PLAYER_PRESET_COLORS.slice(0, 6).map(
         (color, index) => ({
           id: `team-color-${index + 1}`,
@@ -570,7 +606,7 @@ describe("createBoardEditorController", () => {
         lockedAspectRatio: true,
       },
     ];
-    const equipmentTool = createEquipmentTool({
+    const equipmentTool = new EquipmentTool({
       definitions: equipmentDefinitions,
     });
     const store = createBoardEditorStore({
@@ -636,7 +672,7 @@ describe("createBoardEditorController", () => {
   });
 
   it("resizes a selected player by dragging a selection handle", () => {
-    const playerTool = createPlayerTool();
+    const playerTool = new PlayerTool();
     const existingPlayer = createPlayerObject({
       id: "player-1",
       position: { x: 10, y: 10 },
@@ -662,7 +698,7 @@ describe("createBoardEditorController", () => {
         },
         style: {},
       },
-      initialToolId: selectTool.id,
+      initialToolId: SELECT_TOOL_ID,
       tools: [selectTool, playerTool],
     });
     const toolApi = createToolApi(store);
@@ -713,7 +749,7 @@ describe("createBoardEditorController", () => {
   });
 
   it("rotates a selected player by dragging the rotation handle", () => {
-    const playerTool = createPlayerTool();
+    const playerTool = new PlayerTool();
     const existingPlayer = createPlayerObject({
       id: "player-1",
       position: { x: 10, y: 10 },
@@ -739,7 +775,7 @@ describe("createBoardEditorController", () => {
         },
         style: {},
       },
-      initialToolId: selectTool.id,
+      initialToolId: SELECT_TOOL_ID,
       tools: [selectTool, playerTool],
     });
     const toolApi = createToolApi(store);
@@ -789,7 +825,7 @@ describe("createBoardEditorController", () => {
   });
 
   it("does not snap a selected player rotation on the initial drag", () => {
-    const playerTool = createPlayerTool();
+    const playerTool = new PlayerTool();
     const existingPlayer = createPlayerObject({
       id: "player-1",
       position: { x: 10, y: 10 },
@@ -816,7 +852,7 @@ describe("createBoardEditorController", () => {
         },
         style: {},
       },
-      initialToolId: selectTool.id,
+      initialToolId: SELECT_TOOL_ID,
       tools: [selectTool, playerTool],
     });
     const toolApi = createToolApi(store);
@@ -869,7 +905,7 @@ describe("createBoardEditorController", () => {
   });
 
   it("resizes and rotates selected equipment using selection handles", () => {
-    const equipmentTool = createEquipmentTool({
+    const equipmentTool = new EquipmentTool({
       definitions: [
         {
           kind: "goal",
@@ -916,7 +952,7 @@ describe("createBoardEditorController", () => {
         },
         style: {},
       },
-      initialToolId: selectTool.id,
+      initialToolId: SELECT_TOOL_ID,
       tools: [selectTool, equipmentTool],
     });
     const toolApi = createToolApi(store);
@@ -996,7 +1032,7 @@ describe("createBoardEditorController", () => {
 
   it("renders equipment through host app adapters keyed by kind", () => {
     const customRenderer = vi.fn();
-    const equipmentTool = createEquipmentTool({
+    const equipmentTool = new EquipmentTool({
       definitions: [
         {
           kind: "football-cone",
@@ -1104,8 +1140,8 @@ describe("createBoardEditorController", () => {
   });
 
   it("resizes a selected shape by dragging a corner handle", () => {
-    const arrowTool = createArrowTool();
-    const shapeTool = createShapeTool();
+    const arrowTool = new ArrowTool();
+    const shapeTool = new ShapeTool();
     const existingShape = createShapeObject({
       id: "shape-1",
       kind: "rectangle",
@@ -1133,7 +1169,7 @@ describe("createBoardEditorController", () => {
         },
         style: {},
       },
-      initialToolId: selectTool.id,
+      initialToolId: SELECT_TOOL_ID,
       tools: [selectTool, arrowTool, shapeTool],
     });
     const toolApi = createToolApi(store);
@@ -1186,8 +1222,8 @@ describe("createBoardEditorController", () => {
   });
 
   it("rotates a selected shape using the rotate handle", () => {
-    const arrowTool = createArrowTool();
-    const shapeTool = createShapeTool();
+    const arrowTool = new ArrowTool();
+    const shapeTool = new ShapeTool();
     const existingShape = createShapeObject({
       id: "shape-rotate-1",
       kind: "rectangle",
@@ -1215,7 +1251,7 @@ describe("createBoardEditorController", () => {
         },
         style: {},
       },
-      initialToolId: selectTool.id,
+      initialToolId: SELECT_TOOL_ID,
       tools: [selectTool, arrowTool, shapeTool],
     });
     const toolApi = createToolApi(store);
@@ -1285,7 +1321,7 @@ describe("createBoardEditorController", () => {
   });
 
   it("creates a polyline arrow across multiple clicks", () => {
-    const arrowTool = createArrowTool();
+    const arrowTool = new ArrowTool();
     const store = createBoardEditorStore({
       initialBoard: {
         id: "board-1",
@@ -1382,7 +1418,7 @@ describe("createBoardEditorController", () => {
   });
 
   it("creates a rectangle shape across two clicks", () => {
-    const shapeTool = createShapeTool();
+    const shapeTool = new ShapeTool();
     const store = createBoardEditorStore({
       initialBoard: {
         id: "board-1",
@@ -1454,7 +1490,7 @@ describe("createBoardEditorController", () => {
   });
 
   it("creates a simple arrow by dragging and releasing after the first click", () => {
-    const arrowTool = createArrowTool();
+    const arrowTool = new ArrowTool();
     const store = createBoardEditorStore({
       initialBoard: {
         id: "board-1",
@@ -1535,7 +1571,7 @@ describe("createBoardEditorController", () => {
   });
 
   it("creates a rectangle shape by dragging and releasing after the first click", () => {
-    const shapeTool = createShapeTool();
+    const shapeTool = new ShapeTool();
     const store = createBoardEditorStore({
       initialBoard: {
         id: "board-1",
@@ -1616,7 +1652,7 @@ describe("createBoardEditorController", () => {
   });
 
   it("creates a polygon shape across multiple clicks", () => {
-    const shapeTool = createShapeTool({
+    const shapeTool = new ShapeTool({
       presets: [
         {
           id: "polygon",
@@ -1730,7 +1766,7 @@ describe("createBoardEditorController", () => {
   });
 
   it("resizes a selected polygon in step with the dragged corner handle", () => {
-    const shapeTool = createShapeTool();
+    const shapeTool = new ShapeTool();
     const polygon = createShapeObject({
       id: "polygon-1",
       kind: "polygon",
@@ -1763,7 +1799,7 @@ describe("createBoardEditorController", () => {
         },
         style: {},
       },
-      initialToolId: selectTool.id,
+      initialToolId: SELECT_TOOL_ID,
       tools: [selectTool, shapeTool],
     });
     const toolApi = createToolApi(store);
@@ -1819,7 +1855,7 @@ describe("createBoardEditorController", () => {
   });
 
   it("moves a selected arrow when dragging the arrow body", () => {
-    const arrowTool = createArrowTool();
+    const arrowTool = new ArrowTool();
     const existingArrow = createArrowObject({
       id: "arrow-1",
       start: { x: 10, y: 10 },
@@ -1848,7 +1884,7 @@ describe("createBoardEditorController", () => {
         },
         style: {},
       },
-      initialToolId: selectTool.id,
+      initialToolId: SELECT_TOOL_ID,
       tools: [selectTool, arrowTool],
     });
     const toolApi = createToolApi(store);
@@ -1901,7 +1937,7 @@ describe("createBoardEditorController", () => {
   });
 
   it("pans vertically on wheel regardless of the active tool", () => {
-    const playerTool = createPlayerTool();
+    const playerTool = new PlayerTool();
     const store = createBoardEditorStore({
       initialBoard: {
         id: "board-1",
@@ -1945,7 +1981,7 @@ describe("createBoardEditorController", () => {
   });
 
   it("pans horizontally on shift + wheel regardless of the active tool", () => {
-    const playerTool = createPlayerTool();
+    const playerTool = new PlayerTool();
     const store = createBoardEditorStore({
       initialBoard: {
         id: "board-1",
@@ -2004,7 +2040,7 @@ describe("createBoardEditorController", () => {
         },
         style: {},
       },
-      initialToolId: selectTool.id,
+      initialToolId: SELECT_TOOL_ID,
       tools: [selectTool],
     });
     const controller = createBoardEditorController(store);
@@ -2062,7 +2098,7 @@ describe("createBoardEditorController", () => {
         },
         style: {},
       },
-      initialToolId: selectTool.id,
+      initialToolId: SELECT_TOOL_ID,
       tools: [selectTool],
     });
     const controller = createBoardEditorController(store);
@@ -2099,7 +2135,7 @@ describe("createBoardEditorController", () => {
   });
 
   it("preserves a selected curved arrow's bend when dragging the arrow body", () => {
-    const arrowTool = createArrowTool();
+    const arrowTool = new ArrowTool();
     const existingArrow = createArrowObject({
       id: "arrow-1",
       start: { x: 10, y: 10 },
@@ -2129,7 +2165,7 @@ describe("createBoardEditorController", () => {
         },
         style: {},
       },
-      initialToolId: selectTool.id,
+      initialToolId: SELECT_TOOL_ID,
       tools: [selectTool, arrowTool],
     });
     const toolApi = createToolApi(store);
@@ -2183,7 +2219,7 @@ describe("createBoardEditorController", () => {
   });
 
   it("adjusts a selected curved arrow by dragging its curve handle", () => {
-    const arrowTool = createArrowTool();
+    const arrowTool = new ArrowTool();
     const existingArrow = createArrowObject({
       id: "arrow-1",
       start: { x: 10, y: 10 },
@@ -2217,7 +2253,7 @@ describe("createBoardEditorController", () => {
         },
         style: {},
       },
-      initialToolId: selectTool.id,
+      initialToolId: SELECT_TOOL_ID,
       tools: [selectTool, arrowTool],
     });
     const toolApi = createToolApi(store);
@@ -2269,7 +2305,7 @@ describe("createBoardEditorController", () => {
   });
 
   it("moves a selected polyline arrow vertex when dragging its handle", () => {
-    const arrowTool = createArrowTool();
+    const arrowTool = new ArrowTool();
     const existingArrow = createArrowObject({
       id: "arrow-1",
       geometry: "polyline",
@@ -2302,7 +2338,7 @@ describe("createBoardEditorController", () => {
         },
         style: {},
       },
-      initialToolId: selectTool.id,
+      initialToolId: SELECT_TOOL_ID,
       tools: [selectTool, arrowTool],
     });
     const toolApi = createToolApi(store);

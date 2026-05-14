@@ -5,7 +5,7 @@ import {
   DEFAULT_ARROW_TOOL_STATE,
   getArrowToolState,
 } from "../../tools/arrow-tool-state";
-import { createArrowTool } from "../../tools/arrow-tool";
+import { ArrowTool } from "../../tools/arrow-tool";
 import {
   DEFAULT_PLAYER_TOOL_STATE,
   getPlayerToolState,
@@ -16,15 +16,16 @@ import {
   getShapeToolState,
   SHAPE_TOOL_ID,
 } from "../../tools/shape-tool-state";
-import { createShapeTool } from "../../tools/shape-tool";
-import { createPlayerTool } from "../../tools/player-tool";
+import { ShapeTool } from "../../tools/shape-tool";
+import { PlayerTool } from "../../tools/player-tool";
 import {
   getSelectToolState,
   SELECT_TOOL_ID,
 } from "../../tools/select-tool-state";
-import { selectTool } from "../../tools/select-tool";
+import { SelectTool } from "../../tools/select-tool";
 
 describe("createBoardEditorStore", () => {
+  const selectTool = new SelectTool();
   const createStore = () =>
     createBoardEditorStore({
       initialBoard: {
@@ -72,7 +73,7 @@ describe("createBoardEditorStore", () => {
   });
 
   it("clears unfinished arrow drafts when switching tools", () => {
-    const arrowTool = createArrowTool();
+    const arrowTool = new ArrowTool();
     const store = createBoardEditorStore({
       initialBoard: {
         id: "board-1",
@@ -118,7 +119,7 @@ describe("createBoardEditorStore", () => {
   });
 
   it("clears unfinished shape drafts when switching tools", () => {
-    const shapeTool = createShapeTool();
+    const shapeTool = new ShapeTool();
     const store = createBoardEditorStore({
       initialBoard: {
         id: "board-1",
@@ -174,7 +175,7 @@ describe("createBoardEditorStore", () => {
   });
 
   it("applies the first arrow preset when activating the arrow tool", () => {
-    const arrowTool = createArrowTool({
+    const arrowTool = new ArrowTool({
       presets: [
         {
           id: "route",
@@ -232,7 +233,7 @@ describe("createBoardEditorStore", () => {
   });
 
   it("applies the first player preset when activating the player tool", () => {
-    const playerTool = createPlayerTool({
+    const playerTool = new PlayerTool({
       presets: [
         {
           id: "home",
