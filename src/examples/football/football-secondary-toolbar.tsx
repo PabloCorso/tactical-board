@@ -33,172 +33,11 @@ import {
 } from "../../tools/shape-tool-state";
 import { FOOTBALL_EQUIPMENT_DEFINITIONS } from "./equipment";
 import { FOOTBALL_PLAYER_PRESET_COLORS } from "./football-example-catalog";
-
-function ArrowPresetIcon({
-  variant,
-}: {
-  variant: "straight-solid" | "wavy" | "curved-solid" | "double" | "polyline";
-}) {
-  return (
-    <span className="flex h-5 w-10 items-center justify-center">
-      <svg
-        aria-hidden="true"
-        className="h-5 w-10"
-        fill="none"
-        viewBox="0 0 40 20"
-      >
-        {variant === "curved-solid" ? (
-          <>
-            <path
-              d="M5 14 C15 4, 24 4, 32 9"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeWidth="2.25"
-            />
-            <path
-              d="M29 5.5 L35 9 L30 14"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2.25"
-            />
-          </>
-        ) : variant === "wavy" ? (
-          <>
-            <path
-              d="M4 10 C8 4, 12 16, 16 10 S24 4, 28 10 S31 14, 33 10"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2.25"
-            />
-            <path
-              d="M30 6.5 L36 10 L30 13.5"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2.25"
-            />
-          </>
-        ) : variant === "double" ? (
-          <>
-            <path
-              d="M5 6.25 L32 6.25"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeWidth="2.25"
-            />
-            <path
-              d="M5 13.75 L32 13.75"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeWidth="2.25"
-            />
-            <path
-              d="M29 9 L35 10 L29 11"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2.25"
-            />
-          </>
-        ) : variant === "polyline" ? (
-          <>
-            <path
-              d="M5 14 L15 8 L24 12 L32 7"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2.25"
-            />
-            <path
-              d="M29 4 L35 7 L29 10"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2.25"
-            />
-          </>
-        ) : (
-          <>
-            <path
-              d="M5 10 L32 10"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeWidth="2.25"
-            />
-            <path
-              d="M29 6.5 L35 10 L29 13.5"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2.25"
-            />
-          </>
-        )}
-      </svg>
-    </span>
-  );
-}
-
-function ShapePresetIcon({
-  variant,
-}: {
-  variant: "rectangle" | "oval" | "triangle" | "diamond" | "polygon";
-}) {
-  return (
-    <span className="flex h-5 w-10 items-center justify-center">
-      <svg
-        aria-hidden="true"
-        className="h-5 w-10"
-        fill="none"
-        viewBox="0 0 40 20"
-      >
-        {variant === "oval" ? (
-          <ellipse
-            cx="20"
-            cy="10"
-            rx="11"
-            ry="6"
-            stroke="currentColor"
-            strokeWidth="2.25"
-          />
-        ) : variant === "triangle" ? (
-          <path
-            d="M20 4 L31 16 L9 16 Z"
-            stroke="currentColor"
-            strokeLinejoin="round"
-            strokeWidth="2.25"
-          />
-        ) : variant === "diamond" ? (
-          <path
-            d="M20 4 L31 10 L20 16 L9 10 Z"
-            stroke="currentColor"
-            strokeLinejoin="round"
-            strokeWidth="2.25"
-          />
-        ) : variant === "polygon" ? (
-          <path
-            d="M10 13 L15 5 L28 6 L31 14 L18 16 Z"
-            stroke="currentColor"
-            strokeLinejoin="round"
-            strokeWidth="2.25"
-          />
-        ) : (
-          <rect
-            x="9"
-            y="4"
-            width="22"
-            height="12"
-            rx="2"
-            stroke="currentColor"
-            strokeWidth="2.25"
-          />
-        )}
-      </svg>
-    </span>
-  );
-}
+import {
+  FootballArrowPresetIcon,
+  FootballEquipmentDefinitionIcon,
+  FootballShapePresetIcon,
+} from "./football-tool-icons";
 
 export const FOOTBALL_ARROW_PRESETS: Array<
   ArrowToolPreset & {
@@ -514,6 +353,9 @@ export function FootballSecondaryToolbar({
             aria-label={definition.label}
             active={equipmentState.draftStyle.kind === definition.kind}
             className="w-full justify-start"
+            iconBefore={
+              <FootballEquipmentDefinitionIcon definition={definition} size={20} />
+            }
             key={definition.kind}
             onClick={() => {
               const currentState = getEquipmentToolState(
@@ -548,7 +390,7 @@ export function FootballSecondaryToolbar({
             aria-label={preset.tooltip ?? preset.label}
             active={matchesDraftStyle(arrowState.draftStyle, preset.draftStyle)}
             className="w-full justify-start"
-            iconBefore={<ArrowPresetIcon variant={preset.variant} />}
+            iconBefore={<FootballArrowPresetIcon variant={preset.variant} />}
             key={preset.id}
             onClick={() => {
               const currentState = getArrowToolState(
@@ -586,7 +428,13 @@ export function FootballSecondaryToolbar({
               preset.draftStyle,
             )}
             className="w-full justify-start"
-            iconBefore={<ShapePresetIcon variant={preset.variant} />}
+            iconBefore={
+              <FootballShapePresetIcon
+                kind={preset.variant}
+                color="currentColor"
+                fillOpacity={0}
+              />
+            }
             key={preset.id}
             onClick={() => {
               const currentState = getShapeToolState(

@@ -28,6 +28,12 @@ import {
   FOOTBALL_SHAPE_PRESETS,
   FootballSecondaryToolbar,
 } from "./football-secondary-toolbar";
+import {
+  FootballArrowToolIcon,
+  FootballEquipmentToolIcon,
+  FootballPlayerToolIcon,
+  FootballShapeToolIcon,
+} from "./football-tool-icons";
 
 const footballArrowTool = new ArrowTool({
   presets: FOOTBALL_ARROW_PRESETS.map(
@@ -79,10 +85,22 @@ export function FootballExampleApp() {
             <BoardEditorToolbar className="flex-col">
               <BoardEditorToolControl toolId="select" />
               <BoardEditorToolControl toolId="hand" />
-              <BoardEditorToolControl toolId="player" />
-              <BoardEditorToolControl toolId="equipment" />
-              <BoardEditorToolControl toolId="arrow" />
-              <BoardEditorToolControl toolId="shape" />
+              <BoardEditorToolControl
+                toolId="player"
+                icon={<FootballPlayerToolIcon />}
+              />
+              <BoardEditorToolControl
+                toolId="equipment"
+                icon={<FootballEquipmentToolIcon />}
+              />
+              <BoardEditorToolControl
+                toolId="arrow"
+                icon={<FootballArrowToolIcon />}
+              />
+              <BoardEditorToolControl
+                toolId="shape"
+                icon={<FootballShapeToolIcon />}
+              />
             </BoardEditorToolbar>
             <FootballSecondaryToolbar className="flex-col" />
           </div>

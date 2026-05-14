@@ -7,8 +7,11 @@ import {
   getArrowPolylinePoints,
   type ArrowObject,
   type ArrowBodyStyle,
+  type ArrowGeometry,
   type ArrowHeadStyle,
+  type ArrowLineStyle,
 } from "../core/objects/arrow-object";
+import type { BoardSpaceProjection } from "../core/geometry/board-space-projection";
 import { createBoardSpaceProjection } from "../core/geometry/board-space-projection";
 import { scaleCanvasDashStyle } from "../rendering/canvas/style-scale";
 import type {
@@ -383,6 +386,89 @@ function getPolylineArrowGeometry(
     startTangent,
     endTangent,
   };
+}
+
+export function renderArrowCanvasPreview(input: {
+  context: CanvasRenderingContext2D;
+  points: Point[];
+  geometry: ArrowGeometry;
+  bodyStyle: ArrowBodyStyle;
+  color: string;
+  strokeWidth: number;
+  lineStyle: ArrowLineStyle;
+  dashStyle: number[];
+  startHead: ArrowHeadStyle;
+  endHead: ArrowHeadStyle;
+  curveOffset?: number;
+}) {
+  const {
+    context,
+    points,
+    geometry,
+    bodyStyle,
+    color,
+    strokeWidth,
+    lineStyle,
+    dashStyle,
+    startHead,
+    endHead,
+    curveOffset,
+  } = input;
+
+  if (points.length < 2) {
+    return;
+  }
+  const previewArrow =
+    geometry === "polyline"
+      ? createArrowObject({
+          id: "arrow-preview",
+          points,
+          color,
+          strokeWidth,
+          lineStyle,
+          dashStyle,
+          bodyStyle,
+          startHead,
+          endHead,
+        })
+      : createArrowObject({
+          id: "arrow-preview",
+          start: points[0],
+          end: points[points.length - 1],
+          color,
+          strokeWidth,
+          lineStyle,
+          dashStyle,
+          bodyStyle,
+          startHead,
+          endHead,
+          curveOffset,
+        });
+
+  const identityProjection: BoardSpaceProjection = {
+    frame: { x: 0, y: 0, width: 0, height: 0 },
+    zoom: 1,
+    pixelsPerUnit: 1,
+    worldOrigin: { x: 0, y: 0 },
+    worldToCanvas: (point) => point,
+    canvasToWorld: (point) => point,
+    getObjectCanvasRadius: (object) => object.size?.width ?? 0,
+    getObjectCanvasBounds: (object) => ({
+      x: object.position.x - (object.size?.width ?? 0) / 2,
+      y: object.position.y - (object.size?.height ?? 0) / 2,
+      width: object.size?.width ?? 0,
+      height: object.size?.height ?? 0,
+    }),
+    hitTestObject: () => false,
+  };
+
+  renderArrow({
+    context,
+    object: previewArrow,
+    appearance: "default",
+    requestRender: () => {},
+    surfaceTransform: identityProjection,
+  });
 }
 
 function renderArrow({
