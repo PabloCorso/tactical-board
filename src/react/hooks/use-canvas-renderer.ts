@@ -31,6 +31,13 @@ export function useCanvasRenderer({
         canvas,
         board,
         viewport,
+        requestRender: () => {
+          rendererRef.current?.render({
+            canvas,
+            board,
+            viewport,
+          });
+        },
       });
     },
     [board, viewport],
@@ -55,6 +62,13 @@ export function useCanvasRenderer({
                 canvas,
                 board,
                 viewport,
+                requestRender: () => {
+                  rendererRef.current?.render({
+                    canvas,
+                    board,
+                    viewport,
+                  });
+                },
               });
             });
 

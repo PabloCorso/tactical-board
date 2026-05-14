@@ -10,6 +10,7 @@ import {
 } from "./viewport-utils";
 
 const SURFACE_INSET = 14;
+const POINTER_DRAG_THRESHOLD_PX = 4;
 
 export interface CanvasRect {
   left: number;
@@ -115,6 +116,10 @@ export function createBoardEditorController(
   store: BoardEditorStore,
 ): BoardEditorController {
   const toolApi = createToolApi(store);
+  const pointerInteractions = new Map<
+    number,
+    { startClientPoint: Point; dragged: boolean }
+  >();
   const panViewportFromWheel = (input: BoardEditorWheelInput) => {
     const delta =
       input.shiftKey && input.deltaX === 0
@@ -169,12 +174,22 @@ export function createBoardEditorController(
     createToolPointerEvent: (input) => {
       const state = store.getState();
       const point = getBoardPoint(state, input.canvasRect, input.clientPoint);
+      const interaction = pointerInteractions.get(input.pointerId);
+      const startClientPoint =
+        interaction?.startClientPoint ?? input.clientPoint;
 
       return {
         point,
         clientPoint: input.clientPoint,
         canvasRect: input.canvasRect,
         pointerId: input.pointerId,
+        interactionStartPoint: getBoardPoint(
+          state,
+          input.canvasRect,
+          startClientPoint,
+        ),
+        interactionStartClientPoint: startClientPoint,
+        draggedSincePointerDown: interaction?.dragged ?? false,
         targetObjectId: getTargetObjectId(
           state,
           input.canvasRect,
@@ -187,19 +202,53 @@ export function createBoardEditorController(
       };
     },
     dispatchPointerEvent: (handlerName, input) => {
+      if (handlerName === "onPointerDown") {
+        pointerInteractions.set(input.pointerId, {
+          startClientPoint: input.clientPoint,
+          dragged: false,
+        });
+      } else if (handlerName === "onPointerMove") {
+        const interaction = pointerInteractions.get(input.pointerId);
+
+        if (interaction && !interaction.dragged) {
+          const dx = input.clientPoint.x - interaction.startClientPoint.x;
+          const dy = input.clientPoint.y - interaction.startClientPoint.y;
+
+          if (Math.hypot(dx, dy) >= POINTER_DRAG_THRESHOLD_PX) {
+            pointerInteractions.set(input.pointerId, {
+              ...interaction,
+              dragged: true,
+            });
+          }
+        }
+      }
+
       const state = store.getState();
       const currentTool = state.toolRegistry.definitions[state.ui.activeToolId];
       const handler = currentTool?.[handlerName];
 
       if (!handler) {
+        if (handlerName === "onPointerUp") {
+          pointerInteractions.delete(input.pointerId);
+        }
         return;
       }
 
+      const interaction = pointerInteractions.get(input.pointerId);
+      const startClientPoint =
+        interaction?.startClientPoint ?? input.clientPoint;
       const toolPointerEvent = {
         point: getBoardPoint(state, input.canvasRect, input.clientPoint),
         clientPoint: input.clientPoint,
         canvasRect: input.canvasRect,
         pointerId: input.pointerId,
+        interactionStartPoint: getBoardPoint(
+          state,
+          input.canvasRect,
+          startClientPoint,
+        ),
+        interactionStartClientPoint: startClientPoint,
+        draggedSincePointerDown: interaction?.dragged ?? false,
         ctrlKey: input.ctrlKey,
         shiftKey: input.shiftKey,
         altKey: input.altKey,
@@ -217,6 +266,10 @@ export function createBoardEditorController(
         },
         toolApi,
       );
+
+      if (handlerName === "onPointerUp") {
+        pointerInteractions.delete(input.pointerId);
+      }
     },
     dispatchWheelEvent: (input) => {
       if (input.ctrlKey || input.metaKey) {

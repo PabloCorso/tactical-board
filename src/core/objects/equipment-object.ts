@@ -4,6 +4,11 @@ import type {
   MeasurementUnit,
   Point,
 } from "../board/types";
+import {
+  cloneObjectAppearance,
+  DEFAULT_RENDER_APPEARANCE,
+  type ObjectAppearance,
+} from "./object-appearance";
 
 export const EQUIPMENT_OBJECT_TYPE = "equipment";
 const MIN_EQUIPMENT_DIMENSION = 0.25;
@@ -26,6 +31,7 @@ export interface EquipmentDefinitionSnapshot {
   label: string;
   family: EquipmentRenderFamily;
   color?: string;
+  appearance?: ObjectAppearance;
   capabilities?: EquipmentCapabilities;
   lockedAspectRatio?: boolean;
 }
@@ -34,6 +40,7 @@ export interface EquipmentObjectProps extends Record<string, unknown> {
   kind: string;
   label?: string;
   color?: string;
+  appearance: ObjectAppearance;
   definition: EquipmentDefinitionSnapshot;
 }
 
@@ -57,6 +64,7 @@ type EquipmentCoreInput = {
   kind: string;
   label?: string;
   color?: string;
+  appearance?: ObjectAppearance;
   definition: EquipmentDefinitionSnapshot;
 };
 
@@ -88,14 +96,25 @@ function normalizeEquipmentSize(
 }
 
 function getCanonicalEquipmentProps(
-  input: Pick<EquipmentCoreInput, "kind" | "label" | "color" | "definition">,
+  input: Pick<
+    EquipmentCoreInput,
+    "appearance" | "kind" | "label" | "color" | "definition"
+  >,
 ): EquipmentObjectProps {
   return {
     kind: input.kind,
     label: input.label,
     color: input.color ?? input.definition.color,
+    appearance: cloneObjectAppearance(
+      input.appearance ??
+        input.definition.appearance ??
+        DEFAULT_RENDER_APPEARANCE,
+    ),
     definition: {
       ...input.definition,
+      appearance: input.definition.appearance
+        ? cloneObjectAppearance(input.definition.appearance)
+        : undefined,
       capabilities: {
         ...input.definition.capabilities,
       },
@@ -147,6 +166,7 @@ export function updateEquipmentObject(
       kind: input.kind ?? object.props.kind,
       label: input.label ?? object.props.label,
       color: input.color ?? object.props.color,
+      appearance: input.appearance ?? object.props.appearance,
       definition: input.definition ?? object.props.definition,
     },
   );

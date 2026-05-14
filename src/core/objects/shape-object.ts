@@ -161,7 +161,7 @@ function getCanonicalShapeProps(input: ShapeCoreInput): ShapeObjectProps {
   const normalizedKind = normalizeShapeKind(input.kind);
   const points =
     normalizedKind === "polygon" ? clonePoints(input.points ?? []) : undefined;
-  let start =
+  const start =
     normalizedKind === "polygon"
       ? undefined
       : clonePoint(input.start ?? input.end ?? { x: 0, y: 0 });

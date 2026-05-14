@@ -1116,6 +1116,168 @@ describe("createBoardEditorController", () => {
     });
   });
 
+  it("creates a simple arrow by dragging and releasing after the first click", () => {
+    const arrowTool = createArrowTool();
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      initialToolId: arrowTool.id,
+      tools: [selectTool, arrowTool],
+    });
+    const toolApi = createToolApi(store);
+    arrowTool.registerRenderers?.(toolApi);
+
+    const controller = createBoardEditorController(store);
+    const canvasRect = {
+      left: 0,
+      top: 0,
+      width: 1000,
+      height: 500,
+    };
+    const projection = createBoardSpaceProjection({
+      surface: store.getState().board.surface,
+      viewport: store.getState().ui.viewport,
+      canvasRect,
+      surfaceInset: 14,
+    });
+    const startPoint = projection.worldToCanvas({ x: 10, y: 10 });
+    const endPoint = projection.worldToCanvas({ x: 24, y: 18 });
+
+    controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: startPoint,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+    controller.dispatchPointerEvent("onPointerMove", {
+      clientPoint: endPoint,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+    controller.dispatchPointerEvent("onPointerUp", {
+      clientPoint: endPoint,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    expect(store.getState().board.objects.order).toEqual(["arrow-1"]);
+    expect(getArrowToolState(store.getState().toolState).pendingPoints).toEqual(
+      [],
+    );
+    expect(store.getState().board.objects.byId["arrow-1"]).toMatchObject({
+      type: "arrow",
+      props: {
+        geometry: "simple",
+        start: { x: 10, y: 10 },
+        end: { x: 24, y: 18 },
+      },
+    });
+  });
+
+  it("creates a rectangle shape by dragging and releasing after the first click", () => {
+    const shapeTool = createShapeTool();
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      initialToolId: shapeTool.id,
+      tools: [selectTool, shapeTool],
+    });
+    const toolApi = createToolApi(store);
+    shapeTool.registerRenderers?.(toolApi);
+
+    const controller = createBoardEditorController(store);
+    const canvasRect = {
+      left: 0,
+      top: 0,
+      width: 1000,
+      height: 500,
+    };
+    const projection = createBoardSpaceProjection({
+      surface: store.getState().board.surface,
+      viewport: store.getState().ui.viewport,
+      canvasRect,
+      surfaceInset: 14,
+    });
+    const startPoint = projection.worldToCanvas({ x: 10, y: 10 });
+    const endPoint = projection.worldToCanvas({ x: 24, y: 18 });
+
+    controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: startPoint,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+    controller.dispatchPointerEvent("onPointerMove", {
+      clientPoint: endPoint,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+    controller.dispatchPointerEvent("onPointerUp", {
+      clientPoint: endPoint,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    expect(store.getState().board.objects.order).toEqual(["shape-1"]);
+    expect(getShapeToolState(store.getState().toolState).pendingPoints).toEqual(
+      [],
+    );
+    expect(store.getState().board.objects.byId["shape-1"]).toMatchObject({
+      type: "shape",
+      props: {
+        kind: "rectangle",
+        start: { x: 10, y: 10 },
+        end: { x: 24, y: 18 },
+      },
+    });
+  });
+
   it("creates a polygon shape across multiple clicks", () => {
     const shapeTool = createShapeTool({
       presets: [

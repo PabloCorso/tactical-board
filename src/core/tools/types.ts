@@ -13,6 +13,9 @@ export interface ToolPointerEvent {
   clientPoint: Point;
   canvasRect: CanvasRect;
   pointerId: number;
+  interactionStartPoint: Point;
+  interactionStartClientPoint: Point;
+  draggedSincePointerDown: boolean;
   targetObjectId?: ObjectId;
   ctrlKey: boolean;
   shiftKey: boolean;

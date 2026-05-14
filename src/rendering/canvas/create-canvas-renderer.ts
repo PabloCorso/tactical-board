@@ -229,6 +229,7 @@ export function createCanvasRenderer(): CanvasRenderer {
       canvas,
       board,
       viewport,
+      requestRender = () => {},
       previewObjects = [],
       overlayItems = [],
       objectRenderers = {},
@@ -285,6 +286,7 @@ export function createCanvasRenderer(): CanvasRenderer {
           context,
           object,
           appearance: "default",
+          requestRender,
           surfaceTransform: projection,
         });
       }
@@ -296,6 +298,7 @@ export function createCanvasRenderer(): CanvasRenderer {
           context,
           object: previewObject,
           appearance: "preview",
+          requestRender,
           surfaceTransform: projection,
         });
       }

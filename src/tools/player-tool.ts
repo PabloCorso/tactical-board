@@ -9,6 +9,7 @@ import {
   PLAYER_OBJECT_TYPE,
   type PlayerObject,
 } from "../core/objects/player-object";
+import { renderObjectAppearanceAsset } from "../rendering/canvas/object-appearance-renderer";
 import type {
   CanvasObjectHitTestInput,
   CanvasObjectRenderInput,
@@ -142,32 +143,46 @@ function renderPlayer({
   context,
   object,
   appearance,
+  requestRender,
   surfaceTransform,
 }: CanvasObjectRenderInput) {
   const player = object as PlayerObject;
   const bounds = surfaceTransform.getObjectCanvasBounds(player);
-  const center = surfaceTransform.worldToCanvas(player.position);
-  const radius = Math.min(bounds.width, bounds.height) / 2;
+  const width = Math.max(8, Math.abs(bounds.width));
+  const height = Math.max(8, Math.abs(bounds.height));
+  const radius = Math.min(width, height) / 2;
   const textColor = getContrastingTextColor(player.props.color);
 
   context.save();
   context.globalAlpha = appearance === "preview" ? PREVIEW_OPACITY : 1;
+  context.translate(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+  context.rotate(((player.rotation ?? 0) * Math.PI) / 180);
 
-  context.fillStyle = player.props.color;
-  context.beginPath();
-  context.arc(center.x, center.y, radius, 0, Math.PI * 2);
-  context.fill();
+  const renderedAsset = renderObjectAppearanceAsset({
+    appearance: player.props.appearance,
+    context,
+    height,
+    requestRender,
+    width,
+  });
 
-  context.strokeStyle = "rgba(15, 23, 42, 0.3)";
-  context.lineWidth = 1.5;
-  context.stroke();
+  if (!renderedAsset) {
+    context.fillStyle = player.props.color;
+    context.beginPath();
+    context.arc(0, 0, radius, 0, Math.PI * 2);
+    context.fill();
+
+    context.strokeStyle = "rgba(15, 23, 42, 0.3)";
+    context.lineWidth = 1.5;
+    context.stroke();
+  }
 
   if (player.props.label) {
     context.fillStyle = textColor;
     context.font = `700 ${Math.max(12, radius * 0.95)}px "ui-rounded", "SF Pro Display", sans-serif`;
     context.textAlign = "center";
     context.textBaseline = "middle";
-    context.fillText(String(player.props.label), center.x, center.y + 1);
+    context.fillText(String(player.props.label), 0, 1);
   }
 
   context.restore();

@@ -393,7 +393,6 @@ function renderArrow({
       controlPoint:
         arrow.props.bodyStyle === "curved" ? controlPoint : undefined,
       bodyStyle: arrow.props.bodyStyle,
-      strokeWidth,
       styleScale: surfaceTransform.zoom,
     })) {
       drawArrowPath(context, polyline);
@@ -481,7 +480,6 @@ function hitTestArrow({
         : undefined,
     controlPoint,
     bodyStyle: arrow.props.bodyStyle,
-    strokeWidth,
   })) {
     for (let index = 1; index < polyline.length; index += 1) {
       if (
@@ -640,7 +638,29 @@ export function createArrowTool(
 
       api.setPreviewObjects([preview]);
     },
-    onPointerUp: () => {},
+    onPointerUp: (event, api) => {
+      const state = api.getState();
+      const arrowState = getArrowToolState(state.toolState);
+
+      if (
+        arrowState.draftStyle.geometry === "polyline" ||
+        arrowState.pendingPoints.length !== 1 ||
+        !event.draggedSincePointerDown
+      ) {
+        return;
+      }
+
+      const arrowId = createArrowId(state.board.objects.byId);
+      api.addObjects([
+        createArrowObject({
+          id: arrowId,
+          start: arrowState.pendingPoints[0],
+          end: event.point,
+          ...arrowState.draftStyle,
+        }),
+      ]);
+      cancelPendingArrow(api);
+    },
   };
 }
 

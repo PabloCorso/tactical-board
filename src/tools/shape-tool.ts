@@ -3,7 +3,6 @@ import {
   createShapeObject,
   getShapePoints,
   SHAPE_OBJECT_TYPE,
-  type ShapeKind,
   type ShapeObject,
 } from "../core/objects/shape-object";
 import { createBoardSpaceProjection } from "../core/geometry/board-space-projection";
@@ -504,7 +503,29 @@ export function createShapeTool(
 
       api.setPreviewObjects([preview]);
     },
-    onPointerUp: () => {},
+    onPointerUp: (event, api) => {
+      const state = api.getState();
+      const shapeState = getShapeToolState(state.toolState);
+
+      if (
+        shapeState.draftStyle.kind === "polygon" ||
+        shapeState.pendingPoints.length !== 1 ||
+        !event.draggedSincePointerDown
+      ) {
+        return;
+      }
+
+      const shapeId = createShapeId(state.board.objects.byId);
+      api.addObjects([
+        createShapeObject({
+          id: shapeId,
+          start: shapeState.pendingPoints[0],
+          end: event.point,
+          ...shapeState.draftStyle,
+        }),
+      ]);
+      cancelPendingShape(api);
+    },
   };
 }
 

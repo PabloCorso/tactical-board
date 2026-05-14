@@ -64,6 +64,7 @@ export function createBoardEditorRuntime({
       canvas,
       board: state.board,
       viewport: state.ui.viewport,
+      requestRender,
       previewObjects: state.rendering.previewObjects,
       overlayItems,
       objectRenderers: state.rendering.objectRenderers,

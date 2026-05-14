@@ -12,6 +12,7 @@ import type { BoardSurfaceMarking } from "../../core/board/types";
 import {
   FOOTBALL_EQUIPMENT_DEFINITIONS,
   FOOTBALL_PLAYER_PRESET_COLORS,
+  PLAYER_SHIRT_SVG_BY_COLOR,
 } from "./football-example-catalog";
 
 const pitchMetrics = {
@@ -337,24 +338,33 @@ const shapeExampleEntries = shapeKinds.flatMap((kind, row) =>
 const shapeExampleObjects = Object.fromEntries(shapeExampleEntries);
 const shapeExampleOrder = shapeExampleEntries.map(([id]) => id);
 
-const playerExampleEntries = FOOTBALL_PLAYER_PRESET_COLORS.map((color, index) => {
-  const column = index % 4;
-  const row = Math.floor(index / 4);
-  const id = `player-example-${index + 1}`;
+const playerExampleEntries = FOOTBALL_PLAYER_PRESET_COLORS.map(
+  (color, index) => {
+    const column = index % 4;
+    const row = Math.floor(index / 4);
+    const id = `player-example-${index + 1}`;
 
-  return [
-    id,
-    createPlayerObject({
+    return [
       id,
-      position: {
-        x: fieldStartX + 6 + column * 4.6,
-        y: fieldStartY + 45 + row * 4.8,
-      },
-      color,
-      label: String(index + 1),
-    }),
-  ] as const;
-});
+      createPlayerObject({
+        id,
+        position: {
+          x: fieldStartX + 6 + column * 4.6,
+          y: fieldStartY + 45 + row * 4.8,
+        },
+        color,
+        appearance:
+          index === 0
+            ? {
+                kind: "svg",
+                svg: PLAYER_SHIRT_SVG_BY_COLOR[color],
+              }
+            : undefined,
+        label: "1",
+      }),
+    ] as const;
+  },
+);
 
 const playerExampleObjects = Object.fromEntries(playerExampleEntries);
 const playerExampleOrder = playerExampleEntries.map(([id]) => id);

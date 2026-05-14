@@ -4,21 +4,20 @@ import type {
   MeasurementUnit,
   Point,
 } from "../board/types";
+import {
+  cloneObjectAppearance,
+  DEFAULT_RENDER_APPEARANCE,
+  type ObjectAppearance,
+} from "./object-appearance";
 
 export const PLAYER_OBJECT_TYPE = "player";
 export const DEFAULT_PLAYER_SIZE = 2.5;
 export const DEFAULT_PLAYER_COLOR = "#111827";
 
-export type PlayerAppearance =
-  | { kind: "circle" }
-  | { kind: "image"; src: string }
-  | { kind: "sprite"; src: string }
-  | { kind: "svg"; svg: string };
-
 export interface PlayerObjectProps extends Record<string, unknown> {
   label?: string;
   color: string;
-  appearance: PlayerAppearance;
+  appearance: ObjectAppearance;
 }
 
 export type PlayerObject = BoardObject & {
@@ -33,7 +32,7 @@ type PlayerCoreInput = {
   unit?: MeasurementUnit;
   label?: string;
   color?: string;
-  appearance?: PlayerAppearance;
+  appearance?: ObjectAppearance;
 };
 
 function clonePoint(point: Point): Point {
@@ -65,7 +64,9 @@ function getCanonicalPlayerProps(input: PlayerCoreInput): PlayerObjectProps {
   return {
     label: input.label,
     color: input.color ?? DEFAULT_PLAYER_COLOR,
-    appearance: input.appearance ?? { kind: "circle" },
+    appearance: cloneObjectAppearance(
+      input.appearance ?? DEFAULT_RENDER_APPEARANCE,
+    ),
   };
 }
 

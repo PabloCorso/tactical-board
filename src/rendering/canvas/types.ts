@@ -26,6 +26,7 @@ export interface CanvasObjectRenderInput {
   context: CanvasRenderingContext2D;
   object: BoardObject;
   appearance: "default" | "preview";
+  requestRender: () => void;
   surfaceTransform: BoardSpaceProjection;
 }
 
@@ -66,6 +67,7 @@ export interface CanvasRenderRequest {
   canvas: HTMLCanvasElement;
   board: Board;
   viewport: Viewport;
+  requestRender?: () => void;
   previewObjects?: BoardObject[];
   overlayItems?: CanvasOverlayItem[];
   objectRenderers?: CanvasObjectRendererRegistry;

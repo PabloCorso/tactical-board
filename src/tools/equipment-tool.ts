@@ -9,6 +9,7 @@ import {
   type EquipmentDefinition,
   type EquipmentObject,
 } from "../core/objects/equipment-object";
+import { renderObjectAppearanceAsset } from "../rendering/canvas/object-appearance-renderer";
 import { clearSelection } from "./select-tool-actions";
 import {
   DEFAULT_EQUIPMENT_TOOL_STATE,
@@ -71,6 +72,7 @@ function renderEquipment({
   context,
   object,
   appearance,
+  requestRender,
   surfaceTransform,
 }: CanvasObjectRenderInput) {
   const equipment = object as EquipmentObject;
@@ -91,81 +93,91 @@ function renderEquipment({
   context.lineCap = "round";
   context.lineJoin = "round";
 
-  switch (equipment.props.definition.family) {
-    case "ball":
-      context.beginPath();
-      context.arc(0, 0, Math.min(width, height) / 2, 0, Math.PI * 2);
-      context.fill();
-      context.strokeStyle = "rgba(15, 23, 42, 0.35)";
-      context.stroke();
-      break;
-    case "cone":
-      context.beginPath();
-      context.moveTo(0, -height / 2);
-      context.lineTo(width / 2, height / 2);
-      context.lineTo(-width / 2, height / 2);
-      context.closePath();
-      context.fill();
-      context.globalAlpha *= 0.28;
-      context.fillStyle = "#ffffff";
-      context.fillRect(
-        -width * 0.18,
-        -height * 0.05,
-        width * 0.36,
-        height * 0.16,
-      );
-      break;
-    case "frame":
-      context.fillStyle = "transparent";
-      renderEquipmentFrame(context, equipment, width, height);
-      break;
-    case "ladder": {
-      const railInset = height * 0.28;
-      context.strokeRect(
-        -width / 2,
-        -height / 2 + railInset,
-        width,
-        height - railInset * 2,
-      );
-      const rungCount = Math.max(3, Math.round(width / 20));
-      for (let index = 1; index < rungCount; index += 1) {
-        const x = -width / 2 + (width / rungCount) * index;
+  const renderedAsset = renderObjectAppearanceAsset({
+    appearance: equipment.props.appearance,
+    context,
+    height,
+    requestRender,
+    width,
+  });
+
+  if (!renderedAsset) {
+    switch (equipment.props.definition.family) {
+      case "ball":
         context.beginPath();
-        context.moveTo(x, -height / 2 + railInset);
-        context.lineTo(x, height / 2 - railInset);
+        context.arc(0, 0, Math.min(width, height) / 2, 0, Math.PI * 2);
+        context.fill();
+        context.strokeStyle = "rgba(15, 23, 42, 0.35)";
         context.stroke();
+        break;
+      case "cone":
+        context.beginPath();
+        context.moveTo(0, -height / 2);
+        context.lineTo(width / 2, height / 2);
+        context.lineTo(-width / 2, height / 2);
+        context.closePath();
+        context.fill();
+        context.globalAlpha *= 0.28;
+        context.fillStyle = "#ffffff";
+        context.fillRect(
+          -width * 0.18,
+          -height * 0.05,
+          width * 0.36,
+          height * 0.16,
+        );
+        break;
+      case "frame":
+        context.fillStyle = "transparent";
+        renderEquipmentFrame(context, equipment, width, height);
+        break;
+      case "ladder": {
+        const railInset = height * 0.28;
+        context.strokeRect(
+          -width / 2,
+          -height / 2 + railInset,
+          width,
+          height - railInset * 2,
+        );
+        const rungCount = Math.max(3, Math.round(width / 20));
+        for (let index = 1; index < rungCount; index += 1) {
+          const x = -width / 2 + (width / rungCount) * index;
+          context.beginPath();
+          context.moveTo(x, -height / 2 + railInset);
+          context.lineTo(x, height / 2 - railInset);
+          context.stroke();
+        }
+        break;
       }
-      break;
+      case "mannequin":
+        context.beginPath();
+        context.arc(
+          0,
+          -height * 0.28,
+          Math.min(width, height) * 0.16,
+          0,
+          Math.PI * 2,
+        );
+        context.stroke();
+        context.beginPath();
+        context.roundRect(
+          -width * 0.25,
+          -height * 0.1,
+          width * 0.5,
+          height * 0.52,
+          8,
+        );
+        context.stroke();
+        context.beginPath();
+        context.moveTo(-width * 0.18, height * 0.42);
+        context.lineTo(-width * 0.3, height / 2);
+        context.moveTo(width * 0.18, height * 0.42);
+        context.lineTo(width * 0.3, height / 2);
+        context.stroke();
+        break;
+      case "pole":
+        context.fillRect(-width / 2, -height / 2, width, height);
+        break;
     }
-    case "mannequin":
-      context.beginPath();
-      context.arc(
-        0,
-        -height * 0.28,
-        Math.min(width, height) * 0.16,
-        0,
-        Math.PI * 2,
-      );
-      context.stroke();
-      context.beginPath();
-      context.roundRect(
-        -width * 0.25,
-        -height * 0.1,
-        width * 0.5,
-        height * 0.52,
-        8,
-      );
-      context.stroke();
-      context.beginPath();
-      context.moveTo(-width * 0.18, height * 0.42);
-      context.lineTo(-width * 0.3, height / 2);
-      context.moveTo(width * 0.18, height * 0.42);
-      context.lineTo(width * 0.3, height / 2);
-      context.stroke();
-      break;
-    case "pole":
-      context.fillRect(-width / 2, -height / 2, width, height);
-      break;
   }
 
   if (equipment.props.label) {
@@ -238,7 +250,9 @@ export function createEquipmentTool(
   const definitions = options.definitions;
 
   if (definitions.length === 0) {
-    throw new Error("createEquipmentTool requires at least one equipment definition");
+    throw new Error(
+      "createEquipmentTool requires at least one equipment definition",
+    );
   }
 
   const definitionsByKind = Object.fromEntries(
@@ -297,6 +311,7 @@ export function createEquipmentTool(
           unit: state.board.surface.unit,
           kind: definition.kind,
           color: definition.color,
+          appearance: definition.appearance,
           definition,
         }),
       ]);
