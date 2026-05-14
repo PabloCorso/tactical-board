@@ -10,10 +10,10 @@ import {
 } from "../../core/objects/shape-object";
 import type { BoardSurfaceMarking } from "../../core/board/types";
 import {
-  FOOTBALL_EQUIPMENT_DEFINITIONS,
   FOOTBALL_PLAYER_PRESET_COLORS,
   PLAYER_SHIRT_SVG_BY_COLOR,
 } from "./football-example-catalog";
+import { FOOTBALL_EQUIPMENT_DEFINITIONS } from "./equipment";
 
 const pitchMetrics = {
   field: { length: 105, width: 68 },

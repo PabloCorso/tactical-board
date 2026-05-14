@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createBoardEditorController } from "./board-editor-controller";
 import { createToolApi } from "./create-tool-api";
 import { createBoardSpaceProjection } from "../geometry/board-space-projection";
@@ -992,6 +992,115 @@ describe("createBoardEditorController", () => {
     ).toMatchObject({
       rotation: 198.43494882292202,
     });
+  });
+
+  it("renders equipment through host app adapters keyed by kind", () => {
+    const customRenderer = vi.fn();
+    const equipmentTool = createEquipmentTool({
+      definitions: [
+        {
+          kind: "football-cone",
+          label: "Football Cone",
+          family: "training-marker",
+          defaultSize: { width: 1.8, height: 2.2 },
+          color: "#ff6b35",
+          lockedAspectRatio: true,
+        },
+      ],
+      renderersByKind: {
+        "football-cone": customRenderer,
+      },
+    });
+    const equipment = createEquipmentObject({
+      id: "equipment-1",
+      position: { x: 10, y: 10 },
+      size: { width: 1.8, height: 2.2, mode: "world", unit: "m" },
+      kind: "football-cone",
+      color: "#ff6b35",
+      definition: {
+        kind: "football-cone",
+        label: "Football Cone",
+        family: "training-marker",
+        color: "#ff6b35",
+        lockedAspectRatio: true,
+      },
+    });
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+          unit: "m",
+        },
+        objects: {
+          byId: {
+            [equipment.id]: equipment,
+          },
+          order: [equipment.id],
+        },
+        style: {},
+      },
+      initialToolId: equipmentTool.id,
+      tools: [selectTool, equipmentTool],
+    });
+    const toolApi = createToolApi(store);
+    equipmentTool.registerCapabilities?.(toolApi);
+
+    const renderer = store.getState().rendering.objectRenderers[equipment.type];
+    const context = {
+      save: vi.fn(),
+      restore: vi.fn(),
+      translate: vi.fn(),
+      rotate: vi.fn(),
+      beginPath: vi.fn(),
+      closePath: vi.fn(),
+      moveTo: vi.fn(),
+      lineTo: vi.fn(),
+      fill: vi.fn(),
+      stroke: vi.fn(),
+      fillRect: vi.fn(),
+      arc: vi.fn(),
+      roundRect: vi.fn(),
+      strokeRect: vi.fn(),
+      ellipse: vi.fn(),
+      scale: vi.fn(),
+      quadraticCurveTo: vi.fn(),
+      drawImage: vi.fn(),
+      globalAlpha: 1,
+      strokeStyle: "",
+      fillStyle: "",
+      lineWidth: 0,
+      lineCap: "butt",
+      lineJoin: "miter",
+    } as unknown as CanvasRenderingContext2D;
+
+    renderer({
+      context,
+      object: equipment,
+      appearance: "default",
+      requestRender: vi.fn(),
+      surfaceTransform: {
+        getObjectCanvasBounds: () => ({
+          x: 40,
+          y: 30,
+          width: 18,
+          height: 22,
+        }),
+      } as never,
+    });
+
+    expect(customRenderer).toHaveBeenCalledTimes(1);
+    expect(customRenderer).toHaveBeenCalledWith(
+      expect.objectContaining({
+        equipment,
+        color: "#ff6b35",
+        width: 18,
+        height: 22,
+      }),
+    );
   });
 
   it("resizes a selected shape by dragging a corner handle", () => {

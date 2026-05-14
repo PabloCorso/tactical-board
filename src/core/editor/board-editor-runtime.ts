@@ -3,7 +3,6 @@ import type { CanvasRenderer } from "../../rendering/canvas/types";
 import { createBoardEditorController } from "./board-editor-controller";
 import type { BoardEditorStore } from "../store/board-editor-store";
 import type { ToolDefinition } from "../tools/types";
-import { getSelectOverlayItems } from "../../tools/select-tool";
 
 export interface BoardEditorRuntime {
   mount: (canvas: HTMLCanvasElement) => void;
@@ -55,12 +54,9 @@ export function createBoardEditorRuntime({
     }
 
     const state = store.getState();
-    const activeTool = state.toolRegistry.definitions[state.ui.activeToolId];
-    const activeToolOverlayItems = activeTool?.getOverlayItems?.(state) ?? [];
-    const overlayItems =
-      activeTool?.id === "select"
-        ? activeToolOverlayItems
-        : [...getSelectOverlayItems(state), ...activeToolOverlayItems];
+    const overlayItems = Object.values(state.toolRegistry.definitions).flatMap(
+      (tool) => tool.getOverlayItems?.(state) ?? [],
+    );
 
     renderer.render({
       canvas,

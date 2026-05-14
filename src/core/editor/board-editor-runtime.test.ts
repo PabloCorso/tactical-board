@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createBoardEditorRuntime } from "./board-editor-runtime";
 import { createBoardEditorStore } from "../store/board-editor-store";
 import { SELECT_TOOL_ID } from "../../tools/select-tool-state";
+import * as canvasRendererModule from "../../rendering/canvas/create-canvas-renderer";
 
 function createCanvasStub(): HTMLCanvasElement {
   return {
@@ -69,9 +70,11 @@ describe("createBoardEditorRuntime", () => {
     });
     const runtime = createBoardEditorRuntime({ store });
     const canvas = createCanvasStub();
-    const requestAnimationFrameSpy = vi
-      .spyOn(globalThis, "requestAnimationFrame")
-      .mockImplementation(() => 1);
+    const originalRequestAnimationFrame = globalThis.requestAnimationFrame;
+    const originalCancelAnimationFrame = globalThis.cancelAnimationFrame;
+    vi.stubGlobal("requestAnimationFrame", vi.fn(() => 1));
+    vi.stubGlobal("cancelAnimationFrame", vi.fn());
+    registerCapabilities.mockClear();
 
     runtime.mount(canvas);
 
@@ -81,6 +84,86 @@ describe("createBoardEditorRuntime", () => {
     );
 
     runtime.unmount();
-    requestAnimationFrameSpy.mockRestore();
+    vi.unstubAllGlobals();
+    globalThis.requestAnimationFrame = originalRequestAnimationFrame;
+    globalThis.cancelAnimationFrame = originalCancelAnimationFrame;
+  });
+
+  it("renders overlay items from registered tools without special-casing the active tool", () => {
+    const render = vi.fn();
+    const createCanvasRendererSpy = vi
+      .spyOn(canvasRendererModule, "createCanvasRenderer")
+      .mockReturnValue({ render });
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      initialToolId: "draw",
+      tools: [
+        {
+          id: SELECT_TOOL_ID,
+          label: "Select",
+          getOverlayItems: () => [
+            {
+              kind: "rect",
+              x: 1,
+              y: 2,
+              width: 3,
+              height: 4,
+            },
+          ],
+        },
+        {
+          id: "draw",
+          label: "Draw",
+        },
+      ],
+    });
+    const runtime = createBoardEditorRuntime({ store });
+    const canvas = createCanvasStub();
+    const originalRequestAnimationFrame = globalThis.requestAnimationFrame;
+    const originalCancelAnimationFrame = globalThis.cancelAnimationFrame;
+    vi.stubGlobal(
+      "requestAnimationFrame",
+      vi.fn((callback: FrameRequestCallback) => {
+        callback(0);
+        return 1;
+      }),
+    );
+    vi.stubGlobal("cancelAnimationFrame", vi.fn());
+
+    runtime.mount(canvas);
+
+    expect(render).toHaveBeenCalled();
+    expect(render).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        overlayItems: [
+          {
+            kind: "rect",
+            x: 1,
+            y: 2,
+            width: 3,
+            height: 4,
+          },
+        ],
+      }),
+    );
+
+    runtime.unmount();
+    vi.unstubAllGlobals();
+    globalThis.requestAnimationFrame = originalRequestAnimationFrame;
+    globalThis.cancelAnimationFrame = originalCancelAnimationFrame;
+    createCanvasRendererSpy.mockRestore();
   });
 });

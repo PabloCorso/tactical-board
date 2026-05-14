@@ -1,0 +1,51 @@
+import type { FootballEquipmentSpec } from "./types";
+
+const LADDER_METRICS = {
+  width: 3.8,
+  height: 14,
+  railStrokeWidth: 0.4,
+  rungStrokeWidth: 0.4,
+  rungCount: 6,
+} as const;
+
+export const ladderEquipment: FootballEquipmentSpec = {
+  definition: {
+    kind: "ladder",
+    label: "Ladder",
+    family: "ladder",
+    defaultSize: { width: LADDER_METRICS.width, height: LADDER_METRICS.height },
+    color: "#0f172a",
+    capabilities: { color: true },
+    lockedAspectRatio: true,
+  },
+  renderer: ({ context, color, width, height }) => {
+    const leftX = -width / 2;
+    const rightX = width / 2;
+    const topY = -height / 2;
+    const bottomY = height / 2;
+    const rungStep = height / (LADDER_METRICS.rungCount + 1);
+    const strokeWidth = Math.max(
+      1,
+      width * (LADDER_METRICS.railStrokeWidth / LADDER_METRICS.width),
+    );
+
+    context.strokeStyle = color;
+    context.lineWidth = strokeWidth;
+    context.lineCap = "round";
+
+    context.beginPath();
+    context.moveTo(leftX, topY);
+    context.lineTo(leftX, bottomY);
+    context.moveTo(rightX, topY);
+    context.lineTo(rightX, bottomY);
+    context.stroke();
+
+    for (let index = 0; index < LADDER_METRICS.rungCount; index += 1) {
+      const y = topY + rungStep * (index + 1);
+      context.beginPath();
+      context.moveTo(leftX, y);
+      context.lineTo(rightX, y);
+      context.stroke();
+    }
+  },
+};

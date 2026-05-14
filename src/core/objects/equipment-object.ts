@@ -13,13 +13,17 @@ import {
 export const EQUIPMENT_OBJECT_TYPE = "equipment";
 const MIN_EQUIPMENT_DIMENSION = 0.25;
 
-export type EquipmentRenderFamily =
+export type DefaultEquipmentRenderFamily =
   | "ball"
   | "cone"
   | "frame"
   | "ladder"
   | "mannequin"
   | "pole";
+
+export type EquipmentRenderFamily =
+  | DefaultEquipmentRenderFamily
+  | (string & {});
 
 export interface EquipmentCapabilities {
   color?: boolean;

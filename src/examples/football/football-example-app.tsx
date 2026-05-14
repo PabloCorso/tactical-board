@@ -19,6 +19,9 @@ import { createShapeTool } from "../../tools/shape-tool";
 import { selectTool } from "../../tools/select-tool";
 import {
   FOOTBALL_EQUIPMENT_DEFINITIONS,
+  FOOTBALL_EQUIPMENT_RENDERERS,
+} from "./equipment";
+import {
   FOOTBALL_PLAYER_PRESET_COLORS,
 } from "./football-example-catalog";
 import { footballBoardExample } from "./football-board-example";
@@ -131,6 +134,7 @@ const footballPlayerTool = createPlayerTool({
 
 const footballEquipmentTool = createEquipmentTool({
   definitions: FOOTBALL_EQUIPMENT_DEFINITIONS,
+  renderersByKind: FOOTBALL_EQUIPMENT_RENDERERS,
 });
 
 const store = createBoardEditorStore({
