@@ -1,6 +1,5 @@
 export type BoardId = string;
 export type ObjectId = string;
-export type SurfacePresetId = string;
 export type ObjectType = string;
 export type ToolId = string;
 export type SkinId = string;
@@ -49,7 +48,6 @@ export interface ObjectIndex {
 }
 
 export interface BoardSurfaceConfig {
-  presetId?: SurfacePresetId;
   width: number;
   height: number;
   unit?: MeasurementUnit;

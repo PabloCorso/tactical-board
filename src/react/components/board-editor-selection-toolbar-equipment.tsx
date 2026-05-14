@@ -45,20 +45,6 @@ export function BoardEditorEquipmentSelectionToolbar({
         }}
       >
         <BoardEditorToolbar className={className}>
-          {capabilities.label ? (
-            <label className="focus-within:focus-ring border-default bg-screen flex h-10 items-center rounded-lg border px-2">
-              <span className="sr-only">Equipment label</span>
-              <input
-                aria-label="Equipment label"
-                className="text-primary w-18 bg-transparent text-center text-sm font-medium outline-none"
-                onChange={(event) =>
-                  updateEquipment({ label: event.target.value })
-                }
-                value={selectedObject.props.label ?? ""}
-              />
-            </label>
-          ) : null}
-
           {capabilities.color ? (
             <BoardEditorToolbarPopoverButton
               ariaLabel="Equipment color"

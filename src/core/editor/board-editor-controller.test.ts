@@ -11,8 +11,11 @@ import {
   createEquipmentObject,
   type EquipmentDefinition,
 } from "../objects/equipment-object";
-import { createPlayerObject } from "../objects/player-object";
-import { createShapeObject } from "../objects/shape-object";
+import {
+  createPlayerObject,
+  type PlayerObject,
+} from "../objects/player-object";
+import { createShapeObject, type ShapeObject } from "../objects/shape-object";
 import { createArrowTool, setArrowDraftStyle } from "../../tools/arrow-tool";
 import { createEquipmentTool } from "../../tools/equipment-tool";
 import { createPlayerTool, setPlayerDraftStyle } from "../../tools/player-tool";
@@ -23,6 +26,7 @@ import { getArrowToolState } from "../../tools/arrow-tool-state";
 import { getPlayerToolState } from "../../tools/player-tool-state";
 import { getSelectToolState } from "../../tools/select-tool-state";
 import { getShapeToolState } from "../../tools/shape-tool-state";
+import { FOOTBALL_PLAYER_PRESET_COLORS } from "../../examples/football/football-example-catalog";
 import { MAX_VIEWPORT_ZOOM, MIN_VIEWPORT_ZOOM } from "./viewport-utils";
 
 describe("createBoardEditorController", () => {
@@ -60,7 +64,7 @@ describe("createBoardEditorController", () => {
       tools: [selectTool, arrowTool],
     });
     const toolApi = createToolApi(store);
-    arrowTool.registerRenderers?.(toolApi);
+    arrowTool.registerCapabilities?.(toolApi);
 
     const controller = createBoardEditorController(store);
     const canvasRect = {
@@ -169,7 +173,7 @@ describe("createBoardEditorController", () => {
       tools: [selectTool, arrowTool],
     });
     const toolApi = createToolApi(store);
-    arrowTool.registerRenderers?.(toolApi);
+    arrowTool.registerCapabilities?.(toolApi);
     setSelectedObjectIds(toolApi, [existingArrow.id]);
 
     const controller = createBoardEditorController(store);
@@ -251,7 +255,7 @@ describe("createBoardEditorController", () => {
       tools: [selectTool, arrowTool, shapeTool],
     });
     const toolApi = createToolApi(store);
-    shapeTool.registerRenderers?.(toolApi);
+    shapeTool.registerCapabilities?.(toolApi);
     setSelectedObjectIds(toolApi, [existingShape.id]);
 
     const controller = createBoardEditorController(store);
@@ -321,7 +325,7 @@ describe("createBoardEditorController", () => {
       tools: [selectTool, playerTool],
     });
     const toolApi = createToolApi(store);
-    playerTool.registerRenderers?.(toolApi);
+    playerTool.registerCapabilities?.(toolApi);
 
     const controller = createBoardEditorController(store);
     const canvasRect = {
@@ -460,7 +464,7 @@ describe("createBoardEditorController", () => {
       tools: [selectTool, playerTool],
     });
     const toolApi = createToolApi(store);
-    playerTool.registerRenderers?.(toolApi);
+    playerTool.registerCapabilities?.(toolApi);
     setPlayerDraftStyle(toolApi, { color: "#1f6feb" });
 
     const controller = createBoardEditorController(store);
@@ -499,6 +503,61 @@ describe("createBoardEditorController", () => {
     });
   });
 
+  it("shows the next per-color player number in preset secondary actions", () => {
+    const playerTool = createPlayerTool({
+      presets: FOOTBALL_PLAYER_PRESET_COLORS.slice(0, 6).map(
+        (color, index) => ({
+          id: `team-color-${index + 1}`,
+          label: String(index + 1),
+          draftStyle: { color },
+        }),
+      ),
+    });
+    const existingPlayers = FOOTBALL_PLAYER_PRESET_COLORS.slice(0, 6).map(
+      (color, index) =>
+        createPlayerObject({
+          id: `player-${index + 1}`,
+          position: { x: 10 + index * 5, y: 10 },
+          color,
+          label: "1",
+        }),
+    );
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+          unit: "m",
+        },
+        objects: {
+          byId: Object.fromEntries(
+            existingPlayers.map((player) => [player.id, player]),
+          ),
+          order: existingPlayers.map((player) => player.id),
+        },
+        style: {},
+      },
+      initialToolId: playerTool.id,
+      tools: [selectTool, playerTool],
+    });
+
+    const secondaryActions =
+      playerTool.getSecondaryActions?.(store.getState()) ?? [];
+
+    expect(secondaryActions).toHaveLength(6);
+    expect(secondaryActions.map((action) => action.label)).toEqual([
+      "2",
+      "2",
+      "2",
+      "2",
+      "2",
+      "2",
+    ]);
+  });
+
   it("places equipment using the selected catalog definition", () => {
     const equipmentDefinitions: EquipmentDefinition[] = [
       {
@@ -534,7 +593,7 @@ describe("createBoardEditorController", () => {
       tools: [selectTool, equipmentTool],
     });
     const toolApi = createToolApi(store);
-    equipmentTool.registerRenderers?.(toolApi);
+    equipmentTool.registerCapabilities?.(toolApi);
 
     const controller = createBoardEditorController(store);
     const canvasRect = {
@@ -607,7 +666,7 @@ describe("createBoardEditorController", () => {
       tools: [selectTool, playerTool],
     });
     const toolApi = createToolApi(store);
-    playerTool.registerRenderers?.(toolApi);
+    playerTool.registerCapabilities?.(toolApi);
     setSelectedObjectIds(toolApi, [existingPlayer.id]);
 
     const controller = createBoardEditorController(store);
@@ -684,7 +743,7 @@ describe("createBoardEditorController", () => {
       tools: [selectTool, playerTool],
     });
     const toolApi = createToolApi(store);
-    playerTool.registerRenderers?.(toolApi);
+    playerTool.registerCapabilities?.(toolApi);
     setSelectedObjectIds(toolApi, [existingPlayer.id]);
 
     const controller = createBoardEditorController(store);
@@ -700,11 +759,7 @@ describe("createBoardEditorController", () => {
       canvasRect,
       surfaceInset: 14,
     });
-    const bounds = projection.getObjectCanvasBounds(existingPlayer);
-    const rotationHandle = {
-      x: bounds.x + bounds.width / 2,
-      y: bounds.y - 20,
-    };
+    const rotationHandle = projection.worldToCanvas({ x: 7.4, y: 12.6 });
     const rightOfCenter = projection.worldToCanvas({ x: 12, y: 10 });
 
     controller.dispatchPointerEvent("onPointerDown", {
@@ -729,8 +784,88 @@ describe("createBoardEditorController", () => {
     expect(
       store.getState().board.objects.byId[existingPlayer.id],
     ).toMatchObject({
-      rotation: 90,
+      rotation: 225,
     });
+  });
+
+  it("does not snap a selected player rotation on the initial drag", () => {
+    const playerTool = createPlayerTool();
+    const existingPlayer = createPlayerObject({
+      id: "player-1",
+      position: { x: 10, y: 10 },
+      rotation: 30,
+      size: { width: 2.5, height: 2.5, mode: "world", unit: "m" },
+      color: "#111827",
+      label: "1",
+    });
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+          unit: "m",
+        },
+        objects: {
+          byId: {
+            [existingPlayer.id]: existingPlayer,
+          },
+          order: [existingPlayer.id],
+        },
+        style: {},
+      },
+      initialToolId: selectTool.id,
+      tools: [selectTool, playerTool],
+    });
+    const toolApi = createToolApi(store);
+    playerTool.registerCapabilities?.(toolApi);
+    setSelectedObjectIds(toolApi, [existingPlayer.id]);
+
+    const controller = createBoardEditorController(store);
+    const canvasRect = {
+      left: 0,
+      top: 0,
+      width: 1000,
+      height: 500,
+    };
+    const projection = createBoardSpaceProjection({
+      surface: store.getState().board.surface,
+      viewport: store.getState().ui.viewport,
+      canvasRect,
+      surfaceInset: 14,
+    });
+    const rotationHandle = projection.worldToCanvas({ x: 7.4, y: 12.6 });
+    const slightMove = { x: rotationHandle.x + 3, y: rotationHandle.y - 2 };
+
+    controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: rotationHandle,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+    controller.dispatchPointerEvent("onPointerMove", {
+      clientPoint: slightMove,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    expect(
+      (store.getState().board.objects.byId[existingPlayer.id] as PlayerObject)
+        .rotation,
+    ).toBeGreaterThan(20);
+    expect(
+      (store.getState().board.objects.byId[existingPlayer.id] as PlayerObject)
+        .rotation,
+    ).toBeLessThan(40);
   });
 
   it("resizes and rotates selected equipment using selection handles", () => {
@@ -785,7 +920,7 @@ describe("createBoardEditorController", () => {
       tools: [selectTool, equipmentTool],
     });
     const toolApi = createToolApi(store);
-    equipmentTool.registerRenderers?.(toolApi);
+    equipmentTool.registerCapabilities?.(toolApi);
     setSelectedObjectIds(toolApi, [existingEquipment.id]);
 
     const controller = createBoardEditorController(store);
@@ -830,13 +965,7 @@ describe("createBoardEditorController", () => {
       size: { width: 12, height: 4 },
     });
 
-    const resizedEquipment =
-      store.getState().board.objects.byId[existingEquipment.id];
-    const resizedBounds = projection.getObjectCanvasBounds(resizedEquipment);
-    const rotationHandle = {
-      x: resizedBounds.x + resizedBounds.width / 2,
-      y: resizedBounds.y - 20,
-    };
+    const rotationHandle = projection.worldToCanvas({ x: 2.2, y: 12.6 });
     const rightOfCenter = projection.worldToCanvas({ x: 12, y: 10 });
 
     controller.dispatchPointerEvent("onPointerDown", {
@@ -861,7 +990,7 @@ describe("createBoardEditorController", () => {
     expect(
       store.getState().board.objects.byId[existingEquipment.id],
     ).toMatchObject({
-      rotation: 90,
+      rotation: 198.43494882292202,
     });
   });
 
@@ -899,7 +1028,7 @@ describe("createBoardEditorController", () => {
       tools: [selectTool, arrowTool, shapeTool],
     });
     const toolApi = createToolApi(store);
-    shapeTool.registerRenderers?.(toolApi);
+    shapeTool.registerCapabilities?.(toolApi);
     setSelectedObjectIds(toolApi, [existingShape.id]);
 
     const controller = createBoardEditorController(store);
@@ -947,6 +1076,105 @@ describe("createBoardEditorController", () => {
     );
   });
 
+  it("rotates a selected shape using the rotate handle", () => {
+    const arrowTool = createArrowTool();
+    const shapeTool = createShapeTool();
+    const existingShape = createShapeObject({
+      id: "shape-rotate-1",
+      kind: "rectangle",
+      start: { x: 10, y: 10 },
+      end: { x: 20, y: 18 },
+      color: "#fff",
+      lineStyle: "solid",
+      fillStyle: "solid",
+      bordered: true,
+    });
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {
+            [existingShape.id]: existingShape,
+          },
+          order: [existingShape.id],
+        },
+        style: {},
+      },
+      initialToolId: selectTool.id,
+      tools: [selectTool, arrowTool, shapeTool],
+    });
+    const toolApi = createToolApi(store);
+    shapeTool.registerCapabilities?.(toolApi);
+    setSelectedObjectIds(toolApi, [existingShape.id]);
+
+    const controller = createBoardEditorController(store);
+    const canvasRect = {
+      left: 0,
+      top: 0,
+      width: 1000,
+      height: 500,
+    };
+    const projection = createBoardSpaceProjection({
+      surface: store.getState().board.surface,
+      viewport: store.getState().ui.viewport,
+      canvasRect,
+      surfaceInset: 14,
+    });
+    const center = { x: 15, y: 14 };
+    const centerCanvas = projection.worldToCanvas(center);
+    const bottomLeftCanvas = projection.worldToCanvas({ x: 10, y: 18 });
+    const dx = bottomLeftCanvas.x - centerCanvas.x;
+    const dy = bottomLeftCanvas.y - centerCanvas.y;
+    const length = Math.hypot(dx, dy);
+    const rotationHandle = {
+      x: bottomLeftCanvas.x + (dx / length) * 18,
+      y: bottomLeftCanvas.y + (dy / length) * 18,
+    };
+    const handleWorld = projection.canvasToWorld(rotationHandle);
+    const targetWorld = { x: 25, y: 14 };
+    const targetCanvas = projection.worldToCanvas(targetWorld);
+
+    controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: rotationHandle,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+    controller.dispatchPointerEvent("onPointerMove", {
+      clientPoint: targetCanvas,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    const expectedRotation =
+      (((((Math.atan2(targetWorld.y - center.y, targetWorld.x - center.x) -
+        Math.atan2(handleWorld.y - center.y, handleWorld.x - center.x)) *
+        180) /
+        Math.PI) %
+        360) +
+        360) %
+      360;
+
+    expect(store.getState().board.objects.byId[existingShape.id]).toMatchObject(
+      {
+        rotation: expectedRotation,
+      },
+    );
+  });
+
   it("creates a polyline arrow across multiple clicks", () => {
     const arrowTool = createArrowTool();
     const store = createBoardEditorStore({
@@ -968,7 +1196,7 @@ describe("createBoardEditorController", () => {
       tools: [selectTool, arrowTool],
     });
     const toolApi = createToolApi(store);
-    arrowTool.registerRenderers?.(toolApi);
+    arrowTool.registerCapabilities?.(toolApi);
     setArrowDraftStyle(toolApi, {
       geometry: "polyline",
       bodyStyle: "straight",
@@ -1065,7 +1293,7 @@ describe("createBoardEditorController", () => {
       tools: [selectTool, shapeTool],
     });
     const toolApi = createToolApi(store);
-    shapeTool.registerRenderers?.(toolApi);
+    shapeTool.registerCapabilities?.(toolApi);
 
     const controller = createBoardEditorController(store);
     const canvasRect = {
@@ -1137,7 +1365,7 @@ describe("createBoardEditorController", () => {
       tools: [selectTool, arrowTool],
     });
     const toolApi = createToolApi(store);
-    arrowTool.registerRenderers?.(toolApi);
+    arrowTool.registerCapabilities?.(toolApi);
 
     const controller = createBoardEditorController(store);
     const canvasRect = {
@@ -1218,7 +1446,7 @@ describe("createBoardEditorController", () => {
       tools: [selectTool, shapeTool],
     });
     const toolApi = createToolApi(store);
-    shapeTool.registerRenderers?.(toolApi);
+    shapeTool.registerCapabilities?.(toolApi);
 
     const controller = createBoardEditorController(store);
     const canvasRect = {
@@ -1309,7 +1537,7 @@ describe("createBoardEditorController", () => {
       tools: [selectTool, shapeTool],
     });
     const toolApi = createToolApi(store);
-    shapeTool.registerRenderers?.(toolApi);
+    shapeTool.registerCapabilities?.(toolApi);
     shapeTool.onActivate?.(toolApi);
 
     const controller = createBoardEditorController(store);
@@ -1392,6 +1620,95 @@ describe("createBoardEditorController", () => {
     });
   });
 
+  it("resizes a selected polygon in step with the dragged corner handle", () => {
+    const shapeTool = createShapeTool();
+    const polygon = createShapeObject({
+      id: "polygon-1",
+      kind: "polygon",
+      points: [
+        { x: 10, y: 10 },
+        { x: 20, y: 10 },
+        { x: 20, y: 20 },
+        { x: 10, y: 20 },
+      ],
+      color: "#fff",
+      lineStyle: "solid",
+      fillStyle: "solid",
+      bordered: true,
+    });
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+          unit: "m",
+        },
+        objects: {
+          byId: {
+            [polygon.id]: polygon,
+          },
+          order: [polygon.id],
+        },
+        style: {},
+      },
+      initialToolId: selectTool.id,
+      tools: [selectTool, shapeTool],
+    });
+    const toolApi = createToolApi(store);
+    setSelectedObjectIds(toolApi, [polygon.id]);
+
+    const controller = createBoardEditorController(store);
+    const canvasRect = {
+      left: 0,
+      top: 0,
+      width: 1000,
+      height: 500,
+    };
+    const projection = createBoardSpaceProjection({
+      surface: store.getState().board.surface,
+      viewport: store.getState().ui.viewport,
+      canvasRect,
+      surfaceInset: 14,
+    });
+    const bottomRightHandle = projection.worldToCanvas({ x: 20.08, y: 20.08 });
+    const nextBottomRightHandle = projection.worldToCanvas({
+      x: 22.08,
+      y: 22.08,
+    });
+
+    controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: bottomRightHandle,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+    controller.dispatchPointerEvent("onPointerMove", {
+      clientPoint: nextBottomRightHandle,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    expect(
+      (store.getState().board.objects.byId[polygon.id] as ShapeObject).props
+        .points,
+    ).toEqual([
+      { x: 10, y: 10 },
+      { x: 22, y: 10 },
+      { x: 22, y: 22 },
+      { x: 10, y: 22 },
+    ]);
+  });
+
   it("moves a selected arrow when dragging the arrow body", () => {
     const arrowTool = createArrowTool();
     const existingArrow = createArrowObject({
@@ -1426,7 +1743,7 @@ describe("createBoardEditorController", () => {
       tools: [selectTool, arrowTool],
     });
     const toolApi = createToolApi(store);
-    arrowTool.registerRenderers?.(toolApi);
+    arrowTool.registerCapabilities?.(toolApi);
     setSelectedObjectIds(toolApi, [existingArrow.id]);
 
     const controller = createBoardEditorController(store);
@@ -1707,7 +2024,7 @@ describe("createBoardEditorController", () => {
       tools: [selectTool, arrowTool],
     });
     const toolApi = createToolApi(store);
-    arrowTool.registerRenderers?.(toolApi);
+    arrowTool.registerCapabilities?.(toolApi);
     setSelectedObjectIds(toolApi, [existingArrow.id]);
 
     const controller = createBoardEditorController(store);
@@ -1795,7 +2112,7 @@ describe("createBoardEditorController", () => {
       tools: [selectTool, arrowTool],
     });
     const toolApi = createToolApi(store);
-    arrowTool.registerRenderers?.(toolApi);
+    arrowTool.registerCapabilities?.(toolApi);
     setSelectedObjectIds(toolApi, [existingArrow.id]);
 
     const controller = createBoardEditorController(store);
@@ -1880,7 +2197,7 @@ describe("createBoardEditorController", () => {
       tools: [selectTool, arrowTool],
     });
     const toolApi = createToolApi(store);
-    arrowTool.registerRenderers?.(toolApi);
+    arrowTool.registerCapabilities?.(toolApi);
     setSelectedObjectIds(toolApi, [existingArrow.id]);
 
     const controller = createBoardEditorController(store);

@@ -31,8 +31,8 @@ function createCanvasStub(): HTMLCanvasElement {
 }
 
 describe("createBoardEditorRuntime", () => {
-  it("registers tool renderers once even when registration updates the store", () => {
-    const registerRenderers = vi.fn(
+  it("registers tool capabilities once even when registration updates the store", () => {
+    const registerCapabilities = vi.fn(
       ({
         registerOverlayRenderer,
       }: {
@@ -63,7 +63,7 @@ describe("createBoardEditorRuntime", () => {
         {
           id: SELECT_TOOL_ID,
           label: "Select",
-          registerRenderers,
+          registerCapabilities,
         },
       ],
     });
@@ -75,7 +75,7 @@ describe("createBoardEditorRuntime", () => {
 
     runtime.mount(canvas);
 
-    expect(registerRenderers).toHaveBeenCalledTimes(1);
+    expect(registerCapabilities).toHaveBeenCalledTimes(1);
     expect(store.getState().rendering.overlayRenderers.selection).toBeTypeOf(
       "function",
     );

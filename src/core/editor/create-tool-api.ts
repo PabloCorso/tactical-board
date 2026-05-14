@@ -19,5 +19,6 @@ export function createToolApi(store: BoardEditorStore): ToolApi {
     registerObjectRenderer: actions.registerObjectRenderer,
     registerObjectHitTester: actions.registerObjectHitTester,
     registerOverlayRenderer: actions.registerOverlayRenderer,
+    registerObjectDefinition: actions.registerObjectDefinition,
   };
 }

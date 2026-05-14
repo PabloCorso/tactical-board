@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { createShapeObject, DEFAULT_SHAPE_STROKE_WIDTH } from "./shape-object";
+import {
+  createShapeObject,
+  DEFAULT_SHAPE_STROKE_WIDTH,
+  rotateShapeObject,
+  resizeShapeObjectToBounds,
+} from "./shape-object";
 
 describe("createShapeObject", () => {
   it("derives rectangle center and size from drag bounds", () => {
@@ -114,5 +119,55 @@ describe("createShapeObject", () => {
     expect(shape.props.kind).toBe("oval");
     expect(shape.props.fillStyle).toBe("solid");
     expect(shape.props.bordered).toBe(false);
+  });
+
+  it("resizes polygon points into the requested bounds", () => {
+    const shape = createShapeObject({
+      id: "polygon-resize",
+      kind: "polygon",
+      points: [
+        { x: 10, y: 10 },
+        { x: 14, y: 12 },
+        { x: 20, y: 18 },
+        { x: 12, y: 20 },
+      ],
+      color: "#000",
+      lineStyle: "solid",
+      fillStyle: "solid",
+      bordered: true,
+    });
+
+    const resized = resizeShapeObjectToBounds(shape, {
+      minX: 6,
+      maxX: 26,
+      minY: 8,
+      maxY: 28,
+    });
+
+    expect(resized.props.points).toEqual([
+      { x: 6, y: 8 },
+      { x: 14, y: 12 },
+      { x: 26, y: 24 },
+      { x: 10, y: 28 },
+    ]);
+    expect(resized.position).toEqual({ x: 16, y: 18 });
+    expect(resized.size).toMatchObject({ width: 20, height: 20 });
+  });
+
+  it("normalizes shape rotation", () => {
+    const shape = createShapeObject({
+      id: "shape-rotation",
+      kind: "rectangle",
+      rotation: -90,
+      start: { x: 10, y: 10 },
+      end: { x: 20, y: 20 },
+      color: "#000",
+      lineStyle: "solid",
+      fillStyle: "solid",
+      bordered: true,
+    });
+
+    expect(shape.rotation).toBe(270);
+    expect(rotateShapeObject(shape, 450).rotation).toBe(90);
   });
 });

@@ -21,12 +21,14 @@ import type {
   ToolApi,
   ToolDefinition,
 } from "../core/tools/types";
+import { defineObjectDefinition } from "../core/objects/types";
 import {
   ARROW_TOOL_ID,
   getArrowToolState,
   type ArrowDraftStyle,
 } from "./arrow-tool-state";
 import { clearSelection } from "./select-tool-actions";
+import { arrowSelectionAdapter } from "./arrow-selection";
 
 const PREVIEW_OPACITY = 0.55;
 const MIN_HIT_DISTANCE_PX = 10;
@@ -43,6 +45,11 @@ export interface ArrowToolPreset {
 export interface CreateArrowToolOptions {
   presets?: ArrowToolPreset[];
 }
+
+export const arrowObjectDefinition = defineObjectDefinition({
+  type: ARROW_OBJECT_TYPE,
+  selection: arrowSelectionAdapter,
+});
 
 function isArrowPresetActive(
   draftStyle: ArrowDraftStyle,
@@ -591,9 +598,10 @@ export function createArrowTool(
         cancelPendingArrow(api);
       }
     },
-    registerRenderers: (api) => {
+    registerCapabilities: (api) => {
       api.registerObjectRenderer(ARROW_OBJECT_TYPE, renderArrow);
       api.registerObjectHitTester(ARROW_OBJECT_TYPE, hitTestArrow);
+      api.registerObjectDefinition(arrowObjectDefinition);
     },
     onPointerDown: (event, api) => {
       const state = api.getState();

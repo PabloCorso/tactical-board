@@ -369,12 +369,6 @@ const playerExampleEntries = FOOTBALL_PLAYER_PRESET_COLORS.map(
 const playerExampleObjects = Object.fromEntries(playerExampleEntries);
 const playerExampleOrder = playerExampleEntries.map(([id]) => id);
 
-const equipmentExampleLabels: Record<string, string | undefined> = {
-  "soccer-ball": "8",
-  mannequin: "D",
-  pole: "1",
-};
-
 const equipmentExampleEntries = FOOTBALL_EQUIPMENT_DEFINITIONS.map(
   (definition, index) => {
     const column = index % 4;
@@ -398,7 +392,6 @@ const equipmentExampleEntries = FOOTBALL_EQUIPMENT_DEFINITIONS.map(
         },
         unit: "m",
         kind: definition.kind,
-        label: equipmentExampleLabels[definition.kind],
         color: definition.color,
         definition,
       }),

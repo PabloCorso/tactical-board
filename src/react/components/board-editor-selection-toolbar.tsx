@@ -2,135 +2,68 @@ import { useMemo } from "react";
 import type { BoardObject } from "../../core/board/types";
 import { createBoardSpaceProjection } from "../../core/geometry/board-space-projection";
 import {
-  ARROW_OBJECT_TYPE,
-  getArrowCurveHandlePoint,
-  type ArrowObject,
-} from "../../core/objects/arrow-object";
-import {
-  EQUIPMENT_OBJECT_TYPE,
-  type EquipmentObject,
-} from "../../core/objects/equipment-object";
-import {
-  PLAYER_OBJECT_TYPE,
-  type PlayerObject,
-} from "../../core/objects/player-object";
-import {
-  SHAPE_OBJECT_TYPE,
-  type ShapeObject,
-} from "../../core/objects/shape-object";
-import { BoardEditorPlayerSelectionToolbar } from "./board-editor-selection-toolbar-player";
+  getObjectSelectionAdapterForObject,
+  type SelectionProjection,
+} from "../../core/objects/object-selection";
 import { getSelectToolState } from "../../tools/select-tool-state";
 import { useBoardEditorStore } from "../hooks/use-board-editor-store";
 import { useBoardEditorContext } from "./board-editor-context";
-import { BoardEditorArrowSelectionToolbar } from "./board-editor-selection-toolbar-arrow";
-import { BoardEditorEquipmentSelectionToolbar } from "./board-editor-selection-toolbar-equipment";
-import { BoardEditorShapeSelectionToolbar } from "./board-editor-selection-toolbar-shape";
-import type { BoardEditorSelectionToolbarRenderer } from "./board-editor-selection-toolbar-types";
 
 const SURFACE_INSET = 14;
-const SELECTION_TOOLBAR_OFFSET = 8;
 
-function getSelectionToolbarAnchor(
-  projection: ReturnType<typeof createBoardSpaceProjection>,
+export function getSelectionToolbarAnchor(
+  projection: SelectionProjection,
   selectedObject: BoardObject,
+  state: Parameters<typeof getObjectSelectionAdapterForObject>[0],
 ) {
-  if (selectedObject.type === ARROW_OBJECT_TYPE) {
-    const arrow = selectedObject as ArrowObject;
-    if (arrow.props.geometry === "polyline") {
-      const bounds = projection.getObjectCanvasBounds(selectedObject);
-
-      return {
-        left: bounds.x + bounds.width / 2,
-        top: bounds.y - SELECTION_TOOLBAR_OFFSET,
-      };
-    }
-
-    const start = projection.worldToCanvas(arrow.props.start);
-    const end = projection.worldToCanvas(arrow.props.end);
-    const controlPoint =
-      arrow.props.bodyStyle === "curved"
-        ? projection.worldToCanvas(
-            getArrowCurveHandlePoint(
-              arrow.props.start,
-              arrow.props.end,
-              arrow.props.curveOffset,
-            ),
-          )
-        : undefined;
-
-    return {
-      left: controlPoint
-        ? (start.x + end.x + controlPoint.x) / 3
-        : (start.x + end.x) / 2,
-      top:
-        Math.min(start.y, end.y, controlPoint?.y ?? Number.POSITIVE_INFINITY) -
-        SELECTION_TOOLBAR_OFFSET,
-    };
-  }
-
-  const bounds = projection.getObjectCanvasBounds(selectedObject);
-
-  return {
-    left: bounds.x + bounds.width / 2,
-    top: bounds.y - SELECTION_TOOLBAR_OFFSET,
-  };
+  return getObjectSelectionAdapterForObject(
+    state,
+    selectedObject,
+  )?.getToolbarAnchor?.({
+    object: selectedObject,
+    projection,
+  });
 }
-
-const selectionToolbarRenderers: Record<
-  string,
-  BoardEditorSelectionToolbarRenderer
-> = {
-  [ARROW_OBJECT_TYPE]: (props) => (
-    <BoardEditorArrowSelectionToolbar
-      {...props}
-      selectedObject={props.selectedObject as ArrowObject}
-    />
-  ),
-  [SHAPE_OBJECT_TYPE]: (props) => (
-    <BoardEditorShapeSelectionToolbar
-      {...props}
-      selectedObject={props.selectedObject as ShapeObject}
-    />
-  ),
-  [PLAYER_OBJECT_TYPE]: (props) => (
-    <BoardEditorPlayerSelectionToolbar
-      {...props}
-      selectedObject={props.selectedObject as PlayerObject}
-    />
-  ),
-  [EQUIPMENT_OBJECT_TYPE]: (props) => (
-    <BoardEditorEquipmentSelectionToolbar
-      {...props}
-      selectedObject={props.selectedObject as EquipmentObject}
-    />
-  ),
-};
 
 export type BoardEditorSelectionToolbarProps = {
   className?: string;
 };
+
+export function shouldShowSelectionToolbar(
+  selectState: ReturnType<typeof getSelectToolState>,
+) {
+  return (
+    selectState.selectedObjectIds.length === 1 &&
+    selectState.interaction?.mode !== "marquee"
+  );
+}
 
 export function BoardEditorSelectionToolbar({
   className,
 }: BoardEditorSelectionToolbarProps) {
   const store = useBoardEditorContext();
   const state = useBoardEditorStore(store, (currentState) => currentState);
-  const selection = getSelectToolState(state.toolState).selectedObjectIds;
+  const selectState = getSelectToolState(state.toolState);
+  const selection = selectState.selectedObjectIds;
 
   const selectedObject = useMemo(() => {
-    if (selection.length !== 1) {
+    if (!shouldShowSelectionToolbar(selectState)) {
       return undefined;
     }
 
     return state.board.objects.byId[selection[0]];
-  }, [selection, state.board.objects.byId]);
+  }, [selectState, selection, state.board.objects.byId]);
 
   if (!selectedObject || !state.ui.canvasRect) {
     return null;
   }
 
-  const renderToolbar = selectionToolbarRenderers[selectedObject.type];
-  if (!renderToolbar) {
+  const selectionAdapter = getObjectSelectionAdapterForObject(
+    state,
+    selectedObject,
+  );
+  const ToolbarRenderer = selectionAdapter?.toolbarRenderer;
+  if (!ToolbarRenderer) {
     return null;
   }
 
@@ -143,12 +76,19 @@ export function BoardEditorSelectionToolbar({
   const anchor = getSelectionToolbarAnchor(
     projection,
     selectedObject as BoardObject,
+    state,
   );
 
-  return renderToolbar({
-    className,
-    selectedObject,
-    toolbarLeft: anchor.left,
-    toolbarTop: Math.max(10, anchor.top),
-  });
+  if (!anchor) {
+    return null;
+  }
+
+  return (
+    <ToolbarRenderer
+      className={className}
+      selectedObject={selectedObject}
+      toolbarLeft={anchor.left}
+      toolbarTop={Math.max(10, anchor.top)}
+    />
+  );
 }

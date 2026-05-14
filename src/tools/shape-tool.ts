@@ -20,12 +20,14 @@ import type {
   ToolApi,
   ToolDefinition,
 } from "../core/tools/types";
+import { defineObjectDefinition } from "../core/objects/types";
 import {
   getShapeToolState,
   SHAPE_TOOL_ID,
   type ShapeDraftStyle,
 } from "./shape-tool-state";
 import { clearSelection } from "./select-tool-actions";
+import { shapeSelectionAdapter } from "./shape-selection";
 
 const PREVIEW_OPACITY = 0.55;
 const MIN_HIT_DISTANCE_PX = 10;
@@ -42,6 +44,11 @@ export interface ShapeToolPreset {
 export interface CreateShapeToolOptions {
   presets?: ShapeToolPreset[];
 }
+
+export const shapeObjectDefinition = defineObjectDefinition({
+  type: SHAPE_OBJECT_TYPE,
+  selection: shapeSelectionAdapter,
+});
 
 function isShapePresetActive(
   draftStyle: ShapeDraftStyle,
@@ -155,6 +162,28 @@ function drawShapePath(context: CanvasRenderingContext2D, points: Point[]) {
   }
 }
 
+function rotatePointAround(point: Point, center: Point, rotation = 0): Point {
+  const angle = (rotation * Math.PI) / 180;
+  const dx = point.x - center.x;
+  const dy = point.y - center.y;
+  const cos = Math.cos(angle);
+  const sin = Math.sin(angle);
+
+  return {
+    x: center.x + dx * cos - dy * sin,
+    y: center.y + dx * sin + dy * cos,
+  };
+}
+
+function getRenderedShapeCanvasPoints(
+  shape: ShapeObject,
+  surfaceTransform: CanvasObjectRenderInput["surfaceTransform"],
+) {
+  return getShapePoints(shape.props)
+    .map((point) => rotatePointAround(point, shape.position, shape.rotation))
+    .map((point) => surfaceTransform.worldToCanvas(point));
+}
+
 function createDiagonalStripePattern(
   context: CanvasRenderingContext2D,
   color: string,
@@ -197,9 +226,7 @@ function renderShape({
     1.5,
     shape.props.strokeWidth * surfaceTransform.pixelsPerUnit,
   );
-  const points = getShapePoints(shape.props).map((point) =>
-    surfaceTransform.worldToCanvas(point),
-  );
+  const points = getRenderedShapeCanvasPoints(shape, surfaceTransform);
 
   context.save();
   context.globalAlpha = appearance === "preview" ? PREVIEW_OPACITY : 1;
@@ -215,13 +242,19 @@ function renderShape({
   );
 
   if (shape.props.kind === "oval") {
-    const bounds = surfaceTransform.getObjectCanvasBounds(shape);
+    const center = surfaceTransform.worldToCanvas(shape.position);
+    const width = (shape.size?.width ?? 0) * surfaceTransform.pixelsPerUnit;
+    const height =
+      (shape.size?.height ?? shape.size?.width ?? 0) *
+      surfaceTransform.pixelsPerUnit;
     context.beginPath();
+    context.translate(center.x, center.y);
+    context.rotate(((shape.rotation ?? 0) * Math.PI) / 180);
     context.ellipse(
-      bounds.x + bounds.width / 2,
-      bounds.y + bounds.height / 2,
-      Math.abs(bounds.width) / 2,
-      Math.abs(bounds.height) / 2,
+      0,
+      0,
+      Math.abs(width) / 2,
+      Math.abs(height) / 2,
       0,
       0,
       Math.PI * 2,
@@ -257,6 +290,19 @@ function renderShape({
   }
 
   context.restore();
+}
+
+function getRotatedOffsetFromCenter(
+  point: Point,
+  center: Point,
+  rotation = 0,
+): Point {
+  const rotated = rotatePointAround(point, center, rotation);
+
+  return {
+    x: rotated.x - center.x,
+    y: rotated.y - center.y,
+  };
 }
 
 function distanceToSegment(point: Point, start: Point, end: Point) {
@@ -312,9 +358,7 @@ function hitTestShape({
   minimumHitRadiusPx,
 }: CanvasObjectHitTestInput) {
   const shape = object as ShapeObject;
-  const points = getShapePoints(shape.props).map((point) =>
-    surfaceTransform.worldToCanvas(point),
-  );
+  const points = getRenderedShapeCanvasPoints(shape, surfaceTransform);
   const threshold = Math.max(
     MIN_HIT_DISTANCE_PX,
     minimumHitRadiusPx / 2,
@@ -322,14 +366,21 @@ function hitTestShape({
   );
 
   if (shape.props.kind === "oval") {
-    const bounds = surfaceTransform.getObjectCanvasBounds(shape);
-    const rx = Math.max(Math.abs(bounds.width) / 2, threshold);
-    const ry = Math.max(Math.abs(bounds.height) / 2, threshold);
-    const cx = bounds.x + bounds.width / 2;
-    const cy = bounds.y + bounds.height / 2;
+    const center = surfaceTransform.worldToCanvas(shape.position);
+    const localOffset = getRotatedOffsetFromCenter(
+      canvasPoint,
+      center,
+      -(shape.rotation ?? 0),
+    );
+    const width = (shape.size?.width ?? 0) * surfaceTransform.pixelsPerUnit;
+    const height =
+      (shape.size?.height ?? shape.size?.width ?? 0) *
+      surfaceTransform.pixelsPerUnit;
+    const rx = Math.max(Math.abs(width) / 2, threshold);
+    const ry = Math.max(Math.abs(height) / 2, threshold);
     const normalized =
-      ((canvasPoint.x - cx) * (canvasPoint.x - cx)) / (rx * rx) +
-      ((canvasPoint.y - cy) * (canvasPoint.y - cy)) / (ry * ry);
+      (localOffset.x * localOffset.x) / (rx * rx) +
+      (localOffset.y * localOffset.y) / (ry * ry);
 
     if (shape.props.fillStyle !== "none") {
       return normalized <= 1;
@@ -338,8 +389,8 @@ function hitTestShape({
     const innerRx = Math.max(rx - threshold, 0.0001);
     const innerRy = Math.max(ry - threshold, 0.0001);
     const innerNormalized =
-      ((canvasPoint.x - cx) * (canvasPoint.x - cx)) / (innerRx * innerRx) +
-      ((canvasPoint.y - cy) * (canvasPoint.y - cy)) / (innerRy * innerRy);
+      (localOffset.x * localOffset.x) / (innerRx * innerRx) +
+      (localOffset.y * localOffset.y) / (innerRy * innerRy);
 
     return normalized <= 1.1 && innerNormalized >= 1;
   }
@@ -456,9 +507,10 @@ export function createShapeTool(
         cancelPendingShape(api);
       }
     },
-    registerRenderers: (api) => {
+    registerCapabilities: (api) => {
       api.registerObjectRenderer(SHAPE_OBJECT_TYPE, renderShape);
       api.registerObjectHitTester(SHAPE_OBJECT_TYPE, hitTestShape);
+      api.registerObjectDefinition(shapeObjectDefinition);
     },
     onPointerDown: (event, api) => {
       const state = api.getState();

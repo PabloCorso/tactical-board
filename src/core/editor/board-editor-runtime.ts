@@ -25,17 +25,19 @@ export function createBoardEditorRuntime({
   let unsubscribe: (() => void) | null = null;
   let resizeObserver: ResizeObserver | null = null;
 
-  const registerToolRenderers = (tool: ToolDefinition | undefined) => {
+  const registerToolCapabilities = (tool: ToolDefinition | undefined) => {
     if (!tool || registeredToolRendererIds.has(tool.id)) {
       return;
     }
 
     registeredToolRendererIds.add(tool.id);
 
-    tool.registerRenderers?.({
+    tool.registerCapabilities?.({
       registerObjectRenderer: store.getState().actions.registerObjectRenderer,
       registerObjectHitTester: store.getState().actions.registerObjectHitTester,
       registerOverlayRenderer: store.getState().actions.registerOverlayRenderer,
+      registerObjectDefinition:
+        store.getState().actions.registerObjectDefinition,
     });
   };
 
@@ -43,7 +45,7 @@ export function createBoardEditorRuntime({
     const { definitions } = store.getState().toolRegistry;
 
     for (const tool of Object.values(definitions)) {
-      registerToolRenderers(tool);
+      registerToolCapabilities(tool);
     }
   };
 

@@ -8,7 +8,13 @@ import type {
 } from "../board/types";
 import type { BoardEditorState } from "../editor/types";
 import { moveBoardObject } from "../objects/object-behaviors";
-import type { ToolApi, ToolDefinition, ToolRegistry } from "../tools/types";
+import type { ObjectDefinition, ObjectRegistry } from "../objects/types";
+import type {
+  ToolApi,
+  ToolCapabilityRegistrationApi,
+  ToolDefinition,
+  ToolRegistry,
+} from "../tools/types";
 import type {
   CanvasObjectHitTesterRegistry,
   CanvasObjectRendererRegistry,
@@ -22,6 +28,7 @@ export interface CreateBoardEditorStoreOptions {
   objectRenderers?: CanvasObjectRendererRegistry;
   objectHitTesters?: CanvasObjectHitTesterRegistry;
   overlayRenderers?: CanvasOverlayRendererRegistry;
+  objectDefinitions?: ObjectDefinition[];
 }
 
 export type BoardEditorStore = StoreApi<BoardEditorState>;
@@ -29,6 +36,16 @@ export type BoardEditorStore = StoreApi<BoardEditorState>;
 function createToolRegistry(tools: ToolDefinition[] = []): ToolRegistry {
   return {
     definitions: Object.fromEntries(tools.map((tool) => [tool.id, tool])),
+  };
+}
+
+function createObjectRegistry(
+  objectDefinitions: ObjectDefinition[] = [],
+): ObjectRegistry {
+  return {
+    definitions: Object.fromEntries(
+      objectDefinitions.map((definition) => [definition.type, definition]),
+    ),
   };
 }
 
@@ -59,14 +76,16 @@ export function createBoardEditorStore({
   objectRenderers = {},
   objectHitTesters = {},
   overlayRenderers = {},
+  objectDefinitions = [],
 }: CreateBoardEditorStoreOptions): BoardEditorStore {
   const toolRegistry = createToolRegistry(tools);
+  const objectRegistry = createObjectRegistry(objectDefinitions);
   const activeToolId =
     initialToolId && toolRegistry.definitions[initialToolId]
       ? initialToolId
       : (tools[0]?.id ?? initialToolId ?? "");
 
-  return createStore<BoardEditorState>((set, get) => ({
+  const store = createStore<BoardEditorState>((set, get) => ({
     board: initialBoard,
     ui: {
       activeToolId,
@@ -82,6 +101,7 @@ export function createBoardEditorStore({
       objectHitTesters: { ...objectHitTesters },
       overlayRenderers: { ...overlayRenderers },
     },
+    objectRegistry,
     toolState: {},
     toolRegistry,
     actions: {
@@ -110,6 +130,7 @@ export function createBoardEditorStore({
             registerObjectRenderer: actions.registerObjectRenderer,
             registerObjectHitTester: actions.registerObjectHitTester,
             registerOverlayRenderer: actions.registerOverlayRenderer,
+            registerObjectDefinition: actions.registerObjectDefinition,
           };
           const toolsToDeactivate = Object.values(
             state.toolRegistry.definitions,
@@ -448,6 +469,37 @@ export function createBoardEditorStore({
           };
         });
       },
+      registerObjectDefinition: (definition) => {
+        set((state) => {
+          if (
+            state.objectRegistry.definitions[definition.type] === definition
+          ) {
+            return state;
+          }
+
+          return {
+            objectRegistry: {
+              definitions: {
+                ...state.objectRegistry.definitions,
+                [definition.type]: definition,
+              },
+            },
+          };
+        });
+      },
     },
   }));
+
+  const registrationApi: ToolCapabilityRegistrationApi = {
+    registerObjectRenderer: store.getState().actions.registerObjectRenderer,
+    registerObjectHitTester: store.getState().actions.registerObjectHitTester,
+    registerOverlayRenderer: store.getState().actions.registerOverlayRenderer,
+    registerObjectDefinition: store.getState().actions.registerObjectDefinition,
+  };
+
+  for (const tool of tools) {
+    tool.registerCapabilities?.(registrationApi);
+  }
+
+  return store;
 }

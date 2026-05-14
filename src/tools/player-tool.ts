@@ -4,6 +4,8 @@ import type {
   ToolApi,
   ToolDefinition,
 } from "../core/tools/types";
+import { defineObjectDefinition } from "../core/objects/types";
+import type { BoardEditorState } from "../core/editor/types";
 import {
   createPlayerObject,
   PLAYER_OBJECT_TYPE,
@@ -15,6 +17,7 @@ import type {
   CanvasObjectRenderInput,
 } from "../rendering/canvas/types";
 import { clearSelection } from "./select-tool-actions";
+import { playerSelectionAdapter } from "./player-selection";
 import {
   DEFAULT_PLAYER_TOOL_STATE,
   getPlayerToolState,
@@ -37,7 +40,14 @@ export interface CreatePlayerToolOptions {
   labelStrategy?: PlayerToolLabelStrategy;
 }
 
+export const playerObjectDefinition = defineObjectDefinition({
+  type: PLAYER_OBJECT_TYPE,
+  selection: playerSelectionAdapter,
+});
+
 const PREVIEW_OPACITY = 0.55;
+const DEFAULT_PLAYER_BORDER_WIDTH_PX = 3;
+const DEFAULT_PLAYER_BORDER_COLOR = "#000000";
 
 function normalizeColorKey(color: string) {
   return color.trim().toLowerCase();
@@ -172,8 +182,8 @@ function renderPlayer({
     context.arc(0, 0, radius, 0, Math.PI * 2);
     context.fill();
 
-    context.strokeStyle = "rgba(15, 23, 42, 0.3)";
-    context.lineWidth = 1.5;
+    context.strokeStyle = DEFAULT_PLAYER_BORDER_COLOR;
+    context.lineWidth = DEFAULT_PLAYER_BORDER_WIDTH_PX;
     context.stroke();
   }
 
@@ -207,32 +217,8 @@ function hitTestPlayer({
   );
 }
 
-function createPresetSecondaryActions(
-  presets: PlayerToolPreset[],
-): ToolDefinition["getSecondaryActions"] {
-  return (state) => {
-    const playerState = getPlayerToolState(state.toolState);
-
-    return presets.map(
-      (preset): ToolActionDefinition => ({
-        id: preset.id,
-        label: preset.label,
-        icon:
-          preset.icon ??
-          (preset.draftStyle.color
-            ? { kind: "color", value: preset.draftStyle.color }
-            : undefined),
-        tooltip: preset.tooltip ?? preset.label,
-        disabled: false,
-        active: isPlayerPresetActive(playerState.draftStyle, preset.draftStyle),
-        onSelect: (api) => applyPlayerPreset(api, preset),
-      }),
-    );
-  };
-}
-
-function getNextNumericLabel(
-  api: ToolApi,
+function getNextNumericLabelFromState(
+  state: Pick<BoardEditorState, "board">,
   playerState: ReturnType<typeof getPlayerToolState>,
   color: string,
 ) {
@@ -241,7 +227,7 @@ function getNextNumericLabel(
   const nextLabelFromBoard =
     Math.max(
       0,
-      ...Object.values(api.getState().board.objects.byId)
+      ...Object.values(state.board.objects.byId)
         .filter(
           (object) =>
             object.type === PLAYER_OBJECT_TYPE &&
@@ -253,6 +239,49 @@ function getNextNumericLabel(
     ) + 1;
 
   return String(Math.max(nextLabelFromState, nextLabelFromBoard));
+}
+
+function createPresetSecondaryActions(
+  presets: PlayerToolPreset[],
+  labelStrategy: PlayerToolLabelStrategy,
+): ToolDefinition["getSecondaryActions"] {
+  return (state) => {
+    const playerState = getPlayerToolState(state.toolState);
+
+    return presets.map((preset): ToolActionDefinition => {
+      const numericLabel =
+        labelStrategy === "numeric-by-color" &&
+        typeof preset.draftStyle.color === "string"
+          ? getNextNumericLabelFromState(
+              state,
+              playerState,
+              preset.draftStyle.color,
+            )
+          : undefined;
+
+      return {
+        id: preset.id,
+        label: numericLabel ?? preset.label,
+        icon:
+          preset.icon ??
+          (preset.draftStyle.color
+            ? { kind: "color", value: preset.draftStyle.color }
+            : undefined),
+        tooltip: preset.tooltip ?? preset.label,
+        disabled: false,
+        active: isPlayerPresetActive(playerState.draftStyle, preset.draftStyle),
+        onSelect: (api) => applyPlayerPreset(api, preset),
+      };
+    });
+  };
+}
+
+function getNextNumericLabel(
+  api: ToolApi,
+  playerState: ReturnType<typeof getPlayerToolState>,
+  color: string,
+) {
+  return getNextNumericLabelFromState(api.getState(), playerState, color);
 }
 
 function incrementNumericLabelForColor(
@@ -278,7 +307,7 @@ export function createPlayerTool(
   const labelStrategy = options.labelStrategy ?? "numeric-by-color";
   const getSecondaryActions =
     options.presets && options.presets.length > 0
-      ? createPresetSecondaryActions(options.presets)
+      ? createPresetSecondaryActions(options.presets, labelStrategy)
       : undefined;
 
   return {
@@ -301,9 +330,10 @@ export function createPlayerTool(
         draftStyle: nextDraftStyle,
       });
     },
-    registerRenderers: (api) => {
+    registerCapabilities: (api) => {
       api.registerObjectRenderer(PLAYER_OBJECT_TYPE, renderPlayer);
       api.registerObjectHitTester(PLAYER_OBJECT_TYPE, hitTestPlayer);
+      api.registerObjectDefinition(playerObjectDefinition);
     },
     onPointerDown: (event, api) => {
       const state = api.getState();

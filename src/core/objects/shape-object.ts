@@ -38,6 +38,7 @@ export type ShapeObject = BoardObject & {
 
 type ShapeCoreInput = {
   kind: ShapeKind | "circle" | "ellipse";
+  rotation?: number;
   color: string;
   strokeWidth?: number;
   lineStyle: ShapeLineStyle;
@@ -63,6 +64,11 @@ function clonePoints(points: Point[]) {
   return points.map(clonePoint);
 }
 
+function normalizeRotation(rotation = 0) {
+  const normalized = rotation % 360;
+  return normalized < 0 ? normalized + 360 : normalized;
+}
+
 function getBoundsFromPoints(points: Point[]) {
   const minX = Math.min(...points.map((point) => point.x));
   const maxX = Math.max(...points.map((point) => point.x));
@@ -75,6 +81,22 @@ function getBoundsFromPoints(points: Point[]) {
     minY,
     maxY,
   };
+}
+
+function remapValueToBounds(
+  value: number,
+  fromMin: number,
+  fromMax: number,
+  toMin: number,
+  toMax: number,
+) {
+  const fromSpan = fromMax - fromMin;
+
+  if (Math.abs(fromSpan) < 1e-6) {
+    return (toMin + toMax) / 2;
+  }
+
+  return toMin + ((value - fromMin) / fromSpan) * (toMax - toMin);
 }
 
 export function getShapePoints(
@@ -208,7 +230,9 @@ function getCanonicalShapeProps(input: ShapeCoreInput): ShapeObjectProps {
 }
 
 function createCanonicalShapeObject(
-  base: Omit<ShapeObject, "position" | "size" | "props">,
+  base: Omit<ShapeObject, "position" | "rotation" | "size" | "props"> & {
+    rotation?: number;
+  },
   props: ShapeObjectProps,
 ): ShapeObject {
   return {
@@ -219,6 +243,7 @@ function createCanonicalShapeObject(
       end: props.end,
       points: props.points,
     }),
+    rotation: normalizeRotation(base.rotation),
     size: getShapeSize({
       kind: props.kind,
       start: props.start,
@@ -238,6 +263,7 @@ export function createShapeObject(
     {
       id: input.id,
       type: SHAPE_OBJECT_TYPE,
+      rotation: input.rotation,
     },
     getCanonicalShapeProps(input),
   );
@@ -248,6 +274,44 @@ export function resizeShapeObject(
   input: Partial<Pick<ShapeObjectProps, "start" | "end" | "points">>,
 ): ShapeObject {
   return updateShapeObject(object, input);
+}
+
+export function resizeShapeObjectToBounds(
+  object: ShapeObject,
+  bounds: {
+    minX: number;
+    maxX: number;
+    minY: number;
+    maxY: number;
+  },
+): ShapeObject {
+  if (object.props.kind !== "polygon") {
+    return resizeShapeObject(object, {
+      start: { x: bounds.minX, y: bounds.minY },
+      end: { x: bounds.maxX, y: bounds.maxY },
+    });
+  }
+
+  const currentBounds = getShapeBounds(object.props);
+
+  return updateShapeObject(object, {
+    points: object.props.points?.map((point) => ({
+      x: remapValueToBounds(
+        point.x,
+        currentBounds.minX,
+        currentBounds.maxX,
+        bounds.minX,
+        bounds.maxX,
+      ),
+      y: remapValueToBounds(
+        point.y,
+        currentBounds.minY,
+        currentBounds.maxY,
+        bounds.minY,
+        bounds.maxY,
+      ),
+    })),
+  });
 }
 
 export function updateShapeObject(
@@ -263,6 +327,20 @@ export function updateShapeObject(
       ...object.props,
       ...props,
     }),
+  );
+}
+
+export function rotateShapeObject(
+  object: ShapeObject,
+  rotation: number,
+): ShapeObject {
+  return createCanonicalShapeObject(
+    {
+      ...object,
+      type: SHAPE_OBJECT_TYPE,
+      rotation,
+    },
+    getCanonicalShapeProps(object.props),
   );
 }
 

@@ -13,6 +13,7 @@ import type {
   CanvasOverlayRenderer,
   CanvasOverlayRendererRegistry,
 } from "../../rendering/canvas/types";
+import type { ObjectDefinition, ObjectRegistry } from "../objects/types";
 
 export interface BoardViewport {
   pan: Point;
@@ -68,12 +69,14 @@ export interface BoardEditorActions {
     overlayKind: string,
     renderer: CanvasOverlayRenderer,
   ) => void;
+  registerObjectDefinition: (definition: ObjectDefinition) => void;
 }
 
 export interface BoardEditorState {
   board: Board;
   ui: BoardEditorUiState;
   rendering: BoardEditorRenderingState;
+  objectRegistry: ObjectRegistry;
   toolState: BoardEditorToolState;
   toolRegistry: ToolRegistry;
   actions: BoardEditorActions;

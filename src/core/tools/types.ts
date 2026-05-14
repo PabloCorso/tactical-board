@@ -7,6 +7,7 @@ import type {
   CanvasOverlayItem,
   CanvasOverlayRenderer,
 } from "../../rendering/canvas/types";
+import type { ObjectDefinition } from "../objects/types";
 
 export interface ToolPointerEvent {
   point: Point;
@@ -88,6 +89,7 @@ export interface ToolApi {
     overlayKind: string,
     renderer: CanvasOverlayRenderer,
   ) => void;
+  registerObjectDefinition: (definition: ObjectDefinition) => void;
 }
 
 export interface ToolActionDefinition {
@@ -100,19 +102,28 @@ export interface ToolActionDefinition {
   onSelect: (api: ToolApi) => void;
 }
 
+export interface ToolCapabilityRegistrationApi {
+  registerObjectRenderer: (
+    objectType: string,
+    renderer: CanvasObjectRenderer,
+  ) => void;
+  registerObjectHitTester: (
+    objectType: string,
+    hitTester: CanvasObjectHitTester,
+  ) => void;
+  registerOverlayRenderer: (
+    overlayKind: string,
+    renderer: CanvasOverlayRenderer,
+  ) => void;
+  registerObjectDefinition: (definition: ObjectDefinition) => void;
+}
+
 export interface ToolDefinition {
   id: ToolId;
   label: string;
   getSecondaryActions?: (state: BoardEditorState) => ToolActionDefinition[];
   getOverlayItems?: (state: BoardEditorState) => CanvasOverlayItem[];
-  registerRenderers?: (
-    api: Pick<
-      ToolApi,
-      | "registerObjectRenderer"
-      | "registerObjectHitTester"
-      | "registerOverlayRenderer"
-    >,
-  ) => void;
+  registerCapabilities?: (api: ToolCapabilityRegistrationApi) => void;
   onActivate?: (api: ToolApi) => void;
   onDeactivate?: (api: ToolApi) => void;
   onPointerDown?: (event: ToolPointerEvent, api: ToolApi) => void;
