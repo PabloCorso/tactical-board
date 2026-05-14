@@ -3,14 +3,21 @@ import type { BoardEditorState } from "../../core/editor/types";
 import { DEFAULT_RENDER_APPEARANCE } from "../../core/objects/object-appearance";
 import type { EquipmentDefinition } from "../../core/objects/equipment-object";
 import { PLAYER_OBJECT_TYPE } from "../../core/objects/player-object";
+import {
+  createArrowObject,
+  getArrowCenter,
+  getArrowSize,
+  type ArrowObject,
+} from "../../core/objects/arrow-object";
 import type { EquipmentObject } from "../../core/objects/equipment-object";
+import type { BoardSpaceProjection } from "../../core/geometry/board-space-projection";
 import { useBoardEditorContext } from "../../react/components/board-editor-context";
 import { useBoardEditorStore } from "../../react/hooks/use-board-editor-store";
-import { getArrowToolState } from "../../tools/arrow-tool-state";
+import { getArrowToolState, type ArrowDraftStyle } from "../../tools/arrow-tool-state";
 import { getEquipmentToolState } from "../../tools/equipment-tool-state";
 import { getPlayerToolState, PLAYER_TOOL_ID } from "../../tools/player-tool-state";
 import { getShapeToolState } from "../../tools/shape-tool-state";
-import { renderArrowCanvasPreview } from "../../tools/arrow-tool";
+import { renderArrow } from "../../tools/arrow-tool";
 import {
   FOOTBALL_EQUIPMENT_DEFINITIONS,
   FOOTBALL_EQUIPMENT_RENDERERS,
@@ -80,18 +87,29 @@ function getCurrentPlayerLabel(
 }
 
 export function FootballArrowPresetIcon({
-  variant,
-  color = "currentColor",
+  draftStyle,
   className = "h-5 w-10",
   width = 40,
   height = 20,
 }: {
-  variant: "straight-solid" | "wavy" | "curved-solid" | "double" | "polyline";
-  color?: string;
+  draftStyle: Pick<
+    ArrowDraftStyle,
+    | "geometry"
+    | "bodyStyle"
+    | "color"
+    | "strokeWidth"
+    | "lineStyle"
+    | "dashStyle"
+    | "startHead"
+    | "endHead"
+  >;
   className?: string;
   width?: number;
   height?: number;
 }) {
+  const previewArrow = useMemo(() => createArrowIconPreviewObject(draftStyle), [
+    draftStyle,
+  ]);
   const drawCanvas = useCallback((canvas: HTMLCanvasElement | null) => {
     if (!canvas) {
       return;
@@ -105,46 +123,19 @@ export function FootballArrowPresetIcon({
 
     const ratio =
       typeof window === "undefined" ? 1 : window.devicePixelRatio || 1;
-    const resolvedColor =
-      color === "currentColor" ? window.getComputedStyle(canvas).color : color;
     canvas.width = Math.floor(width * ratio);
     canvas.height = Math.floor(height * ratio);
     context.setTransform(1, 0, 0, 1, 0, 0);
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.scale(ratio, ratio);
-
-    renderArrowCanvasPreview({
+    renderArrow({
       context,
-      points:
-        variant === "polyline"
-          ? [
-              { x: 5, y: 14 },
-              { x: 15, y: 8 },
-              { x: 24, y: 12 },
-              { x: 32, y: 7 },
-            ]
-          : [
-              { x: 5, y: variant === "double" ? 10.5 : 10 },
-              { x: 32, y: variant === "double" ? 10.5 : 10 },
-            ],
-      geometry: variant === "polyline" ? "polyline" : "simple",
-      bodyStyle:
-        variant === "wavy"
-          ? "wavy"
-          : variant === "curved-solid"
-            ? "curved"
-            : variant === "double"
-              ? "double"
-              : "straight",
-      color: resolvedColor,
-      strokeWidth: 2.25,
-      lineStyle: "solid",
-      dashStyle: [],
-      startHead: "none",
-      endHead: "triangle",
-      curveOffset: variant === "curved-solid" ? 10 : undefined,
+      object: previewArrow,
+      appearance: "default",
+      requestRender: () => {},
+      surfaceTransform: createArrowIconProjection(previewArrow, width, height),
     });
-  }, [color, height, variant, width]);
+  }, [height, previewArrow, width]);
 
   return (
     <canvas
@@ -264,39 +255,101 @@ export function FootballPlayerToolIcon() {
 
 export function FootballArrowToolIcon() {
   const store = useBoardEditorContext();
-  const geometry = useBoardEditorStore(
+  const toolState = useBoardEditorStore(
     store,
-    (state) => getArrowToolState(state.toolState).draftStyle.geometry,
+    (state) => state.toolState,
   );
-  const bodyStyle = useBoardEditorStore(
-    store,
-    (state) => getArrowToolState(state.toolState).draftStyle.bodyStyle,
+  const draftStyle = useMemo(
+    () => getArrowToolState(toolState).draftStyle,
+    [toolState],
   );
-  const color = useBoardEditorStore(
-    store,
-    (state) => getArrowToolState(state.toolState).draftStyle.color,
-  );
-
-  const variant =
-    geometry === "polyline"
-      ? "polyline"
-      : bodyStyle === "wavy"
-        ? "wavy"
-        : bodyStyle === "curved"
-          ? "curved-solid"
-          : bodyStyle === "double"
-            ? "double"
-            : "straight-solid";
 
   return (
     <FootballArrowPresetIcon
-      variant={variant}
-      color={color}
+      draftStyle={draftStyle}
       className="h-5 w-5"
       width={20}
       height={20}
     />
   );
+}
+
+function createArrowIconPreviewObject(
+  draftStyle: Pick<
+    ArrowDraftStyle,
+    | "geometry"
+    | "bodyStyle"
+    | "color"
+    | "strokeWidth"
+    | "lineStyle"
+    | "dashStyle"
+    | "startHead"
+    | "endHead"
+  >,
+): ArrowObject {
+  return draftStyle.geometry === "polyline"
+    ? createArrowObject({
+        id: "arrow-icon-preview",
+        points: [
+          { x: 0.8, y: 3.2 },
+          { x: 3.2, y: 1.25 },
+          { x: 5.25, y: 2.55 },
+          { x: 7.1, y: 0.95 },
+        ],
+        ...draftStyle,
+      })
+    : createArrowObject({
+        id: "arrow-icon-preview",
+        start: { x: 0.9, y: 2 },
+        end: { x: 7.1, y: 2 },
+        ...draftStyle,
+      });
+}
+
+function createArrowIconProjection(
+  arrow: ArrowObject,
+  width: number,
+  height: number,
+): BoardSpaceProjection {
+  const bounds = getArrowSize(arrow.props);
+  const center = getArrowCenter(arrow.props);
+  const left = center.x - bounds.width / 2;
+  const top = center.y - bounds.height / 2;
+  const scale = Math.min(width / bounds.width, height / bounds.height);
+  const offsetX = (width - bounds.width * scale) / 2;
+  const offsetY = (height - bounds.height * scale) / 2;
+
+  const worldToCanvas = (point: { x: number; y: number }) => ({
+    x: (point.x - left) * scale + offsetX,
+    y: (point.y - top) * scale + offsetY,
+  });
+
+  return {
+    frame: { x: 0, y: 0, width, height },
+    zoom: scale,
+    pixelsPerUnit: scale,
+    worldOrigin: { x: left, y: top },
+    worldToCanvas,
+    canvasToWorld: (point) => ({
+      x: (point.x - offsetX) / scale + left,
+      y: (point.y - offsetY) / scale + top,
+    }),
+    getObjectCanvasRadius: (object) => ((object.size?.width ?? 0) * scale) / 2,
+    getObjectCanvasBounds: (object) => {
+      const canvasCenter = worldToCanvas(object.position);
+      const objectWidth = (object.size?.width ?? 0) * scale;
+      const objectHeight =
+        (object.size?.height ?? object.size?.width ?? 0) * scale;
+
+      return {
+        x: canvasCenter.x - objectWidth / 2,
+        y: canvasCenter.y - objectHeight / 2,
+        width: objectWidth,
+        height: objectHeight,
+      };
+    },
+    hitTestObject: () => false,
+  };
 }
 
 export function FootballShapeToolIcon() {

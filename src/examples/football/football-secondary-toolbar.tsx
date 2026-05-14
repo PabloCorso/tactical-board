@@ -354,7 +354,10 @@ export function FootballSecondaryToolbar({
             active={equipmentState.draftStyle.kind === definition.kind}
             className="w-full justify-start"
             iconBefore={
-              <FootballEquipmentDefinitionIcon definition={definition} size={20} />
+              <FootballEquipmentDefinitionIcon
+                definition={definition}
+                size={20}
+              />
             }
             key={definition.kind}
             onClick={() => {
@@ -390,7 +393,14 @@ export function FootballSecondaryToolbar({
             aria-label={preset.tooltip ?? preset.label}
             active={matchesDraftStyle(arrowState.draftStyle, preset.draftStyle)}
             className="w-full justify-start"
-            iconBefore={<FootballArrowPresetIcon variant={preset.variant} />}
+            iconBefore={
+              <FootballArrowPresetIcon
+                draftStyle={{
+                  ...arrowState.draftStyle,
+                  ...preset.draftStyle,
+                }}
+              />
+            }
             key={preset.id}
             onClick={() => {
               const currentState = getArrowToolState(
