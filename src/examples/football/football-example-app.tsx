@@ -22,9 +22,7 @@ import {
   FOOTBALL_EQUIPMENT_DEFINITIONS,
   FOOTBALL_EQUIPMENT_RENDERERS,
 } from "./equipment";
-import {
-  FOOTBALL_PLAYER_PRESET_COLORS,
-} from "./football-example-catalog";
+import { FOOTBALL_PLAYER_PRESET_COLORS } from "./football-example-catalog";
 import { footballBoardExample } from "./football-board-example";
 
 const footballArrowTool = new ArrowTool({

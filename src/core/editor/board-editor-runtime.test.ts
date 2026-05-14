@@ -72,7 +72,10 @@ describe("createBoardEditorRuntime", () => {
     const canvas = createCanvasStub();
     const originalRequestAnimationFrame = globalThis.requestAnimationFrame;
     const originalCancelAnimationFrame = globalThis.cancelAnimationFrame;
-    vi.stubGlobal("requestAnimationFrame", vi.fn(() => 1));
+    vi.stubGlobal(
+      "requestAnimationFrame",
+      vi.fn(() => 1),
+    );
     vi.stubGlobal("cancelAnimationFrame", vi.fn());
     registerCapabilities.mockClear();
 

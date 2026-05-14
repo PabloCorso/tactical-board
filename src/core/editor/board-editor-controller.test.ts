@@ -22,10 +22,7 @@ import { PlayerTool } from "../../tools/player-tool";
 import { ShapeTool } from "../../tools/shape-tool";
 import { SelectTool } from "../../tools/select-tool";
 import { setSelectedObjectIds } from "../../tools/select-tool-actions";
-import {
-  ARROW_TOOL_ID,
-  getArrowToolState,
-} from "../../tools/arrow-tool-state";
+import { ARROW_TOOL_ID, getArrowToolState } from "../../tools/arrow-tool-state";
 import {
   getPlayerToolState,
   PLAYER_TOOL_ID,

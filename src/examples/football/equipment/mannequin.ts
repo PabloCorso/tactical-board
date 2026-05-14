@@ -27,7 +27,9 @@ export const mannequinEquipment: FootballEquipmentSpec = {
     label: "Mannequin",
     family: "mannequin",
     defaultSize: {
-      width: (MANNEQUIN_SOURCE.width / MANNEQUIN_SOURCE.height) * DEFAULT_MANNEQUIN_HEIGHT,
+      width:
+        (MANNEQUIN_SOURCE.width / MANNEQUIN_SOURCE.height) *
+        DEFAULT_MANNEQUIN_HEIGHT,
       height: DEFAULT_MANNEQUIN_HEIGHT,
     },
     color: "#FFE100",
@@ -40,7 +42,10 @@ export const mannequinEquipment: FootballEquipmentSpec = {
 
     context.save();
     context.scale(scale, scale);
-    context.translate(-MANNEQUIN_SOURCE.width / 2, -MANNEQUIN_SOURCE.height / 2);
+    context.translate(
+      -MANNEQUIN_SOURCE.width / 2,
+      -MANNEQUIN_SOURCE.height / 2,
+    );
     context.fillStyle = color;
 
     if (mannequinPath) {

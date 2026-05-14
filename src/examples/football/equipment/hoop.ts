@@ -15,10 +15,7 @@ export const hoopEquipment: FootballEquipmentSpec = {
   },
   renderer: ({ context, color, width, height }) => {
     const radius = Math.min(width, height) / 2;
-    const strokeWidth = Math.max(
-      1,
-      radius * (HOOP_STROKE_WIDTH / HOOP_RADIUS),
-    );
+    const strokeWidth = Math.max(1, radius * (HOOP_STROKE_WIDTH / HOOP_RADIUS));
 
     context.strokeStyle = color;
     context.lineWidth = strokeWidth;

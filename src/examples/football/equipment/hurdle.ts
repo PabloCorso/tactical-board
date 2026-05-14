@@ -19,7 +19,8 @@ function renderHurdlePath(
   const bottomY = height / 2;
   const topY = -height / 2;
   const topBarY = topY + height * HURDLE_METRICS.shoulderRatio;
-  const leftLegX = leftX + width * (HURDLE_METRICS.legInset / HURDLE_METRICS.width);
+  const leftLegX =
+    leftX + width * (HURDLE_METRICS.legInset / HURDLE_METRICS.width);
   const rightLegX =
     rightX - width * (HURDLE_METRICS.legInset / HURDLE_METRICS.width);
   const footBackOffset =
