@@ -74,6 +74,10 @@ export class PlayerTool extends BoardEditorTool implements ToolDefinition {
     });
   }
 
+  onDeactivate(api: ToolApi) {
+    api.clearPreviewObjects();
+  }
+
   registerCapabilities(
     api: Parameters<NonNullable<ToolDefinition["registerCapabilities"]>>[0],
   ) {
@@ -96,20 +100,12 @@ export class PlayerTool extends BoardEditorTool implements ToolDefinition {
 
     clearSelection(api);
     api.addObjects([
-      createPlayerObject({
+      createPlayerPreviewObject({
         id: playerId,
-        position: event.point,
-        rotation: 0,
-        size: {
-          width: playerState.draftStyle.size,
-          height: playerState.draftStyle.size,
-          mode: "world",
-          unit: state.board.surface.unit,
-        },
-        color: playerState.draftStyle.color,
-        appearance: playerState.draftStyle.appearance,
-        label,
+        point: event.point,
         unit: state.board.surface.unit,
+        draftStyle: playerState.draftStyle,
+        label,
       }),
     ]);
 
@@ -124,6 +120,58 @@ export class PlayerTool extends BoardEditorTool implements ToolDefinition {
       });
     }
   }
+
+  onPointerMove(
+    event: Parameters<NonNullable<ToolDefinition["onPointerMove"]>>[0],
+    api: ToolApi,
+  ) {
+    const state = api.getState();
+    const playerState = getPlayerToolState(state.toolState);
+    const label =
+      this.labelStrategy === "numeric-by-color"
+        ? getNextNumericLabel(api, playerState, playerState.draftStyle.color)
+        : undefined;
+
+    api.setPreviewObjects([
+      createPlayerPreviewObject({
+        id: "player-preview",
+        point: event.point,
+        unit: state.board.surface.unit,
+        draftStyle: playerState.draftStyle,
+        label,
+      }),
+    ]);
+  }
+}
+
+function createPlayerPreviewObject({
+  id,
+  point,
+  unit,
+  draftStyle,
+  label,
+}: {
+  id: string;
+  point: Parameters<NonNullable<ToolDefinition["onPointerMove"]>>[0]["point"];
+  unit: BoardEditorState["board"]["surface"]["unit"];
+  draftStyle: ReturnType<typeof getPlayerToolState>["draftStyle"];
+  label?: string;
+}) {
+  return createPlayerObject({
+    id,
+    position: point,
+    rotation: 0,
+    size: {
+      width: draftStyle.size,
+      height: draftStyle.size,
+      mode: "world",
+      unit,
+    },
+    color: draftStyle.color,
+    appearance: draftStyle.appearance,
+    label,
+    unit,
+  });
 }
 
 function normalizeColorKey(color: string) {

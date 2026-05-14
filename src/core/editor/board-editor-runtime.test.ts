@@ -169,4 +169,135 @@ describe("createBoardEditorRuntime", () => {
     globalThis.cancelAnimationFrame = originalCancelAnimationFrame;
     createCanvasRendererSpy.mockRestore();
   });
+
+  it("clears previews when the pointer leaves the canvas without capture", () => {
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+          unit: "m",
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      tools: [
+        {
+          id: SELECT_TOOL_ID,
+          label: "Select",
+        },
+      ],
+    });
+    const runtime = createBoardEditorRuntime({ store });
+    const canvas = createCanvasStub();
+    const originalRequestAnimationFrame = globalThis.requestAnimationFrame;
+    const originalCancelAnimationFrame = globalThis.cancelAnimationFrame;
+    vi.stubGlobal(
+      "requestAnimationFrame",
+      vi.fn(() => 1),
+    );
+    vi.stubGlobal("cancelAnimationFrame", vi.fn());
+
+    runtime.mount(canvas);
+    store.getState().actions.setPreviewObjects([
+      {
+        id: "player-preview",
+        type: "player",
+        position: { x: 10, y: 10 },
+        props: {
+          color: "#111827",
+          appearance: { kind: "render", renderer: "player-default" },
+        },
+      },
+    ]);
+
+    const pointerLeaveHandler = vi
+      .mocked(canvas.addEventListener)
+      .mock.calls.find(([eventName]) => eventName === "pointerleave")?.[1] as
+      | ((event: PointerEvent) => void)
+      | undefined;
+
+    expect(pointerLeaveHandler).toBeTypeOf("function");
+
+    pointerLeaveHandler?.({ pointerId: 1 } as PointerEvent);
+
+    expect(store.getState().rendering.previewObjects).toEqual([]);
+
+    runtime.unmount();
+    vi.unstubAllGlobals();
+    globalThis.requestAnimationFrame = originalRequestAnimationFrame;
+    globalThis.cancelAnimationFrame = originalCancelAnimationFrame;
+  });
+
+  it("keeps previews when the pointer leaves during an active capture", () => {
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+          unit: "m",
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      tools: [
+        {
+          id: SELECT_TOOL_ID,
+          label: "Select",
+        },
+      ],
+    });
+    const runtime = createBoardEditorRuntime({ store });
+    const canvas = createCanvasStub();
+    vi.mocked(canvas.hasPointerCapture).mockReturnValue(true);
+    const originalRequestAnimationFrame = globalThis.requestAnimationFrame;
+    const originalCancelAnimationFrame = globalThis.cancelAnimationFrame;
+    vi.stubGlobal(
+      "requestAnimationFrame",
+      vi.fn(() => 1),
+    );
+    vi.stubGlobal("cancelAnimationFrame", vi.fn());
+
+    runtime.mount(canvas);
+    store.getState().actions.setPreviewObjects([
+      {
+        id: "player-preview",
+        type: "player",
+        position: { x: 10, y: 10 },
+        props: {
+          color: "#111827",
+          appearance: { kind: "render", renderer: "player-default" },
+        },
+      },
+    ]);
+
+    const pointerLeaveHandler = vi
+      .mocked(canvas.addEventListener)
+      .mock.calls.find(([eventName]) => eventName === "pointerleave")?.[1] as
+      | ((event: PointerEvent) => void)
+      | undefined;
+
+    expect(pointerLeaveHandler).toBeTypeOf("function");
+
+    pointerLeaveHandler?.({ pointerId: 1 } as PointerEvent);
+
+    expect(store.getState().rendering.previewObjects).toHaveLength(1);
+
+    runtime.unmount();
+    vi.unstubAllGlobals();
+    globalThis.requestAnimationFrame = originalRequestAnimationFrame;
+    globalThis.cancelAnimationFrame = originalCancelAnimationFrame;
+  });
 });

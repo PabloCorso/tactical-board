@@ -172,6 +172,135 @@ describe("createBoardEditorController", () => {
     });
   });
 
+  it("shows a player ghost preview at the pointer before placement", () => {
+    const playerTool = new PlayerTool();
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+          unit: "m",
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      initialToolId: playerTool.id,
+      tools: [selectTool, playerTool],
+    });
+    const toolApi = createToolApi(store);
+    playerTool.registerCapabilities?.(toolApi);
+
+    const controller = createBoardEditorController(store);
+    const canvasRect = {
+      left: 0,
+      top: 0,
+      width: 1000,
+      height: 500,
+    };
+    const projection = createBoardSpaceProjection({
+      surface: store.getState().board.surface,
+      viewport: store.getState().ui.viewport,
+      canvasRect,
+      surfaceInset: 14,
+    });
+    const previewPoint = projection.worldToCanvas({ x: 25, y: 12 });
+
+    controller.dispatchPointerEvent("onPointerMove", {
+      clientPoint: previewPoint,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    expect(store.getState().rendering.previewObjects).toHaveLength(1);
+    expect(store.getState().rendering.previewObjects[0]).toMatchObject({
+      id: "player-preview",
+      type: "player",
+      position: { x: 25, y: 12 },
+    });
+  });
+
+  it("shows an equipment ghost preview at the pointer before placement", () => {
+    const equipmentTool = new EquipmentTool({
+      definitions: [
+        {
+          kind: "football-cone",
+          label: "Football Cone",
+          family: "cone",
+          defaultSize: { width: 1.8, height: 2.2 },
+          color: "#ff6b35",
+          lockedAspectRatio: true,
+        },
+      ],
+    });
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+          unit: "m",
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      initialToolId: equipmentTool.id,
+      tools: [selectTool, equipmentTool],
+    });
+    const toolApi = createToolApi(store);
+    equipmentTool.registerCapabilities?.(toolApi);
+
+    const controller = createBoardEditorController(store);
+    const canvasRect = {
+      left: 0,
+      top: 0,
+      width: 1000,
+      height: 500,
+    };
+    const projection = createBoardSpaceProjection({
+      surface: store.getState().board.surface,
+      viewport: store.getState().ui.viewport,
+      canvasRect,
+      surfaceInset: 14,
+    });
+    const previewPoint = projection.worldToCanvas({ x: 32, y: 18 });
+
+    controller.dispatchPointerEvent("onPointerMove", {
+      clientPoint: previewPoint,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    expect(store.getState().rendering.previewObjects).toHaveLength(1);
+    expect(store.getState().rendering.previewObjects[0]).toMatchObject({
+      id: "equipment-preview",
+      type: "equipment",
+      position: { x: 32, y: 18 },
+      props: {
+        kind: "football-cone",
+        color: "#ff6b35",
+      },
+    });
+  });
+
   it("resizes a selected arrow by dragging an endpoint handle", () => {
     const arrowTool = new ArrowTool();
     const existingArrow = createArrowObject({

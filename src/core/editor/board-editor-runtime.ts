@@ -135,6 +135,18 @@ export function createBoardEditorRuntime({
     controller.dispatchPointerEvent("onPointerMove", input);
   };
 
+  const onPointerLeave = (event: PointerEvent) => {
+    if (!canvas) {
+      return;
+    }
+
+    if (canvas.hasPointerCapture(event.pointerId)) {
+      return;
+    }
+
+    store.getState().actions.clearPreviewObjects();
+  };
+
   const onPointerUp = (event: PointerEvent) => {
     if (!canvas) {
       return;
@@ -185,6 +197,7 @@ export function createBoardEditorRuntime({
       if (canvas) {
         canvas.removeEventListener("pointerdown", onPointerDown);
         canvas.removeEventListener("pointermove", onPointerMove);
+        canvas.removeEventListener("pointerleave", onPointerLeave);
         canvas.removeEventListener("pointerup", onPointerUp);
         canvas.removeEventListener("wheel", onWheel);
       }
@@ -195,6 +208,7 @@ export function createBoardEditorRuntime({
       canvas = nextCanvas;
       canvas.addEventListener("pointerdown", onPointerDown);
       canvas.addEventListener("pointermove", onPointerMove);
+      canvas.addEventListener("pointerleave", onPointerLeave);
       canvas.addEventListener("pointerup", onPointerUp);
       canvas.addEventListener("wheel", onWheel, { passive: false });
 
@@ -230,6 +244,7 @@ export function createBoardEditorRuntime({
       if (canvas) {
         canvas.removeEventListener("pointerdown", onPointerDown);
         canvas.removeEventListener("pointermove", onPointerMove);
+        canvas.removeEventListener("pointerleave", onPointerLeave);
         canvas.removeEventListener("pointerup", onPointerUp);
         canvas.removeEventListener("wheel", onWheel);
       }

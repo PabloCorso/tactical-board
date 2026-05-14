@@ -17,6 +17,7 @@ import {
   type EquipmentDefinition,
   type EquipmentObject,
 } from "../core/objects/equipment-object";
+import type { MeasurementUnit } from "../core/board/types";
 import { renderObjectAppearanceAsset } from "../rendering/canvas/object-appearance-renderer";
 import { clearSelection } from "./select-tool-actions";
 import { equipmentSelectionAdapter } from "./equipment-selection";
@@ -119,24 +120,66 @@ export class EquipmentTool extends BoardEditorTool implements ToolDefinition {
 
     clearSelection(api);
     api.addObjects([
-      createEquipmentObject({
+      createEquipmentPreviewObject({
         id: createEquipmentId(state.board.objects.byId),
-        position: event.point,
-        rotation: 0,
-        size: {
-          width: definition.defaultSize.width,
-          height: definition.defaultSize.height,
-          mode: "world",
-          unit: state.board.surface.unit,
-        },
+        point: event.point,
         unit: state.board.surface.unit,
-        kind: definition.kind,
-        color: definition.color,
-        appearance: definition.appearance,
         definition,
       }),
     ]);
   }
+
+  onPointerMove(event: ToolPointerEvent, api: ToolApi) {
+    const state = api.getState();
+    const equipmentState = getEquipmentToolState(state.toolState);
+    const definition = findDefinition(
+      this.definitionsByKind,
+      equipmentState.draftStyle.kind,
+    );
+
+    if (!definition) {
+      api.clearPreviewObjects();
+      return;
+    }
+
+    api.setPreviewObjects([
+      createEquipmentPreviewObject({
+        id: "equipment-preview",
+        point: event.point,
+        unit: state.board.surface.unit,
+        definition,
+      }),
+    ]);
+  }
+}
+
+function createEquipmentPreviewObject({
+  id,
+  point,
+  unit,
+  definition,
+}: {
+  id: string;
+  point: ToolPointerEvent["point"];
+  unit?: MeasurementUnit;
+  definition: EquipmentDefinition;
+}) {
+  return createEquipmentObject({
+    id,
+    position: point,
+    rotation: 0,
+    size: {
+      width: definition.defaultSize.width,
+      height: definition.defaultSize.height,
+      mode: "world",
+      unit,
+    },
+    unit,
+    kind: definition.kind,
+    color: definition.color,
+    appearance: definition.appearance,
+    definition,
+  });
 }
 
 function createEquipmentId(existingIds: Record<string, unknown>) {
