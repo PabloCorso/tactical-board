@@ -21,7 +21,10 @@ import type {
   CanvasObjectRendererRegistry,
   CanvasOverlayRendererRegistry,
 } from "../../rendering/canvas/types";
-import { getSelectToolState, SELECT_TOOL_ID } from "../../tools/select-tool-state";
+import {
+  getSelectToolState,
+  SELECT_TOOL_ID,
+} from "../../tools/select-tool-state";
 
 const MAX_HISTORY_ENTRIES = 100;
 
@@ -79,7 +82,9 @@ function translateObject(object: BoardObject, delta: Point): BoardObject {
   return moveBoardObject(object, delta);
 }
 
-function createHistoryEntry(state: Pick<BoardEditorState, "board" | "toolState">) {
+function createHistoryEntry(
+  state: Pick<BoardEditorState, "board" | "toolState">,
+) {
   return {
     board: state.board,
     selectedObjectIds: getSelectToolState(state.toolState).selectedObjectIds,
@@ -128,6 +133,25 @@ export function createBoardEditorStore({
   const objectRegistry = createObjectRegistry(objectDefinitions);
   let historyBatchDepth = 0;
   let hasRecordedHistoryForActiveBatch = false;
+  const recordHistoryForBoardChange = (
+    state: BoardEditorState,
+  ): BoardEditorState["history"] => {
+    if (historyBatchDepth > 0 && hasRecordedHistoryForActiveBatch) {
+      return {
+        ...state.history,
+        future: [],
+      };
+    }
+
+    if (historyBatchDepth > 0) {
+      hasRecordedHistoryForActiveBatch = true;
+    }
+
+    return {
+      past: pushHistoryEntry(state.history.past, createHistoryEntry(state)),
+      future: [],
+    };
+  };
   const activeToolId =
     initialToolId && toolRegistry.definitions[initialToolId]
       ? initialToolId
@@ -199,7 +223,10 @@ export function createBoardEditorStore({
           return {
             ...applyHistoryEntry(state, nextEntry),
             history: {
-              past: pushHistoryEntry(state.history.past, createHistoryEntry(state)),
+              past: pushHistoryEntry(
+                state.history.past,
+                createHistoryEntry(state),
+              ),
               future: state.history.future.slice(1),
             },
           };
@@ -319,25 +346,7 @@ export function createBoardEditorStore({
 
           return {
             board: nextBoard,
-            history:
-              historyBatchDepth > 0 && hasRecordedHistoryForActiveBatch
-                ? {
-                    ...state.history,
-                    future: [],
-                  }
-                : (() => {
-                    if (historyBatchDepth > 0) {
-                      hasRecordedHistoryForActiveBatch = true;
-                    }
-
-                    return {
-                      past: pushHistoryEntry(
-                        state.history.past,
-                        createHistoryEntry(state),
-                      ),
-                      future: [],
-                    };
-                  })(),
+            history: recordHistoryForBoardChange(state),
           };
         });
       },
@@ -384,25 +393,7 @@ export function createBoardEditorStore({
 
           return {
             board: nextBoard,
-            history:
-              historyBatchDepth > 0 && hasRecordedHistoryForActiveBatch
-                ? {
-                    ...currentState.history,
-                    future: [],
-                  }
-                : (() => {
-                    if (historyBatchDepth > 0) {
-                      hasRecordedHistoryForActiveBatch = true;
-                    }
-
-                    return {
-                      past: pushHistoryEntry(
-                        currentState.history.past,
-                        createHistoryEntry(currentState),
-                      ),
-                      future: [],
-                    };
-                  })(),
+            history: recordHistoryForBoardChange(currentState),
           };
         });
 
@@ -440,25 +431,7 @@ export function createBoardEditorStore({
 
           return {
             board: nextBoard,
-            history:
-              historyBatchDepth > 0 && hasRecordedHistoryForActiveBatch
-                ? {
-                    ...state.history,
-                    future: [],
-                  }
-                : (() => {
-                    if (historyBatchDepth > 0) {
-                      hasRecordedHistoryForActiveBatch = true;
-                    }
-
-                    return {
-                      past: pushHistoryEntry(
-                        state.history.past,
-                        createHistoryEntry(state),
-                      ),
-                      future: [],
-                    };
-                  })(),
+            history: recordHistoryForBoardChange(state),
           };
         });
       },
@@ -496,25 +469,7 @@ export function createBoardEditorStore({
 
           return {
             board: nextBoard,
-            history:
-              historyBatchDepth > 0 && hasRecordedHistoryForActiveBatch
-                ? {
-                    ...state.history,
-                    future: [],
-                  }
-                : (() => {
-                    if (historyBatchDepth > 0) {
-                      hasRecordedHistoryForActiveBatch = true;
-                    }
-
-                    return {
-                      past: pushHistoryEntry(
-                        state.history.past,
-                        createHistoryEntry(state),
-                      ),
-                      future: [],
-                    };
-                  })(),
+            history: recordHistoryForBoardChange(state),
           };
         });
       },
@@ -577,25 +532,7 @@ export function createBoardEditorStore({
 
           return {
             board: nextBoard,
-            history:
-              historyBatchDepth > 0 && hasRecordedHistoryForActiveBatch
-                ? {
-                    ...state.history,
-                    future: [],
-                  }
-                : (() => {
-                    if (historyBatchDepth > 0) {
-                      hasRecordedHistoryForActiveBatch = true;
-                    }
-
-                    return {
-                      past: pushHistoryEntry(
-                        state.history.past,
-                        createHistoryEntry(state),
-                      ),
-                      future: [],
-                    };
-                  })(),
+            history: recordHistoryForBoardChange(state),
           };
         });
       },

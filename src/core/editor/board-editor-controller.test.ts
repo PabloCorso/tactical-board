@@ -422,10 +422,20 @@ describe("createBoardEditorController", () => {
       surfaceInset: 14,
     });
     const endPoint = projection.worldToCanvas(existingArrow.props.end);
+    const middleEndPoint = projection.worldToCanvas({ x: 28, y: 14 });
     const nextEndPoint = projection.worldToCanvas({ x: 35, y: 18 });
 
     controller.dispatchPointerEvent("onPointerDown", {
       clientPoint: endPoint,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+    controller.dispatchPointerEvent("onPointerMove", {
+      clientPoint: middleEndPoint,
       pointerId: 1,
       ctrlKey: false,
       shiftKey: false,
@@ -442,12 +452,33 @@ describe("createBoardEditorController", () => {
       metaKey: false,
       canvasRect,
     });
+    controller.dispatchPointerEvent("onPointerUp", {
+      clientPoint: nextEndPoint,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
 
     expect(store.getState().board.objects.byId[existingArrow.id]).toMatchObject(
       {
         props: {
           start: { x: 10, y: 10 },
           end: { x: 35, y: 18 },
+        },
+      },
+    );
+    expect(store.getState().history.past).toHaveLength(1);
+
+    store.getState().actions.undo();
+
+    expect(store.getState().board.objects.byId[existingArrow.id]).toMatchObject(
+      {
+        props: {
+          start: { x: 10, y: 10 },
+          end: { x: 20, y: 10 },
         },
       },
     );
@@ -2547,6 +2578,121 @@ describe("createBoardEditorController", () => {
       },
     );
     expect(store.getState().history.past).toHaveLength(1);
+
+    store.getState().actions.undo();
+
+    expect(store.getState().board.objects.byId[existingArrow.id]).toMatchObject(
+      {
+        props: {
+          start: { x: 10, y: 10 },
+          end: { x: 20, y: 10 },
+        },
+      },
+    );
+  });
+
+  it("closes an in-flight drag batch when switching tools", () => {
+    const arrowTool = new ArrowTool();
+    const existingArrow = createArrowObject({
+      id: "arrow-1",
+      start: { x: 10, y: 10 },
+      end: { x: 20, y: 10 },
+      color: "#fff",
+      strokeWidth: 2,
+      lineStyle: "solid",
+      bodyStyle: "straight",
+      startHead: "none",
+      endHead: "triangle",
+    });
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {
+            [existingArrow.id]: existingArrow,
+          },
+          order: [existingArrow.id],
+        },
+        style: {},
+      },
+      initialToolId: SELECT_TOOL_ID,
+      tools: [
+        selectTool,
+        arrowTool,
+        {
+          id: "draw",
+          label: "Draw",
+        },
+      ],
+    });
+    const toolApi = createToolApi(store);
+    arrowTool.registerCapabilities?.(toolApi);
+    setSelectedObjectIds(toolApi, [existingArrow.id]);
+
+    const controller = createBoardEditorController(store);
+    const canvasRect = {
+      left: 0,
+      top: 0,
+      width: 1000,
+      height: 500,
+    };
+    const projection = createBoardSpaceProjection({
+      surface: store.getState().board.surface,
+      viewport: store.getState().ui.viewport,
+      canvasRect,
+      surfaceInset: 14,
+    });
+    const bodyPoint = projection.worldToCanvas({ x: 15, y: 10 });
+    const nextBodyPoint = projection.worldToCanvas({ x: 18, y: 14 });
+
+    controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: bodyPoint,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+    controller.dispatchPointerEvent("onPointerMove", {
+      clientPoint: nextBodyPoint,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    store.getState().actions.setActiveTool("draw");
+    store.getState().actions.addObjects([
+      {
+        id: "token-2",
+        type: "token",
+        position: { x: 40, y: 20 },
+        props: {},
+      },
+    ]);
+
+    expect(store.getState().history.past).toHaveLength(2);
+
+    store.getState().actions.undo();
+
+    expect(store.getState().board.objects.byId["token-2"]).toBeUndefined();
+    expect(store.getState().board.objects.byId[existingArrow.id]).toMatchObject(
+      {
+        props: {
+          start: { x: 13, y: 14 },
+          end: { x: 23, y: 14 },
+        },
+      },
+    );
 
     store.getState().actions.undo();
 

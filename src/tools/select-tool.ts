@@ -57,15 +57,7 @@ export class SelectTool extends BoardEditorTool implements ToolDefinition {
   }
 
   onDeactivate(api: ToolApi) {
-    const selectState = getSelectToolState(api.getState().toolState);
-
-    if (
-      selectState.interaction?.mode === "drag" ||
-      selectState.interaction?.mode === "object-selection"
-    ) {
-      api.endHistoryBatch();
-    }
-
+    endTransformHistoryBatch(api);
     clearSelection(api);
   }
 
@@ -86,18 +78,21 @@ export class SelectTool extends BoardEditorTool implements ToolDefinition {
   }
 
   onPointerUp(_event: ToolPointerEvent, api: ToolApi) {
-    const selectState = getSelectToolState(api.getState().toolState);
-
-    if (
-      selectState.interaction?.mode === "drag" ||
-      selectState.interaction?.mode === "object-selection"
-    ) {
-      api.endHistoryBatch();
-    }
-
+    endTransformHistoryBatch(api);
     setSelectState(api, {
       interaction: undefined,
     });
+  }
+}
+
+function endTransformHistoryBatch(api: ToolApi) {
+  const selectState = getSelectToolState(api.getState().toolState);
+
+  if (
+    selectState.interaction?.mode === "drag" ||
+    selectState.interaction?.mode === "object-selection"
+  ) {
+    api.endHistoryBatch();
   }
 }
 
