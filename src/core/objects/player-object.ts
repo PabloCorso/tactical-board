@@ -16,7 +16,7 @@ export const DEFAULT_PLAYER_COLOR = "#111827";
 export const DEFAULT_PLAYER_TRANSFORM_CAPABILITIES = {
   move: true,
   resize: false,
-  rotate: true,
+  rotate: false,
 } as const;
 
 export interface PlayerTransformCapabilities {
