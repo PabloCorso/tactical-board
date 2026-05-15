@@ -34,7 +34,10 @@ import {
 import { getShapeToolState } from "../../tools/shape-tool-state";
 import { FOOTBALL_PLAYER_PRESET_COLORS } from "../../examples/football/football-example-catalog";
 import { MAX_VIEWPORT_ZOOM, MIN_VIEWPORT_ZOOM } from "./viewport-utils";
-import { getRotatedRectWorldPoints, rotateOffset } from "../../tools/selection-geometry";
+import {
+  getRotatedRectWorldPoints,
+  rotateOffset,
+} from "../../tools/selection-geometry";
 
 describe("createBoardEditorController", () => {
   const selectTool = new SelectTool();
@@ -1734,28 +1737,18 @@ describe("createBoardEditorController", () => {
     const nextCenter = {
       x:
         fixedTopLeft.x -
-        rotateOffset(-nextWidth / 2, -nextHeight / 2, existingShape.rotation)
-          .x,
+        rotateOffset(-nextWidth / 2, -nextHeight / 2, existingShape.rotation).x,
       y:
         fixedTopLeft.y -
-        rotateOffset(-nextWidth / 2, -nextHeight / 2, existingShape.rotation)
-          .y,
+        rotateOffset(-nextWidth / 2, -nextHeight / 2, existingShape.rotation).y,
     };
     const targetBottomRight = {
       x:
         nextCenter.x +
-        rotateOffset(
-          nextWidth / 2,
-          nextHeight / 2,
-          existingShape.rotation,
-        ).x,
+        rotateOffset(nextWidth / 2, nextHeight / 2, existingShape.rotation).x,
       y:
         nextCenter.y +
-        rotateOffset(
-          nextWidth / 2,
-          nextHeight / 2,
-          existingShape.rotation,
-        ).y,
+        rotateOffset(nextWidth / 2, nextHeight / 2, existingShape.rotation).y,
     };
 
     controller.dispatchPointerEvent("onPointerDown", {

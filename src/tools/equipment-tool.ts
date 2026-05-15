@@ -323,7 +323,10 @@ export function hitTestEquipment({
     equipment.props.definition.minimumHitRadiusPx ?? minimumHitRadiusPx,
     0,
   );
-  const width = Math.max(Math.abs(bounds.width), effectiveMinimumHitRadiusPx * 2);
+  const width = Math.max(
+    Math.abs(bounds.width),
+    effectiveMinimumHitRadiusPx * 2,
+  );
   const height = Math.max(
     Math.abs(bounds.height),
     effectiveMinimumHitRadiusPx * 2,

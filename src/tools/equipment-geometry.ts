@@ -43,8 +43,7 @@ export function getEquipmentSelectionOutlineCanvasPoints(
     equipment.size?.mode === "screen"
       ? Math.max(
           (equipment.size?.width ?? 0) / Math.max(projection.pixelsPerUnit, 1),
-          MIN_EQUIPMENT_RENDER_SIZE_PX /
-            Math.max(projection.pixelsPerUnit, 1),
+          MIN_EQUIPMENT_RENDER_SIZE_PX / Math.max(projection.pixelsPerUnit, 1),
         )
       : Math.max(equipment.size?.width ?? 0, 0.25);
   const height =
@@ -52,8 +51,7 @@ export function getEquipmentSelectionOutlineCanvasPoints(
       ? Math.max(
           (equipment.size?.height ?? equipment.size?.width ?? 0) /
             Math.max(projection.pixelsPerUnit, 1),
-          MIN_EQUIPMENT_RENDER_SIZE_PX /
-            Math.max(projection.pixelsPerUnit, 1),
+          MIN_EQUIPMENT_RENDER_SIZE_PX / Math.max(projection.pixelsPerUnit, 1),
         )
       : Math.max(equipment.size?.height ?? equipment.size?.width ?? 0, 0.25);
 

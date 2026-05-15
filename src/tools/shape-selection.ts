@@ -482,13 +482,17 @@ export const shapeSelectionAdapter: ObjectSelectionAdapter<
     );
     const nextBounds = {
       minX:
-        nextCenter.x - Math.abs(nextLocalBounds.maxX - nextLocalBounds.minX) / 2,
+        nextCenter.x -
+        Math.abs(nextLocalBounds.maxX - nextLocalBounds.minX) / 2,
       maxX:
-        nextCenter.x + Math.abs(nextLocalBounds.maxX - nextLocalBounds.minX) / 2,
+        nextCenter.x +
+        Math.abs(nextLocalBounds.maxX - nextLocalBounds.minX) / 2,
       minY:
-        nextCenter.y - Math.abs(nextLocalBounds.maxY - nextLocalBounds.minY) / 2,
+        nextCenter.y -
+        Math.abs(nextLocalBounds.maxY - nextLocalBounds.minY) / 2,
       maxY:
-        nextCenter.y + Math.abs(nextLocalBounds.maxY - nextLocalBounds.minY) / 2,
+        nextCenter.y +
+        Math.abs(nextLocalBounds.maxY - nextLocalBounds.minY) / 2,
     };
 
     return object.props.kind === "polygon"

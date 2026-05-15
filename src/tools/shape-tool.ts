@@ -323,13 +323,7 @@ function traceRoundedRectanglePath(
 
   path.moveTo(start.x, start.y);
   path.arcTo(topRight.x, topRight.y, bottomRight.x, bottomRight.y, radius);
-  path.arcTo(
-    bottomRight.x,
-    bottomRight.y,
-    bottomLeft.x,
-    bottomLeft.y,
-    radius,
-  );
+  path.arcTo(bottomRight.x, bottomRight.y, bottomLeft.x, bottomLeft.y, radius);
   path.arcTo(bottomLeft.x, bottomLeft.y, topLeft.x, topLeft.y, radius);
   path.arcTo(topLeft.x, topLeft.y, topRight.x, topRight.y, radius);
   path.closePath();
