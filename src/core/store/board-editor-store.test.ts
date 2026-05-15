@@ -371,4 +371,221 @@ describe("createBoardEditorStore", () => {
       getSelectToolState(store.getState().toolState).selectedObjectIds,
     ).toEqual(["a", "b"]);
   });
+
+  it("undoes and redoes board mutations while restoring selection but not editor ui state", () => {
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {
+            a: {
+              id: "a",
+              type: "token",
+              position: { x: 10, y: 12 },
+              props: {},
+            },
+          },
+          order: ["a"],
+        },
+        style: {},
+      },
+      tools: [
+        { id: SELECT_TOOL_ID, label: "Select" },
+        { id: "draw", label: "Draw" },
+      ],
+    });
+
+    store.getState().actions.setActiveTool("draw");
+    store.getState().actions.setViewport({
+      pan: { x: 20, y: 30 },
+      zoom: 1.5,
+    });
+    store.getState().actions.setToolState(SELECT_TOOL_ID, {
+      selectedObjectIds: ["a"],
+    });
+    store.getState().actions.moveObjects(["a"], { x: 5, y: -2 });
+    store.getState().actions.setToolState(SELECT_TOOL_ID, {
+      selectedObjectIds: [],
+      interaction: {
+        mode: "marquee",
+        origin: { x: 0, y: 0 },
+        current: { x: 1, y: 1 },
+        baseSelection: [],
+      },
+    });
+
+    expect(store.getState().board.objects.byId.a?.position).toEqual({
+      x: 15,
+      y: 10,
+    });
+    expect(store.getState().history.past).toHaveLength(1);
+
+    store.getState().actions.undo();
+
+    expect(store.getState().board.objects.byId.a?.position).toEqual({
+      x: 10,
+      y: 12,
+    });
+    expect(
+      getSelectToolState(store.getState().toolState).selectedObjectIds,
+    ).toEqual(["a"]);
+    expect(getSelectToolState(store.getState().toolState).interaction).toBe(
+      undefined,
+    );
+    expect(store.getState().ui.activeToolId).toBe("draw");
+    expect(store.getState().ui.viewport).toEqual({
+      pan: { x: 20, y: 30 },
+      zoom: 1.5,
+    });
+    expect(store.getState().history.future).toHaveLength(1);
+
+    store.getState().actions.redo();
+
+    expect(store.getState().board.objects.byId.a?.position).toEqual({
+      x: 15,
+      y: 10,
+    });
+    expect(
+      getSelectToolState(store.getState().toolState).selectedObjectIds,
+    ).toEqual([]);
+    expect(store.getState().history.past).toHaveLength(1);
+    expect(store.getState().history.future).toHaveLength(0);
+  });
+
+  it("clears redo history when a new board change branches from undo", () => {
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {
+            a: {
+              id: "a",
+              type: "token",
+              position: { x: 10, y: 12 },
+              props: {},
+            },
+          },
+          order: ["a"],
+        },
+        style: {},
+      },
+      tools: [{ id: SELECT_TOOL_ID, label: "Select" }],
+    });
+
+    store.getState().actions.moveObjects(["a"], { x: 5, y: 0 });
+    store.getState().actions.undo();
+
+    expect(store.getState().history.future).toHaveLength(1);
+
+    store.getState().actions.moveObjects(["a"], { x: 0, y: 7 });
+
+    expect(store.getState().board.objects.byId.a?.position).toEqual({
+      x: 10,
+      y: 19,
+    });
+    expect(store.getState().history.future).toHaveLength(0);
+
+    store.getState().actions.redo();
+
+    expect(store.getState().board.objects.byId.a?.position).toEqual({
+      x: 10,
+      y: 19,
+    });
+  });
+
+  it("does not create history entries for selection-only changes", () => {
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {
+            a: {
+              id: "a",
+              type: "token",
+              position: { x: 10, y: 12 },
+              props: {},
+            },
+          },
+          order: ["a"],
+        },
+        style: {},
+      },
+      tools: [{ id: SELECT_TOOL_ID, label: "Select" }],
+    });
+
+    store.getState().actions.setToolState(SELECT_TOOL_ID, {
+      selectedObjectIds: ["a"],
+    });
+
+    expect(store.getState().history.past).toHaveLength(0);
+
+    store.getState().actions.undo();
+
+    expect(
+      getSelectToolState(store.getState().toolState).selectedObjectIds,
+    ).toEqual(["a"]);
+  });
+
+  it("collapses batched board mutations into a single undo step", () => {
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {
+            a: {
+              id: "a",
+              type: "token",
+              position: { x: 10, y: 12 },
+              props: {},
+            },
+          },
+          order: ["a"],
+        },
+        style: {},
+      },
+      tools: [{ id: SELECT_TOOL_ID, label: "Select" }],
+    });
+
+    store.getState().actions.beginHistoryBatch();
+    store.getState().actions.moveObjects(["a"], { x: 2, y: 0 });
+    store.getState().actions.moveObjects(["a"], { x: 0, y: 3 });
+    store.getState().actions.endHistoryBatch();
+
+    expect(store.getState().board.objects.byId.a?.position).toEqual({
+      x: 12,
+      y: 15,
+    });
+    expect(store.getState().history.past).toHaveLength(1);
+
+    store.getState().actions.undo();
+
+    expect(store.getState().board.objects.byId.a?.position).toEqual({
+      x: 10,
+      y: 12,
+    });
+  });
 });

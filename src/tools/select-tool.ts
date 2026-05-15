@@ -57,6 +57,15 @@ export class SelectTool extends BoardEditorTool implements ToolDefinition {
   }
 
   onDeactivate(api: ToolApi) {
+    const selectState = getSelectToolState(api.getState().toolState);
+
+    if (
+      selectState.interaction?.mode === "drag" ||
+      selectState.interaction?.mode === "object-selection"
+    ) {
+      api.endHistoryBatch();
+    }
+
     clearSelection(api);
   }
 
@@ -77,6 +86,15 @@ export class SelectTool extends BoardEditorTool implements ToolDefinition {
   }
 
   onPointerUp(_event: ToolPointerEvent, api: ToolApi) {
+    const selectState = getSelectToolState(api.getState().toolState);
+
+    if (
+      selectState.interaction?.mode === "drag" ||
+      selectState.interaction?.mode === "object-selection"
+    ) {
+      api.endHistoryBatch();
+    }
+
     setSelectState(api, {
       interaction: undefined,
     });
@@ -300,6 +318,7 @@ function beginSelectionInteraction(
       : undefined;
 
     if (object && session) {
+      api.beginHistoryBatch();
       setSelectState(api, {
         selectedObjectIds: [object.id],
         interaction: {
@@ -355,6 +374,10 @@ function beginSelectionInteraction(
               lastPoint: event.point,
             },
     });
+
+    if (transformCapabilities?.move !== false) {
+      api.beginHistoryBatch();
+    }
     return;
   }
 

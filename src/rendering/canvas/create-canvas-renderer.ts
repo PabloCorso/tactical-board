@@ -1,5 +1,6 @@
 import type { BoardSurfaceMarking } from "../../core/board/types";
 import { createBoardSpaceProjection } from "../../core/geometry/board-space-projection";
+import { getOrderedBoardObjectIds } from "../../core/board/object-order";
 import type {
   CanvasObjectRenderInput,
   CanvasObjectRenderer,
@@ -275,7 +276,7 @@ export function createCanvasRenderer(): CanvasRenderer {
         );
       }
 
-      for (const objectId of board.objects.order) {
+      for (const objectId of getOrderedBoardObjectIds(board)) {
         const object = board.objects.byId[objectId];
         if (!object) {
           continue;

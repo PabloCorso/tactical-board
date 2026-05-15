@@ -353,4 +353,95 @@ describe("createBoardEditorRuntime", () => {
     globalThis.requestAnimationFrame = originalRequestAnimationFrame;
     globalThis.cancelAnimationFrame = originalCancelAnimationFrame;
   });
+
+  it("handles undo and redo keyboard shortcuts on the focused canvas", () => {
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {
+            a: {
+              id: "a",
+              type: "token",
+              position: { x: 10, y: 12 },
+              props: {},
+            },
+          },
+          order: ["a"],
+        },
+        style: {},
+      },
+      tools: [
+        {
+          id: SELECT_TOOL_ID,
+          label: "Select",
+        },
+      ],
+    });
+    const runtime = createBoardEditorRuntime({ store });
+    const canvas = createCanvasStub();
+    const originalRequestAnimationFrame = globalThis.requestAnimationFrame;
+    const originalCancelAnimationFrame = globalThis.cancelAnimationFrame;
+    vi.stubGlobal(
+      "requestAnimationFrame",
+      vi.fn(() => 1),
+    );
+    vi.stubGlobal("cancelAnimationFrame", vi.fn());
+
+    runtime.mount(canvas);
+    store.getState().actions.moveObjects(["a"], { x: 5, y: 0 });
+
+    const keyDownHandler = vi
+      .mocked(canvas.addEventListener)
+      .mock.calls.find(([eventName]) => eventName === "keydown")?.[1] as
+      | ((event: KeyboardEvent) => void)
+      | undefined;
+
+    expect(keyDownHandler).toBeTypeOf("function");
+
+    const undoEvent = {
+      key: "z",
+      metaKey: true,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      preventDefault: vi.fn(),
+    } as unknown as KeyboardEvent;
+
+    keyDownHandler?.(undoEvent);
+
+    expect(store.getState().board.objects.byId.a?.position).toEqual({
+      x: 10,
+      y: 12,
+    });
+    expect(undoEvent.preventDefault).toHaveBeenCalledTimes(1);
+
+    const redoEvent = {
+      key: "z",
+      metaKey: true,
+      ctrlKey: false,
+      shiftKey: true,
+      altKey: false,
+      preventDefault: vi.fn(),
+    } as unknown as KeyboardEvent;
+
+    keyDownHandler?.(redoEvent);
+
+    expect(store.getState().board.objects.byId.a?.position).toEqual({
+      x: 15,
+      y: 12,
+    });
+    expect(redoEvent.preventDefault).toHaveBeenCalledTimes(1);
+
+    runtime.unmount();
+    vi.unstubAllGlobals();
+    globalThis.requestAnimationFrame = originalRequestAnimationFrame;
+    globalThis.cancelAnimationFrame = originalCancelAnimationFrame;
+  });
 });

@@ -37,12 +37,26 @@ export interface BoardEditorRenderingState {
   overlayRenderers: CanvasOverlayRendererRegistry;
 }
 
+export interface BoardEditorHistoryEntry {
+  board: Board;
+  selectedObjectIds: ObjectId[];
+}
+
+export interface BoardEditorHistoryState {
+  past: BoardEditorHistoryEntry[];
+  future: BoardEditorHistoryEntry[];
+}
+
 export type BoardEditorToolState = Record<string, unknown>;
 
 export interface BoardEditorActions {
   setActiveTool: (toolId: ToolId) => void;
   setCanvasRect: (rect: { width: number; height: number }) => void;
   setViewport: (viewport: BoardViewport) => void;
+  beginHistoryBatch: () => void;
+  endHistoryBatch: () => void;
+  undo: () => void;
+  redo: () => void;
   addObjects: (objects: BoardObject[]) => void;
   duplicateObjects: (objectIds: ObjectId[]) => ObjectId[];
   deleteObjects: (objectIds: ObjectId[]) => void;
@@ -74,6 +88,7 @@ export interface BoardEditorActions {
 
 export interface BoardEditorState {
   board: Board;
+  history: BoardEditorHistoryState;
   ui: BoardEditorUiState;
   rendering: BoardEditorRenderingState;
   objectRegistry: ObjectRegistry;

@@ -209,6 +209,31 @@ export function createBoardEditorRuntime({
     }
   };
 
+  const onKeyDown = (event: KeyboardEvent) => {
+    const isModifierPressed = event.metaKey || event.ctrlKey;
+
+    if (!isModifierPressed || event.altKey) {
+      return;
+    }
+
+    const key = event.key.toLowerCase();
+
+    if (key === "z") {
+      if (event.shiftKey) {
+        store.getState().actions.redo();
+      } else {
+        store.getState().actions.undo();
+      }
+      event.preventDefault();
+      return;
+    }
+
+    if (key === "y" && !event.shiftKey) {
+      store.getState().actions.redo();
+      event.preventDefault();
+    }
+  };
+
   return {
     mount: (nextCanvas) => {
       if (canvas === nextCanvas) {
@@ -222,6 +247,7 @@ export function createBoardEditorRuntime({
         canvas.removeEventListener("pointerleave", onPointerLeave);
         canvas.removeEventListener("pointerup", onPointerUp);
         canvas.removeEventListener("wheel", onWheel);
+        canvas.removeEventListener("keydown", onKeyDown);
       }
 
       resizeObserver?.disconnect();
@@ -233,6 +259,7 @@ export function createBoardEditorRuntime({
       canvas.addEventListener("pointerleave", onPointerLeave);
       canvas.addEventListener("pointerup", onPointerUp);
       canvas.addEventListener("wheel", onWheel, { passive: false });
+      canvas.addEventListener("keydown", onKeyDown);
 
       unsubscribe = store.subscribe(() => {
         syncToolRenderers();
@@ -269,6 +296,7 @@ export function createBoardEditorRuntime({
         canvas.removeEventListener("pointerleave", onPointerLeave);
         canvas.removeEventListener("pointerup", onPointerUp);
         canvas.removeEventListener("wheel", onWheel);
+        canvas.removeEventListener("keydown", onKeyDown);
       }
 
       canvas = null;

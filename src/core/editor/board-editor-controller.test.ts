@@ -233,6 +233,72 @@ describe("createBoardEditorController", () => {
     });
   });
 
+  it("prefers players over overlapping shapes during hit testing", () => {
+    const shape = createShapeObject({
+      id: "shape-1",
+      kind: "rectangle",
+      color: "#f00",
+      lineStyle: "solid",
+      fillStyle: "solid",
+      bordered: true,
+      start: { x: 21, y: 8 },
+      end: { x: 29, y: 16 },
+    });
+    const player = createPlayerObject({
+      id: "player-1",
+      position: { x: 25, y: 12 },
+      color: "#111827",
+    });
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+          unit: "m",
+        },
+        objects: {
+          byId: {
+            [player.id]: player,
+            [shape.id]: shape,
+          },
+          order: [player.id, shape.id],
+        },
+        style: {},
+      },
+      initialToolId: selectTool.id,
+      tools: [selectTool],
+    });
+    const controller = createBoardEditorController(store);
+    const canvasRect = {
+      left: 0,
+      top: 0,
+      width: 1000,
+      height: 500,
+    };
+    const projection = createBoardSpaceProjection({
+      surface: store.getState().board.surface,
+      viewport: store.getState().ui.viewport,
+      canvasRect,
+      surfaceInset: 14,
+    });
+    const targetPoint = projection.worldToCanvas(player.position);
+
+    expect(
+      controller.createToolPointerEvent({
+        clientPoint: targetPoint,
+        pointerId: 1,
+        ctrlKey: false,
+        shiftKey: false,
+        altKey: false,
+        metaKey: false,
+        canvasRect,
+      }).targetObjectId,
+    ).toBe(player.id);
+  });
+
   it("shows an equipment ghost preview at the pointer before placement", () => {
     const equipmentTool = new EquipmentTool({
       definitions: [
@@ -2432,10 +2498,20 @@ describe("createBoardEditorController", () => {
       surfaceInset: 14,
     });
     const bodyPoint = projection.worldToCanvas({ x: 15, y: 10 });
+    const middleBodyPoint = projection.worldToCanvas({ x: 16, y: 12 });
     const nextBodyPoint = projection.worldToCanvas({ x: 18, y: 14 });
 
     controller.dispatchPointerEvent("onPointerDown", {
       clientPoint: bodyPoint,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+    controller.dispatchPointerEvent("onPointerMove", {
+      clientPoint: middleBodyPoint,
       pointerId: 1,
       ctrlKey: false,
       shiftKey: false,
@@ -2452,12 +2528,33 @@ describe("createBoardEditorController", () => {
       metaKey: false,
       canvasRect,
     });
+    controller.dispatchPointerEvent("onPointerUp", {
+      clientPoint: nextBodyPoint,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
 
     expect(store.getState().board.objects.byId[existingArrow.id]).toMatchObject(
       {
         props: {
           start: { x: 13, y: 14 },
           end: { x: 23, y: 14 },
+        },
+      },
+    );
+    expect(store.getState().history.past).toHaveLength(1);
+
+    store.getState().actions.undo();
+
+    expect(store.getState().board.objects.byId[existingArrow.id]).toMatchObject(
+      {
+        props: {
+          start: { x: 10, y: 10 },
+          end: { x: 20, y: 10 },
         },
       },
     );

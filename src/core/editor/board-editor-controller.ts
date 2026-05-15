@@ -1,5 +1,6 @@
 import type { BoardEditorState } from "./types";
 import { createToolApi } from "./create-tool-api";
+import { getOrderedBoardObjectIds } from "../board/object-order";
 import type { ObjectId, Point } from "../board/types";
 import { createBoardSpaceProjection } from "../geometry/board-space-projection";
 import type { BoardEditorStore } from "../store/board-editor-store";
@@ -83,12 +84,10 @@ function getTargetObjectId(
     y: clientPoint.y - canvasRect.top,
   };
 
-  for (
-    let index = state.board.objects.order.length - 1;
-    index >= 0;
-    index -= 1
-  ) {
-    const objectId = state.board.objects.order[index];
+  const orderedObjectIds = getOrderedBoardObjectIds(state.board);
+
+  for (let index = orderedObjectIds.length - 1; index >= 0; index -= 1) {
+    const objectId = orderedObjectIds[index];
     const object = state.board.objects.byId[objectId];
     if (!object) {
       continue;

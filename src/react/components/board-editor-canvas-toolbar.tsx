@@ -1,5 +1,11 @@
 import type { ComponentProps } from "react";
-import { CornersOutIcon, MinusIcon, PlusIcon } from "@phosphor-icons/react";
+import {
+  ArrowClockwiseIcon,
+  ArrowCounterClockwiseIcon,
+  CornersOutIcon,
+  MinusIcon,
+  PlusIcon,
+} from "@phosphor-icons/react";
 import { useBoardEditorStore } from "../hooks/use-board-editor-store";
 import { useBoardEditorContext } from "./board-editor-context";
 import {
@@ -24,7 +30,10 @@ export function BoardEditorCanvasToolbar({
   const viewport = useBoardEditorStore(store, (state) => state.ui.viewport);
   const canvasRect = useBoardEditorStore(store, (state) => state.ui.canvasRect);
   const surface = useBoardEditorStore(store, (state) => state.board.surface);
+  const history = useBoardEditorStore(store, (state) => state.history);
   const actions = useBoardEditorStore(store, (state) => state.actions);
+  const canUndo = history.past.length > 0;
+  const canRedo = history.future.length > 0;
 
   const zoomAroundCanvasCenter = (nextZoom: number) => {
     if (!canvasRect) {
@@ -56,6 +65,40 @@ export function BoardEditorCanvasToolbar({
         className,
       )}
     >
+      <BoardEditorToolbar className="pointer-events-auto gap-0 rounded-full p-0">
+        <BoardEditorCanvasToolbarButton
+          aria-label="Undo"
+          className="rounded-none rounded-l-full"
+          disabled={!canUndo}
+          iconBefore={
+            <ArrowCounterClockwiseIcon
+              aria-hidden="true"
+              className="size-4"
+              weight="bold"
+            />
+          }
+          iconSize="sm"
+          onClick={() => actions.undo()}
+          size="sm"
+          tooltip="Undo"
+        />
+        <BoardEditorCanvasToolbarButton
+          aria-label="Redo"
+          className="rounded-none rounded-r-full border-l"
+          disabled={!canRedo}
+          iconBefore={
+            <ArrowClockwiseIcon
+              aria-hidden="true"
+              className="size-4"
+              weight="bold"
+            />
+          }
+          iconSize="sm"
+          onClick={() => actions.redo()}
+          size="sm"
+          tooltip="Redo"
+        />
+      </BoardEditorToolbar>
       <BoardEditorToolbar className="pointer-events-auto gap-0 rounded-full p-0">
         <BoardEditorCanvasToolbarButton
           aria-label="Zoom out"

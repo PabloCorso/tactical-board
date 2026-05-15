@@ -39,6 +39,8 @@ export interface ToolWheelEvent {
 
 export interface ToolApi {
   getState: () => BoardEditorState;
+  beginHistoryBatch: () => void;
+  endHistoryBatch: () => void;
   addObjects: (
     objects: BoardEditorState["board"]["objects"]["byId"][string][],
   ) => void;
