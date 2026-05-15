@@ -6,8 +6,11 @@ import {
   type SelectionProjection,
 } from "../../core/objects/object-selection";
 import { getSelectToolState } from "../../tools/select-tool-state";
+import { SELECTION_TOOLBAR_OFFSET_PX } from "../../tools/selection-geometry";
 import { useBoardEditorStore } from "../hooks/use-board-editor-store";
 import { useBoardEditorContext } from "./board-editor-context";
+import { BoardEditorSelectionActionsMenu } from "./board-editor-selection-actions-menu";
+import { BoardEditorToolbar } from "./board-editor-toolbar";
 
 const SURFACE_INSET = 14;
 
@@ -33,9 +36,30 @@ export function shouldShowSelectionToolbar(
   selectState: ReturnType<typeof getSelectToolState>,
 ) {
   return (
-    selectState.selectedObjectIds.length === 1 &&
+    selectState.selectedObjectIds.length > 0 &&
     selectState.interaction?.mode !== "marquee"
   );
+}
+
+export function getMultiSelectionToolbarAnchor(
+  projection: SelectionProjection,
+  selectedObjects: BoardObject[],
+) {
+  if (selectedObjects.length === 0) {
+    return undefined;
+  }
+
+  const bounds = selectedObjects.map((object) =>
+    projection.getObjectCanvasBounds(object),
+  );
+  const left = Math.min(...bounds.map((bound) => bound.x));
+  const right = Math.max(...bounds.map((bound) => bound.x + bound.width));
+  const top = Math.min(...bounds.map((bound) => bound.y));
+
+  return {
+    left: (left + right) / 2,
+    top: top - SELECTION_TOOLBAR_OFFSET_PX,
+  };
 }
 
 export function BoardEditorSelectionToolbar({
@@ -47,14 +71,64 @@ export function BoardEditorSelectionToolbar({
   const selection = selectState.selectedObjectIds;
 
   const selectedObject = useMemo(() => {
-    if (!shouldShowSelectionToolbar(selectState)) {
+    if (selection.length !== 1 || !shouldShowSelectionToolbar(selectState)) {
       return undefined;
     }
 
     return state.board.objects.byId[selection[0]];
   }, [selectState, selection, state.board.objects.byId]);
+  const selectedObjects = useMemo(
+    () =>
+      selection.flatMap((objectId) => {
+        const object = state.board.objects.byId[objectId];
+        return object ? [object] : [];
+      }),
+    [selection, state.board.objects.byId],
+  );
 
-  if (!selectedObject || !state.ui.canvasRect) {
+  if (!shouldShowSelectionToolbar(selectState) || !state.ui.canvasRect) {
+    return null;
+  }
+
+  const projection = createBoardSpaceProjection({
+    surface: state.board.surface,
+    viewport: state.ui.viewport,
+    canvasRect: state.ui.canvasRect,
+    surfaceInset: SURFACE_INSET,
+  });
+
+  if (selectedObjects.length > 1) {
+    const anchor = getMultiSelectionToolbarAnchor(projection, selectedObjects);
+
+    if (!anchor) {
+      return null;
+    }
+
+    return (
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{ zIndex: 10 }}
+      >
+        <div
+          className="pointer-events-auto absolute"
+          style={{
+            left: anchor.left,
+            top: Math.max(10, anchor.top),
+            transform: "translate(-50%, -100%)",
+          }}
+        >
+          <BoardEditorToolbar className={className}>
+            <BoardEditorSelectionActionsMenu
+              selectedObjectIds={selectedObjects.map((object) => object.id)}
+              showSeparator={false}
+            />
+          </BoardEditorToolbar>
+        </div>
+      </div>
+    );
+  }
+
+  if (!selectedObject) {
     return null;
   }
 
@@ -67,12 +141,6 @@ export function BoardEditorSelectionToolbar({
     return null;
   }
 
-  const projection = createBoardSpaceProjection({
-    surface: state.board.surface,
-    viewport: state.ui.viewport,
-    canvasRect: state.ui.canvasRect,
-    surfaceInset: SURFACE_INSET,
-  });
   const anchor = getSelectionToolbarAnchor(
     projection,
     selectedObject as BoardObject,

@@ -7,6 +7,7 @@ import type {
   ToolId,
 } from "../board/types";
 import type { BoardEditorState } from "../editor/types";
+import { moveObjectIdsToLayerBoundary } from "../board/object-order";
 import { moveBoardObject } from "../objects/object-behaviors";
 import type { ObjectDefinition, ObjectRegistry } from "../objects/types";
 import type {
@@ -247,9 +248,11 @@ export function createBoardEditorStore({
             beginHistoryBatch: actions.beginHistoryBatch,
             endHistoryBatch: actions.endHistoryBatch,
             addObjects: actions.addObjects,
+            bringObjectsToFront: actions.bringObjectsToFront,
             moveObjects: actions.moveObjects,
             duplicateObjects: actions.duplicateObjects,
             deleteObjects: actions.deleteObjects,
+            sendObjectsToBack: actions.sendObjectsToBack,
             updateObjects: actions.updateObjects,
             setPreviewObjects: actions.setPreviewObjects,
             clearPreviewObjects: actions.clearPreviewObjects,
@@ -350,6 +353,38 @@ export function createBoardEditorStore({
           };
         });
       },
+      bringObjectsToFront: (objectIds) => {
+        set((state) => {
+          const nextOrder = moveObjectIdsToLayerBoundary(
+            state.board,
+            objectIds,
+            "front",
+          );
+
+          if (
+            nextOrder.length === state.board.objects.order.length &&
+            nextOrder.every(
+              (objectId, index) =>
+                objectId === state.board.objects.order[index],
+            )
+          ) {
+            return state;
+          }
+
+          const nextBoard = {
+            ...state.board,
+            objects: {
+              ...state.board.objects,
+              order: nextOrder,
+            },
+          };
+
+          return {
+            board: nextBoard,
+            history: recordHistoryForBoardChange(state),
+          };
+        });
+      },
       duplicateObjects: (objectIds) => {
         const state = get();
         const nextById = { ...state.board.objects.byId };
@@ -426,6 +461,38 @@ export function createBoardEditorStore({
               order: state.board.objects.order.filter(
                 (objectId) => !objectIdsToDelete.has(objectId),
               ),
+            },
+          };
+
+          return {
+            board: nextBoard,
+            history: recordHistoryForBoardChange(state),
+          };
+        });
+      },
+      sendObjectsToBack: (objectIds) => {
+        set((state) => {
+          const nextOrder = moveObjectIdsToLayerBoundary(
+            state.board,
+            objectIds,
+            "back",
+          );
+
+          if (
+            nextOrder.length === state.board.objects.order.length &&
+            nextOrder.every(
+              (objectId, index) =>
+                objectId === state.board.objects.order[index],
+            )
+          ) {
+            return state;
+          }
+
+          const nextBoard = {
+            ...state.board,
+            objects: {
+              ...state.board.objects,
+              order: nextOrder,
             },
           };
 

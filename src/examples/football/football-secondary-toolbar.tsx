@@ -1,4 +1,3 @@
-import { CopyIcon, TrashIcon } from "@phosphor-icons/react";
 import { useMemo } from "react";
 import { PLAYER_OBJECT_TYPE } from "../../core/objects/player-object";
 import { createToolApi } from "../../core/editor/create-tool-api";
@@ -21,10 +20,6 @@ import {
   PLAYER_TOOL_ID,
   type PlayerDraftStyle,
 } from "../../tools/player-tool-state";
-import {
-  SELECT_TOOL_ID,
-  getSelectToolState,
-} from "../../tools/select-tool-state";
 import { type ShapeToolPreset } from "../../tools/shape-tool";
 import {
   getShapeToolState,
@@ -205,62 +200,6 @@ export function FootballSecondaryToolbar({
     (currentState) => currentState,
   );
   const activeToolId = state.ui.activeToolId;
-
-  if (activeToolId === SELECT_TOOL_ID) {
-    const disabled =
-      getSelectToolState(state.toolState).selectedObjectIds.length === 0;
-
-    return (
-      <BoardEditorToolbar
-        className={["gap-0.5 p-0.5", className].filter(Boolean).join(" ")}
-      >
-        <BoardEditorToolbarButton
-          aria-label="Duplicate"
-          className="w-full justify-start"
-          disabled={disabled}
-          iconBefore={
-            <CopyIcon aria-hidden="true" className="size-4" weight="bold" />
-          }
-          onClick={() => {
-            const { selectedObjectIds } = getSelectToolState(
-              toolApi.getState().toolState,
-            );
-            const duplicateIds = toolApi.duplicateObjects(selectedObjectIds);
-            toolApi.setToolState(SELECT_TOOL_ID, {
-              ...getSelectToolState(toolApi.getState().toolState),
-              selectedObjectIds: duplicateIds,
-              interaction: undefined,
-            });
-          }}
-          tooltip="Duplicate"
-        >
-          Duplicate
-        </BoardEditorToolbarButton>
-        <BoardEditorToolbarButton
-          aria-label="Delete"
-          className="w-full justify-start"
-          disabled={disabled}
-          iconBefore={
-            <TrashIcon aria-hidden="true" className="size-4" weight="bold" />
-          }
-          onClick={() => {
-            const { selectedObjectIds } = getSelectToolState(
-              toolApi.getState().toolState,
-            );
-            toolApi.deleteObjects(selectedObjectIds);
-            toolApi.setToolState(SELECT_TOOL_ID, {
-              ...getSelectToolState(toolApi.getState().toolState),
-              selectedObjectIds: [],
-              interaction: undefined,
-            });
-          }}
-          tooltip="Delete"
-        >
-          Delete
-        </BoardEditorToolbarButton>
-      </BoardEditorToolbar>
-    );
-  }
 
   if (activeToolId === PLAYER_TOOL_ID) {
     const playerState = getPlayerToolState(state.toolState);

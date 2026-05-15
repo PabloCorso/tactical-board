@@ -44,9 +44,11 @@ export interface ToolApi {
   addObjects: (
     objects: BoardEditorState["board"]["objects"]["byId"][string][],
   ) => void;
+  bringObjectsToFront: (ids: ObjectId[]) => void;
   moveObjects: (ids: ObjectId[], delta: Point) => void;
   duplicateObjects: (ids: ObjectId[]) => ObjectId[];
   deleteObjects: (ids: ObjectId[]) => void;
+  sendObjectsToBack: (ids: ObjectId[]) => void;
   updateObjects: (
     ids: ObjectId[],
     updater: (

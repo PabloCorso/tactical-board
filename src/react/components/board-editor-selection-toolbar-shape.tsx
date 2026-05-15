@@ -1,4 +1,4 @@
-import { LineSegmentsIcon, SquareIcon, TrashIcon } from "@phosphor-icons/react";
+import { LineSegmentsIcon, SquareIcon } from "@phosphor-icons/react";
 import type {
   ShapeFillStyle,
   ShapeLineStyle,
@@ -10,10 +10,10 @@ import {
   updateShapeObject,
 } from "../../core/objects/shape-object";
 import { createToolApi } from "../../core/editor/create-tool-api";
+import { BoardEditorSelectionActionsMenu } from "./board-editor-selection-actions-menu";
 import { useBoardEditorContext } from "./board-editor-context";
 import {
   BoardEditorToolbar,
-  BoardEditorToolbarButton,
   BoardEditorToolbarOptionButton,
   BoardEditorToolbarPopoverButton,
 } from "./board-editor-toolbar";
@@ -344,12 +344,8 @@ export function BoardEditorShapeSelectionToolbar({
             }
             icon={<LineSegmentsIcon weight="bold" />}
           />
-
-          <BoardEditorToolbarButton
-            aria-label="Delete shape"
-            iconBefore={<TrashIcon />}
-            onClick={() => toolApi.deleteObjects([selectedObject.id])}
-            tooltip="Delete"
+          <BoardEditorSelectionActionsMenu
+            selectedObjectIds={[selectedObject.id]}
           />
         </BoardEditorToolbar>
       </div>

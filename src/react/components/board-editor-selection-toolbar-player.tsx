@@ -1,4 +1,3 @@
-import { TrashIcon } from "@phosphor-icons/react";
 import {
   updatePlayerObject,
   type PlayerObject,
@@ -7,9 +6,9 @@ import { createToolApi } from "../../core/editor/create-tool-api";
 import { useBoardEditorContext } from "./board-editor-context";
 import {
   BoardEditorToolbar,
-  BoardEditorToolbarButton,
   BoardEditorToolbarPopoverButton,
 } from "./board-editor-toolbar";
+import { BoardEditorSelectionActionsMenu } from "./board-editor-selection-actions-menu";
 import type { BoardEditorSelectionToolbarRendererProps } from "./board-editor-selection-toolbar-types";
 import { ColorPicker, DEFAULT_PRESET_COLORS } from "./ui/color-picker";
 
@@ -72,14 +71,8 @@ export function BoardEditorPlayerSelectionToolbar({
               </span>
             }
           />
-
-          <BoardEditorToolbarButton
-            aria-label="Delete"
-            iconBefore={
-              <TrashIcon aria-hidden="true" className="size-4" weight="bold" />
-            }
-            onClick={() => toolApi.deleteObjects([selectedObject.id])}
-            tooltip="Delete"
+          <BoardEditorSelectionActionsMenu
+            selectedObjectIds={[selectedObject.id]}
           />
         </BoardEditorToolbar>
       </div>

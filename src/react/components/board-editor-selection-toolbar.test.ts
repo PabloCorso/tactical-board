@@ -10,6 +10,7 @@ import { shapeSelectionAdapter } from "../../tools/shape-selection";
 import { arrowSelectionAdapter } from "../../tools/arrow-selection";
 import { SELECTION_TOOLBAR_OFFSET_PX } from "../../tools/selection-geometry";
 import {
+  getMultiSelectionToolbarAnchor,
   getSelectionToolbarAnchor,
   shouldShowSelectionToolbar,
 } from "./board-editor-selection-toolbar";
@@ -19,6 +20,15 @@ describe("shouldShowSelectionToolbar", () => {
     expect(
       shouldShowSelectionToolbar({
         selectedObjectIds: ["player-1"],
+        interaction: undefined,
+      }),
+    ).toBe(true);
+  });
+
+  it("shows the toolbar for a normal multi selection", () => {
+    expect(
+      shouldShowSelectionToolbar({
+        selectedObjectIds: ["player-1", "shape-1"],
         interaction: undefined,
       }),
     ).toBe(true);
@@ -202,6 +212,30 @@ describe("getSelectionToolbarAnchor", () => {
     expect(anchor).toEqual({
       left: 100,
       top: 80 - SELECTION_TOOLBAR_OFFSET_PX,
+    });
+  });
+});
+
+describe("getMultiSelectionToolbarAnchor", () => {
+  it("centers the toolbar above the selection bounding box", () => {
+    const projection = {
+      getObjectCanvasBounds: (object: { id: string }) =>
+        object.id === "a"
+          ? { x: 80, y: 70, width: 40, height: 20 }
+          : { x: 140, y: 90, width: 20, height: 30 },
+      worldToCanvas: ({ x, y }: { x: number; y: number }) => ({ x, y }),
+      canvasToWorld: ({ x, y }: { x: number; y: number }) => ({ x, y }),
+      pixelsPerUnit: 1,
+    };
+
+    expect(
+      getMultiSelectionToolbarAnchor(projection, [
+        { id: "a" } as unknown as PlayerObject,
+        { id: "b" } as unknown as ShapeObject,
+      ]),
+    ).toEqual({
+      left: 120,
+      top: 70 - SELECTION_TOOLBAR_OFFSET_PX,
     });
   });
 });

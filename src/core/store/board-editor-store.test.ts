@@ -372,6 +372,100 @@ describe("createBoardEditorStore", () => {
     ).toEqual(["a", "b"]);
   });
 
+  it("brings an object to the front of its semantic layer", () => {
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {
+            "player-1": {
+              id: "player-1",
+              type: "player",
+              position: { x: 10, y: 12 },
+              props: {},
+            },
+            "shape-1": {
+              id: "shape-1",
+              type: "shape",
+              position: { x: 20, y: 22 },
+              props: {},
+            },
+            "player-2": {
+              id: "player-2",
+              type: "player",
+              position: { x: 30, y: 32 },
+              props: {},
+            },
+          },
+          order: ["player-1", "shape-1", "player-2"],
+        },
+        style: {},
+      },
+      tools: [{ id: SELECT_TOOL_ID, label: "Select" }],
+    });
+
+    store.getState().actions.bringObjectsToFront(["player-1"]);
+
+    expect(store.getState().board.objects.order).toEqual([
+      "player-2",
+      "shape-1",
+      "player-1",
+    ]);
+  });
+
+  it("sends an object to the back of its semantic layer", () => {
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {
+            "player-1": {
+              id: "player-1",
+              type: "player",
+              position: { x: 10, y: 12 },
+              props: {},
+            },
+            "shape-1": {
+              id: "shape-1",
+              type: "shape",
+              position: { x: 20, y: 22 },
+              props: {},
+            },
+            "player-2": {
+              id: "player-2",
+              type: "player",
+              position: { x: 30, y: 32 },
+              props: {},
+            },
+          },
+          order: ["player-1", "shape-1", "player-2"],
+        },
+        style: {},
+      },
+      tools: [{ id: SELECT_TOOL_ID, label: "Select" }],
+    });
+
+    store.getState().actions.sendObjectsToBack(["player-2"]);
+
+    expect(store.getState().board.objects.order).toEqual([
+      "player-2",
+      "shape-1",
+      "player-1",
+    ]);
+  });
+
   it("undoes and redoes board mutations while restoring selection but not editor ui state", () => {
     const store = createBoardEditorStore({
       initialBoard: {

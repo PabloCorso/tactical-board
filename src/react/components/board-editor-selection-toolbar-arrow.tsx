@@ -1,8 +1,4 @@
-import {
-  LineSegmentIcon,
-  LineSegmentsIcon,
-  TrashIcon,
-} from "@phosphor-icons/react";
+import { LineSegmentIcon, LineSegmentsIcon } from "@phosphor-icons/react";
 import {
   THICK_ARROW_STROKE_WIDTH,
   THIN_ARROW_STROKE_WIDTH,
@@ -15,10 +11,10 @@ import {
 } from "../../core/objects/arrow-object";
 import { createToolApi } from "../../core/editor/create-tool-api";
 import { BoardEditorArrowIcon } from "./board-editor-arrow-icon";
+import { BoardEditorSelectionActionsMenu } from "./board-editor-selection-actions-menu";
 import { useBoardEditorContext } from "./board-editor-context";
 import {
   BoardEditorToolbar,
-  BoardEditorToolbarButton,
   BoardEditorToolbarOptionButton,
   BoardEditorToolbarPopoverButton,
 } from "./board-editor-toolbar";
@@ -394,12 +390,8 @@ export function BoardEditorArrowSelectionToolbar({
             }
             icon={getHeadIcon("end", selectedObject.props.endHead)}
           />
-
-          <BoardEditorToolbarButton
-            aria-label="Delete arrow"
-            iconBefore={<TrashIcon />}
-            onClick={() => toolApi.deleteObjects([selectedObject.id])}
-            tooltip="Delete"
+          <BoardEditorSelectionActionsMenu
+            selectedObjectIds={[selectedObject.id]}
           />
         </BoardEditorToolbar>
       </div>
