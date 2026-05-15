@@ -9,6 +9,10 @@ export const miniGoalEquipment: FootballEquipmentSpec = {
     defaultSize: { width: 4, height: 2.4 },
     color: "#e5e7eb",
     capabilities: { color: true },
+    transformCapabilities: {
+      resize: true,
+      rotate: true,
+    },
     lockedAspectRatio: true,
   },
   renderer: ({ context, width, height }) => {

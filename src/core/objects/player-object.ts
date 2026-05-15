@@ -13,11 +13,23 @@ import {
 export const PLAYER_OBJECT_TYPE = "player";
 export const DEFAULT_PLAYER_SIZE = 2.5;
 export const DEFAULT_PLAYER_COLOR = "#111827";
+export const DEFAULT_PLAYER_TRANSFORM_CAPABILITIES = {
+  move: true,
+  resize: false,
+  rotate: true,
+} as const;
+
+export interface PlayerTransformCapabilities {
+  move?: boolean;
+  resize?: boolean;
+  rotate?: boolean;
+}
 
 export interface PlayerObjectProps extends Record<string, unknown> {
   label?: string;
   color: string;
   appearance: ObjectAppearance;
+  transformCapabilities: PlayerTransformCapabilities;
 }
 
 export type PlayerObject = BoardObject & {
@@ -67,6 +79,9 @@ function getCanonicalPlayerProps(input: PlayerCoreInput): PlayerObjectProps {
     appearance: cloneObjectAppearance(
       input.appearance ?? DEFAULT_RENDER_APPEARANCE,
     ),
+    transformCapabilities: {
+      ...DEFAULT_PLAYER_TRANSFORM_CAPABILITIES,
+    },
   };
 }
 

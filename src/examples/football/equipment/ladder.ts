@@ -16,6 +16,10 @@ export const ladderEquipment: FootballEquipmentSpec = {
     defaultSize: { width: LADDER_METRICS.width, height: LADDER_METRICS.height },
     color: "#0f172a",
     capabilities: { color: true },
+    transformCapabilities: {
+      resize: false,
+      rotate: true,
+    },
     lockedAspectRatio: true,
     selectionBounds: {
       left: -0.553,

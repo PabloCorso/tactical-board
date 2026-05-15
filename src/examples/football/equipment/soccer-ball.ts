@@ -26,6 +26,10 @@ export const soccerBallEquipment: FootballEquipmentSpec = {
     family: "ball",
     defaultSize: { width: 1.5, height: 1.5 },
     color: "#ffffff",
+    transformCapabilities: {
+      resize: false,
+      rotate: false,
+    },
     lockedAspectRatio: true,
     selectionBounds: {
       left: -0.391,

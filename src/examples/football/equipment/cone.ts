@@ -113,6 +113,10 @@ export const coneEquipment: FootballEquipmentSpec = {
     defaultSize: { width: 1.8, height: 2.2 },
     color: "#ff6b35",
     capabilities: { color: true },
+    transformCapabilities: {
+      resize: false,
+      rotate: false,
+    },
     lockedAspectRatio: true,
     selectionBounds: {
       left: -0.44,

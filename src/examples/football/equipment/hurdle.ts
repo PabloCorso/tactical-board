@@ -63,6 +63,10 @@ export const hurdleEquipment: FootballEquipmentSpec = {
     defaultSize: { width: HURDLE_METRICS.width, height: HURDLE_METRICS.height },
     color: "#f97316",
     capabilities: { color: true },
+    transformCapabilities: {
+      resize: false,
+      rotate: true,
+    },
     lockedAspectRatio: true,
     selectionBounds: {
       left: -0.485,

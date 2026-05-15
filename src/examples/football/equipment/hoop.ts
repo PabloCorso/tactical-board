@@ -11,6 +11,10 @@ export const hoopEquipment: FootballEquipmentSpec = {
     defaultSize: { width: HOOP_RADIUS * 2, height: HOOP_RADIUS * 2 },
     color: "#ef4444",
     capabilities: { color: true },
+    transformCapabilities: {
+      resize: false,
+      rotate: false,
+    },
     lockedAspectRatio: true,
     selectionBounds: {
       left: -0.563,

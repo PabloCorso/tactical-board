@@ -56,6 +56,12 @@ export interface ObjectSelectionToolbarAnchorInput<
   projection: SelectionProjection;
 }
 
+export interface ObjectTransformCapabilities {
+  move?: boolean;
+  resize?: boolean;
+  rotate?: boolean;
+}
+
 export type ObjectSelectionSession = {
   kind: string;
   [key: string]: unknown;
@@ -65,6 +71,9 @@ export interface ObjectSelectionAdapter<
   TObject extends BoardObject = BoardObject,
   TSession extends ObjectSelectionSession = ObjectSelectionSession,
 > {
+  getTransformCapabilities?: (
+    object: TObject,
+  ) => ObjectTransformCapabilities | undefined;
   renderSelection?: (input: ObjectSelectionRenderInput<TObject>) => void;
   hitSelectionHandle?: (
     input: ObjectSelectionHitTestInput<TObject>,

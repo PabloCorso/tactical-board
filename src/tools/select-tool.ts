@@ -335,13 +335,25 @@ function beginSelectionInteraction(
       return;
     }
 
+    const targetObject = state.board.objects.byId[event.targetObjectId];
+    const targetSelectionAdapter = getObjectSelectionAdapterForObject(
+      state,
+      targetObject,
+    );
+    const transformCapabilities = targetObject
+      ? targetSelectionAdapter?.getTransformCapabilities?.(targetObject)
+      : undefined;
+
     setSelectState(api, {
       selectedObjectIds: nextSelection,
-      interaction: {
-        mode: "drag",
-        dragObjectIds: nextSelection,
-        lastPoint: event.point,
-      },
+      interaction:
+        transformCapabilities?.move === false
+          ? undefined
+          : {
+              mode: "drag",
+              dragObjectIds: nextSelection,
+              lastPoint: event.point,
+            },
     });
     return;
   }

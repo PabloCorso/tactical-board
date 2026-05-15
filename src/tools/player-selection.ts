@@ -1,5 +1,6 @@
 import colors from "tailwindcss/colors";
 import {
+  DEFAULT_PLAYER_TRANSFORM_CAPABILITIES,
   resizePlayerObject,
   rotatePlayerObject,
   PLAYER_OBJECT_TYPE,
@@ -27,6 +28,14 @@ const PLAYER_ROTATE_HANDLE_RADIUS_PX = 13;
 const PLAYER_ROTATE_HANDLE_HIT_RADIUS_PX = 18;
 const ROTATE_HANDLE_CORNER_INDEX = 3;
 const ROTATE_HANDLE_CORNER_OFFSET_PX = 18;
+
+function getPlayerTransformCapabilities(player: PlayerObject) {
+  return {
+    ...DEFAULT_PLAYER_TRANSFORM_CAPABILITIES,
+    ...player.props.transformCapabilities,
+  };
+}
+
 type PlayerSelectionSession = ObjectSelectionSession & {
   kind: "resize" | "rotate";
   center: PlayerObject["position"];
@@ -68,11 +77,13 @@ export const playerSelectionAdapter: ObjectSelectionAdapter<
   PlayerObject,
   PlayerSelectionSession
 > = {
+  getTransformCapabilities: getPlayerTransformCapabilities,
   renderSelection: ({ context, object, projection, color }) => {
     const outlinePoints = getPlayerSelectionOutlineCanvasPoints(
       projection,
       object,
     );
+    const transformCapabilities = getPlayerTransformCapabilities(object);
 
     context.save();
     context.strokeStyle = color;
@@ -82,25 +93,29 @@ export const playerSelectionAdapter: ObjectSelectionAdapter<
     context.stroke();
 
     if (!object.locked) {
-      for (const handlePoint of outlinePoints) {
-        context.beginPath();
-        context.arc(
-          handlePoint.x,
-          handlePoint.y,
-          PLAYER_RESIZE_HANDLE_RADIUS_PX,
-          0,
-          Math.PI * 2,
-        );
-        context.fill();
-        context.stroke();
+      if (transformCapabilities.resize !== false) {
+        for (const handlePoint of outlinePoints) {
+          context.beginPath();
+          context.arc(
+            handlePoint.x,
+            handlePoint.y,
+            PLAYER_RESIZE_HANDLE_RADIUS_PX,
+            0,
+            Math.PI * 2,
+          );
+          context.fill();
+          context.stroke();
+        }
       }
 
-      renderRotateHandleIcon(
-        context,
-        getPlayerRotateHandleCanvasPoint(projection, object),
-        PLAYER_ROTATE_HANDLE_RADIUS_PX,
-        object.rotation,
-      );
+      if (transformCapabilities.rotate !== false) {
+        renderRotateHandleIcon(
+          context,
+          getPlayerRotateHandleCanvasPoint(projection, object),
+          PLAYER_ROTATE_HANDLE_RADIUS_PX,
+          object.rotation,
+        );
+      }
     }
 
     context.restore();
@@ -110,24 +125,31 @@ export const playerSelectionAdapter: ObjectSelectionAdapter<
       return undefined;
     }
 
+    const transformCapabilities = getPlayerTransformCapabilities(object);
     const canvasPoint = projection.worldToCanvas(event.point);
-    const handlePoints = getPlayerSelectionOutlineCanvasPoints(
-      projection,
-      object,
-    );
-
-    for (const handleCanvasPoint of handlePoints) {
-      const distance = Math.hypot(
-        canvasPoint.x - handleCanvasPoint.x,
-        canvasPoint.y - handleCanvasPoint.y,
+    if (transformCapabilities.resize !== false) {
+      const handlePoints = getPlayerSelectionOutlineCanvasPoints(
+        projection,
+        object,
       );
 
-      if (distance <= PLAYER_RESIZE_HANDLE_HIT_RADIUS_PX) {
-        return {
-          kind: "resize",
-          center: object.position,
-        };
+      for (const handleCanvasPoint of handlePoints) {
+        const distance = Math.hypot(
+          canvasPoint.x - handleCanvasPoint.x,
+          canvasPoint.y - handleCanvasPoint.y,
+        );
+
+        if (distance <= PLAYER_RESIZE_HANDLE_HIT_RADIUS_PX) {
+          return {
+            kind: "resize",
+            center: object.position,
+          };
+        }
       }
+    }
+
+    if (transformCapabilities.rotate === false) {
+      return undefined;
     }
 
     const rotateHandle = getPlayerRotateHandleCanvasPoint(projection, object);
@@ -176,10 +198,11 @@ export const playerSelectionAdapter: ObjectSelectionAdapter<
       projection,
       object,
     );
-    const rotateHandlePoint = getPlayerRotateHandleCanvasPoint(
-      projection,
-      object,
-    );
+    const transformCapabilities = getPlayerTransformCapabilities(object);
+    const rotateHandlePoint =
+      transformCapabilities.rotate === false
+        ? undefined
+        : getPlayerRotateHandleCanvasPoint(projection, object);
 
     return getSelectionToolbarAnchorFromSelectionChrome({
       left: projection.worldToCanvas(object.position).x,

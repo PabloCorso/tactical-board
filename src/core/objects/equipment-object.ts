@@ -30,6 +30,12 @@ export interface EquipmentCapabilities {
   label?: boolean;
 }
 
+export interface EquipmentTransformCapabilities {
+  move?: boolean;
+  resize?: boolean;
+  rotate?: boolean;
+}
+
 export interface EquipmentSelectionBounds {
   left: number;
   top: number;
@@ -44,6 +50,7 @@ export interface EquipmentDefinitionSnapshot {
   color?: string;
   appearance?: ObjectAppearance;
   capabilities?: EquipmentCapabilities;
+  transformCapabilities?: EquipmentTransformCapabilities;
   lockedAspectRatio?: boolean;
   selectionBounds?: EquipmentSelectionBounds;
 }
@@ -129,6 +136,9 @@ function getCanonicalEquipmentProps(
         : undefined,
       capabilities: {
         ...input.definition.capabilities,
+      },
+      transformCapabilities: {
+        ...input.definition.transformCapabilities,
       },
     },
   };

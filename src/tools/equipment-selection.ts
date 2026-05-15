@@ -25,6 +25,11 @@ const EQUIPMENT_ROTATE_HANDLE_RADIUS_PX = 13;
 const EQUIPMENT_ROTATE_HANDLE_HIT_RADIUS_PX = 18;
 const ROTATE_HANDLE_CORNER_INDEX = 3;
 const ROTATE_HANDLE_CORNER_OFFSET_PX = 18;
+
+function getEquipmentTransformCapabilities(equipment: EquipmentObject) {
+  return equipment.props.definition.transformCapabilities;
+}
+
 type EquipmentSelectionSession = ObjectSelectionSession & {
   kind: "resize" | "rotate";
   center: EquipmentObject["position"];
@@ -54,11 +59,13 @@ export const equipmentSelectionAdapter: ObjectSelectionAdapter<
   EquipmentObject,
   EquipmentSelectionSession
 > = {
+  getTransformCapabilities: getEquipmentTransformCapabilities,
   renderSelection: ({ context, object, projection, color }) => {
     const outlinePoints = getEquipmentSelectionOutlineCanvasPoints(
       projection,
       object,
     );
+    const transformCapabilities = getEquipmentTransformCapabilities(object);
 
     context.save();
     context.strokeStyle = color;
@@ -68,25 +75,29 @@ export const equipmentSelectionAdapter: ObjectSelectionAdapter<
     context.stroke();
 
     if (!object.locked) {
-      for (const handlePoint of outlinePoints) {
-        context.beginPath();
-        context.arc(
-          handlePoint.x,
-          handlePoint.y,
-          EQUIPMENT_RESIZE_HANDLE_RADIUS_PX,
-          0,
-          Math.PI * 2,
-        );
-        context.fill();
-        context.stroke();
+      if (transformCapabilities?.resize !== false) {
+        for (const handlePoint of outlinePoints) {
+          context.beginPath();
+          context.arc(
+            handlePoint.x,
+            handlePoint.y,
+            EQUIPMENT_RESIZE_HANDLE_RADIUS_PX,
+            0,
+            Math.PI * 2,
+          );
+          context.fill();
+          context.stroke();
+        }
       }
 
-      renderRotateHandleIcon(
-        context,
-        getEquipmentRotateHandleCanvasPoint(projection, object),
-        EQUIPMENT_ROTATE_HANDLE_RADIUS_PX,
-        object.rotation,
-      );
+      if (transformCapabilities?.rotate !== false) {
+        renderRotateHandleIcon(
+          context,
+          getEquipmentRotateHandleCanvasPoint(projection, object),
+          EQUIPMENT_ROTATE_HANDLE_RADIUS_PX,
+          object.rotation,
+        );
+      }
     }
 
     context.restore();
@@ -96,30 +107,37 @@ export const equipmentSelectionAdapter: ObjectSelectionAdapter<
       return undefined;
     }
 
+    const transformCapabilities = getEquipmentTransformCapabilities(object);
     const canvasPoint = projection.worldToCanvas(event.point);
-    const handlePoints = getEquipmentSelectionOutlineCanvasPoints(
-      projection,
-      object,
-    );
-
-    for (const handleCanvasPoint of handlePoints) {
-      const distance = Math.hypot(
-        canvasPoint.x - handleCanvasPoint.x,
-        canvasPoint.y - handleCanvasPoint.y,
+    if (transformCapabilities?.resize !== false) {
+      const handlePoints = getEquipmentSelectionOutlineCanvasPoints(
+        projection,
+        object,
       );
 
-      if (distance <= EQUIPMENT_RESIZE_HANDLE_HIT_RADIUS_PX) {
-        return {
-          kind: "resize",
-          center: object.position,
-          initialSize: {
-            width: object.size?.width ?? 0,
-            height: object.size?.height ?? 0,
-          },
-          lockedAspectRatio:
-            object.props.definition.lockedAspectRatio !== false,
-        };
+      for (const handleCanvasPoint of handlePoints) {
+        const distance = Math.hypot(
+          canvasPoint.x - handleCanvasPoint.x,
+          canvasPoint.y - handleCanvasPoint.y,
+        );
+
+        if (distance <= EQUIPMENT_RESIZE_HANDLE_HIT_RADIUS_PX) {
+          return {
+            kind: "resize",
+            center: object.position,
+            initialSize: {
+              width: object.size?.width ?? 0,
+              height: object.size?.height ?? 0,
+            },
+            lockedAspectRatio:
+              object.props.definition.lockedAspectRatio !== false,
+          };
+        }
       }
+    }
+
+    if (transformCapabilities?.rotate === false) {
+      return undefined;
     }
 
     const rotateHandle = getEquipmentRotateHandleCanvasPoint(
@@ -186,10 +204,11 @@ export const equipmentSelectionAdapter: ObjectSelectionAdapter<
       projection,
       object,
     );
-    const rotateHandlePoint = getEquipmentRotateHandleCanvasPoint(
-      projection,
-      object,
-    );
+    const transformCapabilities = getEquipmentTransformCapabilities(object);
+    const rotateHandlePoint =
+      transformCapabilities?.rotate === false
+        ? undefined
+        : getEquipmentRotateHandleCanvasPoint(projection, object);
 
     return getSelectionToolbarAnchorFromSelectionChrome({
       left: projection.worldToCanvas(object.position).x,

@@ -34,6 +34,10 @@ export const mannequinEquipment: FootballEquipmentSpec = {
     },
     color: "#FFE100",
     capabilities: { color: true },
+    transformCapabilities: {
+      resize: false,
+      rotate: true,
+    },
     lockedAspectRatio: true,
   },
   renderer: ({ context, color, height }) => {

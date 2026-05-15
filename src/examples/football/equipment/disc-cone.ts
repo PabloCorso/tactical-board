@@ -58,6 +58,10 @@ export const discConeEquipment: FootballEquipmentSpec = {
     defaultSize: { width: 2.2, height: 2.2 },
     color: "#ffc857",
     capabilities: { color: true },
+    transformCapabilities: {
+      resize: false,
+      rotate: false,
+    },
     lockedAspectRatio: true,
     selectionBounds: {
       left: -0.307,
