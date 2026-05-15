@@ -18,6 +18,7 @@ import {
   BoardEditorToolbarOptionButton,
   BoardEditorToolbarPopoverButton,
 } from "./board-editor-toolbar";
+import { BoardEditorSelectionToolbarPositioner } from "./board-editor-selection-toolbar-positioner";
 import type { BoardEditorSelectionToolbarRendererProps } from "./board-editor-selection-toolbar-types";
 import { ColorPicker, DEFAULT_PRESET_COLORS } from "./ui/color-picker";
 import type { IconRender } from "./ui/icon";
@@ -261,6 +262,9 @@ export function BoardEditorArrowSelectionToolbar({
   selectedObject,
   toolbarLeft,
   toolbarTop,
+  toolbarBottom,
+  viewportWidth,
+  viewportHeight,
 }: BoardEditorSelectionToolbarRendererProps<ArrowObject>) {
   const store = useBoardEditorContext();
   const toolApi = createToolApi(store);
@@ -280,121 +284,113 @@ export function BoardEditorArrowSelectionToolbar({
   };
 
   return (
-    <div
-      className="pointer-events-none absolute inset-0"
-      style={{
-        zIndex: 10,
-      }}
+    <BoardEditorSelectionToolbarPositioner
+      anchorLeft={toolbarLeft}
+      anchorTop={toolbarTop}
+      anchorBottom={toolbarBottom}
+      viewportWidth={viewportWidth}
+      viewportHeight={viewportHeight}
     >
-      <div
-        className="pointer-events-auto absolute"
-        style={{
-          left: toolbarLeft,
-          top: toolbarTop,
-          transform: "translate(-50%, -100%)",
-        }}
-      >
-        <BoardEditorToolbar className={className}>
-          <BoardEditorToolbarPopoverButton
-            ariaLabel="Arrow color"
-            tooltip={`Color: ${selectedObject.props.color}`}
-            showCaret={false}
-            content={
-              <ArrowColorPopoverContent
-                color={selectedObject.props.color}
-                onSelect={(value) => updateArrowProps({ color: value })}
-              />
-            }
-            icon={
-              <span
-                className="border-default inline-flex h-5 w-5 rounded-full border"
-                style={{ backgroundColor: selectedObject.props.color }}
-              >
-                <span className="sr-only">{selectedObject.props.color}</span>
-              </span>
-            }
-          />
-
-          <BoardEditorToolbarPopoverButton
-            ariaLabel="Arrow line style"
-            tooltip="Line style"
-            content={
-              <ArrowLineStylePopoverContent
-                lineStyle={selectedObject.props.lineStyle}
-                onSelect={(value) => updateArrowProps({ lineStyle: value })}
-              />
-            }
-            icon={<LineSegmentsIcon weight="bold" />}
-          />
-
-          <BoardEditorToolbarPopoverButton
-            ariaLabel="Arrow weight"
-            tooltip={`Weight: ${getWeightLabel(selectedObject.props.strokeWidth)}`}
-            content={
-              <ArrowWeightPopoverContent
-                strokeWidth={selectedObject.props.strokeWidth}
-                onSelect={(value) => updateArrowProps({ strokeWidth: value })}
-              />
-            }
-            icon={
-              <span className="flex h-5 w-10 items-center justify-center">
-                <span
-                  className="rounded-full bg-current"
-                  style={{
-                    width: 28,
-                    height: getWeightPreviewHeight(
-                      selectedObject.props.strokeWidth,
-                    ),
-                  }}
-                />
-              </span>
-            }
-          />
-
-          <BoardEditorToolbarPopoverButton
-            ariaLabel="Arrow start head"
-            tooltip="Start head"
-            content={
-              <ArrowHeadPopoverContent
-                activeHead={selectedObject.props.startHead}
-                side="start"
-                onSelect={(value) => updateArrowProps({ startHead: value })}
-              />
-            }
-            icon={getHeadIcon("start", selectedObject.props.startHead)}
-          />
-
-          {selectedObject.props.geometry === "simple" ? (
-            <BoardEditorToolbarPopoverButton
-              ariaLabel="Arrow body style"
-              tooltip="Body style"
-              content={
-                <ArrowBodyPopoverContent
-                  selectedObject={selectedObject}
-                  onSelect={updateBodyStyle}
-                />
-              }
-              icon={getBodyStyleIcon(selectedObject.props.bodyStyle)}
+      <BoardEditorToolbar className={className}>
+        <BoardEditorToolbarPopoverButton
+          ariaLabel="Arrow color"
+          tooltip={`Color: ${selectedObject.props.color}`}
+          showCaret={false}
+          content={
+            <ArrowColorPopoverContent
+              color={selectedObject.props.color}
+              onSelect={(value) => updateArrowProps({ color: value })}
             />
-          ) : null}
+          }
+          icon={
+            <span
+              className="border-default inline-flex h-5 w-5 rounded-full border"
+              style={{ backgroundColor: selectedObject.props.color }}
+            >
+              <span className="sr-only">{selectedObject.props.color}</span>
+            </span>
+          }
+        />
 
+        <BoardEditorToolbarPopoverButton
+          ariaLabel="Arrow line style"
+          tooltip="Line style"
+          content={
+            <ArrowLineStylePopoverContent
+              lineStyle={selectedObject.props.lineStyle}
+              onSelect={(value) => updateArrowProps({ lineStyle: value })}
+            />
+          }
+          icon={<LineSegmentsIcon weight="bold" />}
+        />
+
+        <BoardEditorToolbarPopoverButton
+          ariaLabel="Arrow weight"
+          tooltip={`Weight: ${getWeightLabel(selectedObject.props.strokeWidth)}`}
+          content={
+            <ArrowWeightPopoverContent
+              strokeWidth={selectedObject.props.strokeWidth}
+              onSelect={(value) => updateArrowProps({ strokeWidth: value })}
+            />
+          }
+          icon={
+            <span className="flex h-5 w-10 items-center justify-center">
+              <span
+                className="rounded-full bg-current"
+                style={{
+                  width: 28,
+                  height: getWeightPreviewHeight(
+                    selectedObject.props.strokeWidth,
+                  ),
+                }}
+              />
+            </span>
+          }
+        />
+
+        <BoardEditorToolbarPopoverButton
+          ariaLabel="Arrow start head"
+          tooltip="Start head"
+          content={
+            <ArrowHeadPopoverContent
+              activeHead={selectedObject.props.startHead}
+              side="start"
+              onSelect={(value) => updateArrowProps({ startHead: value })}
+            />
+          }
+          icon={getHeadIcon("start", selectedObject.props.startHead)}
+        />
+
+        {selectedObject.props.geometry === "simple" ? (
           <BoardEditorToolbarPopoverButton
-            ariaLabel="Arrow end head"
-            tooltip="End head"
+            ariaLabel="Arrow body style"
+            tooltip="Body style"
             content={
-              <ArrowHeadPopoverContent
-                activeHead={selectedObject.props.endHead}
-                side="end"
-                onSelect={(value) => updateArrowProps({ endHead: value })}
+              <ArrowBodyPopoverContent
+                selectedObject={selectedObject}
+                onSelect={updateBodyStyle}
               />
             }
-            icon={getHeadIcon("end", selectedObject.props.endHead)}
+            icon={getBodyStyleIcon(selectedObject.props.bodyStyle)}
           />
-          <BoardEditorSelectionActionsMenu
-            selectedObjectIds={[selectedObject.id]}
-          />
-        </BoardEditorToolbar>
-      </div>
-    </div>
+        ) : null}
+
+        <BoardEditorToolbarPopoverButton
+          ariaLabel="Arrow end head"
+          tooltip="End head"
+          content={
+            <ArrowHeadPopoverContent
+              activeHead={selectedObject.props.endHead}
+              side="end"
+              onSelect={(value) => updateArrowProps({ endHead: value })}
+            />
+          }
+          icon={getHeadIcon("end", selectedObject.props.endHead)}
+        />
+        <BoardEditorSelectionActionsMenu
+          selectedObjectIds={[selectedObject.id]}
+        />
+      </BoardEditorToolbar>
+    </BoardEditorSelectionToolbarPositioner>
   );
 }

@@ -4,6 +4,8 @@ import { createBoardEditorStore } from "../store/board-editor-store";
 import { SELECT_TOOL_ID } from "../../tools/select-tool-state";
 import * as canvasRendererModule from "../../rendering/canvas/create-canvas-renderer";
 import { getViewportToFitSurface } from "./viewport-utils";
+import { createToolApi } from "./create-tool-api";
+import { setSelectedObjectIds } from "../../tools/select-tool-actions";
 
 function createCanvasStub(): HTMLCanvasElement {
   return {
@@ -438,6 +440,81 @@ describe("createBoardEditorRuntime", () => {
       y: 12,
     });
     expect(redoEvent.preventDefault).toHaveBeenCalledTimes(1);
+
+    runtime.unmount();
+    vi.unstubAllGlobals();
+    globalThis.requestAnimationFrame = originalRequestAnimationFrame;
+    globalThis.cancelAnimationFrame = originalCancelAnimationFrame;
+  });
+
+  it("deletes the current selection when Delete is pressed on the focused canvas", () => {
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {
+            a: {
+              id: "a",
+              type: "token",
+              position: { x: 10, y: 12 },
+              props: {},
+            },
+          },
+          order: ["a"],
+        },
+        style: {},
+      },
+      tools: [
+        {
+          id: SELECT_TOOL_ID,
+          label: "Select",
+        },
+      ],
+    });
+    const runtime = createBoardEditorRuntime({ store });
+    const canvas = createCanvasStub();
+    const originalRequestAnimationFrame = globalThis.requestAnimationFrame;
+    const originalCancelAnimationFrame = globalThis.cancelAnimationFrame;
+    vi.stubGlobal(
+      "requestAnimationFrame",
+      vi.fn(() => 1),
+    );
+    vi.stubGlobal("cancelAnimationFrame", vi.fn());
+
+    runtime.mount(canvas);
+    setSelectedObjectIds(createToolApi(store), ["a"]);
+
+    const keyDownHandler = vi
+      .mocked(canvas.addEventListener)
+      .mock.calls.find(([eventName]) => eventName === "keydown")?.[1] as
+      | ((event: KeyboardEvent) => void)
+      | undefined;
+
+    expect(keyDownHandler).toBeTypeOf("function");
+
+    const deleteEvent = {
+      key: "Delete",
+      metaKey: false,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      preventDefault: vi.fn(),
+    } as unknown as KeyboardEvent;
+
+    keyDownHandler?.(deleteEvent);
+
+    expect(store.getState().board.objects.byId.a).toBeUndefined();
+    expect(store.getState().board.objects.order).toEqual([]);
+    expect(store.getState().toolState[SELECT_TOOL_ID]).toMatchObject({
+      selectedObjectIds: [],
+    });
+    expect(deleteEvent.preventDefault).toHaveBeenCalledTimes(1);
 
     runtime.unmount();
     vi.unstubAllGlobals();

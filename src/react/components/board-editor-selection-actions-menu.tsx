@@ -5,7 +5,10 @@ import {
   canSendObjectToBack,
 } from "../../core/board/object-order";
 import { createToolApi } from "../../core/editor/create-tool-api";
-import { setSelectedObjectIds } from "../../tools/select-tool-actions";
+import {
+  deleteSelectedObjects,
+  setSelectedObjectIds,
+} from "../../tools/select-tool-actions";
 import { useBoardEditorStore } from "../hooks/use-board-editor-store";
 import { useBoardEditorContext } from "./board-editor-context";
 import {
@@ -66,9 +69,7 @@ export function BoardEditorSelectionActionsMenu({
           <DropdownMenuItem onClick={handleDuplicate}>
             Duplicate
           </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => toolApi.deleteObjects(selectedObjectIds)}
-          >
+          <DropdownMenuItem onClick={() => deleteSelectedObjects(toolApi)}>
             Delete
           </DropdownMenuItem>
           <DropdownMenuSeparator />

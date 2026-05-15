@@ -12,8 +12,10 @@ import { SELECTION_TOOLBAR_OFFSET_PX } from "../../tools/selection-geometry";
 import {
   getMultiSelectionToolbarAnchor,
   getSelectionToolbarAnchor,
+  getSelectionBounds,
   shouldShowSelectionToolbar,
 } from "./board-editor-selection-toolbar";
+import { getSelectionToolbarPlacement } from "./board-editor-selection-toolbar-positioner";
 
 describe("shouldShowSelectionToolbar", () => {
   it("shows the toolbar for a normal single selection", () => {
@@ -237,5 +239,99 @@ describe("getMultiSelectionToolbarAnchor", () => {
       left: 120,
       top: 70 - SELECTION_TOOLBAR_OFFSET_PX,
     });
+  });
+});
+
+describe("getSelectionBounds", () => {
+  it("returns the combined canvas bounds for a multi selection", () => {
+    const projection = {
+      getObjectCanvasBounds: (object: { id: string }) =>
+        object.id === "a"
+          ? { x: 80, y: 70, width: 40, height: 20 }
+          : { x: 140, y: 90, width: 20, height: 30 },
+      worldToCanvas: ({ x, y }: { x: number; y: number }) => ({ x, y }),
+      canvasToWorld: ({ x, y }: { x: number; y: number }) => ({ x, y }),
+      pixelsPerUnit: 1,
+    };
+
+    expect(
+      getSelectionBounds(projection, [
+        { id: "a" } as unknown as PlayerObject,
+        { id: "b" } as unknown as ShapeObject,
+      ]),
+    ).toEqual({
+      left: 80,
+      right: 160,
+      top: 70,
+      bottom: 120,
+    });
+  });
+});
+
+describe("getSelectionToolbarPlacement", () => {
+  it("keeps the toolbar above the selection when there is enough space", () => {
+    expect(
+      getSelectionToolbarPlacement({
+        anchorLeft: 150,
+        anchorTop: 90,
+        anchorBottom: 150,
+        toolbarWidth: 120,
+        toolbarHeight: 40,
+        viewportWidth: 320,
+        viewportHeight: 240,
+      }),
+    ).toEqual({
+      left: 150,
+      top: 90,
+      placement: "top",
+      transform: "translate(-50%, -100%)",
+    });
+  });
+
+  it("flips the toolbar below the selection when top placement would overflow", () => {
+    expect(
+      getSelectionToolbarPlacement({
+        anchorLeft: 150,
+        anchorTop: 30,
+        anchorBottom: 90,
+        toolbarWidth: 120,
+        toolbarHeight: 40,
+        viewportWidth: 320,
+        viewportHeight: 240,
+      }),
+    ).toEqual({
+      left: 150,
+      top: 90,
+      placement: "bottom",
+      transform: "translate(-50%, 0)",
+    });
+  });
+
+  it("clamps the toolbar horizontally when the selection is near the left edge", () => {
+    expect(
+      getSelectionToolbarPlacement({
+        anchorLeft: 20,
+        anchorTop: 90,
+        anchorBottom: 150,
+        toolbarWidth: 120,
+        toolbarHeight: 40,
+        viewportWidth: 320,
+        viewportHeight: 240,
+      }).left,
+    ).toBe(70);
+  });
+
+  it("clamps the toolbar horizontally when the selection is near the right edge", () => {
+    expect(
+      getSelectionToolbarPlacement({
+        anchorLeft: 300,
+        anchorTop: 90,
+        anchorBottom: 150,
+        toolbarWidth: 120,
+        toolbarHeight: 40,
+        viewportWidth: 320,
+        viewportHeight: 240,
+      }).left,
+    ).toBe(250);
   });
 });

@@ -1,9 +1,11 @@
 import { createCanvasRenderer } from "../../rendering/canvas/create-canvas-renderer";
 import type { CanvasRenderer } from "../../rendering/canvas/types";
+import { createToolApi } from "./create-tool-api";
 import { createBoardEditorController } from "./board-editor-controller";
 import type { BoardEditorStore } from "../store/board-editor-store";
 import type { ToolDefinition } from "../tools/types";
 import { DEFAULT_VIEWPORT, getViewportToFitSurface } from "./viewport-utils";
+import { deleteSelectedObjects } from "../../tools/select-tool-actions";
 
 export interface BoardEditorRuntime {
   mount: (canvas: HTMLCanvasElement) => void;
@@ -18,6 +20,7 @@ export function createBoardEditorRuntime({
   store,
 }: CreateBoardEditorRuntimeOptions): BoardEditorRuntime {
   const controller = createBoardEditorController(store);
+  const toolApi = createToolApi(store);
   const renderer: CanvasRenderer = createCanvasRenderer();
   const registeredToolRendererIds = new Set<string>();
   let canvas: HTMLCanvasElement | null = null;
@@ -210,6 +213,17 @@ export function createBoardEditorRuntime({
   };
 
   const onKeyDown = (event: KeyboardEvent) => {
+    if (
+      (event.key === "Delete" || event.key === "Backspace") &&
+      !event.metaKey &&
+      !event.ctrlKey &&
+      !event.altKey
+    ) {
+      deleteSelectedObjects(toolApi);
+      event.preventDefault();
+      return;
+    }
+
     const isModifierPressed = event.metaKey || event.ctrlKey;
 
     if (!isModifierPressed || event.altKey) {

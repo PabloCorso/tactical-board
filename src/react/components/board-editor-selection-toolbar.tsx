@@ -10,6 +10,7 @@ import { SELECTION_TOOLBAR_OFFSET_PX } from "../../tools/selection-geometry";
 import { useBoardEditorStore } from "../hooks/use-board-editor-store";
 import { useBoardEditorContext } from "./board-editor-context";
 import { BoardEditorSelectionActionsMenu } from "./board-editor-selection-actions-menu";
+import { BoardEditorSelectionToolbarPositioner } from "./board-editor-selection-toolbar-positioner";
 import { BoardEditorToolbar } from "./board-editor-toolbar";
 
 const SURFACE_INSET = 14;
@@ -62,6 +63,25 @@ export function getMultiSelectionToolbarAnchor(
   };
 }
 
+export function getSelectionBounds(
+  projection: SelectionProjection,
+  selectedObjects: BoardObject[],
+) {
+  if (selectedObjects.length === 0) {
+    return undefined;
+  }
+
+  const bounds = selectedObjects.map((object) =>
+    projection.getObjectCanvasBounds(object),
+  );
+  const left = Math.min(...bounds.map((bound) => bound.x));
+  const right = Math.max(...bounds.map((bound) => bound.x + bound.width));
+  const top = Math.min(...bounds.map((bound) => bound.y));
+  const bottom = Math.max(...bounds.map((bound) => bound.y + bound.height));
+
+  return { left, right, top, bottom };
+}
+
 export function BoardEditorSelectionToolbar({
   className,
 }: BoardEditorSelectionToolbarProps) {
@@ -99,32 +119,27 @@ export function BoardEditorSelectionToolbar({
 
   if (selectedObjects.length > 1) {
     const anchor = getMultiSelectionToolbarAnchor(projection, selectedObjects);
+    const bounds = getSelectionBounds(projection, selectedObjects);
 
-    if (!anchor) {
+    if (!anchor || !bounds) {
       return null;
     }
 
     return (
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{ zIndex: 10 }}
+      <BoardEditorSelectionToolbarPositioner
+        anchorLeft={anchor.left}
+        anchorTop={anchor.top}
+        anchorBottom={bounds.bottom + SELECTION_TOOLBAR_OFFSET_PX}
+        viewportWidth={state.ui.canvasRect.width}
+        viewportHeight={state.ui.canvasRect.height}
       >
-        <div
-          className="pointer-events-auto absolute"
-          style={{
-            left: anchor.left,
-            top: Math.max(10, anchor.top),
-            transform: "translate(-50%, -100%)",
-          }}
-        >
-          <BoardEditorToolbar className={className}>
-            <BoardEditorSelectionActionsMenu
-              selectedObjectIds={selectedObjects.map((object) => object.id)}
-              showSeparator={false}
-            />
-          </BoardEditorToolbar>
-        </div>
-      </div>
+        <BoardEditorToolbar className={className}>
+          <BoardEditorSelectionActionsMenu
+            selectedObjectIds={selectedObjects.map((object) => object.id)}
+            showSeparator={false}
+          />
+        </BoardEditorToolbar>
+      </BoardEditorSelectionToolbarPositioner>
     );
   }
 
@@ -151,12 +166,17 @@ export function BoardEditorSelectionToolbar({
     return null;
   }
 
+  const bounds = projection.getObjectCanvasBounds(selectedObject);
+
   return (
     <ToolbarRenderer
       className={className}
       selectedObject={selectedObject}
       toolbarLeft={anchor.left}
-      toolbarTop={Math.max(10, anchor.top)}
+      toolbarTop={anchor.top}
+      toolbarBottom={bounds.y + bounds.height + SELECTION_TOOLBAR_OFFSET_PX}
+      viewportWidth={state.ui.canvasRect.width}
+      viewportHeight={state.ui.canvasRect.height}
     />
   );
 }

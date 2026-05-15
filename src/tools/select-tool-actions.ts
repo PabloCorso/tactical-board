@@ -20,3 +20,15 @@ export function clearSelection(api: ToolApi) {
     interaction: undefined,
   });
 }
+
+export function deleteSelectedObjects(api: ToolApi) {
+  const selectState = getSelectToolState(api.getState().toolState);
+  const selectedObjectIds = selectState.selectedObjectIds;
+
+  if (selectedObjectIds.length === 0) {
+    return;
+  }
+
+  api.deleteObjects(selectedObjectIds);
+  clearSelection(api);
+}

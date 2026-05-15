@@ -16,6 +16,9 @@ export interface SelectionToolbarRendererProps<
   selectedObject: TObject;
   toolbarLeft: number;
   toolbarTop: number;
+  toolbarBottom: number;
+  viewportHeight: number;
+  viewportWidth: number;
 }
 
 export type SelectionToolbarRenderer<
