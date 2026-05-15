@@ -3,7 +3,7 @@ import type {
   EquipmentObject,
   EquipmentSelectionBounds,
 } from "../core/objects/equipment-object";
-import { rotatePointAround } from "./selection-geometry";
+import { rotateOffset } from "./selection-geometry";
 
 const MIN_EQUIPMENT_RENDER_SIZE_PX = 8;
 
@@ -29,29 +29,41 @@ export function getEquipmentRenderedCanvasSize(
 export function getEquipmentSelectionOutlineCanvasPoints(
   projection: Pick<
     BoardSpaceProjection,
-    "getObjectCanvasBounds" | "worldToCanvas"
+    "getObjectCanvasBounds" | "worldToCanvas" | "pixelsPerUnit"
   >,
   equipment: EquipmentObject,
 ) {
-  const center = projection.worldToCanvas(equipment.position);
-  const { width, height } = getEquipmentRenderedCanvasSize(
-    projection,
-    equipment,
-  );
   const bounds =
     equipment.props.definition.selectionBounds ?? DEFAULT_SELECTION_BOUNDS;
-  const angle = ((equipment.rotation ?? 0) * Math.PI) / 180;
+  const width =
+    equipment.size?.mode === "screen"
+      ? Math.max(
+          (equipment.size?.width ?? 0) / Math.max(projection.pixelsPerUnit, 1),
+          MIN_EQUIPMENT_RENDER_SIZE_PX /
+            Math.max(projection.pixelsPerUnit, 1),
+        )
+      : Math.max(equipment.size?.width ?? 0, 0.25);
+  const height =
+    equipment.size?.mode === "screen"
+      ? Math.max(
+          (equipment.size?.height ?? equipment.size?.width ?? 0) /
+            Math.max(projection.pixelsPerUnit, 1),
+          MIN_EQUIPMENT_RENDER_SIZE_PX /
+            Math.max(projection.pixelsPerUnit, 1),
+        )
+      : Math.max(equipment.size?.height ?? equipment.size?.width ?? 0, 0.25);
 
   return [
-    { x: center.x + width * bounds.left, y: center.y + height * bounds.top },
-    { x: center.x + width * bounds.right, y: center.y + height * bounds.top },
-    {
-      x: center.x + width * bounds.right,
-      y: center.y + height * bounds.bottom,
-    },
-    {
-      x: center.x + width * bounds.left,
-      y: center.y + height * bounds.bottom,
-    },
-  ].map((point) => rotatePointAround(point, center, angle));
+    { x: width * bounds.left, y: height * bounds.top },
+    { x: width * bounds.right, y: height * bounds.top },
+    { x: width * bounds.right, y: height * bounds.bottom },
+    { x: width * bounds.left, y: height * bounds.bottom },
+  ].map((point) => {
+    const rotated = rotateOffset(point.x, point.y, equipment.rotation);
+
+    return projection.worldToCanvas({
+      x: equipment.position.x + rotated.x,
+      y: equipment.position.y + rotated.y,
+    });
+  });
 }

@@ -53,6 +53,8 @@ export interface EquipmentDefinitionSnapshot {
   transformCapabilities?: EquipmentTransformCapabilities;
   lockedAspectRatio?: boolean;
   selectionBounds?: EquipmentSelectionBounds;
+  minimumHitRadiusPx?: number;
+  hitTestShape?: "rect" | "circle";
 }
 
 export interface EquipmentObjectProps extends Record<string, unknown> {

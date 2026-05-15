@@ -31,6 +31,7 @@ export const soccerBallEquipment: FootballEquipmentSpec = {
       rotate: false,
     },
     lockedAspectRatio: true,
+    minimumHitRadiusPx: 0,
     selectionBounds: {
       left: -0.391,
       top: -0.391,

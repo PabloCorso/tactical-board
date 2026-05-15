@@ -16,6 +16,8 @@ export const hoopEquipment: FootballEquipmentSpec = {
       rotate: false,
     },
     lockedAspectRatio: true,
+    minimumHitRadiusPx: 0,
+    hitTestShape: "circle",
     selectionBounds: {
       left: -0.563,
       top: -0.563,

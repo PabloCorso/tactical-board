@@ -1,8 +1,9 @@
+import goalSvgMarkup from "../../../assets/goal.svg?raw";
 import type { FootballEquipmentSpec } from "./types";
 
 const GOAL_METRICS = {
-  width: 12,
-  height: 7.2,
+  width: 7.32,
+  height: (7.32 * 422) / 895,
 } as const;
 
 const GOAL_SOURCE = {
@@ -30,6 +31,16 @@ const GOAL_FRONT_FRAME_PATH = {
   bottomY: 150,
   rightX: 350,
 } as const;
+
+type GoalImageStatus = "loading" | "loaded" | "error";
+
+type GoalImageCacheEntry = {
+  image: HTMLImageElement;
+  listeners: Set<() => void>;
+  status: GoalImageStatus;
+};
+
+const goalImageCache = new Map<string, GoalImageCacheEntry>();
 
 function renderGoalNet(context: CanvasRenderingContext2D) {
   context.save();
@@ -85,6 +96,90 @@ function strokeGoalFrame(
   context.stroke();
 }
 
+function renderFallbackGoal(
+  context: CanvasRenderingContext2D,
+  color: string,
+  width: number,
+  height: number,
+) {
+  const scaleX = width / GOAL_SOURCE.width;
+  const scaleY = height / GOAL_SOURCE.height;
+  const netColor = color === "#ffffff" ? "#e0e0e0" : color;
+
+  context.save();
+  context.scale(scaleX, scaleY);
+  context.translate(-GOAL_SOURCE.width / 2, -GOAL_SOURCE.height / 2);
+
+  context.strokeStyle = color;
+  context.lineWidth = 6;
+  context.lineCap = "butt";
+  context.lineJoin = "miter";
+  context.globalAlpha *= 0.72;
+  strokeGoalFrame(context, GOAL_BACK_FRAME_PATH);
+
+  context.globalAlpha /= 0.72;
+  context.strokeStyle = netColor;
+  context.lineWidth = 1;
+  renderGoalNet(context);
+
+  context.strokeStyle = color;
+  context.lineWidth = 6;
+  strokeGoalFrame(context, GOAL_FRONT_FRAME_PATH);
+  context.restore();
+}
+
+function notifyListeners(entry: GoalImageCacheEntry) {
+  for (const listener of entry.listeners) {
+    listener();
+  }
+
+  entry.listeners.clear();
+}
+
+function getGoalSvgMarkup(color: string) {
+  return goalSvgMarkup.replaceAll('stroke="#000000"', `stroke="${color}"`);
+}
+
+function getGoalImage(color: string, requestRender: () => void) {
+  if (typeof Image === "undefined") {
+    return null;
+  }
+
+  const existingEntry = goalImageCache.get(color);
+
+  if (existingEntry) {
+    if (existingEntry.status !== "loaded") {
+      existingEntry.listeners.add(requestRender);
+    }
+
+    return existingEntry;
+  }
+
+  const image = new Image();
+  const entry: GoalImageCacheEntry = {
+    image,
+    listeners: new Set([requestRender]),
+    status: "loading",
+  };
+
+  image.onload = () => {
+    entry.status = "loaded";
+    notifyListeners(entry);
+  };
+
+  image.onerror = () => {
+    entry.status = "error";
+    notifyListeners(entry);
+  };
+
+  image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+    getGoalSvgMarkup(color),
+  )}`;
+  goalImageCache.set(color, entry);
+
+  return entry;
+}
+
 export const goalEquipment: FootballEquipmentSpec = {
   definition: {
     kind: "goal",
@@ -99,38 +194,20 @@ export const goalEquipment: FootballEquipmentSpec = {
     },
     lockedAspectRatio: true,
     selectionBounds: {
-      left: -0.383,
-      top: -0.265,
-      right: 0.383,
-      bottom: 0.355,
+      left: -0.5,
+      top: -0.5,
+      right: 0.5,
+      bottom: 0.5,
     },
   },
-  renderer: ({ context, color, width, height }) => {
-    const scaleX = width / GOAL_SOURCE.width;
-    const scaleY = height / GOAL_SOURCE.height;
-    const netColor = color === "#ffffff" ? "#e0e0e0" : color;
+  renderer: ({ context, color, width, height, requestRender }) => {
+    const entry = getGoalImage(color, requestRender);
 
-    context.save();
-    context.scale(scaleX, scaleY);
-    context.translate(-GOAL_SOURCE.width / 2, -GOAL_SOURCE.height / 2);
-    context.scale(-1, -1);
-    context.translate(-GOAL_SOURCE.width, -GOAL_SOURCE.height);
+    if (entry?.status === "loaded") {
+      context.drawImage(entry.image, -width / 2, -height / 2, width, height);
+      return;
+    }
 
-    context.strokeStyle = color;
-    context.lineWidth = 6;
-    context.lineCap = "butt";
-    context.lineJoin = "miter";
-    context.globalAlpha *= 0.72;
-    strokeGoalFrame(context, GOAL_BACK_FRAME_PATH);
-
-    context.globalAlpha /= 0.72;
-    context.strokeStyle = netColor;
-    context.lineWidth = 1;
-    renderGoalNet(context);
-
-    context.strokeStyle = color;
-    context.lineWidth = 6;
-    strokeGoalFrame(context, GOAL_FRONT_FRAME_PATH);
-    context.restore();
+    renderFallbackGoal(context, color, width, height);
   },
 };

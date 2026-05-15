@@ -45,6 +45,7 @@ export type EquipmentCanvasRenderInput = {
   width: number;
   height: number;
   strokeWidth: number;
+  requestRender: () => void;
 };
 
 export type EquipmentCanvasRenderer = (
@@ -266,6 +267,7 @@ export function createEquipmentRenderer(
           width,
           height,
           strokeWidth,
+          requestRender,
         });
       } else {
         switch (equipment.props.definition.family) {
@@ -308,7 +310,7 @@ export function createEquipmentRenderer(
   };
 }
 
-function hitTestEquipment({
+export function hitTestEquipment({
   object,
   canvasPoint,
   surfaceTransform,
@@ -317,15 +319,25 @@ function hitTestEquipment({
   const equipment = object as EquipmentObject;
   const center = surfaceTransform.worldToCanvas(equipment.position);
   const bounds = surfaceTransform.getObjectCanvasBounds(equipment);
-  const width = Math.max(Math.abs(bounds.width), minimumHitRadiusPx * 2);
-  const height = Math.max(Math.abs(bounds.height), minimumHitRadiusPx * 2);
+  const effectiveMinimumHitRadiusPx = Math.max(
+    equipment.props.definition.minimumHitRadiusPx ?? minimumHitRadiusPx,
+    0,
+  );
+  const width = Math.max(Math.abs(bounds.width), effectiveMinimumHitRadiusPx * 2);
+  const height = Math.max(
+    Math.abs(bounds.height),
+    effectiveMinimumHitRadiusPx * 2,
+  );
   const angle = -(((equipment.rotation ?? 0) * Math.PI) / 180);
   const dx = canvasPoint.x - center.x;
   const dy = canvasPoint.y - center.y;
   const localX = dx * Math.cos(angle) - dy * Math.sin(angle);
   const localY = dx * Math.sin(angle) + dy * Math.cos(angle);
+  const hitTestShape =
+    equipment.props.definition.hitTestShape ??
+    (equipment.props.definition.family === "ball" ? "circle" : "rect");
 
-  if (equipment.props.definition.family === "ball") {
+  if (hitTestShape === "circle") {
     return Math.hypot(localX, localY) <= Math.max(width, height) / 2;
   }
 

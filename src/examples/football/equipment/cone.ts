@@ -118,6 +118,7 @@ export const coneEquipment: FootballEquipmentSpec = {
       rotate: false,
     },
     lockedAspectRatio: true,
+    minimumHitRadiusPx: 0,
     selectionBounds: {
       left: -0.44,
       top: -0.4,
