@@ -64,6 +64,24 @@ export function drawClosedCanvasPath(
   context.closePath();
 }
 
+export function drawRoundedSquareHandle(
+  context: CanvasRenderingContext2D,
+  point: Point,
+  radius: number,
+  cornerRadius = 2,
+) {
+  const size = radius * 2;
+
+  context.beginPath();
+  context.roundRect(
+    point.x - radius,
+    point.y - radius,
+    size,
+    size,
+    Math.min(cornerRadius, radius),
+  );
+}
+
 export function getExpandedCanvasRectPoints(
   points: Point[],
   paddingPx: number,

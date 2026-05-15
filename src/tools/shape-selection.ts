@@ -15,6 +15,7 @@ import { BoardEditorShapeSelectionToolbar } from "../react/components/board-edit
 import {
   distanceToSegment,
   drawClosedCanvasPath,
+  drawRoundedSquareHandle,
   getCornerHandleCanvasPoint,
   getExpandedCanvasRectPoints,
   getRotatedRectWorldPoints,
@@ -24,10 +25,10 @@ import {
   rotatePointAround,
 } from "./selection-geometry";
 
-const SHAPE_RESIZE_HANDLE_RADIUS_PX = 5;
+const SHAPE_RESIZE_HANDLE_RADIUS_PX = 4;
 const SHAPE_RESIZE_HANDLE_HIT_RADIUS_PX = 12;
 const SHAPE_RESIZE_EDGE_HIT_RADIUS_PX = 8;
-const ROTATE_HANDLE_RADIUS_PX = 13;
+const ROTATE_HANDLE_RADIUS_PX = 11;
 const ROTATE_HANDLE_CORNER_INDEX = 3;
 const ROTATE_HANDLE_CORNER_OFFSET_PX = 18;
 type ShapeSelectionSession = ObjectSelectionSession & {
@@ -208,13 +209,11 @@ export const shapeSelectionAdapter: ObjectSelectionAdapter<
 
     if (!object.locked) {
       for (const handlePoint of outlinePoints) {
-        context.beginPath();
-        context.arc(
-          handlePoint.x,
-          handlePoint.y,
+        drawRoundedSquareHandle(
+          context,
+          handlePoint,
           SHAPE_RESIZE_HANDLE_RADIUS_PX,
-          0,
-          Math.PI * 2,
+          2,
         );
         context.fill();
         context.stroke();
@@ -467,11 +466,29 @@ export const shapeSelectionAdapter: ObjectSelectionAdapter<
       maxY: Math.max(start.y, end.y),
     };
     const padding = session.padding ?? 0;
-    const nextBounds = {
+    const nextLocalBounds = {
       minX: nextSelectionBounds.minX + padding,
       maxX: nextSelectionBounds.maxX - padding,
       minY: nextSelectionBounds.minY + padding,
       maxY: nextSelectionBounds.maxY - padding,
+    };
+    const nextCenter = rotatePointAround(
+      {
+        x: (nextLocalBounds.minX + nextLocalBounds.maxX) / 2,
+        y: (nextLocalBounds.minY + nextLocalBounds.maxY) / 2,
+      },
+      session.center ?? object.position,
+      session.rotation ?? object.rotation ?? 0,
+    );
+    const nextBounds = {
+      minX:
+        nextCenter.x - Math.abs(nextLocalBounds.maxX - nextLocalBounds.minX) / 2,
+      maxX:
+        nextCenter.x + Math.abs(nextLocalBounds.maxX - nextLocalBounds.minX) / 2,
+      minY:
+        nextCenter.y - Math.abs(nextLocalBounds.maxY - nextLocalBounds.minY) / 2,
+      maxY:
+        nextCenter.y + Math.abs(nextLocalBounds.maxY - nextLocalBounds.minY) / 2,
     };
 
     return object.props.kind === "polygon"

@@ -3,9 +3,13 @@ import type {
   EquipmentObject,
   EquipmentSelectionBounds,
 } from "../core/objects/equipment-object";
-import { rotateOffset } from "./selection-geometry";
+import {
+  getExpandedCanvasRectPoints,
+  rotateOffset,
+} from "./selection-geometry";
 
 const MIN_EQUIPMENT_RENDER_SIZE_PX = 8;
+const DEFAULT_EQUIPMENT_SELECTION_PADDING_PX = 0.75;
 
 const DEFAULT_SELECTION_BOUNDS: EquipmentSelectionBounds = {
   left: -0.5,
@@ -53,7 +57,7 @@ export function getEquipmentSelectionOutlineCanvasPoints(
         )
       : Math.max(equipment.size?.height ?? equipment.size?.width ?? 0, 0.25);
 
-  return [
+  const outlinePoints = [
     { x: width * bounds.left, y: height * bounds.top },
     { x: width * bounds.right, y: height * bounds.top },
     { x: width * bounds.right, y: height * bounds.bottom },
@@ -66,4 +70,10 @@ export function getEquipmentSelectionOutlineCanvasPoints(
       y: equipment.position.y + rotated.y,
     });
   });
+
+  return getExpandedCanvasRectPoints(
+    outlinePoints,
+    equipment.props.definition.selectionPaddingPx ??
+      DEFAULT_EQUIPMENT_SELECTION_PADDING_PX,
+  );
 }

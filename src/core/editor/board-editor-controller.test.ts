@@ -34,6 +34,7 @@ import {
 import { getShapeToolState } from "../../tools/shape-tool-state";
 import { FOOTBALL_PLAYER_PRESET_COLORS } from "../../examples/football/football-example-catalog";
 import { MAX_VIEWPORT_ZOOM, MIN_VIEWPORT_ZOOM } from "./viewport-utils";
+import { getRotatedRectWorldPoints, rotateOffset } from "../../tools/selection-geometry";
 
 describe("createBoardEditorController", () => {
   const selectTool = new SelectTool();
@@ -1667,6 +1668,129 @@ describe("createBoardEditorController", () => {
         rotation: expectedRotation,
       },
     );
+  });
+
+  it("keeps the opposite corner fixed when resizing a rotated shape", () => {
+    const arrowTool = new ArrowTool();
+    const shapeTool = new ShapeTool();
+    const existingShape = createShapeObject({
+      id: "shape-rotate-resize-1",
+      kind: "rectangle",
+      start: { x: 10, y: 10 },
+      end: { x: 20, y: 18 },
+      rotation: 45,
+      color: "#fff",
+      lineStyle: "solid",
+      fillStyle: "solid",
+      bordered: false,
+    });
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {
+            [existingShape.id]: existingShape,
+          },
+          order: [existingShape.id],
+        },
+        style: {},
+      },
+      initialToolId: SELECT_TOOL_ID,
+      tools: [selectTool, arrowTool, shapeTool],
+    });
+    const toolApi = createToolApi(store);
+    shapeTool.registerCapabilities?.(toolApi);
+    setSelectedObjectIds(toolApi, [existingShape.id]);
+
+    const controller = createBoardEditorController(store);
+    const canvasRect = {
+      left: 0,
+      top: 0,
+      width: 1000,
+      height: 500,
+    };
+    const projection = createBoardSpaceProjection({
+      surface: store.getState().board.surface,
+      viewport: store.getState().ui.viewport,
+      canvasRect,
+      surfaceInset: 14,
+    });
+    const initialCorners = getRotatedRectWorldPoints({
+      center: existingShape.position,
+      width: existingShape.size?.width ?? 0,
+      height: existingShape.size?.height ?? 0,
+      rotation: existingShape.rotation,
+    });
+    const fixedTopLeft = initialCorners[0];
+    const initialBottomRight = initialCorners[2];
+    const nextWidth = 20;
+    const nextHeight = 14;
+    const nextCenter = {
+      x:
+        fixedTopLeft.x -
+        rotateOffset(-nextWidth / 2, -nextHeight / 2, existingShape.rotation)
+          .x,
+      y:
+        fixedTopLeft.y -
+        rotateOffset(-nextWidth / 2, -nextHeight / 2, existingShape.rotation)
+          .y,
+    };
+    const targetBottomRight = {
+      x:
+        nextCenter.x +
+        rotateOffset(
+          nextWidth / 2,
+          nextHeight / 2,
+          existingShape.rotation,
+        ).x,
+      y:
+        nextCenter.y +
+        rotateOffset(
+          nextWidth / 2,
+          nextHeight / 2,
+          existingShape.rotation,
+        ).y,
+    };
+
+    controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: projection.worldToCanvas(initialBottomRight),
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+    controller.dispatchPointerEvent("onPointerMove", {
+      clientPoint: projection.worldToCanvas(targetBottomRight),
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    const resizedShape = store.getState().board.objects.byId[
+      existingShape.id
+    ] as ShapeObject;
+    const resizedCorners = getRotatedRectWorldPoints({
+      center: resizedShape.position,
+      width: resizedShape.size?.width ?? 0,
+      height: resizedShape.size?.height ?? 0,
+      rotation: resizedShape.rotation,
+    });
+
+    expect(resizedCorners[0].x).toBeCloseTo(fixedTopLeft.x, 6);
+    expect(resizedCorners[0].y).toBeCloseTo(fixedTopLeft.y, 6);
+    expect(resizedCorners[2].x).toBeCloseTo(targetBottomRight.x, 6);
+    expect(resizedCorners[2].y).toBeCloseTo(targetBottomRight.y, 6);
   });
 
   it("creates a polyline arrow across multiple clicks", () => {

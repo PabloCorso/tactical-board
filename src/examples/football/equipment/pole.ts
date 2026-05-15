@@ -2,15 +2,16 @@ import { renderConeMarkerCanvas } from "./cone";
 import type { FootballEquipmentSpec } from "./types";
 
 const POLE_COLOR = "#f97316";
-const POLE_MARKER_LINE_RATIO = 10 / 2.4;
+const POLE_MARKER_LINE_RATIO = 8 / 2.4;
 const POLE_MARKER_STROKE_RATIO = 0.35 / 2.4;
+const POLE_DEFAULT_SCALE = 0.75;
 
 export const poleEquipment: FootballEquipmentSpec = {
   definition: {
     kind: "pole",
     label: "Pole",
     family: "pole",
-    defaultSize: { width: 2.4, height: 11 },
+    defaultSize: { width: 2.4 * POLE_DEFAULT_SCALE, height: 11 * POLE_DEFAULT_SCALE },
     color: POLE_COLOR,
     capabilities: { color: true },
     transformCapabilities: {

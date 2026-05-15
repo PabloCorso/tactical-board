@@ -8,6 +8,7 @@ const HURDLE_METRICS = {
   shoulderRatio: 0.36,
   strokeWidth: 0.4,
 } as const;
+const HURDLE_DEFAULT_SCALE = 0.6;
 
 function renderHurdlePath(
   context: CanvasRenderingContext2D,
@@ -60,7 +61,10 @@ export const hurdleEquipment: FootballEquipmentSpec = {
     kind: "hurdle",
     label: "Hurdle",
     family: "frame",
-    defaultSize: { width: HURDLE_METRICS.width, height: HURDLE_METRICS.height },
+    defaultSize: {
+      width: HURDLE_METRICS.width * HURDLE_DEFAULT_SCALE,
+      height: HURDLE_METRICS.height * HURDLE_DEFAULT_SCALE,
+    },
     color: "#f97316",
     capabilities: { color: true },
     transformCapabilities: {

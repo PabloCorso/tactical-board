@@ -16,10 +16,10 @@ import type {
 import { BoardEditorArrowSelectionToolbar } from "../react/components/board-editor-selection-toolbar-arrow";
 import { SELECTION_TOOLBAR_OFFSET_PX } from "./selection-geometry";
 
-const ARROW_ENDPOINT_HANDLE_RADIUS_PX = 5;
+const ARROW_ENDPOINT_HANDLE_RADIUS_PX = 4;
 const ARROW_ENDPOINT_HANDLE_HIT_RADIUS_PX = 12;
-const ARROW_CURVE_HANDLE_WIDTH_PX = 18;
-const ARROW_CURVE_HANDLE_HEIGHT_PX = 6;
+const ARROW_CURVE_HANDLE_WIDTH_PX = 16;
+const ARROW_CURVE_HANDLE_HEIGHT_PX = 5;
 type ArrowSelectionSession = ObjectSelectionSession & {
   kind: "endpoint" | "point" | "curve";
   endpoint?: "start" | "end";

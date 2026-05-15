@@ -12,6 +12,7 @@ import type {
 import { BoardEditorEquipmentSelectionToolbar } from "../react/components/board-editor-selection-toolbar-equipment";
 import {
   drawClosedCanvasPath,
+  drawRoundedSquareHandle,
   getCornerHandleCanvasPoint,
   getRotationFromPointer,
   getSelectionToolbarAnchorFromSelectionChrome,
@@ -19,9 +20,9 @@ import {
 } from "./selection-geometry";
 import { getEquipmentSelectionOutlineCanvasPoints } from "./equipment-geometry";
 
-const EQUIPMENT_RESIZE_HANDLE_RADIUS_PX = 5;
+const EQUIPMENT_RESIZE_HANDLE_RADIUS_PX = 4;
 const EQUIPMENT_RESIZE_HANDLE_HIT_RADIUS_PX = 12;
-const EQUIPMENT_ROTATE_HANDLE_RADIUS_PX = 13;
+const EQUIPMENT_ROTATE_HANDLE_RADIUS_PX = 11;
 const EQUIPMENT_ROTATE_HANDLE_HIT_RADIUS_PX = 18;
 const ROTATE_HANDLE_CORNER_INDEX = 3;
 const ROTATE_HANDLE_CORNER_OFFSET_PX = 18;
@@ -77,13 +78,11 @@ export const equipmentSelectionAdapter: ObjectSelectionAdapter<
     if (!object.locked) {
       if (transformCapabilities?.resize !== false) {
         for (const handlePoint of outlinePoints) {
-          context.beginPath();
-          context.arc(
-            handlePoint.x,
-            handlePoint.y,
+          drawRoundedSquareHandle(
+            context,
+            handlePoint,
             EQUIPMENT_RESIZE_HANDLE_RADIUS_PX,
-            0,
-            Math.PI * 2,
+            2,
           );
           context.fill();
           context.stroke();

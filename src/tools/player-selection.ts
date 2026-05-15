@@ -13,6 +13,7 @@ import type {
 import { BoardEditorPlayerSelectionToolbar } from "../react/components/board-editor-selection-toolbar-player";
 import {
   drawClosedCanvasPath,
+  drawRoundedSquareHandle,
   getCornerHandleCanvasPoint,
   getExpandedCanvasRectPoints,
   getRotatedRectWorldPoints,
@@ -20,11 +21,12 @@ import {
   getSelectionToolbarAnchorFromSelectionChrome,
   renderRotateHandleIcon,
 } from "./selection-geometry";
+import { getPlayerBorderWidth } from "../rendering/canvas/object-render-scale";
 
 const PLAYER_SELECTION_PADDING_PX = 0.75;
-const PLAYER_RESIZE_HANDLE_RADIUS_PX = 5;
+const PLAYER_RESIZE_HANDLE_RADIUS_PX = 4;
 const PLAYER_RESIZE_HANDLE_HIT_RADIUS_PX = 12;
-const PLAYER_ROTATE_HANDLE_RADIUS_PX = 13;
+const PLAYER_ROTATE_HANDLE_RADIUS_PX = 11;
 const PLAYER_ROTATE_HANDLE_HIT_RADIUS_PX = 18;
 const ROTATE_HANDLE_CORNER_INDEX = 3;
 const ROTATE_HANDLE_CORNER_OFFSET_PX = 18;
@@ -43,7 +45,19 @@ type PlayerSelectionSession = ObjectSelectionSession & {
   initialPointerAngle?: number;
 };
 
-function getPlayerSelectionOutlineCanvasPoints(
+function getPlayerSelectionPaddingPx(
+  projection: Parameters<
+    NonNullable<ObjectSelectionAdapter<PlayerObject>["renderSelection"]>
+  >[0]["projection"],
+  player: PlayerObject,
+) {
+  const bounds = projection.getObjectCanvasBounds(player);
+  const radius = Math.min(Math.abs(bounds.width), Math.abs(bounds.height)) / 2;
+
+  return PLAYER_SELECTION_PADDING_PX + getPlayerBorderWidth(radius) / 2;
+}
+
+export function getPlayerSelectionOutlineCanvasPoints(
   projection: Parameters<
     NonNullable<ObjectSelectionAdapter<PlayerObject>["renderSelection"]>
   >[0]["projection"],
@@ -56,7 +70,7 @@ function getPlayerSelectionOutlineCanvasPoints(
       height: player.size?.height ?? player.size?.width ?? 0,
       rotation: player.rotation,
     }).map((point) => projection.worldToCanvas(point)),
-    PLAYER_SELECTION_PADDING_PX,
+    getPlayerSelectionPaddingPx(projection, player),
   );
 }
 
@@ -95,13 +109,11 @@ export const playerSelectionAdapter: ObjectSelectionAdapter<
     if (!object.locked) {
       if (transformCapabilities.resize !== false) {
         for (const handlePoint of outlinePoints) {
-          context.beginPath();
-          context.arc(
-            handlePoint.x,
-            handlePoint.y,
+          drawRoundedSquareHandle(
+            context,
+            handlePoint,
             PLAYER_RESIZE_HANDLE_RADIUS_PX,
-            0,
-            Math.PI * 2,
+            2,
           );
           context.fill();
           context.stroke();

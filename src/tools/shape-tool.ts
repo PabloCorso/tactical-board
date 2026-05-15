@@ -31,9 +31,10 @@ const MIN_HIT_DISTANCE_PX = 10;
 const POLYGON_FINISH_HIT_RADIUS_PX = 12;
 const DIAGONAL_STRIPE_TILE_SIZE_PX = 11;
 const DIAGONAL_STRIPE_LINE_WIDTH_PX = 2.25;
+const RECTANGLE_CORNER_RADIUS_RATIO = 0.08;
 const DEFAULT_SHAPE_PREVIEW_SIZE = {
-  width: 8,
-  height: 6,
+  width: 16,
+  height: 12,
 } as const;
 
 export type ShapeToolPreset = {
@@ -241,6 +242,99 @@ function getRenderedShapeCanvasPoints(
     .map((point) => surfaceTransform.worldToCanvas(point));
 }
 
+function getRenderedRectangleMetrics(
+  shape: ShapeObject,
+  surfaceTransform: CanvasObjectRenderInput["surfaceTransform"],
+) {
+  const center = surfaceTransform.worldToCanvas(shape.position);
+  const width = Math.abs(
+    (shape.size?.width ?? 0) * surfaceTransform.pixelsPerUnit,
+  );
+  const height = Math.abs(
+    (shape.size?.height ?? shape.size?.width ?? 0) *
+      surfaceTransform.pixelsPerUnit,
+  );
+  const radius = Math.min(
+    Math.min(width, height) * RECTANGLE_CORNER_RADIUS_RATIO,
+    width / 2,
+    height / 2,
+  );
+
+  return {
+    center,
+    width,
+    height,
+    halfWidth: width / 2,
+    halfHeight: height / 2,
+    radius,
+  };
+}
+
+function rotateLocalCanvasPoint(
+  localPoint: Point,
+  center: Point,
+  rotation = 0,
+): Point {
+  return rotatePointAround(
+    {
+      x: center.x + localPoint.x,
+      y: center.y + localPoint.y,
+    },
+    center,
+    rotation,
+  );
+}
+
+function traceRoundedRectanglePath(
+  path: Path2D,
+  shape: ShapeObject,
+  surfaceTransform: CanvasObjectRenderInput["surfaceTransform"],
+) {
+  const { center, halfWidth, halfHeight, radius } = getRenderedRectangleMetrics(
+    shape,
+    surfaceTransform,
+  );
+  const rotation = shape.rotation ?? 0;
+  const topLeft = rotateLocalCanvasPoint(
+    { x: -halfWidth, y: -halfHeight },
+    center,
+    rotation,
+  );
+  const topRight = rotateLocalCanvasPoint(
+    { x: halfWidth, y: -halfHeight },
+    center,
+    rotation,
+  );
+  const bottomRight = rotateLocalCanvasPoint(
+    { x: halfWidth, y: halfHeight },
+    center,
+    rotation,
+  );
+  const bottomLeft = rotateLocalCanvasPoint(
+    { x: -halfWidth, y: halfHeight },
+    center,
+    rotation,
+  );
+  const start = rotateLocalCanvasPoint(
+    { x: -halfWidth + radius, y: -halfHeight },
+    center,
+    rotation,
+  );
+
+  path.moveTo(start.x, start.y);
+  path.arcTo(topRight.x, topRight.y, bottomRight.x, bottomRight.y, radius);
+  path.arcTo(
+    bottomRight.x,
+    bottomRight.y,
+    bottomLeft.x,
+    bottomLeft.y,
+    radius,
+  );
+  path.arcTo(bottomLeft.x, bottomLeft.y, topLeft.x, topLeft.y, radius);
+  path.arcTo(topLeft.x, topLeft.y, topRight.x, topRight.y, radius);
+  path.closePath();
+}
+
 function createRenderedShapePath(
   shape: ShapeObject,
   surfaceTransform: CanvasObjectRenderInput["surfaceTransform"],
@@ -264,6 +358,11 @@ function createRenderedShapePath(
       Math.PI * 2,
     );
 
+    return path;
+  }
+
+  if (shape.props.kind === "rectangle") {
+    traceRoundedRectanglePath(path, shape, surfaceTransform);
     return path;
   }
 
@@ -481,6 +580,29 @@ function isPointInsidePolygon(point: Point, polygon: Point[]) {
   return inside;
 }
 
+function isPointInsideRoundedRectangle(
+  point: Point,
+  halfWidth: number,
+  halfHeight: number,
+  radius: number,
+) {
+  const x = Math.abs(point.x);
+  const y = Math.abs(point.y);
+
+  if (x > halfWidth || y > halfHeight) {
+    return false;
+  }
+
+  if (radius <= 0 || x <= halfWidth - radius || y <= halfHeight - radius) {
+    return true;
+  }
+
+  const dx = x - (halfWidth - radius);
+  const dy = y - (halfHeight - radius);
+
+  return dx * dx + dy * dy <= radius * radius;
+}
+
 function hitTestShape({
   object,
   canvasPoint,
@@ -523,6 +645,46 @@ function hitTestShape({
       (localOffset.y * localOffset.y) / (innerRy * innerRy);
 
     return normalized <= 1.1 && innerNormalized >= 1;
+  }
+
+  if (shape.props.kind === "rectangle") {
+    const metrics = getRenderedRectangleMetrics(shape, surfaceTransform);
+    const localOffset = getRotatedOffsetFromCenter(
+      canvasPoint,
+      metrics.center,
+      -(shape.rotation ?? 0),
+    );
+
+    if (shape.props.fillStyle !== "none") {
+      return isPointInsideRoundedRectangle(
+        localOffset,
+        metrics.halfWidth,
+        metrics.halfHeight,
+        metrics.radius,
+      );
+    }
+
+    const outerInset = threshold / 2;
+    const innerInset = Math.min(
+      threshold / 2,
+      metrics.halfWidth,
+      metrics.halfHeight,
+    );
+
+    return (
+      isPointInsideRoundedRectangle(
+        localOffset,
+        metrics.halfWidth + outerInset,
+        metrics.halfHeight + outerInset,
+        metrics.radius + outerInset,
+      ) &&
+      !isPointInsideRoundedRectangle(
+        localOffset,
+        Math.max(metrics.halfWidth - innerInset, 0),
+        Math.max(metrics.halfHeight - innerInset, 0),
+        Math.max(metrics.radius - innerInset, 0),
+      )
+    );
   }
 
   for (let index = 0; index < points.length; index += 1) {

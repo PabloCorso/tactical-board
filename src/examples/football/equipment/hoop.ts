@@ -1,6 +1,6 @@
 import type { FootballEquipmentSpec } from "./types";
 
-const HOOP_RADIUS = 1.7;
+const HOOP_RADIUS = 1.1;
 const HOOP_STROKE_WIDTH = Math.max(0.25, HOOP_RADIUS * 0.25);
 
 export const hoopEquipment: FootballEquipmentSpec = {

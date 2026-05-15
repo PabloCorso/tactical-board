@@ -7,13 +7,17 @@ const LADDER_METRICS = {
   rungStrokeWidth: 0.4,
   rungCount: 6,
 } as const;
+const LADDER_DEFAULT_SCALE = 0.9;
 
 export const ladderEquipment: FootballEquipmentSpec = {
   definition: {
     kind: "ladder",
     label: "Ladder",
     family: "ladder",
-    defaultSize: { width: LADDER_METRICS.width, height: LADDER_METRICS.height },
+    defaultSize: {
+      width: LADDER_METRICS.width * LADDER_DEFAULT_SCALE,
+      height: LADDER_METRICS.height * LADDER_DEFAULT_SCALE,
+    },
     color: "#0f172a",
     capabilities: { color: true },
     transformCapabilities: {
