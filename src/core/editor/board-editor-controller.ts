@@ -23,6 +23,7 @@ export interface CanvasRect {
 export interface BoardEditorPointerInput {
   clientPoint: Point;
   pointerId: number;
+  button?: number;
   ctrlKey: boolean;
   shiftKey: boolean;
   altKey: boolean;
@@ -182,6 +183,7 @@ export function createBoardEditorController(
         clientPoint: input.clientPoint,
         canvasRect: input.canvasRect,
         pointerId: input.pointerId,
+        button: input.button ?? 0,
         interactionStartPoint: getBoardPoint(
           state,
           input.canvasRect,
@@ -241,6 +243,7 @@ export function createBoardEditorController(
         clientPoint: input.clientPoint,
         canvasRect: input.canvasRect,
         pointerId: input.pointerId,
+        button: input.button ?? 0,
         interactionStartPoint: getBoardPoint(
           state,
           input.canvasRect,

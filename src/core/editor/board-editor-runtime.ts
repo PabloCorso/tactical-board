@@ -18,6 +18,10 @@ import {
 import { TEXT_TOOL_ID } from "../../tools/text-tool-state";
 import { ARROW_TOOL_ID, getArrowToolState } from "../../tools/arrow-tool-state";
 import { getShapeToolState, SHAPE_TOOL_ID } from "../../tools/shape-tool-state";
+import {
+  canCompletePendingPolygon,
+  completePendingPolygon,
+} from "../../tools/shape-tool";
 
 export interface BoardEditorRuntime {
   mount: (canvas: HTMLCanvasElement) => void;
@@ -140,6 +144,7 @@ export function createBoardEditorRuntime({
         y: event.clientY,
       },
       pointerId: event.pointerId,
+      button: event.button,
       ctrlKey: event.ctrlKey,
       shiftKey: event.shiftKey,
       altKey: event.altKey,
@@ -151,6 +156,16 @@ export function createBoardEditorRuntime({
   const onPointerDown = (event: PointerEvent) => {
     if (!canvas) {
       return;
+    }
+
+    const shapeState = getShapeToolState(store.getState().toolState);
+    if (
+      event.button === 2 &&
+      store.getState().ui.activeToolId === SHAPE_TOOL_ID &&
+      shapeState.draftStyle.kind === "polygon" &&
+      shapeState.pendingPoints.length > 0
+    ) {
+      event.preventDefault();
     }
 
     if (store.getState().ui.activeToolId !== TEXT_TOOL_ID) {
@@ -180,6 +195,19 @@ export function createBoardEditorRuntime({
     }
 
     if (canvas.hasPointerCapture(event.pointerId)) {
+      return;
+    }
+
+    const state = store.getState();
+    const arrowState = getArrowToolState(state.toolState);
+    const shapeState = getShapeToolState(state.toolState);
+
+    if (
+      (state.ui.activeToolId === ARROW_TOOL_ID &&
+        arrowState.pendingPoints.length > 0) ||
+      (state.ui.activeToolId === SHAPE_TOOL_ID &&
+        shapeState.pendingPoints.length > 0)
+    ) {
       return;
     }
 
@@ -295,6 +323,19 @@ export function createBoardEditorRuntime({
     }
   };
 
+  const onContextMenu = (event: MouseEvent) => {
+    const state = store.getState();
+    const shapeState = getShapeToolState(state.toolState);
+
+    if (
+      state.ui.activeToolId === SHAPE_TOOL_ID &&
+      shapeState.draftStyle.kind === "polygon" &&
+      shapeState.pendingPoints.length > 0
+    ) {
+      event.preventDefault();
+    }
+  };
+
   const onKeyDown = (event: KeyboardEvent) => {
     if (event.key === "Escape") {
       if (handleEscapeKey()) {
@@ -321,6 +362,12 @@ export function createBoardEditorRuntime({
       !event.altKey &&
       !event.shiftKey
     ) {
+      if (canCompletePendingPolygon(toolApi)) {
+        completePendingPolygon(toolApi);
+        event.preventDefault();
+        return;
+      }
+
       beginEditingSelection(undefined);
       event.preventDefault();
       return;
@@ -413,6 +460,7 @@ export function createBoardEditorRuntime({
         canvas.removeEventListener("pointerup", onPointerUp);
         canvas.removeEventListener("dblclick", onDoubleClick);
         canvas.removeEventListener("wheel", onWheel);
+        canvas.removeEventListener("contextmenu", onContextMenu);
         canvas.removeEventListener("keydown", onKeyDown);
       }
 
@@ -426,6 +474,7 @@ export function createBoardEditorRuntime({
       canvas.addEventListener("pointerup", onPointerUp);
       canvas.addEventListener("dblclick", onDoubleClick);
       canvas.addEventListener("wheel", onWheel, { passive: false });
+      canvas.addEventListener("contextmenu", onContextMenu);
       canvas.addEventListener("keydown", onKeyDown);
 
       unsubscribe = store.subscribe(() => {
@@ -464,6 +513,7 @@ export function createBoardEditorRuntime({
         canvas.removeEventListener("pointerup", onPointerUp);
         canvas.removeEventListener("dblclick", onDoubleClick);
         canvas.removeEventListener("wheel", onWheel);
+        canvas.removeEventListener("contextmenu", onContextMenu);
         canvas.removeEventListener("keydown", onKeyDown);
       }
 

@@ -8,6 +8,8 @@ import { createToolApi } from "./create-tool-api";
 import { setSelectedObjectIds } from "../../tools/select-tool-actions";
 import { ArrowTool } from "../../tools/arrow-tool";
 import { ARROW_TOOL_ID, getArrowToolState } from "../../tools/arrow-tool-state";
+import { ShapeTool } from "../../tools/shape-tool";
+import { getShapeToolState, SHAPE_TOOL_ID } from "../../tools/shape-tool-state";
 import { TextTool } from "../../tools/text-tool";
 import { createTextObject } from "../objects/text-object";
 import { getTextToolState } from "../../tools/text-tool-state";
@@ -361,6 +363,151 @@ describe("createBoardEditorRuntime", () => {
     globalThis.cancelAnimationFrame = originalCancelAnimationFrame;
   });
 
+  it("keeps an in-progress arrow preview when the pointer leaves without capture", () => {
+    const arrowTool = new ArrowTool();
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+          unit: "m",
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      initialToolId: ARROW_TOOL_ID,
+      tools: [
+        {
+          id: SELECT_TOOL_ID,
+          label: "Select",
+        },
+        arrowTool,
+      ],
+    });
+    const runtime = createBoardEditorRuntime({ store });
+    const canvas = createCanvasStub();
+    const originalRequestAnimationFrame = globalThis.requestAnimationFrame;
+    const originalCancelAnimationFrame = globalThis.cancelAnimationFrame;
+    vi.stubGlobal(
+      "requestAnimationFrame",
+      vi.fn(() => 1),
+    );
+    vi.stubGlobal("cancelAnimationFrame", vi.fn());
+
+    runtime.mount(canvas);
+    store.getState().actions.setToolState(ARROW_TOOL_ID, {
+      ...getArrowToolState(store.getState().toolState),
+      pendingPoints: [{ x: 10, y: 12 }],
+    });
+    store.getState().actions.setPreviewObjects([
+      {
+        id: "preview-arrow",
+        type: "arrow",
+        position: { x: 0, y: 0 },
+        props: {},
+      },
+    ]);
+
+    const pointerLeaveHandler = vi
+      .mocked(canvas.addEventListener)
+      .mock.calls.find(([eventName]) => eventName === "pointerleave")?.[1] as
+      | ((event: PointerEvent) => void)
+      | undefined;
+
+    expect(pointerLeaveHandler).toBeTypeOf("function");
+
+    pointerLeaveHandler?.({ pointerId: 1 } as PointerEvent);
+
+    expect(store.getState().rendering.previewObjects).toHaveLength(1);
+
+    runtime.unmount();
+    vi.unstubAllGlobals();
+    globalThis.requestAnimationFrame = originalRequestAnimationFrame;
+    globalThis.cancelAnimationFrame = originalCancelAnimationFrame;
+  });
+
+  it("keeps an in-progress polygon preview when the pointer leaves without capture", () => {
+    const shapeTool = new ShapeTool();
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+          unit: "m",
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      initialToolId: SHAPE_TOOL_ID,
+      tools: [
+        {
+          id: SELECT_TOOL_ID,
+          label: "Select",
+        },
+        shapeTool,
+      ],
+    });
+    const runtime = createBoardEditorRuntime({ store });
+    const canvas = createCanvasStub();
+    const originalRequestAnimationFrame = globalThis.requestAnimationFrame;
+    const originalCancelAnimationFrame = globalThis.cancelAnimationFrame;
+    vi.stubGlobal(
+      "requestAnimationFrame",
+      vi.fn(() => 1),
+    );
+    vi.stubGlobal("cancelAnimationFrame", vi.fn());
+
+    runtime.mount(canvas);
+    store.getState().actions.setToolState(SHAPE_TOOL_ID, {
+      ...getShapeToolState(store.getState().toolState),
+      draftStyle: {
+        ...getShapeToolState(store.getState().toolState).draftStyle,
+        kind: "polygon",
+      },
+      pendingPoints: [
+        { x: 10, y: 10 },
+        { x: 18, y: 16 },
+      ],
+    });
+    store.getState().actions.setPreviewObjects([
+      {
+        id: "shape-preview",
+        type: "shape",
+        position: { x: 0, y: 0 },
+        props: {},
+      },
+    ]);
+
+    const pointerLeaveHandler = vi
+      .mocked(canvas.addEventListener)
+      .mock.calls.find(([eventName]) => eventName === "pointerleave")?.[1] as
+      | ((event: PointerEvent) => void)
+      | undefined;
+
+    expect(pointerLeaveHandler).toBeTypeOf("function");
+
+    pointerLeaveHandler?.({ pointerId: 1 } as PointerEvent);
+
+    expect(store.getState().rendering.previewObjects).toHaveLength(1);
+
+    runtime.unmount();
+    vi.unstubAllGlobals();
+    globalThis.requestAnimationFrame = originalRequestAnimationFrame;
+    globalThis.cancelAnimationFrame = originalCancelAnimationFrame;
+  });
+
   it("handles undo and redo keyboard shortcuts on the focused canvas", () => {
     const store = createBoardEditorStore({
       initialBoard: {
@@ -602,6 +749,108 @@ describe("createBoardEditorRuntime", () => {
     );
     expect(store.getState().rendering.previewObjects).toEqual([]);
     expect(escapeEvent.preventDefault).toHaveBeenCalledTimes(1);
+
+    runtime.unmount();
+    vi.unstubAllGlobals();
+    globalThis.requestAnimationFrame = originalRequestAnimationFrame;
+    globalThis.cancelAnimationFrame = originalCancelAnimationFrame;
+  });
+
+  it("completes an unfinished polygon when Enter is pressed on the focused canvas", () => {
+    const shapeTool = new ShapeTool({
+      presets: [
+        {
+          id: "polygon",
+          label: "Polygon",
+          draftStyle: {
+            kind: "polygon",
+          },
+        },
+      ],
+    });
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      initialToolId: SHAPE_TOOL_ID,
+      tools: [
+        {
+          id: SELECT_TOOL_ID,
+          label: "Select",
+        },
+        shapeTool,
+      ],
+    });
+    const runtime = createBoardEditorRuntime({ store });
+    const canvas = createCanvasStub();
+    const originalRequestAnimationFrame = globalThis.requestAnimationFrame;
+    const originalCancelAnimationFrame = globalThis.cancelAnimationFrame;
+    vi.stubGlobal(
+      "requestAnimationFrame",
+      vi.fn(() => 1),
+    );
+    vi.stubGlobal("cancelAnimationFrame", vi.fn());
+
+    runtime.mount(canvas);
+    store.getState().actions.setToolState(SHAPE_TOOL_ID, {
+      ...getShapeToolState(store.getState().toolState),
+      draftStyle: {
+        ...getShapeToolState(store.getState().toolState).draftStyle,
+        kind: "polygon",
+      },
+      pendingPoints: [
+        { x: 10, y: 10 },
+        { x: 18, y: 16 },
+        { x: 14, y: 24 },
+      ],
+    });
+
+    const keyDownHandler = vi
+      .mocked(canvas.addEventListener)
+      .mock.calls.find(([eventName]) => eventName === "keydown")?.[1] as
+      | ((event: KeyboardEvent) => void)
+      | undefined;
+
+    expect(keyDownHandler).toBeTypeOf("function");
+
+    const enterEvent = {
+      key: "Enter",
+      metaKey: false,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      preventDefault: vi.fn(),
+    } as unknown as KeyboardEvent;
+
+    keyDownHandler?.(enterEvent);
+
+    expect(store.getState().board.objects.order).toEqual(["shape-1"]);
+    expect(getShapeToolState(store.getState().toolState).pendingPoints).toEqual(
+      [],
+    );
+    expect(store.getState().board.objects.byId["shape-1"]).toMatchObject({
+      type: "shape",
+      props: {
+        kind: "polygon",
+        points: [
+          { x: 10, y: 10 },
+          { x: 18, y: 16 },
+          { x: 14, y: 24 },
+        ],
+      },
+    });
+    expect(enterEvent.preventDefault).toHaveBeenCalledTimes(1);
 
     runtime.unmount();
     vi.unstubAllGlobals();

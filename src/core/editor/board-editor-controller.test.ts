@@ -2940,7 +2940,7 @@ describe("createBoardEditorController", () => {
     });
   });
 
-  it("creates a polygon shape across multiple clicks", () => {
+  it("creates a polygon shape when clicking back near the first vertex", () => {
     const shapeTool = new ShapeTool({
       presets: [
         {
@@ -3009,6 +3009,11 @@ describe("createBoardEditorController", () => {
       metaKey: false,
       canvasRect,
     });
+    const closePoint = {
+      x: firstPoint.x + 6,
+      y: firstPoint.y + 4,
+    };
+
     controller.dispatchPointerEvent("onPointerDown", {
       clientPoint: thirdPoint,
       pointerId: 1,
@@ -3028,8 +3033,116 @@ describe("createBoardEditorController", () => {
     );
 
     controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: closePoint,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    expect(store.getState().board.objects.order).toEqual(["shape-1"]);
+    expect(getShapeToolState(store.getState().toolState).pendingPoints).toEqual(
+      [],
+    );
+    expect(store.getState().board.objects.byId["shape-1"]).toMatchObject({
+      type: "shape",
+      props: {
+        kind: "polygon",
+        points: [
+          { x: 10, y: 10 },
+          { x: 18, y: 16 },
+          { x: 14, y: 24 },
+        ],
+      },
+    });
+  });
+
+  it("creates a polygon shape when right-clicking to finish", () => {
+    const shapeTool = new ShapeTool({
+      presets: [
+        {
+          id: "polygon",
+          label: "Polygon",
+          draftStyle: {
+            kind: "polygon",
+          },
+        },
+      ],
+    });
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      initialToolId: shapeTool.id,
+      tools: [selectTool, shapeTool],
+    });
+    const toolApi = createToolApi(store);
+    shapeTool.registerCapabilities?.(toolApi);
+    shapeTool.onActivate?.(toolApi);
+
+    const controller = createBoardEditorController(store);
+    const canvasRect = {
+      left: 0,
+      top: 0,
+      width: 1000,
+      height: 500,
+    };
+    const projection = createBoardSpaceProjection({
+      surface: store.getState().board.surface,
+      viewport: store.getState().ui.viewport,
+      canvasRect,
+      surfaceInset: 14,
+    });
+    const firstPoint = projection.worldToCanvas({ x: 10, y: 10 });
+    const secondPoint = projection.worldToCanvas({ x: 18, y: 16 });
+    const thirdPoint = projection.worldToCanvas({ x: 14, y: 24 });
+    const finishPoint = projection.worldToCanvas({ x: 22, y: 18 });
+
+    controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: firstPoint,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+    controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: secondPoint,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+    controller.dispatchPointerEvent("onPointerDown", {
       clientPoint: thirdPoint,
       pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: finishPoint,
+      pointerId: 1,
+      button: 2,
       ctrlKey: false,
       shiftKey: false,
       altKey: false,

@@ -124,6 +124,11 @@ export class ShapeTool extends BoardEditorTool implements ToolDefinition {
       return;
     }
 
+    if (event.button === 2) {
+      completePendingPolygon(api);
+      return;
+    }
+
     if (shouldFinishPolygon(api, pendingPoints, event.point, event)) {
       completePendingPolygon(api);
       return;
@@ -239,6 +244,17 @@ export function completePendingPolygon(api: ToolApi) {
     }),
   ]);
   cancelPendingShape(api);
+}
+
+export function canCompletePendingPolygon(api: ToolApi) {
+  const state = api.getState();
+  const shapeState = getShapeToolState(state.toolState);
+
+  return (
+    state.ui.activeToolId === SHAPE_TOOL_ID &&
+    shapeState.draftStyle.kind === "polygon" &&
+    shapeState.pendingPoints.length >= 3
+  );
 }
 
 function rotatePointAround(point: Point, center: Point, rotation = 0): Point {
@@ -788,13 +804,11 @@ function shouldFinishPolygon(
     canvasRect: event.canvasRect,
     surfaceInset: 14,
   });
-  const lastPoint = projection.worldToCanvas(
-    pendingPoints[pendingPoints.length - 1],
-  );
+  const firstPoint = projection.worldToCanvas(pendingPoints[0]);
   const candidate = projection.worldToCanvas(nextPoint);
 
   return (
-    Math.hypot(lastPoint.x - candidate.x, lastPoint.y - candidate.y) <=
+    Math.hypot(firstPoint.x - candidate.x, firstPoint.y - candidate.y) <=
     POLYGON_FINISH_HIT_RADIUS_PX
   );
 }
