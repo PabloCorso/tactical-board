@@ -1,31 +1,76 @@
 import type { BoardObject, Point } from "../board/types";
-import {
-  ARROW_OBJECT_TYPE,
-  moveArrowObject,
-  type ArrowObject,
-} from "./arrow-object";
-import {
-  moveShapeObject,
-  SHAPE_OBJECT_TYPE,
-  type ShapeObject,
-} from "./shape-object";
+import type { BoardEditorState } from "../editor/types";
 
-export function moveBoardObject(
+function getObjectBehaviorAdapter(
+  state: Pick<BoardEditorState, "objectRegistry">,
+  object: BoardObject,
+) {
+  return state.objectRegistry.definitions[object.type]?.behaviors;
+}
+
+export function rotatePointAround(point: Point, center: Point, rotation = 0) {
+  const angle = (rotation * Math.PI) / 180;
+  const dx = point.x - center.x;
+  const dy = point.y - center.y;
+  const cos = Math.cos(angle);
+  const sin = Math.sin(angle);
+
+  return {
+    x: center.x + dx * cos - dy * sin,
+    y: center.y + dx * sin + dy * cos,
+  };
+}
+
+export function defaultMoveBoardObject(
   object: BoardObject,
   delta: Point,
 ): BoardObject {
-  switch (object.type) {
-    case ARROW_OBJECT_TYPE:
-      return moveArrowObject(object as ArrowObject, delta);
-    case SHAPE_OBJECT_TYPE:
-      return moveShapeObject(object as ShapeObject, delta);
-    default:
-      return {
-        ...object,
-        position: {
-          x: object.position.x + delta.x,
-          y: object.position.y + delta.y,
-        },
-      };
-  }
+  return {
+    ...object,
+    position: {
+      x: object.position.x + delta.x,
+      y: object.position.y + delta.y,
+    },
+  };
+}
+
+export function defaultRotateBoardObject(
+  object: BoardObject,
+  center: Point,
+  rotationDelta: number,
+): BoardObject {
+  return {
+    ...object,
+    position: rotatePointAround(object.position, center, rotationDelta),
+    rotation:
+      typeof object.rotation === "number"
+        ? object.rotation + rotationDelta
+        : object.rotation,
+  };
+}
+
+export function moveBoardObject(
+  state: Pick<BoardEditorState, "objectRegistry">,
+  object: BoardObject,
+  delta: Point,
+): BoardObject {
+  return (
+    getObjectBehaviorAdapter(state, object)?.move?.(object, delta) ??
+    defaultMoveBoardObject(object, delta)
+  );
+}
+
+export function rotateBoardObject(
+  state: Pick<BoardEditorState, "objectRegistry">,
+  object: BoardObject,
+  center: Point,
+  rotationDelta: number,
+): BoardObject {
+  return (
+    getObjectBehaviorAdapter(state, object)?.rotate?.(
+      object,
+      center,
+      rotationDelta,
+    ) ?? defaultRotateBoardObject(object, center, rotationDelta)
+  );
 }

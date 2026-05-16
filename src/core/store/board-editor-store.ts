@@ -79,8 +79,16 @@ function createDuplicatedObjectId(
   return candidateId;
 }
 
-function translateObject(object: BoardObject, delta: Point): BoardObject {
-  return moveBoardObject(object, delta);
+function translateObject(
+  state: Pick<BoardEditorState, "objectRegistry">,
+  object: BoardObject,
+  delta: Point,
+): BoardObject {
+  return moveBoardObject(
+    state,
+    object,
+    delta,
+  );
 }
 
 function createHistoryEntry(
@@ -400,6 +408,7 @@ export function createBoardEditorStore({
           const duplicateId = createDuplicatedObjectId(objectId, nextById);
           duplicateIds.push(duplicateId);
           nextById[duplicateId] = translateObject(
+            state,
             {
               ...object,
               id: duplicateId,
@@ -582,7 +591,7 @@ export function createBoardEditorStore({
             }
 
             changed = true;
-            nextById[objectId] = translateObject(object, delta);
+            nextById[objectId] = translateObject(state, object, delta);
           }
 
           if (!changed) {

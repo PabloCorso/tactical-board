@@ -1,4 +1,4 @@
-import type { ObjectId, Point } from "../core/board/types";
+import type { BoardObject, ObjectId, Point } from "../core/board/types";
 import type { BoardEditorToolState } from "../core/editor/types";
 import type { ObjectSelectionInteraction } from "../core/objects/object-selection";
 
@@ -17,9 +17,37 @@ type SelectMarqueeInteraction = {
   baseSelection: ObjectId[];
 };
 
+type SelectGroupSelectionInteraction = {
+  mode: "group-selection";
+  selectedObjectIds: ObjectId[];
+  session: {
+    kind: "resize" | "rotate";
+    handle?:
+      | "top"
+      | "right"
+      | "bottom"
+      | "left"
+      | "top-left"
+      | "top-right"
+      | "bottom-right"
+      | "bottom-left";
+    bounds: {
+      minX: number;
+      maxX: number;
+      minY: number;
+      maxY: number;
+    };
+    center: Point;
+    pointerOffset?: Point;
+    initialPointerAngle?: number;
+    initialObjects: BoardObject[];
+  };
+};
+
 export type SelectToolInteraction =
   | SelectDragInteraction
   | SelectMarqueeInteraction
+  | SelectGroupSelectionInteraction
   | ObjectSelectionInteraction;
 
 export type SelectToolState = {

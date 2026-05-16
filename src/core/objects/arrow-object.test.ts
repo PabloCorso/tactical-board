@@ -48,7 +48,6 @@ describe("createArrowObject", () => {
 
   it("keeps double arrow lines tightly spaced", () => {
     const [topLine, bottomLine] = getArrowBodyPolylines({
-      geometry: "simple",
       start: { x: 10, y: 10 },
       end: { x: 20, y: 10 },
       bodyStyle: "double",
@@ -62,29 +61,6 @@ describe("createArrowObject", () => {
   it("uses half-width body strokes for double arrows", () => {
     expect(getArrowBodyStrokeWidth(8, "double")).toBe(4);
     expect(getArrowBodyStrokeWidth(8, "straight")).toBe(8);
-  });
-
-  it("derives start, end, and bounds from polyline points", () => {
-    const arrow = createArrowObject({
-      id: "arrow-polyline",
-      geometry: "polyline",
-      points: [
-        { x: 10, y: 10 },
-        { x: 15, y: 18 },
-        { x: 22, y: 9 },
-      ],
-      color: "#000",
-      strokeWidth: 0.4,
-      lineStyle: "solid",
-      bodyStyle: "straight",
-      startHead: "none",
-      endHead: "triangle",
-    });
-
-    expect(arrow.props.start).toEqual({ x: 10, y: 10 });
-    expect(arrow.props.end).toEqual({ x: 22, y: 9 });
-    expect(arrow.position.x).toBeCloseTo(16);
-    expect(arrow.position.y).toBeCloseTo(13.5);
   });
 
   it("keeps the squiggle visible across arrow lengths", () => {

@@ -110,6 +110,15 @@ export function getExpandedCanvasRectPoints(
   });
 }
 
+export function getBoundsFromCanvasPoints(points: Point[]) {
+  return {
+    left: Math.min(...points.map((point) => point.x)),
+    right: Math.max(...points.map((point) => point.x)),
+    top: Math.min(...points.map((point) => point.y)),
+    bottom: Math.max(...points.map((point) => point.y)),
+  };
+}
+
 export function getCornerHandleCanvasPoint(
   outlinePoints: Point[],
   cornerIndex: number,

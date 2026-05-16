@@ -12,6 +12,7 @@ import type {
 } from "../core/objects/object-selection";
 import { BoardEditorPlayerSelectionToolbar } from "../react/components/board-editor-selection-toolbar-player";
 import {
+  getBoundsFromCanvasPoints,
   drawClosedCanvasPath,
   drawRoundedSquareHandle,
   getCornerHandleCanvasPoint,
@@ -92,6 +93,10 @@ export const playerSelectionAdapter: ObjectSelectionAdapter<
   PlayerSelectionSession
 > = {
   getTransformCapabilities: getPlayerTransformCapabilities,
+  getCanvasBounds: ({ object, projection }) =>
+    getBoundsFromCanvasPoints(
+      getPlayerSelectionOutlineCanvasPoints(projection, object),
+    ),
   renderSelection: ({ context, object, projection, color }) => {
     const outlinePoints = getPlayerSelectionOutlineCanvasPoints(
       projection,

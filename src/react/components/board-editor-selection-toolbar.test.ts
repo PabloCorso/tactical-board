@@ -193,15 +193,13 @@ describe("getSelectionToolbarAnchor", () => {
     expect(rotatedAnchor.top).toBeLessThan(unrotatedAnchor.top);
   });
 
-  it("uses the same larger toolbar offset for polyline arrows", () => {
+  it("uses the same larger toolbar offset for arrows", () => {
     const arrow = {
       type: "arrow",
       id: "arrow-1",
       props: {
-        geometry: "polyline",
         start: { x: 80, y: 90 },
         end: { x: 120, y: 110 },
-        points: [],
         bodyStyle: "straight",
       },
     } as unknown as ArrowObject;
@@ -213,7 +211,7 @@ describe("getSelectionToolbarAnchor", () => {
 
     expect(anchor).toEqual({
       left: 100,
-      top: 80 - SELECTION_TOOLBAR_OFFSET_PX,
+      top: 90 - SELECTION_TOOLBAR_OFFSET_PX,
     });
   });
 });

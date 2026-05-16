@@ -11,6 +11,7 @@ import type {
 } from "../core/objects/object-selection";
 import { BoardEditorEquipmentSelectionToolbar } from "../react/components/board-editor-selection-toolbar-equipment";
 import {
+  getBoundsFromCanvasPoints,
   drawClosedCanvasPath,
   drawRoundedSquareHandle,
   getCornerHandleCanvasPoint,
@@ -61,6 +62,10 @@ export const equipmentSelectionAdapter: ObjectSelectionAdapter<
   EquipmentSelectionSession
 > = {
   getTransformCapabilities: getEquipmentTransformCapabilities,
+  getCanvasBounds: ({ object, projection }) =>
+    getBoundsFromCanvasPoints(
+      getEquipmentSelectionOutlineCanvasPoints(projection, object),
+    ),
   renderSelection: ({ context, object, projection, color }) => {
     const outlinePoints = getEquipmentSelectionOutlineCanvasPoints(
       projection,

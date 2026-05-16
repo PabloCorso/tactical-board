@@ -59,6 +59,13 @@ export interface ObjectSelectionToolbarAnchorInput<
   projection: SelectionProjection;
 }
 
+export interface ObjectSelectionCanvasBoundsInput<
+  TObject extends BoardObject = BoardObject,
+> {
+  object: TObject;
+  projection: SelectionProjection;
+}
+
 export interface ObjectTransformCapabilities {
   move?: boolean;
   resize?: boolean;
@@ -77,6 +84,9 @@ export interface ObjectSelectionAdapter<
   getTransformCapabilities?: (
     object: TObject,
   ) => ObjectTransformCapabilities | undefined;
+  getCanvasBounds?: (
+    input: ObjectSelectionCanvasBoundsInput<TObject>,
+  ) => { left: number; right: number; top: number; bottom: number } | undefined;
   renderSelection?: (input: ObjectSelectionRenderInput<TObject>) => void;
   hitSelectionHandle?: (
     input: ObjectSelectionHitTestInput<TObject>,

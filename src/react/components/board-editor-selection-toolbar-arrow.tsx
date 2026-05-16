@@ -91,7 +91,6 @@ function getHeadIcon(side: "start" | "end", head: ArrowHeadStyle): IconRender {
   return (
     <BoardEditorArrowIcon
       draftStyle={{
-        geometry: "simple",
         bodyStyle: "straight",
         startHead: side === "start" ? "triangle" : "none",
         endHead: side === "end" ? "triangle" : "none",
@@ -107,7 +106,6 @@ function getBodyStyleIcon(bodyStyle: ArrowBodyStyle): IconRender {
   return (
     <BoardEditorArrowIcon
       draftStyle={{
-        geometry: "simple",
         bodyStyle,
         startHead: "none",
         endHead: "triangle",
@@ -361,19 +359,17 @@ export function BoardEditorArrowSelectionToolbar({
           icon={getHeadIcon("start", selectedObject.props.startHead)}
         />
 
-        {selectedObject.props.geometry === "simple" ? (
-          <BoardEditorToolbarPopoverButton
-            ariaLabel="Arrow body style"
-            tooltip="Body style"
-            content={
-              <ArrowBodyPopoverContent
-                selectedObject={selectedObject}
-                onSelect={updateBodyStyle}
-              />
-            }
-            icon={getBodyStyleIcon(selectedObject.props.bodyStyle)}
-          />
-        ) : null}
+        <BoardEditorToolbarPopoverButton
+          ariaLabel="Arrow body style"
+          tooltip="Body style"
+          content={
+            <ArrowBodyPopoverContent
+              selectedObject={selectedObject}
+              onSelect={updateBodyStyle}
+            />
+          }
+          icon={getBodyStyleIcon(selectedObject.props.bodyStyle)}
+        />
 
         <BoardEditorToolbarPopoverButton
           ariaLabel="Arrow end head"

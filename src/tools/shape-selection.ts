@@ -16,6 +16,7 @@ import {
   distanceToSegment,
   drawClosedCanvasPath,
   drawRoundedSquareHandle,
+  getBoundsFromCanvasPoints,
   getCornerHandleCanvasPoint,
   getExpandedCanvasRectPoints,
   getRotatedRectWorldPoints,
@@ -88,7 +89,7 @@ function getShapeSelectionPaddingPx(
   return Math.max(1.5, shape.props.strokeWidth * projection.pixelsPerUnit) / 2;
 }
 
-function getShapeSelectionOutlineCanvasPoints(
+export function getShapeSelectionOutlineCanvasPoints(
   projection: Parameters<
     NonNullable<ObjectSelectionAdapter<ShapeObject>["renderSelection"]>
   >[0]["projection"],
@@ -194,6 +195,10 @@ export const shapeSelectionAdapter: ObjectSelectionAdapter<
   ShapeObject,
   ShapeSelectionSession
 > = {
+  getCanvasBounds: ({ object, projection }) =>
+    getBoundsFromCanvasPoints(
+      getShapeSelectionOutlineCanvasPoints(projection, object),
+    ),
   renderSelection: ({ context, object, projection, color }) => {
     const outlinePoints = getShapeSelectionOutlineCanvasPoints(
       projection,

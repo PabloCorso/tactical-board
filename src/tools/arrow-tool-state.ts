@@ -1,7 +1,6 @@
 import type { Point } from "../core/board/types";
 import type { BoardEditorToolState } from "../core/editor/types";
 import type {
-  ArrowGeometry,
   ArrowBodyStyle,
   ArrowObjectProps,
   ArrowHeadStyle,
@@ -15,7 +14,6 @@ import {
 export const ARROW_TOOL_ID = "arrow";
 
 export type ArrowDraftStyle = {
-  geometry: ArrowGeometry;
   color: string;
   strokeWidth: number;
   lineStyle: ArrowLineStyle;
@@ -32,7 +30,6 @@ export type ArrowToolState = {
 
 export const DEFAULT_ARROW_TOOL_STATE: ArrowToolState = {
   draftStyle: {
-    geometry: "simple",
     color: "#000000",
     strokeWidth: DEFAULT_ARROW_STROKE_WIDTH,
     lineStyle: "solid",

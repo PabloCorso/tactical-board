@@ -6,7 +6,6 @@ import {
   DEFAULT_ARROW_DASH_STYLE,
   DEFAULT_ARROW_STROKE_WIDTH,
   type ArrowBodyStyle,
-  type ArrowGeometry,
   type ArrowHeadStyle,
   type ArrowLineStyle,
   type ArrowObject,
@@ -20,7 +19,6 @@ const WIDE_ICON_ZOOM_MULTIPLIER = 1.35;
 const COMPACT_ICON_ZOOM_MULTIPLIER = 1.2;
 
 export type BoardEditorArrowIconStyle = {
-  geometry: ArrowGeometry;
   bodyStyle: ArrowBodyStyle;
   color?: string;
   strokeWidth?: number;
@@ -123,7 +121,6 @@ function createArrowIconPreviewObject(
 ): ArrowObject {
   const base = {
     id: "arrow-icon-preview",
-    geometry: draftStyle.geometry,
     bodyStyle: draftStyle.bodyStyle,
     color,
     strokeWidth: draftStyle.strokeWidth ?? DEFAULT_ARROW_STROKE_WIDTH,
@@ -132,13 +129,6 @@ function createArrowIconPreviewObject(
     startHead: draftStyle.startHead,
     endHead: draftStyle.endHead,
   } as const;
-
-  if (draftStyle.geometry === "polyline") {
-    return createArrowObject({
-      ...base,
-      points: getPolylinePreviewPoints(layout),
-    });
-  }
 
   const preview = getSimplePreviewGeometry(layout);
 
@@ -162,22 +152,6 @@ function getSimplePreviewGeometry(layout: ArrowIconLayout) {
         end: { x: 7.0, y: 0.95 },
         curveOffset: -2.3,
       };
-}
-
-function getPolylinePreviewPoints(layout: ArrowIconLayout): Point[] {
-  return layout === "compact"
-    ? [
-        { x: 1.0, y: 4.95 },
-        { x: 2.35, y: 4.95 },
-        { x: 2.35, y: 1.6 },
-        { x: 5.0, y: 1.6 },
-      ]
-    : [
-        { x: 0.95, y: 3.2 },
-        { x: 2.55, y: 3.2 },
-        { x: 2.55, y: 1.15 },
-        { x: 7.0, y: 1.15 },
-      ];
 }
 
 function createArrowIconProjection(

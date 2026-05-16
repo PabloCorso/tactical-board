@@ -5,12 +5,13 @@ import {
   getArrowBodyPolylines,
   getArrowBodyStrokeWidth,
   getArrowControlPoint,
-  getArrowPolylinePoints,
+  moveArrowObject,
+  updateArrowObject,
   type ArrowObject,
   type ArrowBodyStyle,
   type ArrowHeadStyle,
 } from "../core/objects/arrow-object";
-import { createBoardSpaceProjection } from "../core/geometry/board-space-projection";
+import { rotatePointAround } from "../core/objects/object-behaviors";
 import { scaleCanvasDashStyle } from "../rendering/canvas/style-scale";
 import {
   getArrowHeadLength,
@@ -33,7 +34,6 @@ import { arrowSelectionAdapter } from "./arrow-selection";
 
 const PREVIEW_OPACITY = 0.55;
 const MIN_HIT_DISTANCE_PX = 10;
-const POLYLINE_FINISH_HIT_RADIUS_PX = 12;
 
 export type ArrowToolPreset = {
   id: string;
@@ -48,6 +48,14 @@ export type CreateArrowToolOptions = {
 
 const arrowObjectDefinition = defineObjectDefinition({
   type: ARROW_OBJECT_TYPE,
+  behaviors: {
+    move: moveArrowObject,
+    rotate: (object, center, rotationDelta) =>
+      updateArrowObject(object, {
+        start: rotatePointAround(object.props.start, center, rotationDelta),
+        end: rotatePointAround(object.props.end, center, rotationDelta),
+      }),
+  },
   selection: arrowSelectionAdapter,
 });
 
@@ -96,16 +104,6 @@ export class ArrowTool extends BoardEditorTool implements ToolDefinition {
       return;
     }
 
-    if (arrowState.draftStyle.geometry === "polyline") {
-      if (shouldFinishPolyline(api, pendingPoints, event.point, event)) {
-        finishPendingArrow(api);
-        return;
-      }
-
-      setPendingPoints(api, [...pendingPoints, event.point]);
-      return;
-    }
-
     const arrowId = createArrowId(state.board.objects.byId);
     api.addObjects([
       createArrowObject({
@@ -140,11 +138,7 @@ export class ArrowTool extends BoardEditorTool implements ToolDefinition {
     const state = api.getState();
     const arrowState = getArrowToolState(state.toolState);
 
-    if (
-      arrowState.draftStyle.geometry === "polyline" ||
-      arrowState.pendingPoints.length !== 1 ||
-      !event.draggedSincePointerDown
-    ) {
+    if (arrowState.pendingPoints.length !== 1 || !event.draggedSincePointerDown) {
       return;
     }
 
@@ -198,28 +192,6 @@ function setPendingPoints(api: ToolApi, pendingPoints: Point[]) {
 function cancelPendingArrow(api: ToolApi) {
   setPendingPoints(api, []);
   api.clearPreviewObjects();
-}
-
-export function finishPendingArrow(api: ToolApi) {
-  const state = api.getState();
-  const arrowState = getArrowToolState(state.toolState);
-
-  if (
-    arrowState.draftStyle.geometry !== "polyline" ||
-    arrowState.pendingPoints.length < 2
-  ) {
-    return;
-  }
-
-  const arrowId = createArrowId(state.board.objects.byId);
-  api.addObjects([
-    createArrowObject({
-      id: arrowId,
-      points: arrowState.pendingPoints,
-      ...arrowState.draftStyle,
-    }),
-  ]);
-  cancelPendingArrow(api);
 }
 
 function getArrowHeadBodyInset(strokeWidth: number) {
@@ -295,20 +267,6 @@ function drawArrowPath(context: CanvasRenderingContext2D, points: Point[]) {
   }
 }
 
-function getArrowDirectionPoint(
-  anchor: Point,
-  points: Point[],
-  fallback: Point,
-) {
-  for (const point of points) {
-    if (Math.hypot(point.x - anchor.x, point.y - anchor.y) > Number.EPSILON) {
-      return point;
-    }
-  }
-
-  return fallback;
-}
-
 function getArrowGeometry(
   start: Point,
   end: Point,
@@ -345,47 +303,6 @@ function getArrowGeometry(
   };
 }
 
-function getPolylineArrowGeometry(
-  points: Point[],
-  strokeWidth: number,
-  startHead: ArrowHeadStyle,
-  endHead: ArrowHeadStyle,
-) {
-  const start = points[0];
-  const end = points[points.length - 1];
-  const startTangent = getArrowDirectionPoint(start, points.slice(1), end);
-  const endTangent = getArrowDirectionPoint(
-    end,
-    points.slice(0, -1).reverse(),
-    start,
-  );
-  const pathPoints = points.map((point) => ({ ...point }));
-
-  if (startHead !== "none" && pathPoints.length > 1) {
-    pathPoints[0] = offsetPointToward(
-      pathPoints[0],
-      startTangent,
-      getArrowHeadBodyInset(strokeWidth),
-    );
-  }
-
-  if (endHead !== "none" && pathPoints.length > 1) {
-    pathPoints[pathPoints.length - 1] = offsetPointToward(
-      pathPoints[pathPoints.length - 1],
-      endTangent,
-      getArrowHeadBodyInset(strokeWidth),
-    );
-  }
-
-  return {
-    pathPoints,
-    start,
-    end,
-    startTangent,
-    endTangent,
-  };
-}
-
 export function renderArrow({
   context,
   object,
@@ -414,88 +331,56 @@ export function renderArrow({
       : [],
   );
 
-  if (arrow.props.geometry === "polyline") {
-    const geometry = getPolylineArrowGeometry(
-      getArrowPolylinePoints(arrow.props).map((point) =>
-        surfaceTransform.worldToCanvas(point),
-      ),
+  const start = surfaceTransform.worldToCanvas(arrow.props.start);
+  const end = surfaceTransform.worldToCanvas(arrow.props.end);
+  const { controlPoint, pathStart, pathEnd, startTangent, endTangent } =
+    getArrowGeometry(
+      start,
+      end,
+      arrow.props.bodyStyle,
+      arrow.props.curveOffset !== undefined
+        ? surfaceTransform.worldToCanvas(
+            getArrowControlPoint(
+              arrow.props.start,
+              arrow.props.end,
+              arrow.props.curveOffset,
+            ),
+          )
+        : undefined,
       strokeWidth,
       arrow.props.startHead,
       arrow.props.endHead,
     );
 
-    context.lineWidth = bodyStrokeWidth;
-    drawArrowPath(context, geometry.pathPoints);
+  context.lineWidth = bodyStrokeWidth;
+  for (const polyline of getArrowBodyPolylines({
+    start: pathStart,
+    end: pathEnd,
+    controlPoint:
+      arrow.props.bodyStyle === "curved" ? controlPoint : undefined,
+    bodyStyle: arrow.props.bodyStyle,
+    styleScale: surfaceTransform.zoom,
+  })) {
+    drawArrowPath(context, polyline);
     context.stroke();
-    drawArrowHead({
-      context,
-      tip: geometry.start,
-      tail: geometry.startTangent,
-      color: arrow.props.color,
-      strokeWidth,
-      headStyle: arrow.props.startHead,
-    });
-    drawArrowHead({
-      context,
-      tip: geometry.end,
-      tail: geometry.endTangent,
-      color: arrow.props.color,
-      strokeWidth,
-      headStyle: arrow.props.endHead,
-    });
-  } else {
-    const start = surfaceTransform.worldToCanvas(arrow.props.start);
-    const end = surfaceTransform.worldToCanvas(arrow.props.end);
-    const { controlPoint, pathStart, pathEnd, startTangent, endTangent } =
-      getArrowGeometry(
-        start,
-        end,
-        arrow.props.bodyStyle,
-        arrow.props.curveOffset !== undefined
-          ? surfaceTransform.worldToCanvas(
-              getArrowControlPoint(
-                arrow.props.start,
-                arrow.props.end,
-                arrow.props.curveOffset,
-              ),
-            )
-          : undefined,
-        strokeWidth,
-        arrow.props.startHead,
-        arrow.props.endHead,
-      );
-
-    context.lineWidth = bodyStrokeWidth;
-    for (const polyline of getArrowBodyPolylines({
-      geometry: arrow.props.geometry,
-      start: pathStart,
-      end: pathEnd,
-      controlPoint:
-        arrow.props.bodyStyle === "curved" ? controlPoint : undefined,
-      bodyStyle: arrow.props.bodyStyle,
-      styleScale: surfaceTransform.zoom,
-    })) {
-      drawArrowPath(context, polyline);
-      context.stroke();
-    }
-
-    drawArrowHead({
-      context,
-      tip: start,
-      tail: startTangent,
-      color: arrow.props.color,
-      strokeWidth,
-      headStyle: arrow.props.startHead,
-    });
-    drawArrowHead({
-      context,
-      tip: end,
-      tail: endTangent,
-      color: arrow.props.color,
-      strokeWidth,
-      headStyle: arrow.props.endHead,
-    });
   }
+
+  drawArrowHead({
+    context,
+    tip: start,
+    tail: startTangent,
+    color: arrow.props.color,
+    strokeWidth,
+    headStyle: arrow.props.startHead,
+  });
+  drawArrowHead({
+    context,
+    tip: end,
+    tail: endTangent,
+    color: arrow.props.color,
+    strokeWidth,
+    headStyle: arrow.props.endHead,
+  });
   context.restore();
 }
 
@@ -538,7 +423,7 @@ function hitTestArrow({
   );
 
   const controlPoint =
-    arrow.props.geometry === "simple" && arrow.props.bodyStyle === "curved"
+    arrow.props.bodyStyle === "curved"
       ? surfaceTransform.worldToCanvas(
           getArrowControlPoint(
             arrow.props.start,
@@ -547,19 +432,24 @@ function hitTestArrow({
           ),
         )
       : undefined;
+  const start = surfaceTransform.worldToCanvas(arrow.props.start);
+  const end = surfaceTransform.worldToCanvas(arrow.props.end);
+  const { pathStart, pathEnd } = getArrowGeometry(
+    start,
+    end,
+    arrow.props.bodyStyle,
+    controlPoint,
+    strokeWidth,
+    arrow.props.startHead,
+    arrow.props.endHead,
+  );
 
   for (const polyline of getArrowBodyPolylines({
-    geometry: arrow.props.geometry,
-    start: surfaceTransform.worldToCanvas(arrow.props.start),
-    end: surfaceTransform.worldToCanvas(arrow.props.end),
-    points:
-      arrow.props.geometry === "polyline"
-        ? getArrowPolylinePoints(arrow.props).map((point) =>
-            surfaceTransform.worldToCanvas(point),
-          )
-        : undefined,
-    controlPoint,
+    start: pathStart,
+    end: pathEnd,
+    controlPoint: arrow.props.bodyStyle === "curved" ? controlPoint : undefined,
     bodyStyle: arrow.props.bodyStyle,
+    styleScale: surfaceTransform.zoom,
   })) {
     for (let index = 1; index < polyline.length; index += 1) {
       if (
@@ -582,47 +472,10 @@ function getPendingArrowPreview(
     return undefined;
   }
 
-  if (arrowState.draftStyle.geometry === "polyline") {
-    return createArrowObject({
-      id: "arrow-preview",
-      points: [...arrowState.pendingPoints, point],
-      ...arrowState.draftStyle,
-    });
-  }
-
   return createArrowObject({
     id: "arrow-preview",
     start: arrowState.pendingPoints[0],
     end: point,
     ...arrowState.draftStyle,
   });
-}
-
-function shouldFinishPolyline(
-  api: ToolApi,
-  pendingPoints: Point[],
-  nextPoint: Point,
-  event: {
-    canvasRect: { left: number; top: number; width: number; height: number };
-  },
-) {
-  if (pendingPoints.length < 2) {
-    return false;
-  }
-
-  const projection = createBoardSpaceProjection({
-    surface: api.getState().board.surface,
-    viewport: api.getState().ui.viewport,
-    canvasRect: event.canvasRect,
-    surfaceInset: 14,
-  });
-  const lastPoint = projection.worldToCanvas(
-    pendingPoints[pendingPoints.length - 1],
-  );
-  const candidate = projection.worldToCanvas(nextPoint);
-
-  return (
-    Math.hypot(lastPoint.x - candidate.x, lastPoint.y - candidate.y) <=
-    POLYLINE_FINISH_HIT_RADIUS_PX
-  );
 }

@@ -2,6 +2,8 @@ import type { Point } from "../core/board/types";
 import {
   createShapeObject,
   getShapePoints,
+  moveShapeObject,
+  rotateShapeObject,
   SHAPE_OBJECT_TYPE,
   type ShapeObject,
 } from "../core/objects/shape-object";
@@ -50,6 +52,28 @@ type CreateShapeToolOptions = {
 
 const shapeObjectDefinition = defineObjectDefinition({
   type: SHAPE_OBJECT_TYPE,
+  behaviors: {
+    move: moveShapeObject,
+    rotate: (object, center, rotationDelta) => {
+      const nextPosition = rotatePointAround(
+        object.position,
+        center,
+        rotationDelta,
+      );
+      const movedShape = moveShapeObject(
+        object,
+        {
+          x: nextPosition.x - object.position.x,
+          y: nextPosition.y - object.position.y,
+        },
+      );
+
+      return rotateShapeObject(
+        movedShape,
+        (object.rotation ?? 0) + rotationDelta,
+      );
+    },
+  },
   selection: shapeSelectionAdapter,
 });
 

@@ -1,12 +1,14 @@
 import colors from "tailwindcss/colors";
 import {
   ARROW_OBJECT_TYPE,
+  getArrowBodyStrokeWidth,
+  getArrowBodyPolylines,
+  getArrowControlPoint,
   getArrowCurveHandlePoint,
   getArrowCurveOffsetFromHandlePoint,
-  getArrowPolylinePoints,
   setArrowCurveOffset,
   setArrowEndpoint,
-  setArrowPolylinePoint,
+  type ArrowHeadStyle,
   type ArrowObject,
 } from "../core/objects/arrow-object";
 import type {
@@ -15,21 +17,162 @@ import type {
 } from "../core/objects/object-selection";
 import { BoardEditorArrowSelectionToolbar } from "../react/components/board-editor-selection-toolbar-arrow";
 import { SELECTION_TOOLBAR_OFFSET_PX } from "./selection-geometry";
+import {
+  getArrowHeadLength,
+  getWorldCanvasStrokeWidth,
+} from "../rendering/canvas/object-render-scale";
 
 const ARROW_ENDPOINT_HANDLE_RADIUS_PX = 4;
 const ARROW_ENDPOINT_HANDLE_HIT_RADIUS_PX = 12;
 const ARROW_CURVE_HANDLE_WIDTH_PX = 16;
 const ARROW_CURVE_HANDLE_HEIGHT_PX = 5;
 type ArrowSelectionSession = ObjectSelectionSession & {
-  kind: "endpoint" | "point" | "curve";
+  kind: "endpoint" | "curve";
   endpoint?: "start" | "end";
-  pointIndex?: number;
 };
+
+const ARROW_HEAD_SPREAD = Math.PI / 7;
+
+function getArrowHeadBodyInset(strokeWidth: number) {
+  return getArrowHeadLength(strokeWidth) * Math.cos(ARROW_HEAD_SPREAD);
+}
+
+function offsetPointToward(
+  point: { x: number; y: number },
+  target: { x: number; y: number },
+  distance: number,
+) {
+  const dx = target.x - point.x;
+  const dy = target.y - point.y;
+  const length = Math.hypot(dx, dy);
+
+  if (length === 0) {
+    return point;
+  }
+
+  const clampedDistance = Math.min(distance, length);
+
+  return {
+    x: point.x + (dx / length) * clampedDistance,
+    y: point.y + (dy / length) * clampedDistance,
+  };
+}
+
+function getArrowHeadCanvasPoints(input: {
+  tip: { x: number; y: number };
+  tail: { x: number; y: number };
+  strokeWidth: number;
+  headStyle: ArrowHeadStyle;
+}) {
+  const { tip, tail, strokeWidth, headStyle } = input;
+
+  if (headStyle === "none") {
+    return [];
+  }
+
+  const angle = Math.atan2(tip.y - tail.y, tip.x - tail.x);
+  const headLength = getArrowHeadLength(strokeWidth);
+
+  return [
+    tip,
+    {
+      x: tip.x - Math.cos(angle - ARROW_HEAD_SPREAD) * headLength,
+      y: tip.y - Math.sin(angle - ARROW_HEAD_SPREAD) * headLength,
+    },
+    {
+      x: tip.x - Math.cos(angle + ARROW_HEAD_SPREAD) * headLength,
+      y: tip.y - Math.sin(angle + ARROW_HEAD_SPREAD) * headLength,
+    },
+  ];
+}
+
+export function getArrowSelectionCanvasBounds(
+  projection: Parameters<
+    NonNullable<ObjectSelectionAdapter<ArrowObject>["renderSelection"]>
+  >[0]["projection"],
+  arrow: ArrowObject,
+) {
+  const styleScale =
+    "zoom" in projection && typeof projection.zoom === "number"
+      ? projection.zoom
+      : 1;
+  const strokeWidth = getWorldCanvasStrokeWidth(
+    arrow.props.strokeWidth,
+    projection.pixelsPerUnit,
+  );
+  const bodyStrokeWidth = getArrowBodyStrokeWidth(
+    strokeWidth,
+    arrow.props.bodyStyle,
+  );
+  const startCanvas = projection.worldToCanvas(arrow.props.start);
+  const endCanvas = projection.worldToCanvas(arrow.props.end);
+  const controlCanvas =
+    arrow.props.bodyStyle === "curved"
+      ? projection.worldToCanvas(
+          getArrowControlPoint(
+            arrow.props.start,
+            arrow.props.end,
+            arrow.props.curveOffset,
+          ),
+        )
+      : undefined;
+  const startTangent = controlCanvas ?? endCanvas;
+  const endTangent = controlCanvas ?? startCanvas;
+  const pathStart =
+    arrow.props.startHead === "none"
+      ? startCanvas
+      : offsetPointToward(
+          startCanvas,
+          startTangent,
+          getArrowHeadBodyInset(strokeWidth),
+        );
+  const pathEnd =
+    arrow.props.endHead === "none"
+      ? endCanvas
+      : offsetPointToward(
+          endCanvas,
+          endTangent,
+          getArrowHeadBodyInset(strokeWidth),
+        );
+  const headPoints = [
+    ...getArrowHeadCanvasPoints({
+      tip: startCanvas,
+      tail: startTangent,
+      strokeWidth,
+      headStyle: arrow.props.startHead,
+    }),
+    ...getArrowHeadCanvasPoints({
+      tip: endCanvas,
+      tail: endTangent,
+      strokeWidth,
+      headStyle: arrow.props.endHead,
+    }),
+  ];
+  const bodyPoints = getArrowBodyPolylines({
+    start: pathStart,
+    end: pathEnd,
+    controlPoint: arrow.props.bodyStyle === "curved" ? controlCanvas : undefined,
+    bodyStyle: arrow.props.bodyStyle,
+    styleScale,
+  })
+    .flat();
+  const points = [...bodyPoints, ...headPoints];
+  const padding = Math.max(bodyStrokeWidth / 2, 1);
+
+  return {
+    left: Math.min(...points.map((point) => point.x)) - padding,
+    right: Math.max(...points.map((point) => point.x)) + padding,
+    top: Math.min(...points.map((point) => point.y)) - padding,
+    bottom: Math.max(...points.map((point) => point.y)) + padding,
+  };
+}
 
 export const arrowSelectionAdapter: ObjectSelectionAdapter<
   ArrowObject,
   ArrowSelectionSession
 > = {
+  getCanvasBounds: ({ object, projection }) =>
+    getArrowSelectionCanvasBounds(projection, object),
   renderSelection: ({ context, object, projection, color }) => {
     const startPoint = projection.worldToCanvas(object.props.start);
     const endPoint = projection.worldToCanvas(object.props.end);
@@ -39,10 +182,9 @@ export const arrowSelectionAdapter: ObjectSelectionAdapter<
     context.strokeStyle = color;
     context.lineWidth = 1.5;
 
-    for (const point of (object.props.geometry === "polyline"
-      ? getArrowPolylinePoints(object.props)
-      : [object.props.start, object.props.end]
-    ).map((endpoint) => projection.worldToCanvas(endpoint))) {
+    for (const point of [object.props.start, object.props.end].map((endpoint) =>
+      projection.worldToCanvas(endpoint),
+    )) {
       context.beginPath();
       context.arc(
         point.x,
@@ -111,25 +253,6 @@ export const arrowSelectionAdapter: ObjectSelectionAdapter<
       }
     }
 
-    if (object.props.geometry === "polyline") {
-      for (const [pointIndex, point] of getArrowPolylinePoints(
-        object.props,
-      ).entries()) {
-        const pointCanvas = projection.worldToCanvas(point);
-        const distance = Math.hypot(
-          canvasPoint.x - pointCanvas.x,
-          canvasPoint.y - pointCanvas.y,
-        );
-
-        if (distance <= ARROW_ENDPOINT_HANDLE_HIT_RADIUS_PX) {
-          return {
-            kind: "point",
-            pointIndex,
-          };
-        }
-      }
-    }
-
     if (object.props.bodyStyle !== "curved") {
       return undefined;
     }
@@ -165,12 +288,6 @@ export const arrowSelectionAdapter: ObjectSelectionAdapter<
     switch (session.kind) {
       case "endpoint":
         return setArrowEndpoint(object, session.endpoint ?? "end", event.point);
-      case "point":
-        return setArrowPolylinePoint(
-          object,
-          session.pointIndex ?? 0,
-          event.point,
-        );
       case "curve":
         return setArrowCurveOffset(
           object,
@@ -183,15 +300,6 @@ export const arrowSelectionAdapter: ObjectSelectionAdapter<
     }
   },
   getToolbarAnchor: ({ object, projection }) => {
-    if (object.props.geometry === "polyline") {
-      const bounds = projection.getObjectCanvasBounds(object);
-
-      return {
-        left: bounds.x + bounds.width / 2,
-        top: bounds.y - SELECTION_TOOLBAR_OFFSET_PX,
-      };
-    }
-
     const start = projection.worldToCanvas(object.props.start);
     const end = projection.worldToCanvas(object.props.end);
     const controlPoint =

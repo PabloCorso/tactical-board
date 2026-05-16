@@ -1,7 +1,6 @@
 import { createBoardEditorStore } from "../../core/store/board-editor-store";
 import {
   BoardEditor,
-  BoardEditorArrowRouteDone,
   BoardEditorCanvas,
   BoardEditorCanvasToolbar,
   BoardEditorProvider,
@@ -76,7 +75,6 @@ export function FootballExampleApp() {
     <BoardEditorProvider store={store}>
       <BoardEditor className="relative h-dvh w-full overflow-hidden">
         <BoardEditorCanvas />
-        <BoardEditorArrowRouteDone />
         <BoardEditorShapePolygonDone />
         <BoardEditorCanvasToolbar />
         <BoardEditorSelectionToolbar />

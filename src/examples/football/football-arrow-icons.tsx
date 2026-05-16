@@ -15,7 +15,6 @@ export function FootballArrowPresetIcon({
 }: {
   draftStyle: Pick<
     ArrowDraftStyle,
-    | "geometry"
     | "bodyStyle"
     | "color"
     | "strokeWidth"

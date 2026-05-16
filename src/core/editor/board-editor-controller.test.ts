@@ -19,10 +19,11 @@ import { createShapeObject, type ShapeObject } from "../objects/shape-object";
 import { ArrowTool } from "../../tools/arrow-tool";
 import { EquipmentTool } from "../../tools/equipment-tool";
 import { PlayerTool } from "../../tools/player-tool";
+import { getPlayerSelectionOutlineCanvasPoints } from "../../tools/player-selection";
 import { ShapeTool } from "../../tools/shape-tool";
 import { SelectTool } from "../../tools/select-tool";
 import { setSelectedObjectIds } from "../../tools/select-tool-actions";
-import { ARROW_TOOL_ID, getArrowToolState } from "../../tools/arrow-tool-state";
+import { getArrowToolState } from "../../tools/arrow-tool-state";
 import {
   getPlayerToolState,
   PLAYER_TOOL_ID,
@@ -54,18 +55,20 @@ describe("createBoardEditorController", () => {
       },
     });
   };
-  const setArrowDraftStyle = (
-    toolApi: ReturnType<typeof createToolApi>,
-    draftStyle: Partial<ReturnType<typeof getArrowToolState>["draftStyle"]>,
+  const getMultiSelectionCanvasBounds = (
+    projection: ReturnType<typeof createBoardSpaceProjection>,
+    players: PlayerObject[],
   ) => {
-    const arrowState = getArrowToolState(toolApi.getState().toolState);
-    toolApi.setToolState(ARROW_TOOL_ID, {
-      ...arrowState,
-      draftStyle: {
-        ...arrowState.draftStyle,
-        ...draftStyle,
-      },
-    });
+    const points = players.flatMap((player) =>
+      getPlayerSelectionOutlineCanvasPoints(projection, player),
+    );
+
+    return {
+      left: Math.min(...points.map((point) => point.x)),
+      right: Math.max(...points.map((point) => point.x)),
+      top: Math.min(...points.map((point) => point.y)),
+      bottom: Math.max(...points.map((point) => point.y)),
+    };
   };
   it("keeps the arrow tool in creation mode when pointer down hits an existing arrow", () => {
     const arrowTool = new ArrowTool();
@@ -1265,6 +1268,623 @@ describe("createBoardEditorController", () => {
     });
   });
 
+  it("shows one group overlay and resizes a multi selection by redistributing object positions", () => {
+    const playerTool = new PlayerTool();
+    const firstPlayer = createPlayerObject({
+      id: "player-1",
+      position: { x: 10, y: 10 },
+      rotation: 0,
+      size: { width: 2.5, height: 2.5, mode: "world", unit: "m" },
+      color: "#ffffff",
+    });
+    const secondPlayer = createPlayerObject({
+      id: "player-2",
+      position: { x: 20, y: 10 },
+      rotation: 0,
+      size: { width: 2.5, height: 2.5, mode: "world", unit: "m" },
+      color: "#111827",
+    });
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+          unit: "m",
+        },
+        objects: {
+          byId: {
+            [firstPlayer.id]: firstPlayer,
+            [secondPlayer.id]: secondPlayer,
+          },
+          order: [firstPlayer.id, secondPlayer.id],
+        },
+        style: {},
+      },
+      initialToolId: SELECT_TOOL_ID,
+      tools: [selectTool, playerTool],
+    });
+    const toolApi = createToolApi(store);
+    playerTool.registerCapabilities?.(toolApi);
+    setSelectedObjectIds(toolApi, [firstPlayer.id, secondPlayer.id]);
+
+    const overlays = selectTool.getOverlayItems(store.getState());
+    expect(overlays).toHaveLength(1);
+    expect(overlays[0]).toMatchObject({
+      kind: "select:group-selection-ring",
+    });
+
+    const controller = createBoardEditorController(store);
+    const canvasRect = {
+      left: 0,
+      top: 0,
+      width: 1000,
+      height: 500,
+    };
+    const projection = createBoardSpaceProjection({
+      surface: store.getState().board.surface,
+      viewport: store.getState().ui.viewport,
+      canvasRect,
+      surfaceInset: 14,
+    });
+    const bounds = getMultiSelectionCanvasBounds(projection, [
+      firstPlayer,
+      secondPlayer,
+    ]);
+    const handlePoint = {
+      x: bounds.right,
+      y: (bounds.top + bounds.bottom) / 2,
+    };
+    const initialWorldBounds = {
+      minX: projection.canvasToWorld({ x: bounds.left, y: bounds.top }).x,
+      maxX: projection.canvasToWorld({ x: bounds.right, y: bounds.bottom }).x,
+    };
+    const nextMaxX = initialWorldBounds.maxX + 10;
+    const intermediateMaxX = initialWorldBounds.maxX + 4;
+    const intermediateDragPoint = {
+      x: projection.worldToCanvas({ x: intermediateMaxX, y: 0 }).x,
+      y: handlePoint.y,
+    };
+    const dragPoint = {
+      x: projection.worldToCanvas({ x: nextMaxX, y: 0 }).x,
+      y: handlePoint.y,
+    };
+
+    controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: handlePoint,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+    controller.dispatchPointerEvent("onPointerMove", {
+      clientPoint: intermediateDragPoint,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+    controller.dispatchPointerEvent("onPointerMove", {
+      clientPoint: dragPoint,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    const resizedFirstPlayer = store.getState().board.objects.byId[
+      firstPlayer.id
+    ] as PlayerObject;
+    const resizedSecondPlayer = store.getState().board.objects.byId[
+      secondPlayer.id
+    ] as PlayerObject;
+    const remapX = (value: number) =>
+      initialWorldBounds.minX +
+      ((value - initialWorldBounds.minX) /
+        (initialWorldBounds.maxX - initialWorldBounds.minX)) *
+        (nextMaxX - initialWorldBounds.minX);
+
+    expect(resizedFirstPlayer.position.x).toBeCloseTo(
+      remapX(firstPlayer.position.x),
+      6,
+    );
+    expect(resizedSecondPlayer.position.x).toBeCloseTo(
+      remapX(secondPlayer.position.x),
+      6,
+    );
+    expect(resizedFirstPlayer.size).toMatchObject(firstPlayer.size ?? {});
+    expect(resizedSecondPlayer.size).toMatchObject(secondPlayer.size ?? {});
+  });
+
+  it("resizes a multi selection diagonally from a corner handle", () => {
+    const playerTool = new PlayerTool();
+    const firstPlayer = createPlayerObject({
+      id: "player-1",
+      position: { x: 10, y: 10 },
+      rotation: 0,
+      size: { width: 2.5, height: 2.5, mode: "world", unit: "m" },
+      color: "#ffffff",
+    });
+    const secondPlayer = createPlayerObject({
+      id: "player-2",
+      position: { x: 20, y: 20 },
+      rotation: 0,
+      size: { width: 2.5, height: 2.5, mode: "world", unit: "m" },
+      color: "#111827",
+    });
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+          unit: "m",
+        },
+        objects: {
+          byId: {
+            [firstPlayer.id]: firstPlayer,
+            [secondPlayer.id]: secondPlayer,
+          },
+          order: [firstPlayer.id, secondPlayer.id],
+        },
+        style: {},
+      },
+      initialToolId: SELECT_TOOL_ID,
+      tools: [selectTool, playerTool],
+    });
+    const toolApi = createToolApi(store);
+    playerTool.registerCapabilities?.(toolApi);
+    setSelectedObjectIds(toolApi, [firstPlayer.id, secondPlayer.id]);
+
+    const controller = createBoardEditorController(store);
+    const canvasRect = {
+      left: 0,
+      top: 0,
+      width: 1000,
+      height: 500,
+    };
+    const projection = createBoardSpaceProjection({
+      surface: store.getState().board.surface,
+      viewport: store.getState().ui.viewport,
+      canvasRect,
+      surfaceInset: 14,
+    });
+    const bounds = getMultiSelectionCanvasBounds(projection, [
+      firstPlayer,
+      secondPlayer,
+    ]);
+    const handlePoint = {
+      x: bounds.right,
+      y: bounds.bottom,
+    };
+    const initialWorldBounds = {
+      minX: projection.canvasToWorld({ x: bounds.left, y: bounds.top }).x,
+      maxX: projection.canvasToWorld({ x: bounds.right, y: bounds.bottom }).x,
+      minY: projection.canvasToWorld({ x: bounds.left, y: bounds.top }).y,
+      maxY: projection.canvasToWorld({ x: bounds.right, y: bounds.bottom }).y,
+    };
+    const nextBounds = {
+      maxX: initialWorldBounds.maxX + 8,
+      maxY: initialWorldBounds.maxY + 6,
+    };
+    const dragPoint = projection.worldToCanvas({
+      x: nextBounds.maxX,
+      y: nextBounds.maxY,
+    });
+    const remap = (
+      value: number,
+      fromMin: number,
+      fromMax: number,
+      toMin: number,
+      toMax: number,
+    ) =>
+      toMin + ((value - fromMin) / (fromMax - fromMin)) * (toMax - toMin);
+
+    controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: handlePoint,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+    controller.dispatchPointerEvent("onPointerMove", {
+      clientPoint: dragPoint,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    const resizedFirstPlayer = store.getState().board.objects.byId[
+      firstPlayer.id
+    ] as PlayerObject;
+    const resizedSecondPlayer = store.getState().board.objects.byId[
+      secondPlayer.id
+    ] as PlayerObject;
+
+    expect(resizedFirstPlayer.position.x).toBeCloseTo(
+      remap(
+        firstPlayer.position.x,
+        initialWorldBounds.minX,
+        initialWorldBounds.maxX,
+        initialWorldBounds.minX,
+        nextBounds.maxX,
+      ),
+      6,
+    );
+    expect(resizedFirstPlayer.position.y).toBeCloseTo(
+      remap(
+        firstPlayer.position.y,
+        initialWorldBounds.minY,
+        initialWorldBounds.maxY,
+        initialWorldBounds.minY,
+        nextBounds.maxY,
+      ),
+      6,
+    );
+    expect(resizedSecondPlayer.position.x).toBeCloseTo(
+      remap(
+        secondPlayer.position.x,
+        initialWorldBounds.minX,
+        initialWorldBounds.maxX,
+        initialWorldBounds.minX,
+        nextBounds.maxX,
+      ),
+      6,
+    );
+    expect(resizedSecondPlayer.position.y).toBeCloseTo(
+      remap(
+        secondPlayer.position.y,
+        initialWorldBounds.minY,
+        initialWorldBounds.maxY,
+        initialWorldBounds.minY,
+        nextBounds.maxY,
+      ),
+      6,
+    );
+  });
+
+  it("rotates a multi selection around the group center", () => {
+    const playerTool = new PlayerTool();
+    const baseFirstPlayer = createPlayerObject({
+      id: "player-1",
+      position: { x: 10, y: 10 },
+      rotation: 0,
+      size: { width: 2.5, height: 2.5, mode: "world", unit: "m" },
+      color: "#ffffff",
+    });
+    const baseSecondPlayer = createPlayerObject({
+      id: "player-2",
+      position: { x: 20, y: 10 },
+      rotation: 90,
+      size: { width: 2.5, height: 2.5, mode: "world", unit: "m" },
+      color: "#111827",
+    });
+    const firstPlayer = {
+      ...baseFirstPlayer,
+      props: {
+        ...baseFirstPlayer.props,
+        transformCapabilities: {
+          ...baseFirstPlayer.props.transformCapabilities,
+          rotate: true,
+        },
+      },
+    };
+    const secondPlayer = {
+      ...baseSecondPlayer,
+      props: {
+        ...baseSecondPlayer.props,
+        transformCapabilities: {
+          ...baseSecondPlayer.props.transformCapabilities,
+          rotate: true,
+        },
+      },
+    };
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+          unit: "m",
+        },
+        objects: {
+          byId: {
+            [firstPlayer.id]: firstPlayer,
+            [secondPlayer.id]: secondPlayer,
+          },
+          order: [firstPlayer.id, secondPlayer.id],
+        },
+        style: {},
+      },
+      initialToolId: SELECT_TOOL_ID,
+      tools: [selectTool, playerTool],
+    });
+    const toolApi = createToolApi(store);
+    playerTool.registerCapabilities?.(toolApi);
+    setSelectedObjectIds(toolApi, [firstPlayer.id, secondPlayer.id]);
+
+    const controller = createBoardEditorController(store);
+    const canvasRect = {
+      left: 0,
+      top: 0,
+      width: 1000,
+      height: 500,
+    };
+    const projection = createBoardSpaceProjection({
+      surface: store.getState().board.surface,
+      viewport: store.getState().ui.viewport,
+      canvasRect,
+      surfaceInset: 14,
+    });
+    const bounds = getMultiSelectionCanvasBounds(projection, [
+      firstPlayer,
+      secondPlayer,
+    ]);
+    const center = projection.canvasToWorld({
+      x: (bounds.left + bounds.right) / 2,
+      y: (bounds.top + bounds.bottom) / 2,
+    });
+    const dx = bounds.right - bounds.left || 1;
+    const dy = bounds.bottom - bounds.top || 1;
+    const length = Math.hypot(dx, dy) || 1;
+    const rotateHandle = {
+      x: bounds.left - (dx / length) * 18,
+      y: bounds.bottom + (dy / length) * 18,
+    };
+    const rotateTargetWorld = { x: center.x, y: center.y - 10 };
+    const intermediateRotateTargetWorld = {
+      x: center.x + 7,
+      y: center.y - 7,
+    };
+    const intermediateRotateTarget = projection.worldToCanvas(
+      intermediateRotateTargetWorld,
+    );
+    const rotateTarget = projection.worldToCanvas(rotateTargetWorld);
+    const initialAngle = Math.atan2(
+      projection.canvasToWorld(rotateHandle).y - center.y,
+      projection.canvasToWorld(rotateHandle).x - center.x,
+    );
+    const nextAngle = Math.atan2(
+      rotateTargetWorld.y - center.y,
+      rotateTargetWorld.x - center.x,
+    );
+    const rotationDelta = ((nextAngle - initialAngle) * 180) / Math.PI;
+    const rotateAround = (
+      point: { x: number; y: number },
+      pivot: { x: number; y: number },
+      rotation: number,
+    ) => {
+      const angle = (rotation * Math.PI) / 180;
+      const dx = point.x - pivot.x;
+      const dy = point.y - pivot.y;
+      const cos = Math.cos(angle);
+      const sin = Math.sin(angle);
+
+      return {
+        x: pivot.x + dx * cos - dy * sin,
+        y: pivot.y + dx * sin + dy * cos,
+      };
+    };
+
+    controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: rotateHandle,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+    controller.dispatchPointerEvent("onPointerMove", {
+      clientPoint: intermediateRotateTarget,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+    const rotatingOverlay = selectTool.getOverlayItems(store.getState())[0] as {
+      kind: string;
+      rotation?: number;
+    };
+    expect(rotatingOverlay.kind).toBe("select:group-selection-ring");
+    expect(Math.abs(rotatingOverlay.rotation ?? 0)).toBeGreaterThan(0);
+    controller.dispatchPointerEvent("onPointerMove", {
+      clientPoint: rotateTarget,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    const rotatedFirstPlayer = store.getState().board.objects.byId[
+      firstPlayer.id
+    ] as PlayerObject;
+    const rotatedSecondPlayer = store.getState().board.objects.byId[
+      secondPlayer.id
+    ] as PlayerObject;
+    const expectedFirstPosition = rotateAround(
+      firstPlayer.position,
+      center,
+      rotationDelta,
+    );
+    const expectedSecondPosition = rotateAround(
+      secondPlayer.position,
+      center,
+      rotationDelta,
+    );
+    const normalizeRotation = (rotation: number) => {
+      const normalized = rotation % 360;
+
+      return normalized < 0 ? normalized + 360 : normalized;
+    };
+
+    expect(rotatedFirstPlayer.position.x).toBeCloseTo(
+      expectedFirstPosition.x,
+      6,
+    );
+    expect(rotatedFirstPlayer.position.y).toBeCloseTo(
+      expectedFirstPosition.y,
+      6,
+    );
+    expect(rotatedSecondPlayer.position.x).toBeCloseTo(
+      expectedSecondPosition.x,
+      6,
+    );
+    expect(rotatedSecondPlayer.position.y).toBeCloseTo(
+      expectedSecondPosition.y,
+      6,
+    );
+    expect(rotatedFirstPlayer.rotation).toBeCloseTo(
+      normalizeRotation(rotationDelta),
+      6,
+    );
+    expect(rotatedSecondPlayer.rotation).toBeCloseTo(
+      normalizeRotation(90 + rotationDelta),
+      6,
+    );
+  });
+
+  it("hides group rotation when any selected object cannot rotate", () => {
+    const playerTool = new PlayerTool();
+    const baseFirstPlayer = createPlayerObject({
+      id: "player-1",
+      position: { x: 10, y: 10 },
+      rotation: 0,
+      size: { width: 2.5, height: 2.5, mode: "world", unit: "m" },
+      color: "#ffffff",
+    });
+    const secondPlayer = createPlayerObject({
+      id: "player-2",
+      position: { x: 20, y: 10 },
+      rotation: 90,
+      size: { width: 2.5, height: 2.5, mode: "world", unit: "m" },
+      color: "#111827",
+    });
+    const firstPlayer = {
+      ...baseFirstPlayer,
+      props: {
+        ...baseFirstPlayer.props,
+        transformCapabilities: {
+          ...baseFirstPlayer.props.transformCapabilities,
+          rotate: true,
+        },
+      },
+    };
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+          unit: "m",
+        },
+        objects: {
+          byId: {
+            [firstPlayer.id]: firstPlayer,
+            [secondPlayer.id]: secondPlayer,
+          },
+          order: [firstPlayer.id, secondPlayer.id],
+        },
+        style: {},
+      },
+      initialToolId: SELECT_TOOL_ID,
+      tools: [selectTool, playerTool],
+    });
+    const toolApi = createToolApi(store);
+    playerTool.registerCapabilities?.(toolApi);
+    setSelectedObjectIds(toolApi, [firstPlayer.id, secondPlayer.id]);
+
+    const overlay = selectTool.getOverlayItems(store.getState())[0] as {
+      kind: string;
+      canRotate?: boolean;
+      rotation?: number;
+    };
+
+    expect(overlay.kind).toBe("select:group-selection-ring");
+    expect(overlay.canRotate).toBe(false);
+    expect(overlay.rotation).toBeUndefined();
+
+    const controller = createBoardEditorController(store);
+    const canvasRect = {
+      left: 0,
+      top: 0,
+      width: 1000,
+      height: 500,
+    };
+    const projection = createBoardSpaceProjection({
+      surface: store.getState().board.surface,
+      viewport: store.getState().ui.viewport,
+      canvasRect,
+      surfaceInset: 14,
+    });
+    const bounds = getMultiSelectionCanvasBounds(projection, [
+      firstPlayer,
+      secondPlayer,
+    ]);
+    const dx = bounds.right - bounds.left || 1;
+    const dy = bounds.bottom - bounds.top || 1;
+    const length = Math.hypot(dx, dy) || 1;
+    const rotateHandle = {
+      x: bounds.left - (dx / length) * 18,
+      y: bounds.bottom + (dy / length) * 18,
+    };
+    const initialFirstPlayer = store.getState().board.objects.byId[
+      firstPlayer.id
+    ] as PlayerObject;
+    const initialSecondPlayer = store.getState().board.objects.byId[
+      secondPlayer.id
+    ] as PlayerObject;
+
+    controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: rotateHandle,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+    controller.dispatchPointerEvent("onPointerMove", {
+      clientPoint: { x: rotateHandle.x + 24, y: rotateHandle.y - 24 },
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    expect(store.getState().board.objects.byId[firstPlayer.id]).toMatchObject(
+      initialFirstPlayer,
+    );
+    expect(store.getState().board.objects.byId[secondPlayer.id]).toMatchObject(
+      initialSecondPlayer,
+    );
+  });
+
   it("rotates but does not resize ladder equipment", () => {
     const definition: EquipmentDefinition = {
       kind: "ladder",
@@ -1883,103 +2503,6 @@ describe("createBoardEditorController", () => {
     expect(resizedCorners[2].y).toBeCloseTo(targetBottomRight.y, 6);
   });
 
-  it("creates a polyline arrow across multiple clicks", () => {
-    const arrowTool = new ArrowTool();
-    const store = createBoardEditorStore({
-      initialBoard: {
-        id: "board-1",
-        version: 1,
-        metadata: {},
-        surface: {
-          width: 100,
-          height: 50,
-        },
-        objects: {
-          byId: {},
-          order: [],
-        },
-        style: {},
-      },
-      initialToolId: arrowTool.id,
-      tools: [selectTool, arrowTool],
-    });
-    const toolApi = createToolApi(store);
-    arrowTool.registerCapabilities?.(toolApi);
-    setArrowDraftStyle(toolApi, {
-      geometry: "polyline",
-      bodyStyle: "straight",
-    });
-
-    const controller = createBoardEditorController(store);
-    const canvasRect = {
-      left: 0,
-      top: 0,
-      width: 1000,
-      height: 500,
-    };
-    const projection = createBoardSpaceProjection({
-      surface: store.getState().board.surface,
-      viewport: store.getState().ui.viewport,
-      canvasRect,
-      surfaceInset: 14,
-    });
-    const firstPoint = projection.worldToCanvas({ x: 10, y: 10 });
-    const secondPoint = projection.worldToCanvas({ x: 15, y: 15 });
-    const thirdPoint = projection.worldToCanvas({ x: 20, y: 10 });
-
-    controller.dispatchPointerEvent("onPointerDown", {
-      clientPoint: firstPoint,
-      pointerId: 1,
-      ctrlKey: false,
-      shiftKey: false,
-      altKey: false,
-      metaKey: false,
-      canvasRect,
-    });
-    controller.dispatchPointerEvent("onPointerDown", {
-      clientPoint: secondPoint,
-      pointerId: 1,
-      ctrlKey: false,
-      shiftKey: false,
-      altKey: false,
-      metaKey: false,
-      canvasRect,
-    });
-    controller.dispatchPointerEvent("onPointerDown", {
-      clientPoint: thirdPoint,
-      pointerId: 1,
-      ctrlKey: false,
-      shiftKey: false,
-      altKey: false,
-      metaKey: false,
-      canvasRect,
-    });
-    controller.dispatchPointerEvent("onPointerDown", {
-      clientPoint: thirdPoint,
-      pointerId: 1,
-      ctrlKey: false,
-      shiftKey: false,
-      altKey: false,
-      metaKey: false,
-      canvasRect,
-    });
-
-    expect(store.getState().board.objects.order).toEqual(["arrow-1"]);
-    expect(store.getState().board.objects.byId["arrow-1"]).toMatchObject({
-      type: "arrow",
-      props: {
-        geometry: "polyline",
-        start: { x: 10, y: 10 },
-        end: { x: 20, y: 10 },
-        points: [
-          { x: 10, y: 10 },
-          { x: 15, y: 15 },
-          { x: 20, y: 10 },
-        ],
-      },
-    });
-  });
-
   it("shows a shape ghost preview at the pointer before placement", () => {
     const shapeTool = new ShapeTool();
     const store = createBoardEditorStore({
@@ -2187,7 +2710,6 @@ describe("createBoardEditorController", () => {
     expect(store.getState().board.objects.byId["arrow-1"]).toMatchObject({
       type: "arrow",
       props: {
-        geometry: "simple",
         start: { x: 10, y: 10 },
         end: { x: 24, y: 18 },
       },
@@ -3074,95 +3596,4 @@ describe("createBoardEditorController", () => {
     );
   });
 
-  it("moves a selected polyline arrow vertex when dragging its handle", () => {
-    const arrowTool = new ArrowTool();
-    const existingArrow = createArrowObject({
-      id: "arrow-1",
-      geometry: "polyline",
-      points: [
-        { x: 10, y: 10 },
-        { x: 15, y: 15 },
-        { x: 20, y: 10 },
-      ],
-      color: "#fff",
-      strokeWidth: 2,
-      lineStyle: "solid",
-      bodyStyle: "straight",
-      startHead: "none",
-      endHead: "triangle",
-    });
-    const store = createBoardEditorStore({
-      initialBoard: {
-        id: "board-1",
-        version: 1,
-        metadata: {},
-        surface: {
-          width: 100,
-          height: 50,
-        },
-        objects: {
-          byId: {
-            [existingArrow.id]: existingArrow,
-          },
-          order: [existingArrow.id],
-        },
-        style: {},
-      },
-      initialToolId: SELECT_TOOL_ID,
-      tools: [selectTool, arrowTool],
-    });
-    const toolApi = createToolApi(store);
-    arrowTool.registerCapabilities?.(toolApi);
-    setSelectedObjectIds(toolApi, [existingArrow.id]);
-
-    const controller = createBoardEditorController(store);
-    const canvasRect = {
-      left: 0,
-      top: 0,
-      width: 1000,
-      height: 500,
-    };
-    const projection = createBoardSpaceProjection({
-      surface: store.getState().board.surface,
-      viewport: store.getState().ui.viewport,
-      canvasRect,
-      surfaceInset: 14,
-    });
-    const middlePoint = projection.worldToCanvas({ x: 15, y: 15 });
-    const nextPoint = projection.worldToCanvas({ x: 18, y: 18 });
-
-    controller.dispatchPointerEvent("onPointerDown", {
-      clientPoint: middlePoint,
-      pointerId: 1,
-      ctrlKey: false,
-      shiftKey: false,
-      altKey: false,
-      metaKey: false,
-      canvasRect,
-    });
-    controller.dispatchPointerEvent("onPointerMove", {
-      clientPoint: nextPoint,
-      pointerId: 1,
-      ctrlKey: false,
-      shiftKey: false,
-      altKey: false,
-      metaKey: false,
-      canvasRect,
-    });
-
-    expect(store.getState().board.objects.byId[existingArrow.id]).toMatchObject(
-      {
-        props: {
-          geometry: "polyline",
-          points: [
-            { x: 10, y: 10 },
-            { x: 18, y: 18 },
-            { x: 20, y: 10 },
-          ],
-          start: { x: 10, y: 10 },
-          end: { x: 20, y: 10 },
-        },
-      },
-    );
-  });
 });

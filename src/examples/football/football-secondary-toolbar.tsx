@@ -37,7 +37,7 @@ import {
 
 export const FOOTBALL_ARROW_PRESETS: Array<
   ArrowToolPreset & {
-    variant: "straight-solid" | "wavy" | "curved-solid" | "double" | "polyline";
+    variant: "straight-solid" | "wavy" | "curved-solid" | "double";
   }
 > = [
   {
@@ -45,7 +45,6 @@ export const FOOTBALL_ARROW_PRESETS: Array<
     label: "Run",
     variant: "straight-solid",
     draftStyle: {
-      geometry: "simple",
       bodyStyle: "straight",
     },
   },
@@ -54,7 +53,6 @@ export const FOOTBALL_ARROW_PRESETS: Array<
     label: "Dribble",
     variant: "wavy",
     draftStyle: {
-      geometry: "simple",
       bodyStyle: "wavy",
     },
   },
@@ -63,7 +61,6 @@ export const FOOTBALL_ARROW_PRESETS: Array<
     label: "Lofted pass",
     variant: "curved-solid",
     draftStyle: {
-      geometry: "simple",
       bodyStyle: "curved",
     },
   },
@@ -72,17 +69,7 @@ export const FOOTBALL_ARROW_PRESETS: Array<
     label: "Screen",
     variant: "double",
     draftStyle: {
-      geometry: "simple",
       bodyStyle: "double",
-    },
-  },
-  {
-    id: "route",
-    label: "Route",
-    variant: "polyline",
-    draftStyle: {
-      geometry: "polyline",
-      bodyStyle: "straight",
     },
   },
 ];

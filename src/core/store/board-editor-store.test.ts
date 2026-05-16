@@ -178,19 +178,17 @@ describe("createBoardEditorStore", () => {
     const arrowTool = new ArrowTool({
       presets: [
         {
-          id: "route",
-          label: "Route",
-          draftStyle: {
-            geometry: "polyline",
-            bodyStyle: "straight",
-          },
-        },
-        {
           id: "run",
           label: "Run",
           draftStyle: {
-            geometry: "simple",
             bodyStyle: "wavy",
+          },
+        },
+        {
+          id: "screen",
+          label: "Screen",
+          draftStyle: {
+            bodyStyle: "double",
           },
         },
       ],
@@ -218,7 +216,6 @@ describe("createBoardEditorStore", () => {
       ...DEFAULT_ARROW_TOOL_STATE,
       draftStyle: {
         ...DEFAULT_ARROW_TOOL_STATE.draftStyle,
-        geometry: "simple",
         bodyStyle: "double",
       },
     });
@@ -227,8 +224,7 @@ describe("createBoardEditorStore", () => {
 
     expect(getArrowToolState(store.getState().toolState).draftStyle).toEqual({
       ...DEFAULT_ARROW_TOOL_STATE.draftStyle,
-      geometry: "polyline",
-      bodyStyle: "straight",
+      bodyStyle: "wavy",
     });
   });
 
