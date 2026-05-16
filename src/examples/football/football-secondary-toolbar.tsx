@@ -192,9 +192,7 @@ export function FootballSecondaryToolbar({
     const playerState = getPlayerToolState(state.toolState);
 
     return (
-      <BoardEditorToolbar
-        className={["gap-0.5 p-0.5", className].filter(Boolean).join(" ")}
-      >
+      <BoardEditorToolbar className={className}>
         {FOOTBALL_PLAYER_PRESETS.map((preset) => {
           const color = preset.draftStyle.color;
           const label =
@@ -249,9 +247,7 @@ export function FootballSecondaryToolbar({
     const equipmentState = getEquipmentToolState(state.toolState);
 
     return (
-      <BoardEditorToolbar
-        className={["gap-0.5 p-0.5", className].filter(Boolean).join(" ")}
-      >
+      <BoardEditorToolbar className={className}>
         {FOOTBALL_EQUIPMENT_DEFINITIONS.map((definition) => (
           <BoardEditorToolbarButton
             aria-label={definition.label}
@@ -289,9 +285,7 @@ export function FootballSecondaryToolbar({
     const arrowState = getArrowToolState(state.toolState);
 
     return (
-      <BoardEditorToolbar
-        className={["gap-0.5 p-0.5", className].filter(Boolean).join(" ")}
-      >
+      <BoardEditorToolbar className={className}>
         {FOOTBALL_ARROW_PRESETS.map((preset) => (
           <BoardEditorToolbarButton
             aria-label={preset.tooltip ?? preset.label}
@@ -331,9 +325,7 @@ export function FootballSecondaryToolbar({
     const shapeState = getShapeToolState(state.toolState);
 
     return (
-      <BoardEditorToolbar
-        className={["gap-0.5 p-0.5", className].filter(Boolean).join(" ")}
-      >
+      <BoardEditorToolbar className={className}>
         {FOOTBALL_SHAPE_PRESETS.map((preset) => (
           <BoardEditorToolbarButton
             aria-label={preset.tooltip ?? preset.label}

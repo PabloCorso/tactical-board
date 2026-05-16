@@ -4,6 +4,7 @@ import {
   CursorIcon,
   HandIcon,
   SquareIcon,
+  TextTIcon,
 } from "@phosphor-icons/react";
 import type { ToolId } from "../../core/board/types";
 
@@ -23,6 +24,8 @@ export function getDefaultToolIcon(toolId: ToolId) {
       return <CircleIcon aria-hidden="true" className="size-5" weight="fill" />;
     case "equipment":
       return <SquareIcon aria-hidden="true" className="size-5" weight="fill" />;
+    case "text":
+      return <TextTIcon aria-hidden="true" className="size-5" weight="bold" />;
     default:
       return undefined;
   }

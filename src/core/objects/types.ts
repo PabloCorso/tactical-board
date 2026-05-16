@@ -1,4 +1,5 @@
 import type { BoardObject, ObjectType, Point, SkinId } from "../board/types";
+import type { BoardEditorState } from "../editor/types";
 import type { Rect } from "../geometry/types";
 import type {
   ErasedObjectSelectionAdapter,
@@ -22,6 +23,11 @@ export interface ObjectDefinition {
   createDefault?: (input: Pick<BoardObject, "id" | "position">) => BoardObject;
   getBounds?: (object: BoardObject) => Rect;
   render?: (object: BoardObject, context: ObjectRenderContext) => void;
+  beginEditing?: (input: {
+    object: BoardObject;
+    state: BoardEditorState;
+    canvasRect: { width: number; height: number };
+  }) => void;
   hitTestMode?: "normal" | "passthrough" | "bounds-only";
   behaviors?: ObjectBehaviorAdapter;
   selection?: ErasedObjectSelectionAdapter;
@@ -42,6 +48,11 @@ type ObjectDefinitionInput<
   createDefault?: (input: Pick<TObject, "id" | "position">) => TObject;
   getBounds?: (object: TObject) => Rect;
   render?: (object: TObject, context: ObjectRenderContext) => void;
+  beginEditing?: (input: {
+    object: TObject;
+    state: BoardEditorState;
+    canvasRect: { width: number; height: number };
+  }) => void;
   behaviors?: ObjectBehaviorAdapter<TObject>;
   selection?: ObjectSelectionAdapter<TObject, TSession>;
 };

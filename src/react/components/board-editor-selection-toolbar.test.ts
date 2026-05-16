@@ -4,10 +4,12 @@ import type { PlayerObject } from "../../core/objects/player-object";
 import type { EquipmentObject } from "../../core/objects/equipment-object";
 import type { ShapeObject } from "../../core/objects/shape-object";
 import type { ArrowObject } from "../../core/objects/arrow-object";
+import type { TextObject } from "../../core/objects/text-object";
 import { playerSelectionAdapter } from "../../tools/player-selection";
 import { equipmentSelectionAdapter } from "../../tools/equipment-selection";
 import { shapeSelectionAdapter } from "../../tools/shape-selection";
 import { arrowSelectionAdapter } from "../../tools/arrow-selection";
+import { textSelectionAdapter } from "../../tools/text-selection";
 import { SELECTION_TOOLBAR_OFFSET_PX } from "../../tools/selection-geometry";
 import {
   getMultiSelectionToolbarAnchor,
@@ -66,6 +68,7 @@ describe("getSelectionToolbarAnchor", () => {
           type: "equipment",
           selection: equipmentSelectionAdapter,
         },
+        text: { type: "text", selection: textSelectionAdapter },
       },
     },
   } as unknown as Pick<BoardEditorState, "objectRegistry">;
@@ -212,6 +215,28 @@ describe("getSelectionToolbarAnchor", () => {
     expect(anchor).toEqual({
       left: 100,
       top: 90 - SELECTION_TOOLBAR_OFFSET_PX,
+    });
+  });
+
+  it("anchors the text toolbar above the text bounds", () => {
+    const text = {
+      type: "text",
+      id: "text-1",
+      position: { x: 100, y: 100 },
+      size: { width: 120, height: 32, mode: "screen" },
+      props: {
+        text: "Press",
+        color: "#111827",
+        fontSize: 24,
+      },
+    } as unknown as TextObject;
+
+    const anchor = getSelectionToolbarAnchor(projection, text, state);
+
+    expect(anchor).toBeDefined();
+    expect(anchor).toEqual({
+      left: 100,
+      top: 18,
     });
   });
 });

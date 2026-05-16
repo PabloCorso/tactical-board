@@ -2,6 +2,7 @@ import { createBoard } from "../../core/board/create-board";
 import { createArrowObject } from "../../core/objects/arrow-object";
 import { createEquipmentObject } from "../../core/objects/equipment-object";
 import { createPlayerObject } from "../../core/objects/player-object";
+import { createTextObject } from "../../core/objects/text-object";
 import {
   createShapeObject,
   type ShapeFillStyle,
@@ -402,6 +403,25 @@ const equipmentExampleEntries = FOOTBALL_EQUIPMENT_DEFINITIONS.map(
 const equipmentExampleObjects = Object.fromEntries(equipmentExampleEntries);
 const equipmentExampleOrder = equipmentExampleEntries.map(([id]) => id);
 
+const textExampleEntries = [
+  [
+    "text-example-note",
+    createTextObject({
+      id: "text-example-note",
+      position: {
+        x: fieldStartX + 10,
+        y: fieldStartY + 40,
+      },
+      text: "Press",
+      color: "#1a1a1a",
+      fontSize: 14,
+    }),
+  ] as const,
+];
+
+const textExampleObjects = Object.fromEntries(textExampleEntries);
+const textExampleOrder = textExampleEntries.map(([id]) => id);
+
 export const footballBoardExample = createBoard({
   id: "football-example-board",
   version: 1,
@@ -424,12 +444,14 @@ export const footballBoardExample = createBoard({
     byId: {
       ...playerExampleObjects,
       ...equipmentExampleObjects,
+      ...textExampleObjects,
       ...arrowExampleObjects,
       ...shapeExampleObjects,
     },
     order: [
       ...playerExampleOrder,
       ...equipmentExampleOrder,
+      ...textExampleOrder,
       ...arrowExampleOrder,
       ...shapeExampleOrder,
     ],

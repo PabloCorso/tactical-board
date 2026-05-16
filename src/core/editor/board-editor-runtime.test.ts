@@ -6,6 +6,9 @@ import * as canvasRendererModule from "../../rendering/canvas/create-canvas-rend
 import { getViewportToFitSurface } from "./viewport-utils";
 import { createToolApi } from "./create-tool-api";
 import { setSelectedObjectIds } from "../../tools/select-tool-actions";
+import { TextTool } from "../../tools/text-tool";
+import { createTextObject } from "../objects/text-object";
+import { getTextToolState } from "../../tools/text-tool-state";
 
 function createCanvasStub(): HTMLCanvasElement {
   return {
@@ -521,4 +524,295 @@ describe("createBoardEditorRuntime", () => {
     globalThis.requestAnimationFrame = originalRequestAnimationFrame;
     globalThis.cancelAnimationFrame = originalCancelAnimationFrame;
   });
+
+  it("does not focus the canvas on pointer down while the text tool is active", () => {
+    const textTool = new TextTool();
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      initialToolId: textTool.id,
+      tools: [
+        {
+          id: SELECT_TOOL_ID,
+          label: "Select",
+        },
+        textTool,
+      ],
+    });
+    const runtime = createBoardEditorRuntime({ store });
+    const canvas = createCanvasStub();
+    const originalRequestAnimationFrame = globalThis.requestAnimationFrame;
+    const originalCancelAnimationFrame = globalThis.cancelAnimationFrame;
+    vi.stubGlobal(
+      "requestAnimationFrame",
+      vi.fn(() => 1),
+    );
+    vi.stubGlobal("cancelAnimationFrame", vi.fn());
+
+    runtime.mount(canvas);
+
+    const pointerDownHandler = vi
+      .mocked(canvas.addEventListener)
+      .mock.calls.find(([eventName]) => eventName === "pointerdown")?.[1] as
+      | ((event: PointerEvent) => void)
+      | undefined;
+
+    expect(pointerDownHandler).toBeTypeOf("function");
+
+    pointerDownHandler?.({
+      clientX: 120,
+      clientY: 80,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+    } as PointerEvent);
+
+    expect(canvas.focus).not.toHaveBeenCalled();
+
+    runtime.unmount();
+    vi.unstubAllGlobals();
+    globalThis.requestAnimationFrame = originalRequestAnimationFrame;
+    globalThis.cancelAnimationFrame = originalCancelAnimationFrame;
+  });
+
+  it("starts editing a selected text object when Enter is pressed on the focused canvas", () => {
+    const textTool = new TextTool();
+    const text = createTextObject({
+      id: "text-1",
+      position: { x: 20, y: 15 },
+      text: "Press",
+    });
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {
+            [text.id]: text,
+          },
+          order: [text.id],
+        },
+        style: {},
+      },
+      tools: [
+        {
+          id: SELECT_TOOL_ID,
+          label: "Select",
+        },
+        textTool,
+      ],
+    });
+    const runtime = createBoardEditorRuntime({ store });
+    const canvas = createCanvasStub();
+    const originalRequestAnimationFrame = globalThis.requestAnimationFrame;
+    const originalCancelAnimationFrame = globalThis.cancelAnimationFrame;
+    vi.stubGlobal(
+      "requestAnimationFrame",
+      vi.fn(() => 1),
+    );
+    vi.stubGlobal("cancelAnimationFrame", vi.fn());
+
+    runtime.mount(canvas);
+    setSelectedObjectIds(createToolApi(store), [text.id]);
+
+    const keyDownHandler = vi
+      .mocked(canvas.addEventListener)
+      .mock.calls.find(([eventName]) => eventName === "keydown")?.[1] as
+      | ((event: KeyboardEvent) => void)
+      | undefined;
+
+    expect(keyDownHandler).toBeTypeOf("function");
+
+    const editEvent = {
+      key: "Enter",
+      metaKey: false,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      preventDefault: vi.fn(),
+    } as unknown as KeyboardEvent;
+
+    keyDownHandler?.(editEvent);
+
+    expect(getTextToolState(store.getState().toolState).editingSession).toMatchObject({
+      objectId: text.id,
+    });
+    expect(editEvent.preventDefault).toHaveBeenCalledTimes(1);
+
+    runtime.unmount();
+    vi.unstubAllGlobals();
+    globalThis.requestAnimationFrame = originalRequestAnimationFrame;
+    globalThis.cancelAnimationFrame = originalCancelAnimationFrame;
+  });
+
+  it("starts editing a selected text object on canvas double click", () => {
+    const textTool = new TextTool();
+    const text = createTextObject({
+      id: "text-1",
+      position: { x: 20, y: 15 },
+      text: "Press",
+    });
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {
+            [text.id]: text,
+          },
+          order: [text.id],
+        },
+        style: {},
+      },
+      tools: [
+        {
+          id: SELECT_TOOL_ID,
+          label: "Select",
+        },
+        textTool,
+      ],
+    });
+    const runtime = createBoardEditorRuntime({ store });
+    const canvas = createCanvasStub();
+    const originalRequestAnimationFrame = globalThis.requestAnimationFrame;
+    const originalCancelAnimationFrame = globalThis.cancelAnimationFrame;
+    vi.stubGlobal(
+      "requestAnimationFrame",
+      vi.fn(() => 1),
+    );
+    vi.stubGlobal("cancelAnimationFrame", vi.fn());
+
+    runtime.mount(canvas);
+    setSelectedObjectIds(createToolApi(store), [text.id]);
+
+    const doubleClickHandler = vi
+      .mocked(canvas.addEventListener)
+      .mock.calls.find(([eventName]) => eventName === "dblclick")?.[1] as
+      | ((event: MouseEvent) => void)
+      | undefined;
+
+    expect(doubleClickHandler).toBeTypeOf("function");
+
+    doubleClickHandler?.({
+      clientX: 128,
+      clientY: 108,
+    } as MouseEvent);
+
+    expect(getTextToolState(store.getState().toolState).editingSession).toMatchObject({
+      objectId: text.id,
+    });
+
+    runtime.unmount();
+    vi.unstubAllGlobals();
+    globalThis.requestAnimationFrame = originalRequestAnimationFrame;
+    globalThis.cancelAnimationFrame = originalCancelAnimationFrame;
+  });
+
+  it.each([
+    { name: "Meta+A", metaKey: true, ctrlKey: false },
+    { name: "Ctrl+A", metaKey: false, ctrlKey: true },
+  ])(
+    "selects every object when $name is pressed on the focused canvas",
+    ({ metaKey, ctrlKey }) => {
+      const store = createBoardEditorStore({
+        initialBoard: {
+          id: "board-1",
+          version: 1,
+          metadata: {},
+          surface: {
+            width: 100,
+            height: 50,
+          },
+          objects: {
+            byId: {
+              a: {
+                id: "a",
+                type: "token",
+                position: { x: 10, y: 12 },
+                props: {},
+              },
+              b: {
+                id: "b",
+                type: "token",
+                position: { x: 20, y: 18 },
+                props: {},
+              },
+            },
+            order: ["a", "b"],
+          },
+          style: {},
+        },
+        tools: [
+          {
+            id: SELECT_TOOL_ID,
+            label: "Select",
+          },
+        ],
+      });
+      const runtime = createBoardEditorRuntime({ store });
+      const canvas = createCanvasStub();
+      const originalRequestAnimationFrame = globalThis.requestAnimationFrame;
+      const originalCancelAnimationFrame = globalThis.cancelAnimationFrame;
+      vi.stubGlobal(
+        "requestAnimationFrame",
+        vi.fn(() => 1),
+      );
+      vi.stubGlobal("cancelAnimationFrame", vi.fn());
+
+      runtime.mount(canvas);
+
+      const keyDownHandler = vi
+        .mocked(canvas.addEventListener)
+        .mock.calls.find(([eventName]) => eventName === "keydown")?.[1] as
+        | ((event: KeyboardEvent) => void)
+        | undefined;
+
+      expect(keyDownHandler).toBeTypeOf("function");
+
+      const selectAllEvent = {
+        key: "a",
+        metaKey,
+        ctrlKey,
+        shiftKey: false,
+        altKey: false,
+        preventDefault: vi.fn(),
+      } as unknown as KeyboardEvent;
+
+      keyDownHandler?.(selectAllEvent);
+
+      expect(store.getState().toolState[SELECT_TOOL_ID]).toMatchObject({
+        selectedObjectIds: ["a", "b"],
+      });
+      expect(selectAllEvent.preventDefault).toHaveBeenCalledTimes(1);
+
+      runtime.unmount();
+      vi.unstubAllGlobals();
+      globalThis.requestAnimationFrame = originalRequestAnimationFrame;
+      globalThis.cancelAnimationFrame = originalCancelAnimationFrame;
+    },
+  );
 });

@@ -5,7 +5,13 @@ import { createBoardEditorController } from "./board-editor-controller";
 import type { BoardEditorStore } from "../store/board-editor-store";
 import type { ToolDefinition } from "../tools/types";
 import { DEFAULT_VIEWPORT, getViewportToFitSurface } from "./viewport-utils";
-import { deleteSelectedObjects } from "../../tools/select-tool-actions";
+import {
+  deleteSelectedObjects,
+  setSelectedObjectIds,
+  selectAllObjects,
+} from "../../tools/select-tool-actions";
+import { getSelectToolState, SELECT_TOOL_ID } from "../../tools/select-tool-state";
+import { TEXT_TOOL_ID } from "../../tools/text-tool-state";
 
 export interface BoardEditorRuntime {
   mount: (canvas: HTMLCanvasElement) => void;
@@ -141,7 +147,9 @@ export function createBoardEditorRuntime({
       return;
     }
 
-    canvas.focus();
+    if (store.getState().ui.activeToolId !== TEXT_TOOL_ID) {
+      canvas.focus();
+    }
     canvas.setPointerCapture(event.pointerId);
     const input = createPointerInput(event);
     if (!input) {
@@ -188,6 +196,75 @@ export function createBoardEditorRuntime({
     }
   };
 
+  const beginEditingSelection = (
+    input:
+      | {
+          clientX: number;
+          clientY: number;
+        }
+      | undefined,
+  ) => {
+    const state = store.getState();
+
+    if (state.ui.activeToolId !== SELECT_TOOL_ID || !state.ui.canvasRect) {
+      return;
+    }
+
+    const selectState = getSelectToolState(state.toolState);
+    const selectedObjects = selectState.selectedObjectIds
+      .map((objectId) => state.board.objects.byId[objectId])
+      .filter((object) => Boolean(object));
+
+    if (selectedObjects.length !== 1) {
+      return;
+    }
+
+    const object = selectedObjects[0]!;
+    const definition = state.objectRegistry.definitions[object.type];
+
+    if (!definition?.beginEditing) {
+      return;
+    }
+
+    if (input) {
+      const pointerEvent = controller.createToolPointerEvent({
+        clientPoint: {
+          x: input.clientX,
+          y: input.clientY,
+        },
+        pointerId: -1,
+        ctrlKey: false,
+        shiftKey: false,
+        altKey: false,
+        metaKey: false,
+        canvasRect: canvas?.getBoundingClientRect() ?? {
+          left: 0,
+          top: 0,
+          width: state.ui.canvasRect.width,
+          height: state.ui.canvasRect.height,
+        },
+      });
+
+      if (pointerEvent.targetObjectId !== object.id) {
+        return;
+      }
+    }
+
+    setSelectedObjectIds(toolApi, [object.id]);
+    definition.beginEditing({
+      object,
+      state,
+      canvasRect: state.ui.canvasRect,
+    });
+  };
+
+  const onDoubleClick = (event: MouseEvent) => {
+    beginEditingSelection({
+      clientX: event.clientX,
+      clientY: event.clientY,
+    });
+  };
+
   const onWheel = (event: WheelEvent) => {
     if (!canvas) {
       return;
@@ -224,6 +301,18 @@ export function createBoardEditorRuntime({
       return;
     }
 
+    if (
+      event.key === "Enter" &&
+      !event.metaKey &&
+      !event.ctrlKey &&
+      !event.altKey &&
+      !event.shiftKey
+    ) {
+      beginEditingSelection(undefined);
+      event.preventDefault();
+      return;
+    }
+
     const isModifierPressed = event.metaKey || event.ctrlKey;
 
     if (!isModifierPressed || event.altKey) {
@@ -245,6 +334,12 @@ export function createBoardEditorRuntime({
     if (key === "y" && !event.shiftKey) {
       store.getState().actions.redo();
       event.preventDefault();
+      return;
+    }
+
+    if (key === "a" && !event.shiftKey) {
+      selectAllObjects(toolApi);
+      event.preventDefault();
     }
   };
 
@@ -260,6 +355,7 @@ export function createBoardEditorRuntime({
         canvas.removeEventListener("pointermove", onPointerMove);
         canvas.removeEventListener("pointerleave", onPointerLeave);
         canvas.removeEventListener("pointerup", onPointerUp);
+        canvas.removeEventListener("dblclick", onDoubleClick);
         canvas.removeEventListener("wheel", onWheel);
         canvas.removeEventListener("keydown", onKeyDown);
       }
@@ -272,6 +368,7 @@ export function createBoardEditorRuntime({
       canvas.addEventListener("pointermove", onPointerMove);
       canvas.addEventListener("pointerleave", onPointerLeave);
       canvas.addEventListener("pointerup", onPointerUp);
+      canvas.addEventListener("dblclick", onDoubleClick);
       canvas.addEventListener("wheel", onWheel, { passive: false });
       canvas.addEventListener("keydown", onKeyDown);
 
@@ -309,6 +406,7 @@ export function createBoardEditorRuntime({
         canvas.removeEventListener("pointermove", onPointerMove);
         canvas.removeEventListener("pointerleave", onPointerLeave);
         canvas.removeEventListener("pointerup", onPointerUp);
+        canvas.removeEventListener("dblclick", onDoubleClick);
         canvas.removeEventListener("wheel", onWheel);
         canvas.removeEventListener("keydown", onKeyDown);
       }

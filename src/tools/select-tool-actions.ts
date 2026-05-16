@@ -21,6 +21,10 @@ export function clearSelection(api: ToolApi) {
   });
 }
 
+export function selectAllObjects(api: ToolApi) {
+  setSelectedObjectIds(api, api.getState().board.objects.order);
+}
+
 export function deleteSelectedObjects(api: ToolApi) {
   const selectState = getSelectToolState(api.getState().toolState);
   const selectedObjectIds = selectState.selectedObjectIds;

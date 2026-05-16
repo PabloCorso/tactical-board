@@ -15,6 +15,7 @@ import { EquipmentTool } from "../../tools/equipment-tool";
 import { PlayerTool } from "../../tools/player-tool";
 import { ShapeTool } from "../../tools/shape-tool";
 import { SelectTool } from "../../tools/select-tool";
+import { TextTool } from "../../tools/text-tool";
 import { SELECT_TOOL_ID } from "../../tools/select-tool-state";
 import {
   FOOTBALL_EQUIPMENT_DEFINITIONS,
@@ -54,6 +55,7 @@ const footballEquipmentTool = new EquipmentTool({
   definitions: FOOTBALL_EQUIPMENT_DEFINITIONS,
   renderersByKind: FOOTBALL_EQUIPMENT_RENDERERS,
 });
+const textTool = new TextTool();
 const selectTool = new SelectTool();
 const handTool = new HandTool();
 
@@ -65,6 +67,7 @@ const store = createBoardEditorStore({
     handTool,
     footballPlayerTool,
     footballEquipmentTool,
+    textTool,
     footballArrowTool,
     footballShapeTool,
   ],
@@ -91,6 +94,7 @@ export function FootballExampleApp() {
                 toolId="equipment"
                 icon={<FootballEquipmentToolIcon />}
               />
+              <BoardEditorToolControl toolId="text" />
               <BoardEditorToolControl
                 toolId="arrow"
                 icon={<FootballArrowToolIcon />}

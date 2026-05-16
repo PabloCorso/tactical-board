@@ -23,6 +23,7 @@ import { getPlayerSelectionOutlineCanvasPoints } from "../../tools/player-select
 import { ShapeTool } from "../../tools/shape-tool";
 import { SelectTool } from "../../tools/select-tool";
 import { setSelectedObjectIds } from "../../tools/select-tool-actions";
+import { TextTool } from "../../tools/text-tool";
 import { getArrowToolState } from "../../tools/arrow-tool-state";
 import {
   getPlayerToolState,
@@ -33,6 +34,7 @@ import {
   SELECT_TOOL_ID,
 } from "../../tools/select-tool-state";
 import { getShapeToolState } from "../../tools/shape-tool-state";
+import { getTextToolState, TEXT_TOOL_ID } from "../../tools/text-tool-state";
 import { FOOTBALL_PLAYER_PRESET_COLORS } from "../../examples/football/football-example-catalog";
 import { MAX_VIEWPORT_ZOOM, MIN_VIEWPORT_ZOOM } from "./viewport-utils";
 import {
@@ -51,6 +53,19 @@ describe("createBoardEditorController", () => {
       ...playerState,
       draftStyle: {
         ...playerState.draftStyle,
+        ...draftStyle,
+      },
+    });
+  };
+  const setTextDraftStyle = (
+    toolApi: ReturnType<typeof createToolApi>,
+    draftStyle: Partial<ReturnType<typeof getTextToolState>["draftStyle"]>,
+  ) => {
+    const textState = getTextToolState(toolApi.getState().toolState);
+    toolApi.setToolState(TEXT_TOOL_ID, {
+      ...textState,
+      draftStyle: {
+        ...textState.draftStyle,
         ...draftStyle,
       },
     });
@@ -234,6 +249,135 @@ describe("createBoardEditorController", () => {
       type: "player",
       position: { x: 25, y: 12 },
     });
+  });
+
+  it("does not show a text preview at the pointer before placement", () => {
+    const textTool = new TextTool();
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+          unit: "m",
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      initialToolId: textTool.id,
+      tools: [selectTool, textTool],
+    });
+    const toolApi = createToolApi(store);
+    textTool.registerCapabilities?.(toolApi);
+    setTextDraftStyle(toolApi, { fontSize: 28 });
+
+    const controller = createBoardEditorController(store);
+    const canvasRect = {
+      left: 0,
+      top: 0,
+      width: 1000,
+      height: 500,
+    };
+    const projection = createBoardSpaceProjection({
+      surface: store.getState().board.surface,
+      viewport: store.getState().ui.viewport,
+      canvasRect,
+      surfaceInset: 14,
+    });
+    const previewPoint = projection.worldToCanvas({ x: 25, y: 12 });
+
+    controller.dispatchPointerEvent("onPointerMove", {
+      clientPoint: previewPoint,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    expect(store.getState().rendering.previewObjects).toEqual([]);
+  });
+
+  it("starts inline text editing at the clicked point", () => {
+    const textTool = new TextTool();
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+          unit: "m",
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      initialToolId: textTool.id,
+      tools: [selectTool, textTool],
+    });
+    const toolApi = createToolApi(store);
+    textTool.registerCapabilities?.(toolApi);
+    setTextDraftStyle(toolApi, {
+      color: "#16a34a",
+      fontSize: 30,
+    });
+
+    const controller = createBoardEditorController(store);
+    const canvasRect = {
+      left: 0,
+      top: 0,
+      width: 1000,
+      height: 500,
+    };
+    const projection = createBoardSpaceProjection({
+      surface: store.getState().board.surface,
+      viewport: store.getState().ui.viewport,
+      canvasRect,
+      surfaceInset: 14,
+    });
+    const placementPoint = projection.worldToCanvas({ x: 30, y: 18 });
+
+    controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: placementPoint,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    expect(store.getState().board.objects.order).toEqual(["text-1"]);
+    expect(store.getState().board.objects.byId["text-1"]).toMatchObject({
+      type: "text",
+      props: {
+        text: "",
+        color: "#16a34a",
+        fontSize: 30,
+      },
+      size: {
+        mode: "world",
+      },
+    });
+    expect(
+      getSelectToolState(store.getState().toolState).selectedObjectIds,
+    ).toEqual(["text-1"]);
+    expect(getTextToolState(store.getState().toolState).editingSession).toEqual(
+      {
+        objectId: "text-1",
+        anchorPosition: { x: 30, y: 18 },
+      },
+    );
   });
 
   it("prefers players over overlapping shapes during hit testing", () => {
