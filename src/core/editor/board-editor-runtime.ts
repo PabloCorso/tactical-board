@@ -10,7 +10,10 @@ import {
   setSelectedObjectIds,
   selectAllObjects,
 } from "../../tools/select-tool-actions";
-import { getSelectToolState, SELECT_TOOL_ID } from "../../tools/select-tool-state";
+import {
+  getSelectToolState,
+  SELECT_TOOL_ID,
+} from "../../tools/select-tool-state";
 import { TEXT_TOOL_ID } from "../../tools/text-tool-state";
 
 export interface BoardEditorRuntime {

@@ -1,10 +1,12 @@
 import {
-  getTextAnchorPosition,
   updateTextObject,
   type TextObject,
 } from "../../core/objects/text-object";
 import { createToolApi } from "../../core/editor/create-tool-api";
-import { updateAnchoredTextObject } from "../../tools/text-layout";
+import {
+  getTextAnchorPosition,
+  updateAnchoredTextObject,
+} from "../../tools/text-layout";
 import { useBoardEditorContext } from "./board-editor-context";
 import {
   BoardEditorToolbar,

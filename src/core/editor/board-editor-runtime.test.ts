@@ -653,7 +653,9 @@ describe("createBoardEditorRuntime", () => {
 
     keyDownHandler?.(editEvent);
 
-    expect(getTextToolState(store.getState().toolState).editingSession).toMatchObject({
+    expect(
+      getTextToolState(store.getState().toolState).editingSession,
+    ).toMatchObject({
       objectId: text.id,
     });
     expect(editEvent.preventDefault).toHaveBeenCalledTimes(1);
@@ -722,7 +724,9 @@ describe("createBoardEditorRuntime", () => {
       clientY: 108,
     } as MouseEvent);
 
-    expect(getTextToolState(store.getState().toolState).editingSession).toMatchObject({
+    expect(
+      getTextToolState(store.getState().toolState).editingSession,
+    ).toMatchObject({
       objectId: text.id,
     });
 
