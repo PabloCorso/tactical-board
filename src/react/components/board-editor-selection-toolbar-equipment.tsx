@@ -13,6 +13,7 @@ import { BoardEditorSelectionToolbarPositioner } from "./board-editor-selection-
 import { BoardEditorSelectionActionsMenu } from "./board-editor-selection-actions-menu";
 import type { BoardEditorSelectionToolbarRendererProps } from "./board-editor-selection-toolbar-types";
 import { ColorPicker, DEFAULT_PRESET_COLORS } from "./ui/color-picker";
+import { DEFAULT_PRESET_COLOR } from "../../core/colors/preset-colors";
 
 export function BoardEditorEquipmentSelectionToolbar({
   className,
@@ -53,7 +54,7 @@ export function BoardEditorEquipmentSelectionToolbar({
                 value={
                   selectedObject.props.color ??
                   selectedObject.props.definition.color ??
-                  "#111827"
+                  DEFAULT_PRESET_COLOR.black
                 }
                 onChange={(value) => updateEquipment({ color: value })}
                 presetColors={[...DEFAULT_PRESET_COLORS]}
@@ -66,13 +67,13 @@ export function BoardEditorEquipmentSelectionToolbar({
                   backgroundColor:
                     selectedObject.props.color ??
                     selectedObject.props.definition.color ??
-                    "#111827",
+                    DEFAULT_PRESET_COLOR.black,
                 }}
               >
                 <span className="sr-only">
                   {selectedObject.props.color ??
                     selectedObject.props.definition.color ??
-                    "#111827"}
+                    DEFAULT_PRESET_COLOR.black}
                 </span>
               </span>
             }

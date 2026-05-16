@@ -1,4 +1,5 @@
 import type { FootballEquipmentSpec } from "./types";
+import { DEFAULT_PRESET_COLOR } from "../../../core/colors/preset-colors";
 
 const HOOP_RADIUS = 1.1;
 const HOOP_STROKE_WIDTH = Math.max(0.25, HOOP_RADIUS * 0.25);
@@ -9,7 +10,7 @@ export const hoopEquipment: FootballEquipmentSpec = {
     label: "Hoop",
     family: "frame",
     defaultSize: { width: HOOP_RADIUS * 2, height: HOOP_RADIUS * 2 },
-    color: "#ef4444",
+    color: DEFAULT_PRESET_COLOR.red,
     capabilities: { color: true },
     transformCapabilities: {
       resize: false,

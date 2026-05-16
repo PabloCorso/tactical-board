@@ -344,7 +344,9 @@ export function BoardEditorShapeSelectionToolbar({
           icon={<LineSegmentsIcon weight="bold" />}
         />
         <BoardEditorToolbarSeparator />
-        <BoardEditorSelectionActionsMenu selectedObjectIds={[selectedObject.id]} />
+        <BoardEditorSelectionActionsMenu
+          selectedObjectIds={[selectedObject.id]}
+        />
       </BoardEditorToolbar>
     </BoardEditorSelectionToolbarPositioner>
   );

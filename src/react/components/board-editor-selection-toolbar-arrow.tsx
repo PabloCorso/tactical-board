@@ -384,7 +384,9 @@ export function BoardEditorArrowSelectionToolbar({
           icon={getHeadIcon("end", selectedObject.props.endHead)}
         />
         <BoardEditorToolbarSeparator />
-        <BoardEditorSelectionActionsMenu selectedObjectIds={[selectedObject.id]} />
+        <BoardEditorSelectionActionsMenu
+          selectedObjectIds={[selectedObject.id]}
+        />
       </BoardEditorToolbar>
     </BoardEditorSelectionToolbarPositioner>
   );

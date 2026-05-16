@@ -1,4 +1,5 @@
 import type { FootballEquipmentSpec } from "./types";
+import { DEFAULT_PRESET_COLOR } from "../../../core/colors/preset-colors";
 
 const HURDLE_METRICS = {
   width: 6,
@@ -65,7 +66,7 @@ export const hurdleEquipment: FootballEquipmentSpec = {
       width: HURDLE_METRICS.width * HURDLE_DEFAULT_SCALE,
       height: HURDLE_METRICS.height * HURDLE_DEFAULT_SCALE,
     },
-    color: "#f97316",
+    color: DEFAULT_PRESET_COLOR.orange,
     capabilities: { color: true },
     transformCapabilities: {
       resize: false,

@@ -106,8 +106,8 @@ describe("text-editing", () => {
       canvasRect,
     });
 
-    const anchorPosition =
-      getTextEditorOverlayState(store.getState())?.session.anchorPosition;
+    const anchorPosition = getTextEditorOverlayState(store.getState())?.session
+      .anchorPosition;
 
     updateActiveTextEditingText(toolApi, "A much longer line");
 
@@ -118,10 +118,12 @@ describe("text-editing", () => {
     expect(updatedText?.props.text).toBe("A much longer line");
     expect(anchorPosition).toBeDefined();
     expect(
-      updatedText && getTextAnchorPosition(updatedText, store.getState(), canvasRect).x,
+      updatedText &&
+        getTextAnchorPosition(updatedText, store.getState(), canvasRect).x,
     ).toBeCloseTo(anchorPosition?.x ?? 0);
     expect(
-      updatedText && getTextAnchorPosition(updatedText, store.getState(), canvasRect).y,
+      updatedText &&
+        getTextAnchorPosition(updatedText, store.getState(), canvasRect).y,
     ).toBeCloseTo(anchorPosition?.y ?? 0);
   });
 

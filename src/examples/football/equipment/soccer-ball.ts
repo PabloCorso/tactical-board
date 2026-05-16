@@ -1,4 +1,5 @@
 import type { FootballEquipmentSpec } from "./types";
+import { DEFAULT_PRESET_COLOR } from "../../../core/colors/preset-colors";
 
 let soccerBallPanelPathCache: Path2D | null | undefined;
 
@@ -25,7 +26,7 @@ export const soccerBallEquipment: FootballEquipmentSpec = {
     label: "Ball",
     family: "ball",
     defaultSize: { width: 1.5, height: 1.5 },
-    color: "#ffffff",
+    color: DEFAULT_PRESET_COLOR.white,
     transformCapabilities: {
       resize: false,
       rotate: false,

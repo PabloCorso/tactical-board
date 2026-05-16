@@ -1,11 +1,14 @@
-import { DEFAULT_PRESET_COLORS } from "../../react/components/ui/color-picker";
+import {
+  DEFAULT_PRESET_COLOR,
+  DEFAULT_PRESET_COLORS,
+} from "../../core/colors/preset-colors";
 
 export const FOOTBALL_PLAYER_PRESET_COLORS = [
-  DEFAULT_PRESET_COLORS[2],
-  DEFAULT_PRESET_COLORS[7],
+  DEFAULT_PRESET_COLOR.red,
+  DEFAULT_PRESET_COLOR.blue,
   ...DEFAULT_PRESET_COLORS.slice(0, 11).filter(
     (color) =>
-      color !== DEFAULT_PRESET_COLORS[2] && color !== DEFAULT_PRESET_COLORS[7],
+      color !== DEFAULT_PRESET_COLOR.red && color !== DEFAULT_PRESET_COLOR.blue,
   ),
 ];
 

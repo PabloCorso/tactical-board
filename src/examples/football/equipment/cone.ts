@@ -1,5 +1,6 @@
 import { darkenHexColor } from "./shared";
 import type { FootballEquipmentSpec } from "./types";
+import { DEFAULT_PRESET_COLOR } from "../../../core/colors/preset-colors";
 
 let coneBodyPathCache: Path2D | null | undefined;
 let coneBasePathCache: Path2D | null | undefined;
@@ -111,7 +112,7 @@ export const coneEquipment: FootballEquipmentSpec = {
     label: "Cone",
     family: "cone",
     defaultSize: { width: 1.8, height: 2.2 },
-    color: "#ff6b35",
+    color: DEFAULT_PRESET_COLOR.red,
     capabilities: { color: true },
     transformCapabilities: {
       resize: false,

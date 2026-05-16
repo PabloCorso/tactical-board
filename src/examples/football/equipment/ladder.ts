@@ -1,4 +1,5 @@
 import type { FootballEquipmentSpec } from "./types";
+import { DEFAULT_PRESET_COLOR } from "../../../core/colors/preset-colors";
 
 const LADDER_METRICS = {
   width: 3.8,
@@ -18,7 +19,7 @@ export const ladderEquipment: FootballEquipmentSpec = {
       width: LADDER_METRICS.width * LADDER_DEFAULT_SCALE,
       height: LADDER_METRICS.height * LADDER_DEFAULT_SCALE,
     },
-    color: "#0f172a",
+    color: DEFAULT_PRESET_COLOR.black,
     capabilities: { color: true },
     transformCapabilities: {
       resize: false,

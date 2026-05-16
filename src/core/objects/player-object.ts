@@ -9,10 +9,11 @@ import {
   DEFAULT_RENDER_APPEARANCE,
   type ObjectAppearance,
 } from "./object-appearance";
+import { DEFAULT_PRESET_COLOR } from "../colors/preset-colors";
 
 export const PLAYER_OBJECT_TYPE = "player";
 export const DEFAULT_PLAYER_SIZE = 2.5;
-export const DEFAULT_PLAYER_COLOR = "#111827";
+export const DEFAULT_PLAYER_COLOR = DEFAULT_PRESET_COLOR.black;
 export const DEFAULT_PLAYER_TRANSFORM_CAPABILITIES = {
   move: true,
   resize: false,

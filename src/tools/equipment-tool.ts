@@ -18,6 +18,7 @@ import {
   type EquipmentObject,
 } from "../core/objects/equipment-object";
 import type { MeasurementUnit } from "../core/board/types";
+import { DEFAULT_PRESET_COLOR } from "../core/colors/preset-colors";
 import { renderObjectAppearanceAsset } from "../rendering/canvas/object-appearance-renderer";
 import {
   getAbsoluteCanvasExtent,
@@ -229,7 +230,9 @@ export function createEquipmentRenderer(
     const width = getAbsoluteCanvasExtent(bounds.width);
     const height = getAbsoluteCanvasExtent(bounds.height);
     const color =
-      equipment.props.color ?? equipment.props.definition.color ?? "#111827";
+      equipment.props.color ??
+      equipment.props.definition.color ??
+      DEFAULT_PRESET_COLOR.black;
     const strokeWidth = getRelativeCanvasStrokeWidth(
       Math.min(width, height),
       0.08,

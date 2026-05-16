@@ -1,28 +1,6 @@
+export { DEFAULT_PRESET_COLORS } from "../../../core/colors/preset-colors";
+import { DEFAULT_PRESET_COLORS } from "../../../core/colors/preset-colors";
 import { cn } from "#app/utils/misc";
-
-export const DEFAULT_PRESET_COLORS = [
-  "#1f1f1f",
-  "#8f8f8f",
-  "#ff5a36",
-  "#ffa24c",
-  "#ffc857",
-  "#67d86f",
-  "#5ed7cf",
-  "#4db3ff",
-  "#8b52f6",
-  "#ec4ab8",
-  "#ffffff",
-  "#bdbdbd",
-  "#e5e7eb",
-  "#ffc2c2",
-  "#ffe0bf",
-  "#ffeab3",
-  "#c8f0c8",
-  "#c6f4ef",
-  "#c8e7ff",
-  "#d8c8ff",
-  "#f3b7df",
-] as const;
 
 const CUSTOM_COLOR_SWATCH_BACKGROUND =
   "radial-gradient(50% 50% at 50% 50%, #ffffff 0%, transparent 100%), conic-gradient(from 0deg at 50% 50%, red, #ffa800 47.73deg, #ff0 79.56deg, #0f0 121.33deg, #0ff 180.99deg, #00f 238.67deg, #f0f 294.36deg, red 360deg), #c4c4c4";

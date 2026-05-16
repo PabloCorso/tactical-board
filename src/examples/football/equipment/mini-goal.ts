@@ -1,6 +1,7 @@
 import miniGoalSvgMarkup from "../../../assets/mini-goal.svg?raw";
 import { renderFrame } from "./shared";
 import type { FootballEquipmentSpec } from "./types";
+import { DEFAULT_PRESET_COLOR } from "../../../core/colors/preset-colors";
 
 const MINI_GOAL_METRICS = {
   width: 4,
@@ -95,7 +96,7 @@ export const miniGoalEquipment: FootballEquipmentSpec = {
       width: MINI_GOAL_METRICS.width,
       height: MINI_GOAL_METRICS.height,
     },
-    color: "#e5e7eb",
+    color: DEFAULT_PRESET_COLOR.lightGray,
     capabilities: { color: true },
     transformCapabilities: {
       resize: true,

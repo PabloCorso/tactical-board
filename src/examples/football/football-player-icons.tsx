@@ -13,6 +13,7 @@ import {
   type PlayerDraftStyle,
 } from "../../tools/player-tool-state";
 import { FOOTBALL_PLAYER_PRESET_COLORS } from "./football-example-catalog";
+import { DEFAULT_PRESET_COLOR } from "../../core/colors/preset-colors";
 import { FootballToolIconCanvas } from "./football-tool-icon-canvas";
 
 function parseNumericLabel(label: unknown) {
@@ -112,7 +113,8 @@ export function FootballPlayerToolIcon() {
     [toolState],
   );
   const color =
-    draftStyle.color || (FOOTBALL_PLAYER_PRESET_COLORS[0] ?? "#111827");
+    draftStyle.color ||
+    (FOOTBALL_PLAYER_PRESET_COLORS[0] ?? DEFAULT_PRESET_COLOR.black);
   const label = useMemo(
     () => getCurrentPlayerLabel({ toolState, board }, color),
     [board, color, toolState],

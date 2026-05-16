@@ -14,6 +14,7 @@ import {
   FOOTBALL_PLAYER_PRESET_COLORS,
   PLAYER_SHIRT_SVG_BY_COLOR,
 } from "./football-example-catalog";
+import { DEFAULT_PRESET_COLOR } from "../../core/colors/preset-colors";
 import { FOOTBALL_EQUIPMENT_DEFINITIONS } from "./equipment";
 
 const pitchMetrics = {
@@ -271,7 +272,7 @@ const arrowExampleEntries = arrowBodyStyles.flatMap((bodyStyle, bodyIndex) =>
             id,
             start: { x: startX, y: startY },
             end: { x: startX + 6.5, y: startY },
-            color: "black",
+            color: DEFAULT_PRESET_COLOR.black,
             lineStyle,
             bodyStyle,
             startHead,
@@ -311,7 +312,7 @@ const shapeExampleEntries = shapeKinds.flatMap((kind, row) =>
           createShapeObject({
             id,
             kind,
-            color: "black",
+            color: DEFAULT_PRESET_COLOR.black,
             lineStyle,
             fillStyle,
             bordered,
@@ -413,7 +414,7 @@ const textExampleEntries = [
         y: fieldStartY + 40,
       },
       text: "Press",
-      color: "#1a1a1a",
+      color: DEFAULT_PRESET_COLOR.black,
       fontSize: 14,
     }),
   ] as const,

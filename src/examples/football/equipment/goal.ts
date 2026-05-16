@@ -1,5 +1,6 @@
 import goalSvgMarkup from "../../../assets/goal.svg?raw";
 import type { FootballEquipmentSpec } from "./types";
+import { DEFAULT_PRESET_COLOR } from "../../../core/colors/preset-colors";
 
 const GOAL_METRICS = {
   width: 7.32,
@@ -186,7 +187,7 @@ export const goalEquipment: FootballEquipmentSpec = {
     label: "Goal",
     family: "frame",
     defaultSize: { width: GOAL_METRICS.width, height: GOAL_METRICS.height },
-    color: "#ffffff",
+    color: DEFAULT_PRESET_COLOR.white,
     capabilities: { color: true },
     transformCapabilities: {
       resize: true,

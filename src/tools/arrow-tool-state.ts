@@ -10,6 +10,7 @@ import {
   DEFAULT_ARROW_DASH_STYLE,
   DEFAULT_ARROW_STROKE_WIDTH,
 } from "../core/objects/arrow-object";
+import { DEFAULT_PRESET_COLOR } from "../core/colors/preset-colors";
 
 export const ARROW_TOOL_ID = "arrow";
 
@@ -30,7 +31,7 @@ export type ArrowToolState = {
 
 export const DEFAULT_ARROW_TOOL_STATE: ArrowToolState = {
   draftStyle: {
-    color: "#000000",
+    color: DEFAULT_PRESET_COLOR.black,
     strokeWidth: DEFAULT_ARROW_STROKE_WIDTH,
     lineStyle: "solid",
     dashStyle: [...DEFAULT_ARROW_DASH_STYLE],
