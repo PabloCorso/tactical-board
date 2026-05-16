@@ -7,6 +7,7 @@ import { useBoardEditorContext } from "./board-editor-context";
 import {
   BoardEditorToolbar,
   BoardEditorToolbarPopoverButton,
+  BoardEditorToolbarSeparator,
 } from "./board-editor-toolbar";
 import { BoardEditorSelectionToolbarPositioner } from "./board-editor-selection-toolbar-positioner";
 import { BoardEditorSelectionActionsMenu } from "./board-editor-selection-actions-menu";
@@ -53,7 +54,6 @@ export function BoardEditorPlayerSelectionToolbar({
         <BoardEditorToolbarPopoverButton
           ariaLabel="Player color"
           tooltip={`Color: ${selectedObject.props.color}`}
-          showCaret={false}
           content={
             <ColorPicker
               value={selectedObject.props.color}
@@ -70,6 +70,7 @@ export function BoardEditorPlayerSelectionToolbar({
             </span>
           }
         />
+        <BoardEditorToolbarSeparator />
         <BoardEditorSelectionActionsMenu
           selectedObjectIds={[selectedObject.id]}
         />

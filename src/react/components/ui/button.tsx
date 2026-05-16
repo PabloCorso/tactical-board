@@ -53,6 +53,8 @@ export type ButtonProps = ButtonPrimitive.Props &
     iconBefore?: IconRender;
     iconAfter?: IconRender;
     iconSize?: IconProps["size"];
+    iconBeforeSize?: IconProps["size"];
+    iconAfterSize?: IconProps["size"];
     ref?: Ref<HTMLButtonElement>;
   };
 
@@ -67,7 +69,8 @@ export function Button({
   children,
   className,
   iconOnly: iconOnlyProp,
-  ref,
+  iconBeforeSize,
+  iconAfterSize,
   ...props
 }: ButtonProps) {
   const hasSingleIcon =
@@ -84,12 +87,11 @@ export function Button({
       className={cn(buttonVariants({ variant, size, iconOnly, className }))}
       aria-busy={loading || undefined}
       disabled={isDisabled}
-      ref={ref}
       {...props}
     >
       {iconBeforeContent && (
         <Icon
-          size={iconSize}
+          size={iconBeforeSize ?? iconSize}
           className={cn(iconClassName, !iconOnly && "-ml-0.5")}
         >
           {iconBeforeContent}
@@ -98,7 +100,7 @@ export function Button({
       {children}
       {iconAfterContent && (
         <Icon
-          size={iconSize}
+          size={iconAfterSize ?? iconSize}
           className={cn(iconClassName, !iconOnly && "-mr-0.5")}
         >
           {iconAfterContent}

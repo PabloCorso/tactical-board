@@ -38,7 +38,7 @@ export function BoardEditorToolbar({
         role="toolbar"
         aria-orientation={orientation}
         className={cn(
-          "bg-surface/90 mx-auto inline-flex w-max flex-nowrap items-center justify-center gap-1.5 rounded-xl border p-1.5 shadow-lg backdrop-blur-sm",
+          "bg-surface/90 mx-auto inline-flex w-max flex-nowrap items-center justify-center gap-0.5 rounded-xl border p-1 shadow-lg backdrop-blur-sm",
           "aria-[orientation=vertical]:flex-col",
           className,
         )}
@@ -58,12 +58,17 @@ export function BoardEditorToolbarButton({
   active = false,
   "aria-label": ariaLabel,
   tooltip,
+  iconSize = "xl",
   ...props
 }: BoardEditorToolbarButtonProps) {
   return (
     <Tooltip>
       <TooltipTrigger>
-        <Button variant={active ? "outline" : "ghost"} {...props} />
+        <Button
+          variant={active ? "outline" : "ghost"}
+          iconSize={iconSize}
+          {...props}
+        />
       </TooltipTrigger>
       <TooltipContent>{tooltip || ariaLabel}</TooltipContent>
     </Tooltip>
@@ -79,16 +84,19 @@ export function BoardEditorToolbarSeparator({
   className,
   ...props
 }: BoardEditorToolbarSeparatorProps) {
-  const { orientation } = useContext(BoardEditorToolbarContext);
+  const { orientation: toolbarOrientation } = useContext(
+    BoardEditorToolbarContext,
+  );
+  const orientation = orientationProp ?? toolbarOrientation;
 
   return (
     <div
       role="separator"
-      aria-orientation={orientationProp ?? orientation}
+      aria-orientation={orientation}
       className={cn(
-        "bg-border shrink-0",
-        "aria-[orientation=horizontal]:mx-0.5 aria-[orientation=horizontal]:h-6 aria-[orientation=horizontal]:w-px",
-        "aria-[orientation=vertical]:my-0.5 aria-[orientation=vertical]:h-px aria-[orientation=vertical]:w-6",
+        "shrink-0 bg-(--border-default)",
+        "aria-[orientation=horizontal]:mx-0.5 aria-[orientation=horizontal]:w-px aria-[orientation=horizontal]:self-stretch",
+        "aria-[orientation=vertical]:my-0.5 aria-[orientation=vertical]:h-px aria-[orientation=vertical]:self-stretch",
         className,
       )}
       {...props}
@@ -119,10 +127,11 @@ export function BoardEditorToolbarPopoverButton({
           iconBefore={icon}
           iconAfter={
             showCaret ? (
-              <CaretDownIcon aria-hidden="true" className="opacity-75" />
+              <CaretDownIcon aria-hidden="true" className="text-secondary" />
             ) : undefined
           }
           iconSize="xl"
+          iconAfterSize="sm"
           tooltip={tooltip}
         />
       </PopoverTrigger>

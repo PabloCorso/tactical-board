@@ -11,10 +11,7 @@ import {
 } from "../../tools/select-tool-actions";
 import { useBoardEditorStore } from "../hooks/use-board-editor-store";
 import { useBoardEditorContext } from "./board-editor-context";
-import {
-  BoardEditorToolbarButton,
-  BoardEditorToolbarSeparator,
-} from "./board-editor-toolbar";
+import { BoardEditorToolbarButton } from "./board-editor-toolbar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,12 +22,10 @@ import {
 
 export type BoardEditorSelectionActionsMenuProps = {
   selectedObjectIds: ObjectId[];
-  showSeparator?: boolean;
 };
 
 export function BoardEditorSelectionActionsMenu({
   selectedObjectIds,
-  showSeparator = true,
 }: BoardEditorSelectionActionsMenuProps) {
   const store = useBoardEditorContext();
   const board = useBoardEditorStore(store, (state) => state.board);
@@ -51,42 +46,37 @@ export function BoardEditorSelectionActionsMenu({
   };
 
   return (
-    <>
-      {showSeparator ? <BoardEditorToolbarSeparator /> : null}
-      <DropdownMenu>
-        <DropdownMenuTrigger>
-          {(triggerProps) => (
-            <BoardEditorToolbarButton
-              aria-label="More actions"
-              iconSize="xl"
-              iconBefore={<DotsThreeVerticalIcon weight="bold" />}
-              tooltip="More actions"
-              {...triggerProps}
-            />
-          )}
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" sideOffset={8}>
-          <DropdownMenuItem onClick={handleDuplicate}>
-            Duplicate
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => deleteSelectedObjects(toolApi)}>
-            Delete
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            disabled={!canBringToFront}
-            onClick={() => toolApi.bringObjectsToFront(selectedObjectIds)}
-          >
-            Bring to front
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            disabled={!canSendToBack}
-            onClick={() => toolApi.sendObjectsToBack(selectedObjectIds)}
-          >
-            Send to back
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </>
+    <DropdownMenu>
+      <DropdownMenuTrigger>
+        {(triggerProps) => (
+          <BoardEditorToolbarButton
+            aria-label="More actions"
+            iconSize="xl"
+            iconBefore={<DotsThreeVerticalIcon weight="bold" />}
+            tooltip="More actions"
+            {...triggerProps}
+          />
+        )}
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" sideOffset={8}>
+        <DropdownMenuItem onClick={handleDuplicate}>Duplicate</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => deleteSelectedObjects(toolApi)}>
+          Delete
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          disabled={!canBringToFront}
+          onClick={() => toolApi.bringObjectsToFront(selectedObjectIds)}
+        >
+          Bring to front
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          disabled={!canSendToBack}
+          onClick={() => toolApi.sendObjectsToBack(selectedObjectIds)}
+        >
+          Send to back
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

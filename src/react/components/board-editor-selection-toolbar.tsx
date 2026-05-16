@@ -136,7 +136,6 @@ export function BoardEditorSelectionToolbar({
         <BoardEditorToolbar className={className}>
           <BoardEditorSelectionActionsMenu
             selectedObjectIds={selectedObjects.map((object) => object.id)}
-            showSeparator={false}
           />
         </BoardEditorToolbar>
       </BoardEditorSelectionToolbarPositioner>

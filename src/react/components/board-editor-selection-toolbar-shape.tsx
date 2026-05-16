@@ -16,6 +16,7 @@ import {
   BoardEditorToolbar,
   BoardEditorToolbarOptionButton,
   BoardEditorToolbarPopoverButton,
+  BoardEditorToolbarSeparator,
 } from "./board-editor-toolbar";
 import { BoardEditorSelectionToolbarPositioner } from "./board-editor-selection-toolbar-positioner";
 import type { BoardEditorSelectionToolbarRendererProps } from "./board-editor-selection-toolbar-types";
@@ -266,7 +267,6 @@ export function BoardEditorShapeSelectionToolbar({
         <BoardEditorToolbarPopoverButton
           ariaLabel="Shape color"
           tooltip={`Color: ${selectedObject.props.color}`}
-          showCaret={false}
           content={
             <ColorPicker
               value={selectedObject.props.color}
@@ -343,9 +343,8 @@ export function BoardEditorShapeSelectionToolbar({
           }
           icon={<LineSegmentsIcon weight="bold" />}
         />
-        <BoardEditorSelectionActionsMenu
-          selectedObjectIds={[selectedObject.id]}
-        />
+        <BoardEditorToolbarSeparator />
+        <BoardEditorSelectionActionsMenu selectedObjectIds={[selectedObject.id]} />
       </BoardEditorToolbar>
     </BoardEditorSelectionToolbarPositioner>
   );

@@ -7,6 +7,7 @@ import { useBoardEditorContext } from "./board-editor-context";
 import {
   BoardEditorToolbar,
   BoardEditorToolbarPopoverButton,
+  BoardEditorToolbarSeparator,
 } from "./board-editor-toolbar";
 import { BoardEditorSelectionToolbarPositioner } from "./board-editor-selection-toolbar-positioner";
 import { BoardEditorSelectionActionsMenu } from "./board-editor-selection-actions-menu";
@@ -47,7 +48,6 @@ export function BoardEditorEquipmentSelectionToolbar({
           <BoardEditorToolbarPopoverButton
             ariaLabel="Equipment color"
             tooltip={`Color: ${selectedObject.props.color ?? selectedObject.props.definition.color ?? "default"}`}
-            showCaret={false}
             content={
               <ColorPicker
                 value={
@@ -78,9 +78,9 @@ export function BoardEditorEquipmentSelectionToolbar({
             }
           />
         ) : null}
+        {capabilities.color ? <BoardEditorToolbarSeparator /> : null}
         <BoardEditorSelectionActionsMenu
           selectedObjectIds={[selectedObject.id]}
-          showSeparator={capabilities.color === true}
         />
       </BoardEditorToolbar>
     </BoardEditorSelectionToolbarPositioner>
