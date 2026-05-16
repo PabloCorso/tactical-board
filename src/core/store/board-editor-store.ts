@@ -84,11 +84,7 @@ function translateObject(
   object: BoardObject,
   delta: Point,
 ): BoardObject {
-  return moveBoardObject(
-    state,
-    object,
-    delta,
-  );
+  return moveBoardObject(state, object, delta);
 }
 
 function createHistoryEntry(

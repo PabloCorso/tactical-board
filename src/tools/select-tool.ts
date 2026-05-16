@@ -83,7 +83,10 @@ type GroupSelectionHandle =
 type GroupSelectionOverlayItem = {
   kind: typeof GROUP_SELECTION_OVERLAY_KIND;
   objects: BoardObject[];
-  selectionAdaptersByObjectId: Record<string, ObjectSelectionAdapter | undefined>;
+  selectionAdaptersByObjectId: Record<
+    string,
+    ObjectSelectionAdapter | undefined
+  >;
   color: string;
   canRotate: boolean;
   rotation?: number;
@@ -275,14 +278,18 @@ function createMarqueeOverlayItem(
 function getGroupSelectionCanvasBounds(
   projection: SelectionProjection,
   objects: BoardObject[],
-  selectionAdaptersByObjectId?: Record<string, ObjectSelectionAdapter | undefined>,
+  selectionAdaptersByObjectId?: Record<
+    string,
+    ObjectSelectionAdapter | undefined
+  >,
 ) {
   const bounds = objects.map((object) => {
-    const selectionBounds =
-      selectionAdaptersByObjectId?.[object.id]?.getCanvasBounds?.({
-        object,
-        projection,
-      });
+    const selectionBounds = selectionAdaptersByObjectId?.[
+      object.id
+    ]?.getCanvasBounds?.({
+      object,
+      projection,
+    });
 
     if (selectionBounds) {
       return selectionBounds;
@@ -446,9 +453,7 @@ function getGroupSelectionOutlineCanvasPoints(
       overlay.selectionAdaptersByObjectId,
     );
 
-    return canvasBounds
-      ? getGroupSelectionCanvasPoints(canvasBounds)
-      : [];
+    return canvasBounds ? getGroupSelectionCanvasPoints(canvasBounds) : [];
   }
 
   const center = {
@@ -510,10 +515,7 @@ function isGroupSelectionChromeHit(
   objects: BoardObject[],
   event: ToolPointerEvent,
 ) {
-  if (
-    objects.length <= 1 ||
-    objects.some((object) => object.locked)
-  ) {
+  if (objects.length <= 1 || objects.some((object) => object.locked)) {
     return false;
   }
 
@@ -538,8 +540,10 @@ function isGroupSelectionChromeHit(
 
   for (const handlePoint of corners) {
     if (
-      Math.hypot(canvasPoint.x - handlePoint.x, canvasPoint.y - handlePoint.y) <=
-      GROUP_SELECTION_HANDLE_HIT_RADIUS_PX
+      Math.hypot(
+        canvasPoint.x - handlePoint.x,
+        canvasPoint.y - handlePoint.y,
+      ) <= GROUP_SELECTION_HANDLE_HIT_RADIUS_PX
     ) {
       return true;
     }
@@ -586,10 +590,10 @@ function createGroupSelectionOverlayItem(
       ? selectState.interaction
       : undefined;
   const canRotate = objects.every((object) => {
-    const transformCapabilities =
-      getObjectSelectionAdapterForObject(state, object)?.getTransformCapabilities?.(
-        object,
-      );
+    const transformCapabilities = getObjectSelectionAdapterForObject(
+      state,
+      object,
+    )?.getTransformCapabilities?.(object);
 
     return transformCapabilities?.rotate !== false;
   });
@@ -648,7 +652,9 @@ function createSelectionOverlayItems(
 
 function getSelectOverlayItems(
   state: BoardEditorState,
-): Array<CanvasRectOverlayItem | SelectionOverlayItem | GroupSelectionOverlayItem> {
+): Array<
+  CanvasRectOverlayItem | SelectionOverlayItem | GroupSelectionOverlayItem
+> {
   const selectState = getSelectToolState(state.toolState);
   const accentColor = getSelectionAccentColor(state, selectState);
 
@@ -947,10 +953,7 @@ function hitGroupSelectionHandle(
   objects: BoardObject[],
   event: ToolPointerEvent,
 ): GroupSelectionSession | undefined {
-  if (
-    objects.length <= 1 ||
-    objects.some((object) => object.locked)
-  ) {
+  if (objects.length <= 1 || objects.some((object) => object.locked)) {
     return undefined;
   }
 
@@ -962,9 +965,8 @@ function hitGroupSelectionHandle(
   );
   const canRotate = objects.every(
     (object) =>
-      selectionAdaptersByObjectId[object.id]?.getTransformCapabilities?.(
-        object,
-      )?.rotate !== false,
+      selectionAdaptersByObjectId[object.id]?.getTransformCapabilities?.(object)
+        ?.rotate !== false,
   );
   const canvasBounds = getGroupSelectionCanvasBounds(
     projection,
@@ -1012,9 +1014,7 @@ function hitGroupSelectionHandle(
           x:
             event.point.x -
             (index === 1 || index === 2 ? worldBounds.maxX : worldBounds.minX),
-          y:
-            event.point.y -
-            (index >= 2 ? worldBounds.maxY : worldBounds.minY),
+          y: event.point.y - (index >= 2 ? worldBounds.maxY : worldBounds.minY),
         },
       };
     }
@@ -1224,9 +1224,10 @@ function updateGroupSelectionInteraction(
     api.updateObjects(interaction.selectedObjectIds, (object) => {
       const initialObject = object ? initialObjectsById[object.id] : undefined;
       const transformCapabilities = object
-        ? getObjectSelectionAdapterForObject(api.getState(), object)?.getTransformCapabilities?.(
+        ? getObjectSelectionAdapterForObject(
+            api.getState(),
             object,
-          )
+          )?.getTransformCapabilities?.(object)
         : undefined;
 
       if (

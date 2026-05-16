@@ -60,13 +60,10 @@ const shapeObjectDefinition = defineObjectDefinition({
         center,
         rotationDelta,
       );
-      const movedShape = moveShapeObject(
-        object,
-        {
-          x: nextPosition.x - object.position.x,
-          y: nextPosition.y - object.position.y,
-        },
-      );
+      const movedShape = moveShapeObject(object, {
+        x: nextPosition.x - object.position.x,
+        y: nextPosition.y - object.position.y,
+      });
 
       return rotateShapeObject(
         movedShape,

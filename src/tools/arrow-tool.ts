@@ -138,7 +138,10 @@ export class ArrowTool extends BoardEditorTool implements ToolDefinition {
     const state = api.getState();
     const arrowState = getArrowToolState(state.toolState);
 
-    if (arrowState.pendingPoints.length !== 1 || !event.draggedSincePointerDown) {
+    if (
+      arrowState.pendingPoints.length !== 1 ||
+      !event.draggedSincePointerDown
+    ) {
       return;
     }
 
@@ -356,8 +359,7 @@ export function renderArrow({
   for (const polyline of getArrowBodyPolylines({
     start: pathStart,
     end: pathEnd,
-    controlPoint:
-      arrow.props.bodyStyle === "curved" ? controlPoint : undefined,
+    controlPoint: arrow.props.bodyStyle === "curved" ? controlPoint : undefined,
     bodyStyle: arrow.props.bodyStyle,
     styleScale: surfaceTransform.zoom,
   })) {

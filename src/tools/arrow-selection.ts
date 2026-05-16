@@ -151,11 +151,11 @@ export function getArrowSelectionCanvasBounds(
   const bodyPoints = getArrowBodyPolylines({
     start: pathStart,
     end: pathEnd,
-    controlPoint: arrow.props.bodyStyle === "curved" ? controlCanvas : undefined,
+    controlPoint:
+      arrow.props.bodyStyle === "curved" ? controlCanvas : undefined,
     bodyStyle: arrow.props.bodyStyle,
     styleScale,
-  })
-    .flat();
+  }).flat();
   const points = [...bodyPoints, ...headPoints];
   const padding = Math.max(bodyStrokeWidth / 2, 1);
 

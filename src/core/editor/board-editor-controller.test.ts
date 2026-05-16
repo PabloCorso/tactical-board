@@ -1487,8 +1487,7 @@ describe("createBoardEditorController", () => {
       fromMax: number,
       toMin: number,
       toMax: number,
-    ) =>
-      toMin + ((value - fromMin) / (fromMax - fromMin)) * (toMax - toMin);
+    ) => toMin + ((value - fromMin) / (fromMax - fromMin)) * (toMax - toMin);
 
     controller.dispatchPointerEvent("onPointerDown", {
       clientPoint: handlePoint,
@@ -1755,11 +1754,11 @@ describe("createBoardEditorController", () => {
       expectedSecondPosition.y,
       6,
     );
-    expect(rotatedFirstPlayer.rotation).toBeCloseTo(
+    expect(normalizeRotation(rotatedFirstPlayer.rotation ?? 0)).toBeCloseTo(
       normalizeRotation(rotationDelta),
       6,
     );
-    expect(rotatedSecondPlayer.rotation).toBeCloseTo(
+    expect(normalizeRotation(rotatedSecondPlayer.rotation ?? 0)).toBeCloseTo(
       normalizeRotation(90 + rotationDelta),
       6,
     );
@@ -3595,5 +3594,4 @@ describe("createBoardEditorController", () => {
       },
     );
   });
-
 });

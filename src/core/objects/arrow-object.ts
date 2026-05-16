@@ -302,11 +302,7 @@ export function getArrowBodyStrokeWidth(
 export function getArrowBodyPolylines(
   props: Pick<
     ArrowObjectProps,
-    | "start"
-    | "end"
-    | "controlPoint"
-    | "curveOffset"
-    | "bodyStyle"
+    "start" | "end" | "controlPoint" | "curveOffset" | "bodyStyle"
   > & {
     styleScale?: number;
   },
@@ -353,11 +349,7 @@ export function getArrowBodyPolylines(
 function getArrowBodyPoints(
   props: Pick<
     ArrowObjectProps,
-    | "start"
-    | "end"
-    | "controlPoint"
-    | "curveOffset"
-    | "bodyStyle"
+    "start" | "end" | "controlPoint" | "curveOffset" | "bodyStyle"
   >,
 ) {
   return getArrowBodyPolylines(props).flat();
