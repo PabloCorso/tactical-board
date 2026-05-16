@@ -1,12 +1,7 @@
-import {
-  updateTextObject,
-  type TextObject,
-} from "../../core/objects/text-object";
+import { useState } from "react";
+import type { TextObject } from "../../core/objects/text-object";
 import { createToolApi } from "../../core/editor/create-tool-api";
-import {
-  getTextAnchorPosition,
-  updateAnchoredTextObject,
-} from "../../tools/text-layout";
+import { updateTextObjectFromAnchor } from "../../core/editor/text-editing";
 import { useBoardEditorContext } from "./board-editor-context";
 import {
   BoardEditorToolbar,
@@ -28,31 +23,24 @@ export function BoardEditorTextSelectionToolbar({
 }: BoardEditorSelectionToolbarRendererProps<TextObject>) {
   const store = useBoardEditorContext();
   const toolApi = createToolApi(store);
+  const [fontSizeAnchor, setFontSizeAnchor] = useState<{
+    left: number;
+    top: number;
+    bottom: number;
+  } | null>(null);
 
-  const updateText = (input: Parameters<typeof updateTextObject>[1]) => {
-    const state = toolApi.getState();
-    const anchorPosition = state.ui.canvasRect
-      ? getTextAnchorPosition(selectedObject, state, state.ui.canvasRect)
-      : undefined;
+  const updateText = (input: Partial<TextObject["props"]>) =>
+    updateTextObjectFromAnchor(toolApi, selectedObject.id, input);
 
-    toolApi.updateObjects([selectedObject.id], (object) =>
-      anchorPosition && state.ui.canvasRect
-        ? updateAnchoredTextObject(
-            object as TextObject,
-            input,
-            anchorPosition,
-            state,
-            state.ui.canvasRect,
-          )
-        : updateTextObject(object as TextObject, input),
-    );
-  };
+  const anchorLeft = fontSizeAnchor?.left ?? toolbarLeft;
+  const anchorTop = fontSizeAnchor?.top ?? toolbarTop;
+  const anchorBottom = fontSizeAnchor?.bottom ?? toolbarBottom;
 
   return (
     <BoardEditorSelectionToolbarPositioner
-      anchorLeft={toolbarLeft}
-      anchorTop={toolbarTop}
-      anchorBottom={toolbarBottom}
+      anchorLeft={anchorLeft}
+      anchorTop={anchorTop}
+      anchorBottom={anchorBottom}
       viewportWidth={viewportWidth}
       viewportHeight={viewportHeight}
     >
@@ -64,8 +52,16 @@ export function BoardEditorTextSelectionToolbar({
             className="text-primary w-14 bg-transparent text-center text-sm font-medium outline-none"
             min={12}
             max={144}
+            onBlur={() => setFontSizeAnchor(null)}
             onChange={(event) =>
               updateText({ fontSize: Number(event.target.value) || 12 })
+            }
+            onFocus={() =>
+              setFontSizeAnchor({
+                left: toolbarLeft,
+                top: toolbarTop,
+                bottom: toolbarBottom,
+              })
             }
             type="number"
             value={selectedObject.props.fontSize}

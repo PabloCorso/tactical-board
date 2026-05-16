@@ -13,17 +13,15 @@ import {
   TEXT_HORIZONTAL_PADDING_PX,
   TEXT_LINE_HEIGHT_RATIO,
   TEXT_VERTICAL_PADDING_PX,
-  isTextObjectEmpty,
-  type TextObject,
 } from "../../core/objects/text-object";
 import { useBoardEditorCanvas } from "../hooks/use-board-editor-canvas";
 import { useBoardEditorStore } from "../hooks/use-board-editor-store";
-import { setSelectedObjectIds } from "../../tools/select-tool-actions";
 import {
-  createTextToolProjection,
-  updateAnchoredTextObject,
-} from "../../tools/text-layout";
-import { getTextToolState, TEXT_TOOL_ID } from "../../tools/text-tool-state";
+  finishTextEditingSession,
+  getTextEditorOverlayState,
+  updateActiveTextEditingText,
+} from "../../core/editor/text-editing";
+import { TEXT_TOOL_ID } from "../../tools/text-tool-state";
 import {
   BoardEditorContext,
   useBoardEditorContext,
@@ -104,13 +102,8 @@ function BoardEditorTextEditorOverlay() {
   const toolApi = useMemo(() => createToolApi(store), [store]);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const state = useBoardEditorStore(store, (currentState) => currentState);
-  const textState = getTextToolState(state.toolState);
-  const editingSession = textState.editingSession;
-  const object =
-    editingSession &&
-    state.board.objects.byId[editingSession.objectId]?.type === "text"
-      ? (state.board.objects.byId[editingSession.objectId] as TextObject)
-      : undefined;
+  const overlayState = useMemo(() => getTextEditorOverlayState(state), [state]);
+  const editingSession = overlayState?.session;
 
   useLayoutEffect(() => {
     const textarea = textareaRef.current;
@@ -130,16 +123,11 @@ function BoardEditorTextEditorOverlay() {
     };
   }, [editingSession]);
 
-  if (!editingSession || !object || !state.ui.canvasRect) {
+  if (!overlayState) {
     return null;
   }
 
-  const projection = createTextToolProjection(state, state.ui.canvasRect);
-  const anchorCanvasPoint = projection.worldToCanvas(
-    editingSession.anchorPosition,
-  );
-  const objectBounds = projection.getObjectCanvasBounds(object);
-  const scale = projection.pixelsPerUnit / object.props.referencePixelsPerUnit;
+  const { anchorCanvasPoint, object, objectBounds, scale } = overlayState;
   const horizontalPadding = TEXT_HORIZONTAL_PADDING_PX * scale;
   const verticalPadding = TEXT_VERTICAL_PADDING_PX * scale;
   const contentWidth = Math.max(1, objectBounds.width - horizontalPadding);
@@ -169,58 +157,10 @@ function BoardEditorTextEditorOverlay() {
       ref={textareaRef}
       aria-label="Text editor"
       className="absolute z-20 m-0 resize-none overflow-hidden border-0 bg-transparent p-0 font-normal outline-none"
-      onBlur={() => {
-        const nextState = toolApi.getState();
-        const nextTextState = getTextToolState(nextState.toolState);
-        const nextEditingSession = nextTextState.editingSession;
-
-        if (!nextEditingSession) {
-          return;
-        }
-
-        const nextObject =
-          nextState.board.objects.byId[nextEditingSession.objectId];
-        if (
-          nextObject?.type === "text" &&
-          isTextObjectEmpty(nextObject as TextObject)
-        ) {
-          toolApi.deleteObjects([nextEditingSession.objectId]);
-          setSelectedObjectIds(toolApi, []);
-        }
-
-        toolApi.setToolState(TEXT_TOOL_ID, {
-          ...nextTextState,
-          editingSession: undefined,
-        });
-      }}
-      onChange={(event) => {
-        const nextState = toolApi.getState();
-        const nextTextState = getTextToolState(nextState.toolState);
-        const nextEditingSession = nextTextState.editingSession;
-        const nextObject = nextEditingSession
-          ? nextState.board.objects.byId[nextEditingSession.objectId]
-          : undefined;
-        const canvasRect = nextState.ui.canvasRect;
-
-        if (
-          !nextEditingSession ||
-          !nextObject ||
-          nextObject.type !== "text" ||
-          !canvasRect
-        ) {
-          return;
-        }
-
-        toolApi.updateObjects([nextObject.id], (currentObject) =>
-          updateAnchoredTextObject(
-            currentObject as TextObject,
-            { text: event.target.value },
-            nextEditingSession.anchorPosition,
-            nextState,
-            canvasRect,
-          ),
-        );
-      }}
+      onBlur={() => finishTextEditingSession(toolApi)}
+      onChange={(event) =>
+        updateActiveTextEditingText(toolApi, event.target.value)
+      }
       onKeyDown={(event) => {
         if (event.key === "Escape") {
           event.preventDefault();

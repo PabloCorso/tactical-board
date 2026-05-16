@@ -1,11 +1,12 @@
 import { defineObjectDefinition } from "../core/objects/types";
 import {
+  getTextLineMetrics,
   getWrappedTextLines,
-  isTextObjectEmpty,
   TEXT_FONT_FAMILY,
   TEXT_FONT_WEIGHT,
   TEXT_HORIZONTAL_PADDING_PX,
   TEXT_LINE_HEIGHT_RATIO,
+  TEXT_VERTICAL_PADDING_PX,
   TEXT_OBJECT_TYPE,
   type TextObject,
 } from "../core/objects/text-object";
@@ -13,7 +14,6 @@ import type {
   CanvasObjectHitTestInput,
   CanvasObjectRenderInput,
 } from "../rendering/canvas/types";
-import type { BoardEditorState } from "../core/editor/types";
 import { BoardEditorTool } from "../core/tools/tool";
 import type { ToolApi, ToolDefinition } from "../core/tools/types";
 import { clearSelection, setSelectedObjectIds } from "./select-tool-actions";
@@ -21,10 +21,13 @@ import {
   DEFAULT_TEXT_TOOL_STATE,
   getTextToolState,
   TEXT_TOOL_ID,
-  type TextEditingSession,
 } from "./text-tool-state";
-import { createAnchoredTextObject, getTextAnchorPosition } from "./text-layout";
+import { createAnchoredTextObject } from "./text-layout";
 import { textSelectionAdapter } from "./text-selection";
+import {
+  beginTextEditingSession,
+  finishTextEditingSession,
+} from "../core/editor/text-editing";
 
 const textObjectDefinition = defineObjectDefinition({
   type: TEXT_OBJECT_TYPE,
@@ -32,7 +35,7 @@ const textObjectDefinition = defineObjectDefinition({
   beginEditing: ({ object, state, canvasRect }) => {
     const textObject = object as TextObject;
 
-    startTextEditingSession({
+    beginTextEditingSession({
       state,
       object: textObject,
       canvasRect,
@@ -83,7 +86,7 @@ export class TextTool extends BoardEditorTool implements ToolDefinition {
 
     if (targetObject?.type === TEXT_OBJECT_TYPE) {
       setSelectedObjectIds(api, [targetObject.id]);
-      startTextEditingSession({
+      beginTextEditingSession({
         state,
         object: targetObject as TextObject,
         canvasRect: event.canvasRect,
@@ -108,9 +111,10 @@ export class TextTool extends BoardEditorTool implements ToolDefinition {
 
     api.addObjects([textObject]);
     setSelectedObjectIds(api, [textObject.id]);
-    setTextEditingSession(api, {
-      objectId: textObject.id,
-      anchorPosition: event.point,
+    beginTextEditingSession({
+      state: api.getState(),
+      object: textObject,
+      canvasRect: event.canvasRect,
     });
   }
 
@@ -153,8 +157,11 @@ export function renderText({
     canvasWrapWidth,
   );
   const lineHeight = canvasFontSize * TEXT_LINE_HEIGHT_RATIO;
-  const blockHeight = lineHeight * lines.length;
+  const lineMetrics = getTextLineMetrics(canvasFontSize);
   const horizontalPadding = (TEXT_HORIZONTAL_PADDING_PX * scale) / 2;
+  const verticalPadding = (TEXT_VERTICAL_PADDING_PX * scale) / 2;
+  const firstBaselineOffset =
+    verticalPadding + lineMetrics.topInset + lineMetrics.ascent;
 
   context.save();
   context.globalAlpha = appearance === "preview" ? 0.55 : 1;
@@ -163,13 +170,13 @@ export function renderText({
   context.fillStyle = textObject.props.color;
   context.font = `${TEXT_FONT_WEIGHT} ${canvasFontSize}px ${TEXT_FONT_FAMILY}`;
   context.textAlign = "left";
-  context.textBaseline = "top";
+  context.textBaseline = "alphabetic";
 
   lines.forEach((line, index) => {
     context.fillText(
       line,
       -bounds.width / 2 + horizontalPadding,
-      -blockHeight / 2 + index * lineHeight,
+      -bounds.height / 2 + firstBaselineOffset + index * lineHeight,
     );
   });
 
@@ -198,56 +205,4 @@ export function hitTestText({
     Math.abs(rotatedPoint.x) <= bounds.width / 2 + hitPadding &&
     Math.abs(rotatedPoint.y) <= bounds.height / 2 + hitPadding
   );
-}
-
-function setTextEditingSession(
-  api: ToolApi,
-  editingSession?: TextEditingSession,
-) {
-  const textState = getTextToolState(api.getState().toolState);
-
-  api.setToolState(TEXT_TOOL_ID, {
-    ...textState,
-    editingSession,
-  });
-}
-
-export function startTextEditingSession({
-  state,
-  object,
-  canvasRect,
-}: {
-  state: Pick<BoardEditorState, "board" | "ui" | "toolState" | "actions">;
-  object: TextObject;
-  canvasRect: { width: number; height: number };
-}) {
-  const textState = getTextToolState(state.toolState);
-
-  state.actions.setToolState(TEXT_TOOL_ID, {
-    ...textState,
-    editingSession: {
-      objectId: object.id,
-      anchorPosition: getTextAnchorPosition(object, state, canvasRect),
-    },
-  });
-}
-
-function finishTextEditingSession(api: ToolApi) {
-  const state = api.getState();
-  const editingSession = getTextToolState(state.toolState).editingSession;
-
-  if (!editingSession) {
-    return;
-  }
-
-  const object = state.board.objects.byId[editingSession.objectId];
-  if (
-    object?.type === TEXT_OBJECT_TYPE &&
-    isTextObjectEmpty(object as TextObject)
-  ) {
-    api.deleteObjects([editingSession.objectId]);
-    setSelectedObjectIds(api, []);
-  }
-
-  setTextEditingSession(api, undefined);
 }

@@ -14,6 +14,14 @@ export const TEXT_VERTICAL_PADDING_PX = 8;
 export const MIN_TEXT_CONTENT_WIDTH_PX = 10;
 export const DEFAULT_TEXT_REFERENCE_PIXELS_PER_UNIT = 10;
 
+export type TextLineMetrics = {
+  ascent: number;
+  descent: number;
+  glyphHeight: number;
+  lineHeight: number;
+  topInset: number;
+};
+
 export interface TextObjectProps extends Record<string, unknown> {
   text: string;
   color: string;
@@ -132,6 +140,45 @@ function measureTextWidth(text: string, fontSize: number) {
   );
 }
 
+export function getTextLineMetrics(fontSize: number): TextLineMetrics {
+  const fallbackAscent = fontSize * 0.8;
+  const fallbackDescent = fontSize * 0.2;
+  const lineHeight = fontSize * TEXT_LINE_HEIGHT_RATIO;
+  const context = getTextMeasureContext();
+
+  if (!context) {
+    const glyphHeight = fallbackAscent + fallbackDescent;
+
+    return {
+      ascent: fallbackAscent,
+      descent: fallbackDescent,
+      glyphHeight,
+      lineHeight,
+      topInset: (lineHeight - glyphHeight) / 2,
+    };
+  }
+
+  context.font = `${TEXT_FONT_WEIGHT} ${fontSize}px ${TEXT_FONT_FAMILY}`;
+  const metrics = context.measureText("Mg");
+  const ascent =
+    metrics.actualBoundingBoxAscent > 0
+      ? metrics.actualBoundingBoxAscent
+      : fallbackAscent;
+  const descent =
+    metrics.actualBoundingBoxDescent > 0
+      ? metrics.actualBoundingBoxDescent
+      : fallbackDescent;
+  const glyphHeight = ascent + descent;
+
+  return {
+    ascent,
+    descent,
+    glyphHeight,
+    lineHeight,
+    topInset: (lineHeight - glyphHeight) / 2,
+  };
+}
+
 function splitTokenToFitWidth(
   token: string,
   fontSize: number,
@@ -234,6 +281,7 @@ export function getTextBoxSize(
   );
   const lines = getWrappedTextLines(text, fontSize, wrapWidth);
   const normalizedWrapWidth = normalizeWrapWidth(wrapWidth);
+  const lineMetrics = getTextLineMetrics(fontSize);
   const contentWidth =
     normalizedWrapWidth ??
     Math.max(
@@ -246,8 +294,7 @@ export function getTextBoxSize(
       (contentWidth + TEXT_HORIZONTAL_PADDING_PX) /
       normalizedReferencePixelsPerUnit,
     height:
-      (lines.length * fontSize * TEXT_LINE_HEIGHT_RATIO +
-        TEXT_VERTICAL_PADDING_PX) /
+      (lines.length * lineMetrics.lineHeight + TEXT_VERTICAL_PADDING_PX) /
       normalizedReferencePixelsPerUnit,
     mode: "world" as const,
   };
