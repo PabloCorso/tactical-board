@@ -54,11 +54,25 @@ export type BoardEditorToolbarButtonProps = ButtonProps & {
   tooltip?: ReactNode;
 };
 
+function focusEditorCanvasFromElement(element: HTMLElement | null) {
+  const root = element?.closest("[data-board-editor-root]");
+  const canvas = root?.querySelector("canvas");
+
+  if (!(canvas instanceof HTMLCanvasElement)) {
+    return;
+  }
+
+  requestAnimationFrame(() => {
+    canvas.focus();
+  });
+}
+
 export function BoardEditorToolbarButton({
   active = false,
   "aria-label": ariaLabel,
   tooltip,
   iconSize = "xl",
+  onClick,
   ...props
 }: BoardEditorToolbarButtonProps) {
   return (
@@ -67,6 +81,10 @@ export function BoardEditorToolbarButton({
         <Button
           variant={active ? "outline" : "ghost"}
           iconSize={iconSize}
+          onClick={(event) => {
+            onClick?.(event);
+            focusEditorCanvasFromElement(event.currentTarget);
+          }}
           {...props}
         />
       </TooltipTrigger>
@@ -166,7 +184,10 @@ export function BoardEditorToolbarOptionButton({
       aria-pressed={active}
       iconBefore={icon}
       iconSize="xl"
-      onClick={onClick}
+      onClick={(event) => {
+        onClick();
+        focusEditorCanvasFromElement(event.currentTarget);
+      }}
     />
   );
 }

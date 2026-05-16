@@ -58,6 +58,7 @@ export function BoardEditorProvider({
 export function BoardEditor({ children, className }: BoardEditorProps) {
   return (
     <div
+      data-board-editor-root
       className={cn(
         "flex min-h-full w-full min-w-0 flex-1 flex-col",
         className,
@@ -95,6 +96,19 @@ export function BoardEditorCanvas({
       <BoardEditorTextEditorOverlay />
     </div>
   );
+}
+
+function focusEditorCanvasFromElement(element: HTMLElement | null) {
+  const root = element?.closest("[data-board-editor-root]");
+  const canvas = root?.querySelector("canvas");
+
+  if (!(canvas instanceof HTMLCanvasElement)) {
+    return;
+  }
+
+  requestAnimationFrame(() => {
+    canvas.focus();
+  });
 }
 
 function BoardEditorTextEditorOverlay() {
@@ -164,7 +178,8 @@ function BoardEditorTextEditorOverlay() {
       onKeyDown={(event) => {
         if (event.key === "Escape") {
           event.preventDefault();
-          event.currentTarget.blur();
+          finishTextEditingSession(toolApi);
+          focusEditorCanvasFromElement(event.currentTarget);
         }
       }}
       rows={Math.max(1, object.props.text.split("\n").length)}

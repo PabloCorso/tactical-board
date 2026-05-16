@@ -170,6 +170,7 @@ export function createBoardEditorStore({
     },
     ui: {
       activeToolId,
+      defaultToolId: activeToolId,
       canvasRect: undefined,
       viewport: {
         pan: { x: 0, y: 0 },

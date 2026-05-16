@@ -7,6 +7,7 @@ import type { ToolDefinition } from "../tools/types";
 import { DEFAULT_VIEWPORT, getViewportToFitSurface } from "./viewport-utils";
 import {
   deleteSelectedObjects,
+  clearSelection,
   setSelectedObjectIds,
   selectAllObjects,
 } from "../../tools/select-tool-actions";
@@ -15,6 +16,8 @@ import {
   SELECT_TOOL_ID,
 } from "../../tools/select-tool-state";
 import { TEXT_TOOL_ID } from "../../tools/text-tool-state";
+import { ARROW_TOOL_ID, getArrowToolState } from "../../tools/arrow-tool-state";
+import { getShapeToolState, SHAPE_TOOL_ID } from "../../tools/shape-tool-state";
 
 export interface BoardEditorRuntime {
   mount: (canvas: HTMLCanvasElement) => void;
@@ -293,6 +296,13 @@ export function createBoardEditorRuntime({
   };
 
   const onKeyDown = (event: KeyboardEvent) => {
+    if (event.key === "Escape") {
+      if (handleEscapeKey()) {
+        event.preventDefault();
+      }
+      return;
+    }
+
     if (
       (event.key === "Delete" || event.key === "Backspace") &&
       !event.metaKey &&
@@ -344,6 +354,49 @@ export function createBoardEditorRuntime({
       selectAllObjects(toolApi);
       event.preventDefault();
     }
+  };
+
+  const handleEscapeKey = () => {
+    const state = store.getState();
+    const { activeToolId, defaultToolId } = state.ui;
+
+    if (activeToolId === ARROW_TOOL_ID) {
+      const arrowState = getArrowToolState(state.toolState);
+
+      if (arrowState.pendingPoints.length > 0) {
+        store.getState().actions.setToolState(ARROW_TOOL_ID, {
+          ...arrowState,
+          pendingPoints: [],
+        });
+        store.getState().actions.clearPreviewObjects();
+        return true;
+      }
+    }
+
+    if (activeToolId === SHAPE_TOOL_ID) {
+      const shapeState = getShapeToolState(state.toolState);
+
+      if (shapeState.pendingPoints.length > 0) {
+        store.getState().actions.setToolState(SHAPE_TOOL_ID, {
+          ...shapeState,
+          pendingPoints: [],
+        });
+        store.getState().actions.clearPreviewObjects();
+        return true;
+      }
+    }
+
+    if (activeToolId !== defaultToolId) {
+      store.getState().actions.setActiveTool(defaultToolId);
+      return true;
+    }
+
+    if (activeToolId === SELECT_TOOL_ID) {
+      clearSelection(toolApi);
+      return true;
+    }
+
+    return false;
   };
 
   return {

@@ -6,6 +6,8 @@ import * as canvasRendererModule from "../../rendering/canvas/create-canvas-rend
 import { getViewportToFitSurface } from "./viewport-utils";
 import { createToolApi } from "./create-tool-api";
 import { setSelectedObjectIds } from "../../tools/select-tool-actions";
+import { ArrowTool } from "../../tools/arrow-tool";
+import { ARROW_TOOL_ID, getArrowToolState } from "../../tools/arrow-tool-state";
 import { TextTool } from "../../tools/text-tool";
 import { createTextObject } from "../objects/text-object";
 import { getTextToolState } from "../../tools/text-tool-state";
@@ -518,6 +520,235 @@ describe("createBoardEditorRuntime", () => {
       selectedObjectIds: [],
     });
     expect(deleteEvent.preventDefault).toHaveBeenCalledTimes(1);
+
+    runtime.unmount();
+    vi.unstubAllGlobals();
+    globalThis.requestAnimationFrame = originalRequestAnimationFrame;
+    globalThis.cancelAnimationFrame = originalCancelAnimationFrame;
+  });
+
+  it("cancels an unfinished arrow when Escape is pressed on the focused canvas", () => {
+    const arrowTool = new ArrowTool();
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      initialToolId: ARROW_TOOL_ID,
+      tools: [
+        {
+          id: SELECT_TOOL_ID,
+          label: "Select",
+        },
+        arrowTool,
+      ],
+    });
+    const runtime = createBoardEditorRuntime({ store });
+    const canvas = createCanvasStub();
+    const originalRequestAnimationFrame = globalThis.requestAnimationFrame;
+    const originalCancelAnimationFrame = globalThis.cancelAnimationFrame;
+    vi.stubGlobal(
+      "requestAnimationFrame",
+      vi.fn(() => 1),
+    );
+    vi.stubGlobal("cancelAnimationFrame", vi.fn());
+
+    runtime.mount(canvas);
+    store.getState().actions.setToolState(ARROW_TOOL_ID, {
+      ...getArrowToolState(store.getState().toolState),
+      pendingPoints: [{ x: 10, y: 12 }],
+    });
+    store.getState().actions.setPreviewObjects([
+      {
+        id: "preview-arrow",
+        type: "arrow",
+        position: { x: 0, y: 0 },
+        props: {},
+      },
+    ]);
+
+    const keyDownHandler = vi
+      .mocked(canvas.addEventListener)
+      .mock.calls.find(([eventName]) => eventName === "keydown")?.[1] as
+      | ((event: KeyboardEvent) => void)
+      | undefined;
+
+    expect(keyDownHandler).toBeTypeOf("function");
+
+    const escapeEvent = {
+      key: "Escape",
+      metaKey: false,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      preventDefault: vi.fn(),
+    } as unknown as KeyboardEvent;
+
+    keyDownHandler?.(escapeEvent);
+
+    expect(store.getState().ui.activeToolId).toBe(ARROW_TOOL_ID);
+    expect(getArrowToolState(store.getState().toolState).pendingPoints).toEqual(
+      [],
+    );
+    expect(store.getState().rendering.previewObjects).toEqual([]);
+    expect(escapeEvent.preventDefault).toHaveBeenCalledTimes(1);
+
+    runtime.unmount();
+    vi.unstubAllGlobals();
+    globalThis.requestAnimationFrame = originalRequestAnimationFrame;
+    globalThis.cancelAnimationFrame = originalCancelAnimationFrame;
+  });
+
+  it("switches back to the default tool when Escape is pressed outside select", () => {
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      initialToolId: "draw",
+      tools: [
+        {
+          id: SELECT_TOOL_ID,
+          label: "Select",
+        },
+        {
+          id: "draw",
+          label: "Draw",
+        },
+        {
+          id: "measure",
+          label: "Measure",
+        },
+      ],
+    });
+    const runtime = createBoardEditorRuntime({ store });
+    const canvas = createCanvasStub();
+    const originalRequestAnimationFrame = globalThis.requestAnimationFrame;
+    const originalCancelAnimationFrame = globalThis.cancelAnimationFrame;
+    vi.stubGlobal(
+      "requestAnimationFrame",
+      vi.fn(() => 1),
+    );
+    vi.stubGlobal("cancelAnimationFrame", vi.fn());
+
+    runtime.mount(canvas);
+    store.getState().actions.setActiveTool("measure");
+
+    const keyDownHandler = vi
+      .mocked(canvas.addEventListener)
+      .mock.calls.find(([eventName]) => eventName === "keydown")?.[1] as
+      | ((event: KeyboardEvent) => void)
+      | undefined;
+
+    expect(keyDownHandler).toBeTypeOf("function");
+
+    const escapeEvent = {
+      key: "Escape",
+      metaKey: false,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      preventDefault: vi.fn(),
+    } as unknown as KeyboardEvent;
+
+    keyDownHandler?.(escapeEvent);
+
+    expect(store.getState().ui.activeToolId).toBe("draw");
+    expect(escapeEvent.preventDefault).toHaveBeenCalledTimes(1);
+
+    runtime.unmount();
+    vi.unstubAllGlobals();
+    globalThis.requestAnimationFrame = originalRequestAnimationFrame;
+    globalThis.cancelAnimationFrame = originalCancelAnimationFrame;
+  });
+
+  it("clears the current selection when Escape is pressed on select", () => {
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {
+            a: {
+              id: "a",
+              type: "token",
+              position: { x: 10, y: 12 },
+              props: {},
+            },
+          },
+          order: ["a"],
+        },
+        style: {},
+      },
+      tools: [
+        {
+          id: SELECT_TOOL_ID,
+          label: "Select",
+        },
+      ],
+    });
+    const runtime = createBoardEditorRuntime({ store });
+    const canvas = createCanvasStub();
+    const originalRequestAnimationFrame = globalThis.requestAnimationFrame;
+    const originalCancelAnimationFrame = globalThis.cancelAnimationFrame;
+    vi.stubGlobal(
+      "requestAnimationFrame",
+      vi.fn(() => 1),
+    );
+    vi.stubGlobal("cancelAnimationFrame", vi.fn());
+
+    runtime.mount(canvas);
+    setSelectedObjectIds(createToolApi(store), ["a"]);
+
+    const keyDownHandler = vi
+      .mocked(canvas.addEventListener)
+      .mock.calls.find(([eventName]) => eventName === "keydown")?.[1] as
+      | ((event: KeyboardEvent) => void)
+      | undefined;
+
+    expect(keyDownHandler).toBeTypeOf("function");
+
+    const escapeEvent = {
+      key: "Escape",
+      metaKey: false,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      preventDefault: vi.fn(),
+    } as unknown as KeyboardEvent;
+
+    keyDownHandler?.(escapeEvent);
+
+    expect(store.getState().toolState[SELECT_TOOL_ID]).toMatchObject({
+      selectedObjectIds: [],
+      interaction: undefined,
+    });
+    expect(escapeEvent.preventDefault).toHaveBeenCalledTimes(1);
 
     runtime.unmount();
     vi.unstubAllGlobals();

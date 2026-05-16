@@ -31,6 +31,7 @@ const state: Pick<BoardEditorState, "board" | "ui"> = {
   },
   ui: {
     activeToolId: "text",
+    defaultToolId: "text",
     viewport: {
       pan: { x: 0, y: 0 },
       zoom: 1,

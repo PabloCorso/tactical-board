@@ -22,6 +22,7 @@ export interface BoardViewport {
 
 export interface BoardEditorUiState {
   activeToolId: ToolId;
+  defaultToolId: ToolId;
   hoveredObjectId?: ObjectId;
   canvasRect?: {
     width: number;

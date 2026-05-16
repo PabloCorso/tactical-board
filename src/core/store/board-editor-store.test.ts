@@ -172,6 +172,37 @@ describe("createBoardEditorStore", () => {
     const store = createStore();
 
     expect(store.getState().ui.activeToolId).toBe(SELECT_TOOL_ID);
+    expect(store.getState().ui.defaultToolId).toBe(SELECT_TOOL_ID);
+  });
+
+  it("stores the resolved initial tool as the default tool", () => {
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      initialToolId: "draw",
+      tools: [
+        selectTool,
+        {
+          id: "draw",
+          label: "Draw",
+        },
+      ],
+    });
+
+    expect(store.getState().ui.activeToolId).toBe("draw");
+    expect(store.getState().ui.defaultToolId).toBe("draw");
   });
 
   it("applies the first arrow preset when activating the arrow tool", () => {
