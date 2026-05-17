@@ -1,0 +1,3 @@
+# Layer generic editor core below board editors
+
+The core of this repository is an Editor Engine for generic visual editing, not a football-specific or board-specific engine. It owns generic concepts such as Document, Shape, Selection, history, tool contracts, geometry, object dispatch, and serialization boundaries, while reusable tools such as Select, Hand, Shape, Arrow, and Text live in a separate standard tools layer and are registered by editor instances. Board and sport-specific layers build on top of that core so the football tactical board can guide product UX without causing the core to import or privilege football, React, or any specific Tool.

@@ -3,19 +3,23 @@
 ## Goals
 
 - Keep the architecture simple and understandable.
-- Optimize for a high-quality coach workflow without baking football assumptions into the core.
-- Support both interactive editing and read-only rendering from the same Board data.
-- Preserve room for future custom object types, surfaces, skins, and tools without designing a large framework upfront.
+- Build a generic visual Editor Engine that can support board editors without becoming football-specific.
+- Support high-quality coach workflows in board and sport-specific layers.
+- Support both interactive editing and read-only rendering from the same Document data.
+- Preserve room for future custom shape types, backgrounds, skins, and tools without designing a large framework upfront.
+- Optimize for HTML canvas rendering instead of abstracting equally over Canvas, SVG, and WebGL.
 
 ## Core Concepts
 
-- **Board** is the main persistent unit.
-- **Board Editor** edits one Board at a time.
+- **Document** is the generic persistent editable content.
+- **Shape** is a placed entity inside a Document.
+- **Board** is a bounded visual planning canvas built as a specialization of a Document.
+- **Board Editor** is a board-specific editor layer built on top of the generic Editor Engine.
 - **Board Renderer** displays a Board in read-only contexts such as previews, thumbnails, and export flows.
-- **Engine** is framework-independent and owns Board state, editing operations, object dispatch, geometry contracts, and serialization boundaries.
-- **Board Editor Store** is the framework-independent store boundary for Board editing state and actions.
-- **Canvas Renderer** paints Board state and transient overlays.
-- **React** hosts the editor surface and surrounding UI, but does not own the Board state.
+- **Editor Engine** is framework-independent and owns Document state, editing operations, shape dispatch, geometry contracts, selection, history, and serialization boundaries.
+- **Editor Store** is the framework-independent store boundary for editing state and actions.
+- **Canvas Renderer** paints Document or Board state and transient overlays to HTML canvas.
+- **React Adapter** hosts subscriptions, DOM input wiring, and editor UI, but does not own canonical Document state.
 
 ## Boundaries
 
@@ -23,12 +27,13 @@
 
 Owns:
 
-- Board types and schema-facing types
-- framework-independent board editor store
+- Document and schema-facing types
+- framework-independent editor store
 - editor operations
-- object definitions
+- shape definitions
 - tool contracts
 - geometry and hit-testing contracts
+- selection and history state
 - serialization entrypoints
 
 Does not own:
@@ -37,6 +42,8 @@ Does not own:
 - React state or components
 - persistence implementation
 - host-app migration policy
+- concrete tools such as Select, Hand, Shape, Arrow, or Text
+- board, football, or coach-workflow semantics
 
 ### `src/rendering/canvas`
 
@@ -44,8 +51,8 @@ Owns:
 
 - canvas draw loop
 - viewport-to-pixel mapping
-- surface drawing
-- object render hooks
+- document background and surface drawing
+- shape render hooks
 - transient overlays
 
 Does not own:
@@ -53,44 +60,58 @@ Does not own:
 - business rules for editing
 - persistence
 - React shell
+- alternate renderer abstraction for SVG or WebGL
 
 ### `src/react`
 
 Owns:
 
-- `BoardEditor`
-- `BoardView`
+- React editor components such as `BoardEditor` and `BoardView`
 - React hooks and subscriptions
 - input wiring between DOM events and tools/editor operations
 
 Does not own:
 
-- canonical Board state
+- canonical Document state
 - serialization rules
-- object semantics
+- shape semantics
 
-### `src/presets`
+### `src/tools`
 
 Owns:
 
-- built-in surfaces
-- built-in object kinds
-- built-in tools
-- built-in skins
+- reusable standard tools such as Select, Hand, Shape, Arrow, and Text
+- tool-specific temporary interaction state
+- tool-provided renderers, hit-testers, overlays, and shape definitions
 
-This is where football enters first. The core should remain sport-agnostic.
+Does not own:
+
+- core Editor Engine behavior
+- privileged tool behavior inside `src/core`
+- football or sport-specific UX
+
+### Board and Sport Layers
+
+Own:
+
+- board-specific Document Backgrounds and Surface Presets
+- board-specific Shapes such as Player Tokens and equipment
+- board or sport-specific presets, dimensions, and coach-facing UI
+- Football Example as the first pressure-test application
+
+The football editor remains under `src/examples/football` for now, but it is not disposable demo code. Shared board abstractions should be extracted only when multiple sports or concrete planning use cases prove the boundary.
 
 ## Data Model
 
-### Persistent Board Data
+### Persistent Document Data
 
-Persist only Board data:
+Persist only Document data:
 
-- board id and metadata
-- surface preset/config
-- objects
+- document id and metadata
+- document background or board surface config
+- shapes
 - explicit ordering
-- board-level style/theme references
+- document-level style/theme references
 
 Do not persist editor UI state such as:
 
@@ -100,18 +121,18 @@ Do not persist editor UI state such as:
 - temporary drags
 - zoom/pan session state
 
-### Internal Object Storage
+### Internal Shape Storage
 
-Inside the Engine, objects should be stored canonically as:
+Inside the Editor Engine, shapes should be stored canonically as:
 
-- `byId: Record<ObjectId, BoardObject>`
-- `order: ObjectId[]`
+- `byId: Record<ShapeId, Shape>`
+- `order: ShapeId[]`
 
 This keeps lookup/update operations simple while preserving explicit ordering.
 
 ### Layering and Interaction
 
-Rendering order alone should not define interaction. Objects need separate concepts for:
+Rendering order alone should not define interaction. Shapes need separate concepts for:
 
 - visual order
 - hit-test behavior
@@ -121,35 +142,49 @@ This allows overlays or zones to render above players while remaining passthroug
 
 ## Extensibility
 
-### Objects
+### Shapes
 
-Objects are type-based. Each type has an **Object Definition** with:
+Shapes are type-based. Each type has a **Shape Definition** with:
 
 - default props
 - geometry/bounds behavior
 - hit-testing behavior
 - render hook
 
-Player tokens are Board Objects. Skins such as dots, numbered circles, shirts, or stylized players are visual concerns, not separate persistent object semantics.
+Player tokens are board-specific Shapes. Skins such as dots, numbered circles, shirts, or stylized players are visual concerns, not separate persistent shape semantics.
 
 ### Tools
 
-Tools are registered and built-in at first. A Tool:
+The Editor Engine defines tool contracts but does not privilege concrete tools. A Tool:
 
 - interprets input
 - owns temporary interaction state
 - invokes editor operations
 - may contribute transient overlays
 
-It does not directly mutate Board state.
+It does not directly mutate Document state.
 
-### Surfaces
+Reusable tools such as Select, Hand, Shape, Arrow, and Text live in a standard tools layer and are registered by editor instances. The default tool is configured by id; the Engine must not know that Select is special.
 
-Surfaces are presets. Football is the first preset, not the architecture.
+### Selection
+
+Selection is generic editor-session state, not Select tool state. Tools may change selection or decide whether to show selection chrome, but keyboard shortcuts, history, and editor operations should not depend on importing a specific Select tool.
+
+### Backgrounds and Surfaces
+
+The generic core has a Document Background for base visuals and coordinate setup. Board layers define Surface Presets with sport-oriented markings such as fields and courts. Football is the first pressure-test surface, not the architecture.
+
+### Units
+
+Documents may declare a measurement unit such as pixels or meters. The Editor Engine uses units for coordinate conversion and scale, while board and sport layers assign domain meaning such as pitch dimensions, equipment size, or player spacing.
+
+### Timeline
+
+The generic core may later own a lower-level Timeline and Frame model. Board Sequence is the board-specific presentation of that model for coach-facing animation or step playback.
 
 ## Serialization
 
-- Persist explicit JSON Board schema, not raw internal store state.
+- Persist explicit JSON Document Schema, or a board-specific Board Schema profile, not raw internal store state.
 - Host apps own persistence and migration policy.
 - The library can expose parse/serialize helpers and runtime validation at the boundary.
 - Runtime validation is still useful even with TypeScript because persisted JSON is untrusted input.
@@ -163,8 +198,10 @@ src/
   core/
   rendering/
   react/
+  tools/
+  board/       # when shared board abstractions emerge
   presets/
   examples/
 ```
 
-This keeps the repo simple while allowing clean future extraction into separate packages if the seams prove stable.
+This keeps the repo simple while allowing clean future extraction into separate packages if the boundaries prove stable. The current code may still use Board names while the migration proceeds incrementally; new architectural work should follow the Document/Shape/Editor vocabulary.
