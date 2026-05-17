@@ -1,4 +1,4 @@
-import type { BoardObject, ObjectType, Point, SkinId } from "../board/types";
+import type { Point, Shape, ShapeType, SkinId } from "../board/types";
 import type { BoardEditorState } from "../editor/types";
 import type { Rect } from "../geometry/types";
 import type {
@@ -11,55 +11,71 @@ export interface ObjectRenderContext {
   skinId?: SkinId;
 }
 
-export interface ObjectBehaviorAdapter<
-  TObject extends BoardObject = BoardObject,
-> {
-  move?: (object: TObject, delta: Point) => TObject;
-  rotate?: (object: TObject, center: Point, rotationDelta: number) => TObject;
+export interface ShapeBehaviorAdapter<TShape extends Shape = Shape> {
+  move?: (object: TShape, delta: Point) => TShape;
+  rotate?: (object: TShape, center: Point, rotationDelta: number) => TShape;
 }
 
-export interface ObjectDefinition {
-  type: ObjectType;
-  createDefault?: (input: Pick<BoardObject, "id" | "position">) => BoardObject;
-  getBounds?: (object: BoardObject) => Rect;
-  render?: (object: BoardObject, context: ObjectRenderContext) => void;
+export interface ShapeDefinition {
+  type: ShapeType;
+  createDefault?: (input: Pick<Shape, "id" | "position">) => Shape;
+  getBounds?: (object: Shape) => Rect;
+  render?: (object: Shape, context: ObjectRenderContext) => void;
   beginEditing?: (input: {
-    object: BoardObject;
+    object: Shape;
     state: BoardEditorState;
     canvasRect: { width: number; height: number };
   }) => void;
   hitTestMode?: "normal" | "passthrough" | "bounds-only";
-  behaviors?: ObjectBehaviorAdapter;
+  behaviors?: ShapeBehaviorAdapter;
   selection?: ErasedObjectSelectionAdapter;
 }
 
-export interface ObjectRegistry {
-  definitions: Record<ObjectType, ObjectDefinition>;
+export interface ShapeRegistry {
+  definitions: Record<ShapeType, ShapeDefinition>;
 }
 
-type ObjectDefinitionInput<
-  TObject extends BoardObject,
+type ShapeDefinitionInput<
+  TShape extends Shape,
   TSession extends ObjectSelectionSession = ObjectSelectionSession,
 > = Omit<
-  ObjectDefinition,
+  ShapeDefinition,
   "type" | "createDefault" | "getBounds" | "render" | "behaviors" | "selection"
 > & {
-  type: TObject["type"];
-  createDefault?: (input: Pick<TObject, "id" | "position">) => TObject;
-  getBounds?: (object: TObject) => Rect;
-  render?: (object: TObject, context: ObjectRenderContext) => void;
+  type: TShape["type"];
+  createDefault?: (input: Pick<TShape, "id" | "position">) => TShape;
+  getBounds?: (object: TShape) => Rect;
+  render?: (object: TShape, context: ObjectRenderContext) => void;
   beginEditing?: (input: {
-    object: TObject;
+    object: TShape;
     state: BoardEditorState;
     canvasRect: { width: number; height: number };
   }) => void;
-  behaviors?: ObjectBehaviorAdapter<TObject>;
-  selection?: ObjectSelectionAdapter<TObject, TSession>;
+  behaviors?: ShapeBehaviorAdapter<TShape>;
+  selection?: ObjectSelectionAdapter<TShape, TSession>;
 };
 
+export function defineShapeDefinition<
+  TShape extends Shape,
+  TSession extends ObjectSelectionSession = ObjectSelectionSession,
+>(definition: ShapeDefinitionInput<TShape, TSession>): ShapeDefinition {
+  return definition as unknown as ShapeDefinition;
+}
+
+// Compatibility names kept while callers migrate from Board Object terminology.
+// Prefer ShapeDefinition/ShapeRegistry/defineShapeDefinition for new core work.
+export type ObjectBehaviorAdapter<TObject extends Shape = Shape> =
+  ShapeBehaviorAdapter<TObject>;
+export type ObjectDefinition = ShapeDefinition;
+export type ObjectRegistry = ShapeRegistry;
+export type ObjectDefinitionInput<
+  TObject extends Shape,
+  TSession extends ObjectSelectionSession = ObjectSelectionSession,
+> = ShapeDefinitionInput<TObject, TSession>;
+
 export function defineObjectDefinition<
-  TObject extends BoardObject,
+  TObject extends Shape,
   TSession extends ObjectSelectionSession = ObjectSelectionSession,
 >(definition: ObjectDefinitionInput<TObject, TSession>): ObjectDefinition {
-  return definition as unknown as ObjectDefinition;
+  return defineShapeDefinition(definition);
 }

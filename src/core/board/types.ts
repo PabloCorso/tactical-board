@@ -1,10 +1,17 @@
-export type BoardId = string;
-export type ObjectId = string;
-export type ObjectType = string;
+export type DocumentId = string;
+export type ShapeId = string;
+export type ShapeType = string;
 export type ToolId = string;
 export type SkinId = string;
 export type MeasurementUnit = string;
-export type BoardObjectSizeMode = "world" | "screen";
+export type ShapeSizeMode = "world" | "screen";
+
+// Compatibility names kept while Board-facing APIs migrate incrementally.
+// Prefer Document/Shape vocabulary for new core Editor Engine work.
+export type BoardId = DocumentId;
+export type ObjectId = ShapeId;
+export type ObjectType = ShapeType;
+export type BoardObjectSizeMode = ShapeSizeMode;
 
 export interface Point {
   x: number;
@@ -16,38 +23,38 @@ export interface Size {
   height: number;
 }
 
-export interface BoardObjectSize extends Size {
-  mode?: BoardObjectSizeMode;
+export interface ShapeSize extends Size {
+  mode?: ShapeSizeMode;
   unit?: MeasurementUnit;
 }
 
-export interface BoardMetadata {
+export interface DocumentMetadata {
   name?: string;
   description?: string;
   tags?: string[];
 }
 
-export interface BoardStyleRef {
+export interface DocumentStyleRef {
   themeId?: string;
-  skinIds?: Partial<Record<ObjectType, SkinId>>;
+  skinIds?: Partial<Record<ShapeType, SkinId>>;
 }
 
-export interface BoardObject {
-  id: ObjectId;
-  type: ObjectType;
+export interface Shape {
+  id: ShapeId;
+  type: ShapeType;
   position: Point;
-  size?: BoardObjectSize;
+  size?: ShapeSize;
   rotation?: number;
   locked?: boolean;
   props: Record<string, unknown>;
 }
 
-export interface ObjectIndex {
-  byId: Record<ObjectId, BoardObject>;
-  order: ObjectId[];
+export interface ShapeIndex {
+  byId: Record<ShapeId, Shape>;
+  order: ShapeId[];
 }
 
-export interface BoardSurfaceConfig {
+export interface DocumentBackgroundConfig {
   width: number;
   height: number;
   basePixelsPerUnit?: number;
@@ -103,11 +110,20 @@ export type BoardSurfaceMarking =
   | SurfaceCircleMarking
   | SurfaceArcMarking;
 
-export interface Board {
-  id: BoardId;
+export interface Document {
+  id: DocumentId;
   version: number;
-  metadata: BoardMetadata;
-  surface: BoardSurfaceConfig;
-  objects: ObjectIndex;
-  style: BoardStyleRef;
+  metadata: DocumentMetadata;
+  surface: DocumentBackgroundConfig;
+  objects: ShapeIndex;
+  style: DocumentStyleRef;
 }
+
+// Compatibility names kept for current board/football callers.
+export type BoardObjectSize = ShapeSize;
+export type BoardMetadata = DocumentMetadata;
+export type BoardStyleRef = DocumentStyleRef;
+export type BoardObject = Shape;
+export type ObjectIndex = ShapeIndex;
+export type BoardSurfaceConfig = DocumentBackgroundConfig;
+export type Board = Document;

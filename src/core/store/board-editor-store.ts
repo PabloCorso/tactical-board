@@ -1,15 +1,16 @@
 import { createStore, type StoreApi } from "zustand/vanilla";
 import type {
   Board,
-  BoardObject,
-  ObjectId,
+  Document,
   Point,
+  Shape,
+  ShapeId,
   ToolId,
 } from "../board/types";
 import type { BoardEditorState } from "../editor/types";
 import { moveObjectIdsToLayerBoundary } from "../board/object-order";
 import { moveBoardObject } from "../objects/object-behaviors";
-import type { ObjectDefinition, ObjectRegistry } from "../objects/types";
+import type { ShapeDefinition, ShapeRegistry } from "../objects/types";
 import type {
   ToolApi,
   ToolCapabilityRegistrationApi,
@@ -25,17 +26,26 @@ import type {
 
 const MAX_HISTORY_ENTRIES = 100;
 
-export type CreateBoardEditorStoreOptions = {
-  initialBoard: Board;
+type CreateEditorStoreBaseOptions = {
   tools?: ToolRegistration[];
   initialToolId?: ToolId;
   objectRenderers?: CanvasObjectRendererRegistry;
   objectHitTesters?: CanvasObjectHitTesterRegistry;
   overlayRenderers?: CanvasOverlayRendererRegistry;
-  objectDefinitions?: ObjectDefinition[];
+  objectDefinitions?: ShapeDefinition[];
+};
+
+export type CreateEditorStoreOptions = CreateEditorStoreBaseOptions & {
+  initialDocument: Document;
+};
+
+// Compatibility options kept for current Board-facing callers.
+export type CreateBoardEditorStoreOptions = CreateEditorStoreBaseOptions & {
+  initialBoard: Board;
 };
 
 export type BoardEditorStore = StoreApi<BoardEditorState>;
+export type EditorStore = BoardEditorStore;
 
 function instantiateTool(tool: ToolRegistration): ToolDefinition {
   return typeof tool === "function" ? new tool() : tool;
@@ -50,8 +60,8 @@ function createToolRegistry(tools: ToolRegistration[] = []): ToolRegistry {
 }
 
 function createObjectRegistry(
-  objectDefinitions: ObjectDefinition[] = [],
-): ObjectRegistry {
+  objectDefinitions: ShapeDefinition[] = [],
+): ShapeRegistry {
   return {
     definitions: Object.fromEntries(
       objectDefinitions.map((definition) => [definition.type, definition]),
@@ -60,8 +70,8 @@ function createObjectRegistry(
 }
 
 function createDuplicatedObjectId(
-  objectId: ObjectId,
-  existingObjects: Record<ObjectId, BoardObject>,
+  objectId: ShapeId,
+  existingObjects: Record<ShapeId, Shape>,
 ) {
   const baseId = `${objectId}-copy`;
   let candidateId = baseId;
@@ -77,9 +87,9 @@ function createDuplicatedObjectId(
 
 function translateObject(
   state: Pick<BoardEditorState, "objectRegistry">,
-  object: BoardObject,
+  object: Shape,
   delta: Point,
-): BoardObject {
+): Shape {
   return moveBoardObject(state, object, delta);
 }
 
@@ -132,10 +142,10 @@ function applyHistoryEntry(
 
 function normalizeSelectedObjectIds(
   state: Pick<BoardEditorState, "board">,
-  objectIds: ObjectId[],
+  objectIds: ShapeId[],
 ) {
-  const seen = new Set<ObjectId>();
-  const selectedObjectIds: ObjectId[] = [];
+  const seen = new Set<ShapeId>();
+  const selectedObjectIds: ShapeId[] = [];
 
   for (const objectId of objectIds) {
     if (seen.has(objectId) || !state.board.objects.byId[objectId]) {
@@ -149,21 +159,21 @@ function normalizeSelectedObjectIds(
   return selectedObjectIds;
 }
 
-function selectedObjectIdsEqual(a: ObjectId[], b: ObjectId[]) {
+function selectedObjectIdsEqual(a: ShapeId[], b: ShapeId[]) {
   return (
     a.length === b.length && a.every((objectId, index) => objectId === b[index])
   );
 }
 
-export function createBoardEditorStore({
-  initialBoard,
+export function createEditorStore({
+  initialDocument,
   tools = [],
   initialToolId,
   objectRenderers = {},
   objectHitTesters = {},
   overlayRenderers = {},
   objectDefinitions = [],
-}: CreateBoardEditorStoreOptions): BoardEditorStore {
+}: CreateEditorStoreOptions): EditorStore {
   const toolRegistry = createToolRegistry(tools);
   const registeredTools = Object.values(toolRegistry.definitions);
   const objectRegistry = createObjectRegistry(objectDefinitions);
@@ -194,7 +204,7 @@ export function createBoardEditorStore({
       : (registeredTools[0]?.id ?? initialToolId ?? "");
 
   const store = createStore<BoardEditorState>((set, get) => ({
-    board: initialBoard,
+    board: initialDocument,
     history: {
       past: [],
       future: [],
@@ -430,7 +440,7 @@ export function createBoardEditorStore({
         const state = get();
         const nextById = { ...state.board.objects.byId };
         const nextOrder = [...state.board.objects.order];
-        const duplicateIds: ObjectId[] = [];
+        const duplicateIds: ShapeId[] = [];
 
         for (const objectId of objectIds) {
           const object = nextById[objectId];
@@ -653,7 +663,7 @@ export function createBoardEditorStore({
           };
         });
       },
-      moveObjects: (objectIds: ObjectId[], delta: Point) => {
+      moveObjects: (objectIds: ShapeId[], delta: Point) => {
         set((state) => {
           let changed = false;
           const nextById = { ...state.board.objects.byId };
@@ -798,4 +808,14 @@ export function createBoardEditorStore({
   }
 
   return store;
+}
+
+export function createBoardEditorStore({
+  initialBoard,
+  ...options
+}: CreateBoardEditorStoreOptions): BoardEditorStore {
+  return createEditorStore({
+    ...options,
+    initialDocument: initialBoard,
+  });
 }

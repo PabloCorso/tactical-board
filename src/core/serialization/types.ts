@@ -1,7 +1,10 @@
-import type { Board } from "../board/types";
+import type { Document } from "../board/types";
 
-export interface ParseBoardResult {
+export interface ParseDocumentResult {
   ok: boolean;
-  board?: Board;
+  board?: Document;
   error?: string;
 }
+
+// Compatibility result name kept for Board-facing callers.
+export type ParseBoardResult = ParseDocumentResult;

@@ -1,6 +1,6 @@
-import type { Board } from "./types";
+import type { Board, Document } from "./types";
 
-export function createBoard(input: Board): Board {
+export function createDocument(input: Document): Document {
   return {
     ...input,
     metadata: input.metadata ?? {},
@@ -10,4 +10,10 @@ export function createBoard(input: Board): Board {
       order: [...input.objects.order],
     },
   };
+}
+
+// Compatibility helper kept for Board-facing callers.
+// Prefer createDocument for new core Editor Engine code.
+export function createBoard(input: Board): Board {
+  return createDocument(input);
 }
