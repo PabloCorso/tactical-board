@@ -38,6 +38,14 @@ export interface ToolWheelEvent {
   deltaY: number;
 }
 
+export interface ToolKeyboardEvent {
+  key: string;
+  ctrlKey: boolean;
+  shiftKey: boolean;
+  altKey: boolean;
+  metaKey: boolean;
+}
+
 export interface ToolApi {
   getState: () => BoardEditorState;
   beginHistoryBatch: () => void;
@@ -107,6 +115,11 @@ export interface ToolDefinition {
   onPointerMove?: (event: ToolPointerEvent, api: ToolApi) => void;
   onPointerUp?: (event: ToolPointerEvent, api: ToolApi) => void;
   onWheel?: (event: ToolWheelEvent, api: ToolApi) => void;
+  onKeyDown?: (event: ToolKeyboardEvent, api: ToolApi) => boolean | void;
+  onEscapeKey?: (api: ToolApi) => boolean | void;
+  shouldFocusCanvasOnPointerDown?: (api: ToolApi) => boolean;
+  shouldKeepPreviewOnPointerLeave?: (api: ToolApi) => boolean;
+  shouldPreventContextMenu?: (api: ToolApi) => boolean;
 }
 
 export type ToolRegistration = ToolDefinition | (new () => ToolDefinition);

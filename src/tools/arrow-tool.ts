@@ -77,9 +77,7 @@ export class ArrowTool extends BoardEditorTool implements ToolDefinition {
   }
 
   onDeactivate(api: ToolApi) {
-    if (getArrowToolState(api.getState().toolState).pendingPoints.length > 0) {
-      cancelPendingArrow(api);
-    }
+    this.onEscapeKey(api);
   }
 
   registerCapabilities(
@@ -155,6 +153,21 @@ export class ArrowTool extends BoardEditorTool implements ToolDefinition {
       }),
     ]);
     cancelPendingArrow(api);
+  }
+
+  onEscapeKey(api: ToolApi) {
+    if (
+      getArrowToolState(api.getState().toolState).pendingPoints.length === 0
+    ) {
+      return false;
+    }
+
+    cancelPendingArrow(api);
+    return true;
+  }
+
+  shouldKeepPreviewOnPointerLeave(api: ToolApi) {
+    return getArrowToolState(api.getState().toolState).pendingPoints.length > 0;
   }
 }
 

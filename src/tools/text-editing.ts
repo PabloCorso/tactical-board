@@ -2,20 +2,19 @@ import {
   isTextObjectEmpty,
   updateTextObject,
   type TextObject,
-} from "../objects/text-object";
-import type { BoardEditorState } from "./types";
-import type { ToolApi } from "../tools/types";
+} from "../core/objects/text-object";
+import type { BoardEditorState } from "../core/editor/types";
+import type { ToolApi } from "../core/tools/types";
 import {
   createTextToolProjection,
   getTextAnchorPosition,
   updateAnchoredTextObject,
-} from "../../tools/text-layout";
+} from "./text-layout";
 import {
   getTextToolState,
   TEXT_TOOL_ID,
   type TextEditingSession,
-} from "../../tools/text-tool-state";
-import { setSelectedObjectIds } from "../../tools/select-tool-actions";
+} from "./text-tool-state";
 
 export type ActiveTextEditingSession = {
   object: TextObject;
@@ -100,7 +99,7 @@ export function finishTextEditingSession(api: ToolApi) {
 
   if (isTextObjectEmpty(activeSession.object)) {
     api.deleteObjects([activeSession.object.id]);
-    setSelectedObjectIds(api, []);
+    api.setSelectedObjectIds([]);
   }
 
   const textState = getTextToolState(state.toolState);

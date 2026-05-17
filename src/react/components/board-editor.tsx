@@ -20,7 +20,7 @@ import {
   finishTextEditingSession,
   getTextEditorOverlayState,
   updateActiveTextEditingText,
-} from "../../core/editor/text-editing";
+} from "../../tools/text-editing";
 import { TEXT_TOOL_ID } from "../../tools/text-tool-state";
 import {
   BoardEditorContext,

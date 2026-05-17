@@ -1,16 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { createBoardEditorStore } from "../store/board-editor-store";
-import { createTextObject, type TextObject } from "../objects/text-object";
-import { createToolApi } from "./create-tool-api";
+import { createBoardEditorStore } from "../core/store/board-editor-store";
+import { createTextObject, type TextObject } from "../core/objects/text-object";
+import { createToolApi } from "../core/editor/create-tool-api";
 import {
   beginTextEditingSession,
   finishTextEditingSession,
   getTextEditorOverlayState,
   updateActiveTextEditingText,
 } from "./text-editing";
-import { getTextAnchorPosition } from "../../tools/text-layout";
-import { setSelectedObjectIds } from "../../tools/select-tool-actions";
-import { SELECT_TOOL_ID } from "../../tools/select-tool-state";
+import { getTextAnchorPosition } from "./text-layout";
 
 describe("text-editing", () => {
   const canvasRect = {
@@ -43,7 +41,7 @@ describe("text-editing", () => {
       },
       tools: [
         {
-          id: SELECT_TOOL_ID,
+          id: "select",
           label: "Select",
         },
       ],
@@ -51,7 +49,7 @@ describe("text-editing", () => {
     const toolApi = createToolApi(store);
 
     store.getState().actions.setCanvasRect(canvasRect);
-    setSelectedObjectIds(toolApi, [text.id]);
+    toolApi.setSelectedObjectIds([text.id]);
     beginTextEditingSession({
       state: store.getState(),
       object: text,
@@ -90,7 +88,7 @@ describe("text-editing", () => {
       },
       tools: [
         {
-          id: SELECT_TOOL_ID,
+          id: "select",
           label: "Select",
         },
       ],
@@ -150,7 +148,7 @@ describe("text-editing", () => {
       },
       tools: [
         {
-          id: SELECT_TOOL_ID,
+          id: "select",
           label: "Select",
         },
       ],

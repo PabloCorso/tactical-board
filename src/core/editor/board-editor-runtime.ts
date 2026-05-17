@@ -5,20 +5,6 @@ import { createBoardEditorController } from "./board-editor-controller";
 import type { BoardEditorStore } from "../store/board-editor-store";
 import type { ToolDefinition } from "../tools/types";
 import { DEFAULT_VIEWPORT, getViewportToFitSurface } from "./viewport-utils";
-import {
-  deleteSelectedObjects,
-  clearSelection,
-  setSelectedObjectIds,
-  selectAllObjects,
-} from "../../tools/select-tool-actions";
-import { SELECT_TOOL_ID } from "../../tools/select-tool-state";
-import { TEXT_TOOL_ID } from "../../tools/text-tool-state";
-import { ARROW_TOOL_ID, getArrowToolState } from "../../tools/arrow-tool-state";
-import { getShapeToolState, SHAPE_TOOL_ID } from "../../tools/shape-tool-state";
-import {
-  canCompletePendingPolygon,
-  completePendingPolygon,
-} from "../../tools/shape-tool";
 
 export interface BoardEditorRuntime {
   mount: (canvas: HTMLCanvasElement) => void;
@@ -64,6 +50,12 @@ export function createBoardEditorRuntime({
     for (const tool of Object.values(definitions)) {
       registerToolCapabilities(tool);
     }
+  };
+
+  const getActiveTool = () => {
+    const state = store.getState();
+
+    return state.toolRegistry.definitions[state.ui.activeToolId];
   };
 
   const render = () => {
@@ -155,17 +147,13 @@ export function createBoardEditorRuntime({
       return;
     }
 
-    const shapeState = getShapeToolState(store.getState().toolState);
-    if (
-      event.button === 2 &&
-      store.getState().ui.activeToolId === SHAPE_TOOL_ID &&
-      shapeState.draftStyle.kind === "polygon" &&
-      shapeState.pendingPoints.length > 0
-    ) {
+    const activeTool = getActiveTool();
+
+    if (activeTool?.shouldPreventContextMenu?.(toolApi)) {
       event.preventDefault();
     }
 
-    if (store.getState().ui.activeToolId !== TEXT_TOOL_ID) {
+    if (activeTool?.shouldFocusCanvasOnPointerDown?.(toolApi) !== false) {
       canvas.focus();
     }
     canvas.setPointerCapture(event.pointerId);
@@ -195,16 +183,7 @@ export function createBoardEditorRuntime({
       return;
     }
 
-    const state = store.getState();
-    const arrowState = getArrowToolState(state.toolState);
-    const shapeState = getShapeToolState(state.toolState);
-
-    if (
-      (state.ui.activeToolId === ARROW_TOOL_ID &&
-        arrowState.pendingPoints.length > 0) ||
-      (state.ui.activeToolId === SHAPE_TOOL_ID &&
-        shapeState.pendingPoints.length > 0)
-    ) {
+    if (getActiveTool()?.shouldKeepPreviewOnPointerLeave?.(toolApi)) {
       return;
     }
 
@@ -237,7 +216,7 @@ export function createBoardEditorRuntime({
   ) => {
     const state = store.getState();
 
-    if (state.ui.activeToolId !== SELECT_TOOL_ID || !state.ui.canvasRect) {
+    if (!state.ui.canvasRect) {
       return;
     }
 
@@ -280,7 +259,7 @@ export function createBoardEditorRuntime({
       }
     }
 
-    setSelectedObjectIds(toolApi, [object.id]);
+    toolApi.setSelectedObjectIds([object.id]);
     definition.beginEditing({
       object,
       state,
@@ -320,14 +299,7 @@ export function createBoardEditorRuntime({
   };
 
   const onContextMenu = (event: MouseEvent) => {
-    const state = store.getState();
-    const shapeState = getShapeToolState(state.toolState);
-
-    if (
-      state.ui.activeToolId === SHAPE_TOOL_ID &&
-      shapeState.draftStyle.kind === "polygon" &&
-      shapeState.pendingPoints.length > 0
-    ) {
+    if (getActiveTool()?.shouldPreventContextMenu?.(toolApi)) {
       event.preventDefault();
     }
   };
@@ -346,7 +318,29 @@ export function createBoardEditorRuntime({
       !event.ctrlKey &&
       !event.altKey
     ) {
-      deleteSelectedObjects(toolApi);
+      const selectedObjectIds = store.getState().selection.selectedObjectIds;
+
+      if (selectedObjectIds.length > 0) {
+        toolApi.deleteObjects(selectedObjectIds);
+        toolApi.clearSelection();
+      }
+      event.preventDefault();
+      return;
+    }
+
+    const activeTool = getActiveTool();
+    const toolHandled = activeTool?.onKeyDown?.(
+      {
+        key: event.key,
+        metaKey: event.metaKey,
+        ctrlKey: event.ctrlKey,
+        altKey: event.altKey,
+        shiftKey: event.shiftKey,
+      },
+      toolApi,
+    );
+
+    if (toolHandled) {
       event.preventDefault();
       return;
     }
@@ -358,12 +352,6 @@ export function createBoardEditorRuntime({
       !event.altKey &&
       !event.shiftKey
     ) {
-      if (canCompletePendingPolygon(toolApi)) {
-        completePendingPolygon(toolApi);
-        event.preventDefault();
-        return;
-      }
-
       beginEditingSelection(undefined);
       event.preventDefault();
       return;
@@ -394,7 +382,7 @@ export function createBoardEditorRuntime({
     }
 
     if (key === "a" && !event.shiftKey) {
-      selectAllObjects(toolApi);
+      toolApi.setSelectedObjectIds(store.getState().board.objects.order);
       event.preventDefault();
     }
   };
@@ -402,31 +390,10 @@ export function createBoardEditorRuntime({
   const handleEscapeKey = () => {
     const state = store.getState();
     const { activeToolId, defaultToolId } = state.ui;
+    const activeTool = state.toolRegistry.definitions[activeToolId];
 
-    if (activeToolId === ARROW_TOOL_ID) {
-      const arrowState = getArrowToolState(state.toolState);
-
-      if (arrowState.pendingPoints.length > 0) {
-        store.getState().actions.setToolState(ARROW_TOOL_ID, {
-          ...arrowState,
-          pendingPoints: [],
-        });
-        store.getState().actions.clearPreviewObjects();
-        return true;
-      }
-    }
-
-    if (activeToolId === SHAPE_TOOL_ID) {
-      const shapeState = getShapeToolState(state.toolState);
-
-      if (shapeState.pendingPoints.length > 0) {
-        store.getState().actions.setToolState(SHAPE_TOOL_ID, {
-          ...shapeState,
-          pendingPoints: [],
-        });
-        store.getState().actions.clearPreviewObjects();
-        return true;
-      }
+    if (activeTool?.onEscapeKey?.(toolApi)) {
+      return true;
     }
 
     if (activeToolId !== defaultToolId) {
@@ -434,8 +401,8 @@ export function createBoardEditorRuntime({
       return true;
     }
 
-    if (activeToolId === SELECT_TOOL_ID) {
-      clearSelection(toolApi);
+    if (state.selection.selectedObjectIds.length > 0) {
+      toolApi.clearSelection();
       return true;
     }
 

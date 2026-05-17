@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { TextObject } from "../../core/objects/text-object";
 import { createToolApi } from "../../core/editor/create-tool-api";
-import { updateTextObjectFromAnchor } from "../../core/editor/text-editing";
+import { updateTextObjectFromAnchor } from "../../tools/text-editing";
 import { useBoardEditorContext } from "./board-editor-context";
 import {
   BoardEditorToolbar,

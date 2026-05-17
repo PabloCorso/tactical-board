@@ -27,7 +27,7 @@ import { textSelectionAdapter } from "./text-selection";
 import {
   beginTextEditingSession,
   finishTextEditingSession,
-} from "../core/editor/text-editing";
+} from "./text-editing";
 
 const textObjectDefinition = defineObjectDefinition({
   type: TEXT_OBJECT_TYPE,
@@ -63,6 +63,10 @@ export class TextTool extends BoardEditorTool implements ToolDefinition {
   onDeactivate(api: ToolApi) {
     api.clearPreviewObjects();
     finishTextEditingSession(api);
+  }
+
+  shouldFocusCanvasOnPointerDown() {
+    return false;
   }
 
   registerCapabilities(

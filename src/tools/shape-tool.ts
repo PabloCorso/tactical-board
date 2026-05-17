@@ -183,6 +183,49 @@ export class ShapeTool extends BoardEditorTool implements ToolDefinition {
     ]);
     cancelPendingShape(api);
   }
+
+  onKeyDown(
+    event: Parameters<NonNullable<ToolDefinition["onKeyDown"]>>[0],
+    api: ToolApi,
+  ) {
+    if (
+      event.key !== "Enter" ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.altKey ||
+      event.shiftKey ||
+      !canCompletePendingPolygon(api)
+    ) {
+      return false;
+    }
+
+    completePendingPolygon(api);
+    return true;
+  }
+
+  onEscapeKey(api: ToolApi) {
+    const shapeState = getShapeToolState(api.getState().toolState);
+
+    if (shapeState.pendingPoints.length === 0) {
+      return false;
+    }
+
+    cancelPendingShape(api);
+    return true;
+  }
+
+  shouldKeepPreviewOnPointerLeave(api: ToolApi) {
+    return getShapeToolState(api.getState().toolState).pendingPoints.length > 0;
+  }
+
+  shouldPreventContextMenu(api: ToolApi) {
+    const shapeState = getShapeToolState(api.getState().toolState);
+
+    return (
+      shapeState.draftStyle.kind === "polygon" &&
+      shapeState.pendingPoints.length > 0
+    );
+  }
 }
 
 function createShapeId(existingIds: Record<string, unknown>) {
