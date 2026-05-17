@@ -51,7 +51,6 @@ export type SelectToolInteraction =
   | ObjectSelectionInteraction;
 
 export type SelectToolState = {
-  selectedObjectIds: ObjectId[];
   interaction?: SelectToolInteraction;
 };
 
@@ -63,11 +62,6 @@ export function getSelectToolState(
     | undefined;
 
   return {
-    selectedObjectIds: Array.isArray(state?.selectedObjectIds)
-      ? state.selectedObjectIds.filter(
-          (objectId): objectId is ObjectId => typeof objectId === "string",
-        )
-      : [],
     interaction:
       state?.interaction &&
       typeof state.interaction === "object" &&

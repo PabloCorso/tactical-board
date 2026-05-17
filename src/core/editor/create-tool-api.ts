@@ -18,6 +18,8 @@ export function createToolApi(store: BoardEditorStore): ToolApi {
     setPreviewObjects: actions.setPreviewObjects,
     clearPreviewObjects: actions.clearPreviewObjects,
     panViewport: actions.panViewport,
+    setSelectedObjectIds: actions.setSelectedObjectIds,
+    clearSelection: actions.clearSelection,
     setToolState: actions.setToolState,
     clearToolState: actions.clearToolState,
     registerObjectRenderer: actions.registerObjectRenderer,

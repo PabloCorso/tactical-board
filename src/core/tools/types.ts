@@ -61,6 +61,8 @@ export interface ToolApi {
   ) => void;
   clearPreviewObjects: () => void;
   panViewport: (delta: Point) => void;
+  setSelectedObjectIds: (ids: ObjectId[]) => void;
+  clearSelection: () => void;
   setToolState: (toolId: ToolId, value: unknown) => void;
   clearToolState: (toolId: ToolId) => void;
   registerObjectRenderer: (

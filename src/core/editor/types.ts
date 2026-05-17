@@ -50,6 +50,10 @@ export interface BoardEditorHistoryState {
 
 export type BoardEditorToolState = Record<string, unknown>;
 
+export interface BoardEditorSelectionState {
+  selectedObjectIds: ObjectId[];
+}
+
 export interface BoardEditorActions {
   setActiveTool: (toolId: ToolId) => void;
   setCanvasRect: (rect: { width: number; height: number }) => void;
@@ -71,6 +75,8 @@ export interface BoardEditorActions {
   clearPreviewObjects: () => void;
   moveObjects: (objectIds: ObjectId[], delta: Point) => void;
   panViewport: (delta: Point) => void;
+  setSelectedObjectIds: (objectIds: ObjectId[]) => void;
+  clearSelection: () => void;
   setToolState: (toolId: ToolId, value: unknown) => void;
   clearToolState: (toolId: ToolId) => void;
   registerTool: (tool: ToolDefinition) => void;
@@ -93,6 +99,7 @@ export interface BoardEditorState {
   board: Board;
   history: BoardEditorHistoryState;
   ui: BoardEditorUiState;
+  selection: BoardEditorSelectionState;
   rendering: BoardEditorRenderingState;
   objectRegistry: ObjectRegistry;
   toolState: BoardEditorToolState;

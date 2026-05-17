@@ -22,10 +22,6 @@ import type {
   CanvasObjectRendererRegistry,
   CanvasOverlayRendererRegistry,
 } from "../../rendering/canvas/types";
-import {
-  getSelectToolState,
-  SELECT_TOOL_ID,
-} from "../../tools/select-tool-state";
 
 const MAX_HISTORY_ENTRIES = 100;
 
@@ -88,11 +84,11 @@ function translateObject(
 }
 
 function createHistoryEntry(
-  state: Pick<BoardEditorState, "board" | "toolState">,
+  state: Pick<BoardEditorState, "board" | "selection">,
 ) {
   return {
     board: state.board,
-    selectedObjectIds: getSelectToolState(state.toolState).selectedObjectIds,
+    selectedObjectIds: state.selection.selectedObjectIds,
   };
 }
 
@@ -113,15 +109,50 @@ function applyHistoryEntry(
 ) {
   return {
     board: entry.board,
-    toolState: {
-      ...state.toolState,
-      [SELECT_TOOL_ID]: {
-        ...getSelectToolState(state.toolState),
-        selectedObjectIds: [...entry.selectedObjectIds],
-        interaction: undefined,
-      },
+    selection: {
+      selectedObjectIds: [...entry.selectedObjectIds],
     },
+    toolState: Object.fromEntries(
+      Object.entries(state.toolState).map(([toolId, value]) => {
+        if (!value || typeof value !== "object" || !("interaction" in value)) {
+          return [toolId, value];
+        }
+
+        return [
+          toolId,
+          {
+            ...value,
+            interaction: undefined,
+          },
+        ];
+      }),
+    ),
   };
+}
+
+function normalizeSelectedObjectIds(
+  state: Pick<BoardEditorState, "board">,
+  objectIds: ObjectId[],
+) {
+  const seen = new Set<ObjectId>();
+  const selectedObjectIds: ObjectId[] = [];
+
+  for (const objectId of objectIds) {
+    if (seen.has(objectId) || !state.board.objects.byId[objectId]) {
+      continue;
+    }
+
+    seen.add(objectId);
+    selectedObjectIds.push(objectId);
+  }
+
+  return selectedObjectIds;
+}
+
+function selectedObjectIdsEqual(a: ObjectId[], b: ObjectId[]) {
+  return (
+    a.length === b.length && a.every((objectId, index) => objectId === b[index])
+  );
 }
 
 export function createBoardEditorStore({
@@ -176,6 +207,9 @@ export function createBoardEditorStore({
         pan: { x: 0, y: 0 },
         zoom: 1,
       },
+    },
+    selection: {
+      selectedObjectIds: [],
     },
     rendering: {
       previewObjects: [],
@@ -262,6 +296,8 @@ export function createBoardEditorStore({
             setPreviewObjects: actions.setPreviewObjects,
             clearPreviewObjects: actions.clearPreviewObjects,
             panViewport: actions.panViewport,
+            setSelectedObjectIds: actions.setSelectedObjectIds,
+            clearSelection: actions.clearSelection,
             setToolState: actions.setToolState,
             clearToolState: actions.clearToolState,
             registerObjectRenderer: actions.registerObjectRenderer,
@@ -472,6 +508,11 @@ export function createBoardEditorStore({
 
           return {
             board: nextBoard,
+            selection: {
+              selectedObjectIds: state.selection.selectedObjectIds.filter(
+                (objectId) => !objectIdsToDelete.has(objectId),
+              ),
+            },
             history: recordHistoryForBoardChange(state),
           };
         });
@@ -575,6 +616,42 @@ export function createBoardEditorStore({
             },
           },
         }));
+      },
+      setSelectedObjectIds: (objectIds) => {
+        set((state) => {
+          const selectedObjectIds = normalizeSelectedObjectIds(
+            state,
+            objectIds,
+          );
+
+          if (
+            selectedObjectIdsEqual(
+              state.selection.selectedObjectIds,
+              selectedObjectIds,
+            )
+          ) {
+            return state;
+          }
+
+          return {
+            selection: {
+              selectedObjectIds,
+            },
+          };
+        });
+      },
+      clearSelection: () => {
+        set((state) => {
+          if (state.selection.selectedObjectIds.length === 0) {
+            return state;
+          }
+
+          return {
+            selection: {
+              selectedObjectIds: [],
+            },
+          };
+        });
       },
       moveObjects: (objectIds: ObjectId[], delta: Point) => {
         set((state) => {

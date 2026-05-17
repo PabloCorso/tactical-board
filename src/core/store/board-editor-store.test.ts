@@ -51,11 +51,46 @@ describe("createBoardEditorStore", () => {
       ],
     });
 
-  it("resets select tool state when switching away", () => {
-    const store = createStore();
+  it("preserves editor selection and resets select interaction when switching away", () => {
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {
+            a: {
+              id: "a",
+              type: "token",
+              position: { x: 10, y: 12 },
+              props: {},
+            },
+            b: {
+              id: "b",
+              type: "token",
+              position: { x: 20, y: 22 },
+              props: {},
+            },
+          },
+          order: ["a", "b"],
+        },
+        style: {},
+      },
+      tools: [
+        selectTool,
+        {
+          id: "draw",
+          label: "Draw",
+        },
+      ],
+    });
 
+    store.getState().actions.setSelectedObjectIds(["a", "b"]);
     store.getState().actions.setToolState(SELECT_TOOL_ID, {
-      selectedObjectIds: ["a", "b"],
       interaction: {
         mode: "marquee",
         origin: { x: 1, y: 1 },
@@ -66,9 +101,9 @@ describe("createBoardEditorStore", () => {
     store.getState().actions.setActiveTool("draw");
 
     expect(getSelectToolState(store.getState().toolState)).toEqual({
-      selectedObjectIds: [],
       interaction: undefined,
     });
+    expect(store.getState().selection.selectedObjectIds).toEqual(["a", "b"]);
     expect(store.getState().ui.activeToolId).toBe("draw");
   });
 
@@ -350,12 +385,10 @@ describe("createBoardEditorStore", () => {
       id: "a-copy",
       position: { x: 12, y: 14 },
     });
-    expect(
-      getSelectToolState(store.getState().toolState).selectedObjectIds,
-    ).toEqual([]);
+    expect(store.getState().selection.selectedObjectIds).toEqual([]);
   });
 
-  it("deletes objects without mutating select tool state", () => {
+  it("deletes objects and removes deleted ids from selection", () => {
     const store = createBoardEditorStore({
       initialBoard: {
         id: "board-1",
@@ -387,16 +420,12 @@ describe("createBoardEditorStore", () => {
       tools: [{ id: SELECT_TOOL_ID, label: "Select" }],
     });
 
-    store.getState().actions.setToolState(SELECT_TOOL_ID, {
-      selectedObjectIds: ["a", "b"],
-    });
+    store.getState().actions.setSelectedObjectIds(["a", "b"]);
     store.getState().actions.deleteObjects(["b"]);
 
     expect(store.getState().board.objects.order).toEqual(["a"]);
     expect(store.getState().board.objects.byId.b).toBeUndefined();
-    expect(
-      getSelectToolState(store.getState().toolState).selectedObjectIds,
-    ).toEqual(["a", "b"]);
+    expect(store.getState().selection.selectedObjectIds).toEqual(["a"]);
   });
 
   it("brings an object to the front of its semantic layer", () => {
@@ -527,12 +556,10 @@ describe("createBoardEditorStore", () => {
       pan: { x: 20, y: 30 },
       zoom: 1.5,
     });
-    store.getState().actions.setToolState(SELECT_TOOL_ID, {
-      selectedObjectIds: ["a"],
-    });
+    store.getState().actions.setSelectedObjectIds(["a"]);
     store.getState().actions.moveObjects(["a"], { x: 5, y: -2 });
+    store.getState().actions.setSelectedObjectIds([]);
     store.getState().actions.setToolState(SELECT_TOOL_ID, {
-      selectedObjectIds: [],
       interaction: {
         mode: "marquee",
         origin: { x: 0, y: 0 },
@@ -553,9 +580,7 @@ describe("createBoardEditorStore", () => {
       x: 10,
       y: 12,
     });
-    expect(
-      getSelectToolState(store.getState().toolState).selectedObjectIds,
-    ).toEqual(["a"]);
+    expect(store.getState().selection.selectedObjectIds).toEqual(["a"]);
     expect(getSelectToolState(store.getState().toolState).interaction).toBe(
       undefined,
     );
@@ -572,9 +597,7 @@ describe("createBoardEditorStore", () => {
       x: 15,
       y: 10,
     });
-    expect(
-      getSelectToolState(store.getState().toolState).selectedObjectIds,
-    ).toEqual([]);
+    expect(store.getState().selection.selectedObjectIds).toEqual([]);
     expect(store.getState().history.past).toHaveLength(1);
     expect(store.getState().history.future).toHaveLength(0);
   });
@@ -652,17 +675,13 @@ describe("createBoardEditorStore", () => {
       tools: [{ id: SELECT_TOOL_ID, label: "Select" }],
     });
 
-    store.getState().actions.setToolState(SELECT_TOOL_ID, {
-      selectedObjectIds: ["a"],
-    });
+    store.getState().actions.setSelectedObjectIds(["a"]);
 
     expect(store.getState().history.past).toHaveLength(0);
 
     store.getState().actions.undo();
 
-    expect(
-      getSelectToolState(store.getState().toolState).selectedObjectIds,
-    ).toEqual(["a"]);
+    expect(store.getState().selection.selectedObjectIds).toEqual(["a"]);
   });
 
   it("collapses batched board mutations into a single undo step", () => {

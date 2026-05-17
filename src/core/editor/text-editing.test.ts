@@ -62,9 +62,7 @@ describe("text-editing", () => {
 
     expect(store.getState().board.objects.byId[text.id]).toBeUndefined();
     expect(store.getState().board.objects.order).toEqual([]);
-    expect(store.getState().toolState[SELECT_TOOL_ID]).toMatchObject({
-      selectedObjectIds: [],
-    });
+    expect(store.getState().selection.selectedObjectIds).toEqual([]);
   });
 
   it("updates the active text object around the editing anchor", () => {

@@ -1,24 +1,12 @@
 import type { ObjectId } from "../core/board/types";
 import type { ToolApi } from "../core/tools/types";
-import { getSelectToolState, SELECT_TOOL_ID } from "./select-tool-state";
 
 export function setSelectedObjectIds(api: ToolApi, objectIds: ObjectId[]) {
-  const selectState = getSelectToolState(api.getState().toolState);
-
-  api.setToolState(SELECT_TOOL_ID, {
-    ...selectState,
-    selectedObjectIds: [...objectIds],
-  });
+  api.setSelectedObjectIds(objectIds);
 }
 
 export function clearSelection(api: ToolApi) {
-  const selectState = getSelectToolState(api.getState().toolState);
-
-  api.setToolState(SELECT_TOOL_ID, {
-    ...selectState,
-    selectedObjectIds: [],
-    interaction: undefined,
-  });
+  api.clearSelection();
 }
 
 export function selectAllObjects(api: ToolApi) {
@@ -26,8 +14,7 @@ export function selectAllObjects(api: ToolApi) {
 }
 
 export function deleteSelectedObjects(api: ToolApi) {
-  const selectState = getSelectToolState(api.getState().toolState);
-  const selectedObjectIds = selectState.selectedObjectIds;
+  const selectedObjectIds = api.getState().selection.selectedObjectIds;
 
   if (selectedObjectIds.length === 0) {
     return;

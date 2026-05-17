@@ -35,10 +35,10 @@ export type BoardEditorSelectionToolbarProps = {
 
 export function shouldShowSelectionToolbar(
   selectState: ReturnType<typeof getSelectToolState>,
+  selectedObjectIds: string[],
 ) {
   return (
-    selectState.selectedObjectIds.length > 0 &&
-    selectState.interaction?.mode !== "marquee"
+    selectedObjectIds.length > 0 && selectState.interaction?.mode !== "marquee"
   );
 }
 
@@ -88,10 +88,13 @@ export function BoardEditorSelectionToolbar({
   const store = useBoardEditorContext();
   const state = useBoardEditorStore(store, (currentState) => currentState);
   const selectState = getSelectToolState(state.toolState);
-  const selection = selectState.selectedObjectIds;
+  const selection = state.selection.selectedObjectIds;
 
   const selectedObject = useMemo(() => {
-    if (selection.length !== 1 || !shouldShowSelectionToolbar(selectState)) {
+    if (
+      selection.length !== 1 ||
+      !shouldShowSelectionToolbar(selectState, selection)
+    ) {
       return undefined;
     }
 
@@ -106,7 +109,10 @@ export function BoardEditorSelectionToolbar({
     [selection, state.board.objects.byId],
   );
 
-  if (!shouldShowSelectionToolbar(selectState) || !state.ui.canvasRect) {
+  if (
+    !shouldShowSelectionToolbar(selectState, selection) ||
+    !state.ui.canvasRect
+  ) {
     return null;
   }
 

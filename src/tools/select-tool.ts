@@ -26,7 +26,6 @@ import {
   type SelectToolState,
   SELECT_TOOL_ID,
 } from "./select-tool-state";
-import { clearSelection } from "./select-tool-actions";
 import colors from "tailwindcss/colors";
 import {
   drawClosedCanvasPath,
@@ -124,7 +123,9 @@ export class SelectTool extends BoardEditorTool implements ToolDefinition {
 
   onDeactivate(api: ToolApi) {
     endTransformHistoryBatch(api);
-    clearSelection(api);
+    setSelectState(api, {
+      interaction: undefined,
+    });
   }
 
   registerCapabilities(api: ToolCapabilityRegistrationApi) {
@@ -132,11 +133,7 @@ export class SelectTool extends BoardEditorTool implements ToolDefinition {
   }
 
   onPointerDown(event: ToolPointerEvent, api: ToolApi) {
-    beginSelectionInteraction(
-      event,
-      api,
-      getSelectToolState(api.getState().toolState),
-    );
+    beginSelectionInteraction(event, api);
   }
 
   onPointerMove(event: ToolPointerEvent, api: ToolApi) {
@@ -582,7 +579,7 @@ function createGroupSelectionOverlayItem(
   selectState: SelectToolState,
   accentColor: string,
 ) {
-  const objects = selectState.selectedObjectIds
+  const objects = state.selection.selectedObjectIds
     .map((objectId) => state.board.objects.byId[objectId])
     .filter((object): object is BoardObject => Boolean(object));
   const interaction =
@@ -629,12 +626,13 @@ function createSelectionOverlayItems(
 ): Array<SelectionOverlayItem | GroupSelectionOverlayItem> {
   const selectState = getSelectToolState(state.toolState);
   const accentColor = getSelectionAccentColor(state, selectState);
+  const selectedObjectIds = state.selection.selectedObjectIds;
 
-  if (selectState.selectedObjectIds.length > 1) {
+  if (selectedObjectIds.length > 1) {
     return [createGroupSelectionOverlayItem(state, selectState, accentColor)];
   }
 
-  return selectState.selectedObjectIds.flatMap((objectId) => {
+  return selectedObjectIds.flatMap((objectId) => {
     const object = state.board.objects.byId[objectId];
 
     return object
@@ -800,12 +798,9 @@ function setSelectState(api: ToolApi, value: Partial<SelectToolState>) {
   } satisfies SelectToolState);
 }
 
-function beginSelectionInteraction(
-  event: ToolPointerEvent,
-  api: ToolApi,
-  selectState: SelectToolState,
-) {
+function beginSelectionInteraction(event: ToolPointerEvent, api: ToolApi) {
   const state = api.getState();
+  const selectedObjectIds = state.selection.selectedObjectIds;
   const projection = createBoardSpaceProjection({
     surface: state.board.surface,
     viewport: state.ui.viewport,
@@ -813,11 +808,11 @@ function beginSelectionInteraction(
     surfaceInset: SURFACE_INSET,
   });
   const groupSelectionSession =
-    selectState.selectedObjectIds.length > 1
+    selectedObjectIds.length > 1
       ? hitGroupSelectionHandle(
           state,
           projection as SelectionProjection,
-          selectState.selectedObjectIds
+          selectedObjectIds
             .map((objectId) => state.board.objects.byId[objectId])
             .filter((object): object is BoardObject => Boolean(object)),
           event,
@@ -829,7 +824,7 @@ function beginSelectionInteraction(
     setSelectState(api, {
       interaction: {
         mode: "group-selection",
-        selectedObjectIds: [...selectState.selectedObjectIds],
+        selectedObjectIds: [...selectedObjectIds],
         session: groupSelectionSession,
       },
     });
@@ -837,11 +832,11 @@ function beginSelectionInteraction(
   }
 
   if (
-    selectState.selectedObjectIds.length > 1 &&
+    selectedObjectIds.length > 1 &&
     isGroupSelectionChromeHit(
       state,
       projection as SelectionProjection,
-      selectState.selectedObjectIds
+      selectedObjectIds
         .map((objectId) => state.board.objects.byId[objectId])
         .filter((object): object is BoardObject => Boolean(object)),
       event,
@@ -850,7 +845,7 @@ function beginSelectionInteraction(
     return;
   }
 
-  for (const objectId of selectState.selectedObjectIds) {
+  for (const objectId of selectedObjectIds) {
     const object = state.board.objects.byId[objectId];
     const selectionAdapter = getObjectSelectionAdapterForObject(state, object);
     const session = object
@@ -864,8 +859,8 @@ function beginSelectionInteraction(
 
     if (object && session) {
       api.beginHistoryBatch();
+      api.setSelectedObjectIds([object.id]);
       setSelectState(api, {
-        selectedObjectIds: [object.id],
         interaction: {
           mode: "object-selection",
           objectId: object.id,
@@ -878,22 +873,20 @@ function beginSelectionInteraction(
 
   if (event.targetObjectId) {
     const hasAdditiveModifier = isAdditiveSelectionModifierPressed(event);
-    const objectIsSelected = selectState.selectedObjectIds.includes(
-      event.targetObjectId,
-    );
+    const objectIsSelected = selectedObjectIds.includes(event.targetObjectId);
     const nextSelection = hasAdditiveModifier
       ? objectIsSelected
-        ? selectState.selectedObjectIds.filter(
+        ? selectedObjectIds.filter(
             (objectId) => objectId !== event.targetObjectId,
           )
-        : [...selectState.selectedObjectIds, event.targetObjectId]
+        : [...selectedObjectIds, event.targetObjectId]
       : objectIsSelected
-        ? selectState.selectedObjectIds
+        ? selectedObjectIds
         : [event.targetObjectId];
 
     if (hasAdditiveModifier) {
+      api.setSelectedObjectIds(nextSelection);
       setSelectState(api, {
-        selectedObjectIds: nextSelection,
         interaction: undefined,
       });
       return;
@@ -908,8 +901,8 @@ function beginSelectionInteraction(
       ? targetSelectionAdapter?.getTransformCapabilities?.(targetObject)
       : undefined;
 
+    api.setSelectedObjectIds(nextSelection);
     setSelectState(api, {
-      selectedObjectIds: nextSelection,
       interaction:
         transformCapabilities?.move === false
           ? undefined
@@ -929,15 +922,13 @@ function beginSelectionInteraction(
   const preserveExistingSelection = isAdditiveSelectionModifierPressed(event);
 
   if (!preserveExistingSelection) {
-    clearSelection(api);
+    api.clearSelection();
   }
 
-  const baseSelection = preserveExistingSelection
-    ? selectState.selectedObjectIds
-    : [];
+  const baseSelection = preserveExistingSelection ? selectedObjectIds : [];
 
+  api.setSelectedObjectIds(baseSelection);
   setSelectState(api, {
-    selectedObjectIds: baseSelection,
     interaction: {
       mode: "marquee",
       origin: event.point,
@@ -1128,8 +1119,8 @@ function updateMarqueeSelection(
     ...new Set([...nextInteraction.baseSelection, ...marqueeObjectIds]),
   ];
 
+  api.setSelectedObjectIds(nextSelection);
   setSelectState(api, {
-    selectedObjectIds: nextSelection,
     interaction: nextInteraction,
   });
 }

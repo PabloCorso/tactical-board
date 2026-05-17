@@ -11,10 +11,7 @@ import {
   setSelectedObjectIds,
   selectAllObjects,
 } from "../../tools/select-tool-actions";
-import {
-  getSelectToolState,
-  SELECT_TOOL_ID,
-} from "../../tools/select-tool-state";
+import { SELECT_TOOL_ID } from "../../tools/select-tool-state";
 import { TEXT_TOOL_ID } from "../../tools/text-tool-state";
 import { ARROW_TOOL_ID, getArrowToolState } from "../../tools/arrow-tool-state";
 import { getShapeToolState, SHAPE_TOOL_ID } from "../../tools/shape-tool-state";
@@ -244,8 +241,7 @@ export function createBoardEditorRuntime({
       return;
     }
 
-    const selectState = getSelectToolState(state.toolState);
-    const selectedObjects = selectState.selectedObjectIds
+    const selectedObjects = state.selection.selectedObjectIds
       .map((objectId) => state.board.objects.byId[objectId])
       .filter((object) => Boolean(object));
 

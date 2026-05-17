@@ -29,10 +29,7 @@ import {
   getPlayerToolState,
   PLAYER_TOOL_ID,
 } from "../../tools/player-tool-state";
-import {
-  getSelectToolState,
-  SELECT_TOOL_ID,
-} from "../../tools/select-tool-state";
+import { SELECT_TOOL_ID } from "../../tools/select-tool-state";
 import { getShapeToolState } from "../../tools/shape-tool-state";
 import { getTextToolState, TEXT_TOOL_ID } from "../../tools/text-tool-state";
 import { FOOTBALL_PLAYER_PRESET_COLORS } from "../../examples/football/football-example-catalog";
@@ -150,9 +147,7 @@ describe("createBoardEditorController", () => {
       canvasRect,
     });
 
-    expect(
-      getSelectToolState(store.getState().toolState).selectedObjectIds,
-    ).toEqual([]);
+    expect(store.getState().selection.selectedObjectIds).toEqual([]);
     expect(getArrowToolState(store.getState().toolState).pendingPoints).toEqual(
       [
         {
@@ -179,9 +174,7 @@ describe("createBoardEditorController", () => {
       "arrow-1",
       "arrow-2",
     ]);
-    expect(
-      getSelectToolState(store.getState().toolState).selectedObjectIds,
-    ).toEqual([]);
+    expect(store.getState().selection.selectedObjectIds).toEqual([]);
     expect(getArrowToolState(store.getState().toolState).pendingPoints).toEqual(
       [],
     );
@@ -369,9 +362,7 @@ describe("createBoardEditorController", () => {
         mode: "world",
       },
     });
-    expect(
-      getSelectToolState(store.getState().toolState).selectedObjectIds,
-    ).toEqual(["text-1"]);
+    expect(store.getState().selection.selectedObjectIds).toEqual(["text-1"]);
     expect(getTextToolState(store.getState().toolState).editingSession).toEqual(
       {
         objectId: "text-1",

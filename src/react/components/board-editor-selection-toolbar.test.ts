@@ -22,33 +22,39 @@ import { getSelectionToolbarPlacement } from "./board-editor-selection-toolbar-p
 describe("shouldShowSelectionToolbar", () => {
   it("shows the toolbar for a normal single selection", () => {
     expect(
-      shouldShowSelectionToolbar({
-        selectedObjectIds: ["player-1"],
-        interaction: undefined,
-      }),
+      shouldShowSelectionToolbar(
+        {
+          interaction: undefined,
+        },
+        ["player-1"],
+      ),
     ).toBe(true);
   });
 
   it("shows the toolbar for a normal multi selection", () => {
     expect(
-      shouldShowSelectionToolbar({
-        selectedObjectIds: ["player-1", "shape-1"],
-        interaction: undefined,
-      }),
+      shouldShowSelectionToolbar(
+        {
+          interaction: undefined,
+        },
+        ["player-1", "shape-1"],
+      ),
     ).toBe(true);
   });
 
   it("hides the toolbar while marquee selection is in progress", () => {
     expect(
-      shouldShowSelectionToolbar({
-        selectedObjectIds: ["player-1"],
-        interaction: {
-          mode: "marquee",
-          origin: { x: 10, y: 10 },
-          current: { x: 20, y: 20 },
-          baseSelection: [],
+      shouldShowSelectionToolbar(
+        {
+          interaction: {
+            mode: "marquee",
+            origin: { x: 10, y: 10 },
+            current: { x: 20, y: 20 },
+            baseSelection: [],
+          },
         },
-      }),
+        ["player-1"],
+      ),
     ).toBe(false);
   });
 });

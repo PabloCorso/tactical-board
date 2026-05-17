@@ -1,7 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import { createBoardEditorRuntime } from "./board-editor-runtime";
 import { createBoardEditorStore } from "../store/board-editor-store";
-import { SELECT_TOOL_ID } from "../../tools/select-tool-state";
+import {
+  getSelectToolState,
+  SELECT_TOOL_ID,
+} from "../../tools/select-tool-state";
 import * as canvasRendererModule from "../../rendering/canvas/create-canvas-renderer";
 import { getViewportToFitSurface } from "./viewport-utils";
 import { createToolApi } from "./create-tool-api";
@@ -663,9 +666,7 @@ describe("createBoardEditorRuntime", () => {
 
     expect(store.getState().board.objects.byId.a).toBeUndefined();
     expect(store.getState().board.objects.order).toEqual([]);
-    expect(store.getState().toolState[SELECT_TOOL_ID]).toMatchObject({
-      selectedObjectIds: [],
-    });
+    expect(store.getState().selection.selectedObjectIds).toEqual([]);
     expect(deleteEvent.preventDefault).toHaveBeenCalledTimes(1);
 
     runtime.unmount();
@@ -993,10 +994,10 @@ describe("createBoardEditorRuntime", () => {
 
     keyDownHandler?.(escapeEvent);
 
-    expect(store.getState().toolState[SELECT_TOOL_ID]).toMatchObject({
-      selectedObjectIds: [],
-      interaction: undefined,
-    });
+    expect(store.getState().selection.selectedObjectIds).toEqual([]);
+    expect(getSelectToolState(store.getState().toolState).interaction).toBe(
+      undefined,
+    );
     expect(escapeEvent.preventDefault).toHaveBeenCalledTimes(1);
 
     runtime.unmount();
@@ -1288,9 +1289,7 @@ describe("createBoardEditorRuntime", () => {
 
       keyDownHandler?.(selectAllEvent);
 
-      expect(store.getState().toolState[SELECT_TOOL_ID]).toMatchObject({
-        selectedObjectIds: ["a", "b"],
-      });
+      expect(store.getState().selection.selectedObjectIds).toEqual(["a", "b"]);
       expect(selectAllEvent.preventDefault).toHaveBeenCalledTimes(1);
 
       runtime.unmount();
