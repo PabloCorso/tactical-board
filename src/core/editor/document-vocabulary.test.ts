@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import type { Board, BoardObject, Document, Shape } from "../board/types";
+import type {
+  Board,
+  BoardObject,
+  BoardSurfacePreset,
+  Document,
+  DocumentBackgroundConfig,
+  Shape,
+} from "../board/types";
 import { createBoard, createDocument } from "../board/create-board";
 import {
   createBoardEditorStore,
@@ -94,5 +101,35 @@ describe("Document and Shape compatibility vocabulary", () => {
     expect(serializeDocument(createDocument(document))).toBe(
       serializeBoard(createBoard(document)),
     );
+  });
+
+  it("keeps generic Document background separate from board surface presets", () => {
+    const background: DocumentBackgroundConfig = {
+      width: 320,
+      height: 180,
+      unit: "px",
+      fill: "#f8fafc",
+    };
+    const surfacePreset: BoardSurfacePreset = {
+      ...background,
+      background: "#177238",
+      markings: [
+        {
+          kind: "line",
+          x1: 0,
+          y1: 90,
+          x2: 320,
+          y2: 90,
+          stroke: "#ffffff",
+          strokeWidth: 2,
+        },
+      ],
+      markup: {
+        sport: "football",
+      },
+    };
+
+    expect("markings" in background).toBe(false);
+    expect(surfacePreset.markings).toHaveLength(1);
   });
 });

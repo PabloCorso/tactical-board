@@ -1,4 +1,4 @@
-import type { BoardSurfaceConfig, Point } from "../board/types";
+import type { DocumentBackgroundConfig, Point } from "../board/types";
 import { getSurfaceBasePixelsPerUnit } from "./surface-scale";
 
 export interface Rect {
@@ -21,7 +21,7 @@ export function createBoardSurfaceTransform({
   frame,
   zoom = 1,
 }: {
-  surface: BoardSurfaceConfig;
+  surface: DocumentBackgroundConfig;
   frame: Rect;
   zoom?: number;
 }): BoardSurfaceTransform {

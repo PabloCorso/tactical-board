@@ -15,5 +15,5 @@ export function createDocument(input: Document): Document {
 // Compatibility helper kept for Board-facing callers.
 // Prefer createDocument for new core Editor Engine code.
 export function createBoard(input: Board): Board {
-  return createDocument(input);
+  return createDocument(input) as Board;
 }

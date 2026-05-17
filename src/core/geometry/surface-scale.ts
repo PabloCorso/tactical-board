@@ -1,9 +1,9 @@
-import type { BoardSurfaceConfig } from "../board/types";
+import type { DocumentBackgroundConfig } from "../board/types";
 import { clampViewportZoom } from "../editor/viewport-zoom";
 import type { Rect } from "./types";
 
 export function getSurfaceFitPixelsPerUnit(
-  surface: Pick<BoardSurfaceConfig, "width" | "height">,
+  surface: Pick<DocumentBackgroundConfig, "width" | "height">,
   frame: Pick<Rect, "width" | "height">,
 ) {
   return Math.min(
@@ -13,7 +13,10 @@ export function getSurfaceFitPixelsPerUnit(
 }
 
 export function getSurfaceBasePixelsPerUnit(
-  surface: Pick<BoardSurfaceConfig, "width" | "height" | "basePixelsPerUnit">,
+  surface: Pick<
+    DocumentBackgroundConfig,
+    "width" | "height" | "basePixelsPerUnit"
+  >,
   frame: Pick<Rect, "width" | "height">,
 ) {
   return (
@@ -22,7 +25,10 @@ export function getSurfaceBasePixelsPerUnit(
 }
 
 export function getViewportZoomToFitSurface(
-  surface: Pick<BoardSurfaceConfig, "width" | "height" | "basePixelsPerUnit">,
+  surface: Pick<
+    DocumentBackgroundConfig,
+    "width" | "height" | "basePixelsPerUnit"
+  >,
   frame: Pick<Rect, "width" | "height">,
 ) {
   const fitPixelsPerUnit = getSurfaceFitPixelsPerUnit(surface, frame);

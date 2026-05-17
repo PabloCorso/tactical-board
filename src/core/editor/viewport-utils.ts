@@ -1,8 +1,7 @@
-import type { Point } from "../board/types";
+import type { DocumentBackgroundConfig, Point } from "../board/types";
 import type { BoardViewport } from "./types";
 import { createBoardSpaceProjection } from "../geometry/board-space-projection";
 import type { CanvasRect } from "./board-editor-controller";
-import type { BoardSurfaceConfig } from "../board/types";
 import { getViewportZoomToFitSurface } from "../geometry/surface-scale";
 import {
   clampViewportZoom,
@@ -28,7 +27,7 @@ export function getViewportForZoomAtCanvasPoint({
   anchorCanvasPoint,
   zoom,
 }: {
-  surface: BoardSurfaceConfig;
+  surface: DocumentBackgroundConfig;
   viewport: BoardViewport;
   canvasRect: Pick<CanvasRect, "width" | "height">;
   anchorCanvasPoint: Point;
@@ -72,7 +71,7 @@ export function getViewportToFitSurface({
   surface,
   canvasRect,
 }: {
-  surface: BoardSurfaceConfig;
+  surface: DocumentBackgroundConfig;
   canvasRect: Pick<CanvasRect, "width" | "height">;
 }): BoardViewport {
   const frame = {

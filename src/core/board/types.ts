@@ -60,6 +60,10 @@ export interface DocumentBackgroundConfig {
   basePixelsPerUnit?: number;
   unit?: MeasurementUnit;
   origin?: Point;
+  fill?: string;
+}
+
+export interface BoardSurfacePreset extends DocumentBackgroundConfig {
   background?: string;
   markings?: BoardSurfaceMarking[];
   markup?: Record<string, unknown>;
@@ -125,5 +129,8 @@ export type BoardMetadata = DocumentMetadata;
 export type BoardStyleRef = DocumentStyleRef;
 export type BoardObject = Shape;
 export type ObjectIndex = ShapeIndex;
-export type BoardSurfaceConfig = DocumentBackgroundConfig;
-export type Board = Document;
+export type BoardSurfaceConfig = BoardSurfacePreset;
+
+export interface Board extends Omit<Document, "surface"> {
+  surface: BoardSurfacePreset;
+}

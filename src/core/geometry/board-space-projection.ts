@@ -1,4 +1,8 @@
-import type { BoardObject, BoardSurfaceConfig, Point } from "../board/types";
+import type {
+  BoardObject,
+  DocumentBackgroundConfig,
+  Point,
+} from "../board/types";
 import { createBoardSurfaceTransform } from "./create-board-surface-transform";
 import type { Rect, Viewport } from "./types";
 
@@ -23,7 +27,7 @@ export interface BoardSpaceProjection {
 }
 
 export interface CreateBoardSpaceProjectionOptions {
-  surface: BoardSurfaceConfig;
+  surface: DocumentBackgroundConfig;
   viewport: Viewport;
   canvasRect: Pick<Rect, "width" | "height">;
   surfaceInset?: number;

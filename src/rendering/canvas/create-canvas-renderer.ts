@@ -264,7 +264,9 @@ export function createCanvasRenderer(): CanvasRenderer {
         SURFACE_RADIUS,
       );
       context.fillStyle =
-        board.surface.background ?? DEFAULT_SURFACE_BACKGROUND;
+        board.surface.background ??
+        board.surface.fill ??
+        DEFAULT_SURFACE_BACKGROUND;
       context.fill();
 
       for (const marking of board.surface.markings ?? []) {
