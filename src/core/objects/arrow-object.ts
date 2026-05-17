@@ -18,7 +18,7 @@ const WAVE_SAMPLES_PER_SEGMENT = 8;
 const WAVE_TAIL_LENGTH = 2;
 const BODY_SAMPLE_COUNT = 24;
 const DOUBLE_LINE_OFFSET = 3;
-const DOUBLE_LINE_STYLE_SCALE = 0.4;
+const DOUBLE_LINE_STYLE_SCALE = 0.3;
 const CURVE_HANDLE_OFFSET = 0.5;
 
 export interface ArrowObjectProps extends Record<string, unknown> {

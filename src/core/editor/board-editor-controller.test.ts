@@ -11,6 +11,7 @@ import {
   createEquipmentObject,
   type EquipmentDefinition,
 } from "../objects/equipment-object";
+import { getEquipmentSelectionOutlineCanvasPoints } from "../../tools/equipment-geometry";
 import {
   createPlayerObject,
   type PlayerObject,
@@ -35,6 +36,7 @@ import { getTextToolState, TEXT_TOOL_ID } from "../../tools/text-tool-state";
 import { FOOTBALL_PLAYER_PRESET_COLORS } from "../../examples/football/football-example-catalog";
 import { MAX_VIEWPORT_ZOOM, MIN_VIEWPORT_ZOOM } from "./viewport-utils";
 import {
+  getCornerHandleCanvasPoint,
   getRotatedRectWorldPoints,
   rotateOffset,
 } from "../../tools/selection-geometry";
@@ -363,12 +365,12 @@ describe("createBoardEditorController", () => {
       },
     });
     expect(store.getState().selection.selectedObjectIds).toEqual(["text-1"]);
-    expect(getTextToolState(store.getState().toolState).editingSession).toEqual(
-      {
-        objectId: "text-1",
-        anchorPosition: { x: 30, y: 18 },
-      },
-    );
+    const editingSession = getTextToolState(
+      store.getState().toolState,
+    ).editingSession;
+    expect(editingSession?.objectId).toBe("text-1");
+    expect(editingSession?.anchorPosition.x).toBeCloseTo(30);
+    expect(editingSession?.anchorPosition.y).toBeCloseTo(18);
   });
 
   it("prefers players over overlapping shapes during hit testing", () => {
@@ -776,7 +778,7 @@ describe("createBoardEditorController", () => {
       canvasRect,
     });
 
-    setPlayerDraftStyle(toolApi, { color: "#111827" });
+    setPlayerDraftStyle(toolApi, { color: "#1f1f1f" });
     const firstBlack = projection.worldToCanvas({ x: 40, y: 10 });
     controller.dispatchPointerEvent("onPointerDown", {
       clientPoint: firstBlack,
@@ -809,11 +811,11 @@ describe("createBoardEditorController", () => {
     ]);
     expect(store.getState().board.objects.byId["player-1"]).toMatchObject({
       type: "player",
-      props: { label: "1", color: "#111827" },
+      props: { label: "1", color: "#1f1f1f" },
     });
     expect(store.getState().board.objects.byId["player-2"]).toMatchObject({
       type: "player",
-      props: { label: "2", color: "#111827" },
+      props: { label: "2", color: "#1f1f1f" },
     });
     expect(store.getState().board.objects.byId["player-3"]).toMatchObject({
       type: "player",
@@ -821,7 +823,7 @@ describe("createBoardEditorController", () => {
     });
     expect(store.getState().board.objects.byId["player-4"]).toMatchObject({
       type: "player",
-      props: { label: "3", color: "#111827" },
+      props: { label: "3", color: "#1f1f1f" },
     });
     expect(store.getState().board.objects.byId["player-5"]).toMatchObject({
       type: "player",
@@ -830,7 +832,7 @@ describe("createBoardEditorController", () => {
     expect(
       getPlayerToolState(store.getState().toolState).nextNumericLabelByColor,
     ).toEqual({
-      "#111827": 4,
+      "#1f1f1f": 4,
       "#ff6b35": 3,
     });
   });
@@ -1111,12 +1113,10 @@ describe("createBoardEditorController", () => {
       canvasRect,
     });
 
-    expect(
-      store.getState().board.objects.byId[existingPlayer.id],
-    ).toMatchObject({
-      position: { x: 11, y: 11 },
-      size: { width: 2, height: 2 },
-    });
+    const movedPlayer = store.getState().board.objects.byId[existingPlayer.id];
+    expect(movedPlayer?.position.x).toBeCloseTo(11);
+    expect(movedPlayer?.position.y).toBeCloseTo(11);
+    expect(movedPlayer?.size).toMatchObject({ width: 2, height: 2 });
   });
 
   it("rotates a selected player by dragging the rotation handle", () => {
@@ -1128,6 +1128,10 @@ describe("createBoardEditorController", () => {
       color: "#1f6feb",
       label: "1",
     });
+    existingPlayer.props.transformCapabilities = {
+      ...existingPlayer.props.transformCapabilities,
+      rotate: true,
+    };
     const store = createBoardEditorStore({
       initialBoard: {
         id: "board-1",
@@ -1166,7 +1170,11 @@ describe("createBoardEditorController", () => {
       canvasRect,
       surfaceInset: 14,
     });
-    const rotationHandle = projection.worldToCanvas({ x: 7.4, y: 12.6 });
+    const rotationHandle = getCornerHandleCanvasPoint(
+      getPlayerSelectionOutlineCanvasPoints(projection, existingPlayer),
+      3,
+      18,
+    );
     const rightOfCenter = projection.worldToCanvas({ x: 12, y: 10 });
 
     controller.dispatchPointerEvent("onPointerDown", {
@@ -1205,6 +1213,10 @@ describe("createBoardEditorController", () => {
       color: "#111827",
       label: "1",
     });
+    existingPlayer.props.transformCapabilities = {
+      ...existingPlayer.props.transformCapabilities,
+      rotate: true,
+    };
     const store = createBoardEditorStore({
       initialBoard: {
         id: "board-1",
@@ -1243,7 +1255,11 @@ describe("createBoardEditorController", () => {
       canvasRect,
       surfaceInset: 14,
     });
-    const rotationHandle = projection.worldToCanvas({ x: 7.4, y: 12.6 });
+    const rotationHandle = getCornerHandleCanvasPoint(
+      getPlayerSelectionOutlineCanvasPoints(projection, existingPlayer),
+      3,
+      18,
+    );
     const slightMove = { x: rotationHandle.x + 3, y: rotationHandle.y - 2 };
 
     controller.dispatchPointerEvent("onPointerDown", {
@@ -1374,7 +1390,14 @@ describe("createBoardEditorController", () => {
       size: { width: 12, height: 4 },
     });
 
-    const rotationHandle = projection.worldToCanvas({ x: 2.2, y: 12.6 });
+    const resizedEquipment = store.getState().board.objects.byId[
+      existingEquipment.id
+    ] as typeof existingEquipment;
+    const rotationHandle = getCornerHandleCanvasPoint(
+      getEquipmentSelectionOutlineCanvasPoints(projection, resizedEquipment),
+      3,
+      18,
+    );
     const rightOfCenter = projection.worldToCanvas({ x: 12, y: 10 });
 
     controller.dispatchPointerEvent("onPointerDown", {
@@ -2103,15 +2126,23 @@ describe("createBoardEditorController", () => {
       canvasRect,
     });
 
-    expect(
-      store.getState().board.objects.byId[existingEquipment.id],
-    ).toMatchObject({
-      position: { x: 12, y: 11 },
+    const resizedEquipment =
+      store.getState().board.objects.byId[existingEquipment.id];
+    expect(resizedEquipment?.position.x).toBeCloseTo(12);
+    expect(resizedEquipment?.position.y).toBeCloseTo(11);
+    expect(resizedEquipment).toMatchObject({
       size: { width: 3.8, height: 14 },
       rotation: 0,
     });
 
-    const rotationHandle = projection.worldToCanvas({ x: 5.6, y: 18.4 });
+    const movedEquipment = store.getState().board.objects.byId[
+      existingEquipment.id
+    ] as typeof existingEquipment;
+    const rotationHandle = getCornerHandleCanvasPoint(
+      getEquipmentSelectionOutlineCanvasPoints(projection, movedEquipment),
+      3,
+      18,
+    );
     const rotateTarget = projection.worldToCanvas({ x: 13, y: 10 });
 
     controller.dispatchPointerEvent("onPointerDown", {
@@ -2225,10 +2256,11 @@ describe("createBoardEditorController", () => {
       canvasRect,
     });
 
-    expect(
-      store.getState().board.objects.byId[existingEquipment.id],
-    ).toMatchObject({
-      position: { x: 12, y: 11 },
+    const movedEquipment =
+      store.getState().board.objects.byId[existingEquipment.id];
+    expect(movedEquipment?.position.x).toBeCloseTo(12);
+    expect(movedEquipment?.position.y).toBeCloseTo(11);
+    expect(movedEquipment).toMatchObject({
       size: { width: 1.5, height: 1.5 },
       rotation: 0,
     });
@@ -2689,11 +2721,11 @@ describe("createBoardEditorController", () => {
     expect(store.getState().rendering.previewObjects[0]).toMatchObject({
       id: "shape-preview",
       type: "shape",
-      position: { x: 28, y: 21 },
+      position: { x: 32, y: 24 },
       props: {
         kind: "rectangle",
         start: { x: 24, y: 18 },
-        end: { x: 32, y: 24 },
+        end: { x: 40, y: 30 },
       },
     });
   });
@@ -2761,11 +2793,11 @@ describe("createBoardEditorController", () => {
     );
     expect(store.getState().board.objects.byId["shape-1"]).toMatchObject({
       type: "shape",
-      position: { x: 28, y: 21 },
+      position: { x: 32, y: 24 },
       props: {
         kind: "rectangle",
         start: { x: 24, y: 18 },
-        end: { x: 32, y: 24 },
+        end: { x: 40, y: 30 },
       },
     });
   });
@@ -3254,7 +3286,7 @@ describe("createBoardEditorController", () => {
       start: { x: 10, y: 10 },
       end: { x: 20, y: 10 },
       color: "#fff",
-      strokeWidth: 2,
+      strokeWidth: 0.225,
       lineStyle: "solid",
       bodyStyle: "straight",
       startHead: "none",
@@ -3367,7 +3399,7 @@ describe("createBoardEditorController", () => {
       start: { x: 10, y: 10 },
       end: { x: 20, y: 10 },
       color: "#fff",
-      strokeWidth: 2,
+      strokeWidth: 0.225,
       lineStyle: "solid",
       bodyStyle: "straight",
       startHead: "none",

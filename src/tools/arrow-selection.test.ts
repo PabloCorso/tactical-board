@@ -112,7 +112,7 @@ describe("getArrowSelectionCanvasBounds", () => {
 
     const bounds = getArrowSelectionCanvasBounds(projection, arrow);
 
-    expect(bounds.top).toBeCloseTo(94.483, 2);
-    expect(bounds.bottom).toBeCloseTo(105.517, 2);
+    expect(bounds.top).toBeCloseTo(94.607, 2);
+    expect(bounds.bottom).toBeCloseTo(105.393, 2);
   });
 });
