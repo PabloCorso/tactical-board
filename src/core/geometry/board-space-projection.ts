@@ -1,6 +1,7 @@
 import type {
   BoardObject,
   DocumentBackgroundConfig,
+  DocumentUnit,
   Point,
 } from "../board/types";
 import { createBoardSurfaceTransform } from "./create-board-surface-transform";
@@ -12,6 +13,7 @@ const DEFAULT_MINIMUM_HIT_RADIUS_PX = 24;
 
 export interface BoardSpaceProjection {
   frame: Rect;
+  documentUnit: DocumentUnit;
   zoom: number;
   pixelsPerUnit: number;
   worldOrigin: Point;
@@ -84,6 +86,7 @@ export function createBoardSpaceProjection({
 
   return {
     frame: surfaceTransform.frame,
+    documentUnit: surfaceTransform.documentUnit,
     zoom: viewport.zoom,
     pixelsPerUnit: surfaceTransform.pixelsPerUnit,
     worldOrigin: surfaceTransform.worldOrigin,

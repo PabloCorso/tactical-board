@@ -94,4 +94,69 @@ describe("createBoardSpaceProjection", () => {
       projection.pixelsPerUnit * 2,
     );
   });
+
+  it("uses pixel Document units as one world unit per canvas pixel at base scale", () => {
+    const pixelProjection = createBoardSpaceProjection({
+      surface: {
+        width: 320,
+        height: 180,
+        coordinateSystem: {
+          unit: "px",
+          basePixelsPerUnit: 1,
+        },
+      },
+      viewport: {
+        pan: { x: 0, y: 0 },
+        zoom: 1,
+      },
+      canvasRect: {
+        width: 348,
+        height: 208,
+      },
+    });
+
+    expect(pixelProjection.documentUnit).toBe("px");
+    expect(pixelProjection.pixelsPerUnit).toBe(1);
+    expect(pixelProjection.worldToCanvas({ x: 25, y: 40 })).toEqual({
+      x: 39,
+      y: 54,
+    });
+    expect(pixelProjection.canvasToWorld({ x: 39, y: 54 })).toEqual({
+      x: 25,
+      y: 40,
+    });
+  });
+
+  it("uses meter Document units through the declared base scale", () => {
+    const meterProjection = createBoardSpaceProjection({
+      surface: {
+        width: 115,
+        height: 74,
+        coordinateSystem: {
+          unit: "m",
+          basePixelsPerUnit: 8,
+          origin: { x: -5, y: -3 },
+        },
+      },
+      viewport: {
+        pan: { x: 0, y: 0 },
+        zoom: 1,
+      },
+      canvasRect: {
+        width: 948,
+        height: 620,
+      },
+    });
+
+    expect(meterProjection.documentUnit).toBe("m");
+    expect(meterProjection.pixelsPerUnit).toBe(8);
+    expect(meterProjection.worldToCanvas({ x: -4, y: -1 })).toEqual({
+      x: 22,
+      y: 30,
+    });
+    expect(meterProjection.canvasToWorld({ x: 22, y: 30 })).toEqual({
+      x: -4,
+      y: -1,
+    });
+  });
 });

@@ -101,6 +101,8 @@ Own:
 
 The football editor remains under `src/examples/football` for now, but it is not disposable demo code. Shared board abstractions should be extracted only when multiple sports or concrete planning use cases prove the boundary.
 
+The current `src/core/board` directory is a compatibility namespace for Board-facing types and helpers during the incremental migration from Board/Object vocabulary to Document/Shape vocabulary. It is not a fully extracted shared Board Library layer. New shared Board Library code should appear only when a concrete boundary exists outside the Football Example.
+
 ## Data Model
 
 ### Persistent Document Data
@@ -199,9 +201,10 @@ src/
   rendering/
   react/
   tools/
-  board/       # when shared board abstractions emerge
-  presets/
+  board/       # later, only when shared board abstractions emerge
+  presets/     # later, only when cross-board presets emerge
   examples/
+    football/  # current first pressure-test application
 ```
 
 This keeps the repo simple while allowing clean future extraction into separate packages if the boundaries prove stable. The current code may still use Board names while the migration proceeds incrementally; new architectural work should follow the Document/Shape/Editor vocabulary.

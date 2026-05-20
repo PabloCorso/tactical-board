@@ -182,6 +182,7 @@ function createArrowIconProjection(
 
   return {
     frame: { x: 0, y: 0, width, height },
+    documentUnit: "px",
     zoom: 1,
     pixelsPerUnit: scale,
     worldOrigin: { x: frame.x, y: frame.y },

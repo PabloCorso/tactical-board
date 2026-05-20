@@ -115,6 +115,7 @@ export function createCenteredObjectIconProjection(
 
   return {
     frame: { x: 0, y: 0, width, height },
+    documentUnit: object.size?.unit ?? "px",
     zoom: scale,
     pixelsPerUnit: scale,
     worldOrigin: { x: left, y: top },

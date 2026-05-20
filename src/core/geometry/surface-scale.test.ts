@@ -30,6 +30,23 @@ describe("surface scale", () => {
     ).toBe(8);
   });
 
+  it("prefers the Document coordinate-system base scale for new Document code", () => {
+    expect(
+      getSurfaceBasePixelsPerUnit(
+        {
+          width: 320,
+          height: 180,
+          basePixelsPerUnit: 2,
+          coordinateSystem: {
+            unit: "px",
+            basePixelsPerUnit: 1,
+          },
+        },
+        { width: 640, height: 360 },
+      ),
+    ).toBe(1);
+  });
+
   it("derives fit zoom relative to the canonical base scale", () => {
     const surface = { width: 115, height: 74, basePixelsPerUnit: 8 };
     const frame = { width: 300, height: 200 };

@@ -1,4 +1,9 @@
-import type { DocumentBackgroundConfig, Point } from "../board/types";
+import type {
+  DocumentBackgroundConfig,
+  DocumentUnit,
+  Point,
+} from "../board/types";
+import { getDocumentCoordinateSystem } from "./document-coordinate-system";
 import { getSurfaceBasePixelsPerUnit } from "./surface-scale";
 
 export interface Rect {
@@ -10,6 +15,7 @@ export interface Rect {
 
 export interface BoardSurfaceTransform {
   frame: Rect;
+  documentUnit: DocumentUnit;
   pixelsPerUnit: number;
   worldOrigin: Point;
   worldToCanvas: (point: Point) => Point;
@@ -25,7 +31,8 @@ export function createBoardSurfaceTransform({
   frame: Rect;
   zoom?: number;
 }): BoardSurfaceTransform {
-  const worldOrigin = surface.origin ?? { x: 0, y: 0 };
+  const coordinateSystem = getDocumentCoordinateSystem(surface);
+  const worldOrigin = coordinateSystem.origin ?? { x: 0, y: 0 };
   const basePixelsPerUnit = getSurfaceBasePixelsPerUnit(surface, frame);
   const pixelsPerUnit = basePixelsPerUnit * zoom;
   const renderWidth = surface.width * pixelsPerUnit;
@@ -40,6 +47,7 @@ export function createBoardSurfaceTransform({
       width: renderWidth,
       height: renderHeight,
     },
+    documentUnit: coordinateSystem.unit,
     pixelsPerUnit,
     worldOrigin,
     worldToCanvas: (point) => ({
