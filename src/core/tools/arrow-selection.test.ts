@@ -11,7 +11,7 @@ describe("getArrowSelectionCanvasBounds", () => {
       color: "#111827",
       strokeWidth: 0.225,
       lineStyle: "solid",
-      bodyStyle: "straight",
+      kind: "straight",
       startHead: "none",
       endHead: "triangle",
     });
@@ -50,7 +50,7 @@ describe("getArrowSelectionCanvasBounds", () => {
       color: "#111827",
       strokeWidth: 0.225,
       lineStyle: "solid",
-      bodyStyle: "wavy",
+      kind: "wavy",
       startHead: "none",
       endHead: "triangle",
     });
@@ -87,7 +87,7 @@ describe("getArrowSelectionCanvasBounds", () => {
       color: "#111827",
       strokeWidth: 0.225,
       lineStyle: "solid",
-      bodyStyle: "double",
+      kind: "double",
       startHead: "none",
       endHead: "triangle",
     });

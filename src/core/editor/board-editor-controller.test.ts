@@ -90,7 +90,7 @@ describe("createBoardEditorController", () => {
       color: "#fff",
       strokeWidth: 2,
       lineStyle: "solid",
-      bodyStyle: "straight",
+      kind: "straight",
       startHead: "none",
       endHead: "triangle",
     });
@@ -509,7 +509,7 @@ describe("createBoardEditorController", () => {
       color: "#fff",
       strokeWidth: 2,
       lineStyle: "solid",
-      bodyStyle: "straight",
+      kind: "straight",
       startHead: "none",
       endHead: "triangle",
     });
@@ -3405,7 +3405,7 @@ describe("createBoardEditorController", () => {
       color: "#fff",
       strokeWidth: 0.225,
       lineStyle: "solid",
-      bodyStyle: "straight",
+      kind: "straight",
       startHead: "none",
       endHead: "triangle",
     });
@@ -3518,7 +3518,7 @@ describe("createBoardEditorController", () => {
       color: "#fff",
       strokeWidth: 0.225,
       lineStyle: "solid",
-      bodyStyle: "straight",
+      kind: "straight",
       startHead: "none",
       endHead: "triangle",
     });
@@ -3831,7 +3831,7 @@ describe("createBoardEditorController", () => {
       color: "#fff",
       strokeWidth: 2,
       lineStyle: "solid",
-      bodyStyle: "curved",
+      kind: "curved",
       startHead: "none",
       endHead: "triangle",
     });
@@ -3919,7 +3919,7 @@ describe("createBoardEditorController", () => {
       color: "#fff",
       strokeWidth: 2,
       lineStyle: "solid",
-      bodyStyle: "curved",
+      kind: "curved",
       startHead: "none",
       endHead: "triangle",
     });

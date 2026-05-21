@@ -36,7 +36,6 @@ export function FootballEquipmentDefinitionIcon({
         },
         kind: definition.kind,
         color: definition.color,
-        appearance: definition.appearance,
         definition,
       }),
     [definition],

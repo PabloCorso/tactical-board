@@ -10,13 +10,11 @@ import {
   type ShapeLineStyle,
 } from "../../core/objects/shape-object";
 import type { BoardSurfaceMarking } from "../../core/board/types";
-import {
-  FOOTBALL_PLAYER_PRESET_COLORS,
-  PLAYER_SHIRT_SVG_BY_COLOR,
-} from "./football-example-catalog";
+import { FOOTBALL_PLAYER_PRESET_COLORS } from "./football-example-catalog";
 import { DEFAULT_PRESET_COLOR } from "../../core/colors/preset-colors";
 import { FOOTBALL_EQUIPMENT_DEFINITIONS } from "./equipment";
 import { metersToPixels, pointMetersToPixels } from "./football-units";
+import playerOneImage from "../../assets/player-1.png";
 
 const pitchMetrics = {
   field: { length: 105, width: 68 },
@@ -297,7 +295,7 @@ const shapeFillStyles = [
 ] as const satisfies readonly ShapeFillStyle[];
 const shapeBorderStyles = [true, false] as const;
 
-const arrowExampleEntries = arrowBodyStyles.flatMap((bodyStyle, bodyIndex) =>
+const arrowExampleEntries = arrowBodyStyles.flatMap((kind, bodyIndex) =>
   arrowLineStyles.flatMap((lineStyle, lineStyleIndex) =>
     arrowHeadStyles.flatMap((startHead, startHeadIndex) =>
       arrowHeadStyles.map((endHead, endHeadIndex) => {
@@ -310,7 +308,7 @@ const arrowExampleEntries = arrowBodyStyles.flatMap((bodyStyle, bodyIndex) =>
         const column = variantIndex % 4;
         const id = [
           "arrow",
-          bodyStyle,
+          kind,
           lineStyle,
           `start-${startHead}`,
           `end-${endHead}`,
@@ -326,7 +324,7 @@ const arrowExampleEntries = arrowBodyStyles.flatMap((bodyStyle, bodyIndex) =>
             end: pointMetersToPixels({ x: startX + 6.5, y: startY }),
             color: DEFAULT_PRESET_COLOR.black,
             lineStyle,
-            bodyStyle,
+            kind,
             startHead,
             endHead,
           }),
@@ -406,14 +404,9 @@ const playerExampleEntries = FOOTBALL_PLAYER_PRESET_COLORS.map(
           x: fieldStartX + 6 + column * 4.6,
           y: fieldStartY + 45 + row * 4.8,
         }),
+        size: index === 0 ? { width: 40, height: 40 } : undefined,
         color,
-        appearance:
-          index === 0
-            ? {
-                kind: "svg",
-                svg: PLAYER_SHIRT_SVG_BY_COLOR[color],
-              }
-            : undefined,
+        meta: index === 0 ? { imageSrc: playerOneImage } : undefined,
         label: "1",
       }),
     ] as const;

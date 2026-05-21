@@ -4,13 +4,14 @@ import { BoardEditorTool } from "./tool";
 import { defineObjectDefinition } from "../objects/types";
 import {
   createPlayerObject,
+  DEFAULT_PLAYER_FONT_SIZE,
   PLAYER_OBJECT_TYPE,
   type PlayerObject,
 } from "../objects/player-object";
-import { renderObjectAppearanceAsset } from "../rendering/canvas/object-appearance-renderer";
 import type {
   CanvasObjectHitTestInput,
   CanvasObjectRenderInput,
+  CanvasObjectRenderer,
 } from "../rendering/canvas/types";
 import { clearSelection } from "./select-tool-actions";
 import { playerSelectionAdapter } from "./player-selection";
@@ -23,7 +24,6 @@ import {
 import {
   getAbsoluteCanvasExtent,
   getPlayerBorderWidth,
-  getPlayerLabelFontSize,
 } from "../rendering/canvas/object-render-scale";
 
 type PlayerToolLabelStrategy = "numeric-by-color" | "none";
@@ -38,6 +38,7 @@ export type PlayerToolPreset = {
 type CreatePlayerToolOptions = {
   presets?: PlayerToolPreset[];
   labelStrategy?: PlayerToolLabelStrategy;
+  renderer?: CanvasObjectRenderer;
 };
 
 const playerObjectDefinition = defineObjectDefinition({
@@ -54,11 +55,13 @@ export class PlayerTool extends BoardEditorTool implements ToolDefinition {
 
   private readonly labelStrategy: PlayerToolLabelStrategy;
   private readonly presets: PlayerToolPreset[];
+  private readonly renderer: CanvasObjectRenderer;
 
   constructor(options: CreatePlayerToolOptions = {}) {
     super();
     this.labelStrategy = options.labelStrategy ?? "numeric-by-color";
     this.presets = options.presets ?? [];
+    this.renderer = options.renderer ?? renderPlayer;
   }
 
   onActivate(api: ToolApi) {
@@ -85,7 +88,7 @@ export class PlayerTool extends BoardEditorTool implements ToolDefinition {
   registerCapabilities(
     api: Parameters<NonNullable<ToolDefinition["registerCapabilities"]>>[0],
   ) {
-    api.registerObjectRenderer(PLAYER_OBJECT_TYPE, renderPlayer);
+    api.registerObjectRenderer(PLAYER_OBJECT_TYPE, this.renderer);
     api.registerObjectHitTester(PLAYER_OBJECT_TYPE, hitTestPlayer);
     api.registerObjectDefinition(playerObjectDefinition);
   }
@@ -166,7 +169,6 @@ function createPlayerPreviewObject({
       height: draftStyle.size,
     },
     color: draftStyle.color,
-    appearance: draftStyle.appearance,
     label,
   });
 }
@@ -224,7 +226,6 @@ export function renderPlayer({
   context,
   object,
   appearance,
-  requestRender,
   surfaceTransform,
 }: CanvasObjectRenderInput) {
   const player = object as PlayerObject;
@@ -239,28 +240,22 @@ export function renderPlayer({
   context.translate(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
   context.rotate(((player.rotation ?? 0) * Math.PI) / 180);
 
-  const renderedAsset = renderObjectAppearanceAsset({
-    appearance: player.props.appearance,
-    context,
-    height,
-    requestRender,
-    width,
-  });
+  context.fillStyle = player.props.color;
+  context.beginPath();
+  context.arc(0, 0, radius, 0, Math.PI * 2);
+  context.fill();
 
-  if (!renderedAsset) {
-    context.fillStyle = player.props.color;
-    context.beginPath();
-    context.arc(0, 0, radius, 0, Math.PI * 2);
-    context.fill();
-
-    context.strokeStyle = DEFAULT_PLAYER_BORDER_COLOR;
-    context.lineWidth = getPlayerBorderWidth(radius);
-    context.stroke();
-  }
+  context.strokeStyle = DEFAULT_PLAYER_BORDER_COLOR;
+  context.lineWidth = getPlayerBorderWidth(radius);
+  context.stroke();
 
   if (player.props.label) {
+    const canvasFontSize =
+      (player.props.fontSize ?? DEFAULT_PLAYER_FONT_SIZE) *
+      surfaceTransform.scale;
+
     context.fillStyle = textColor;
-    context.font = `700 ${getPlayerLabelFontSize(radius)}px "ui-rounded", "SF Pro Display", sans-serif`;
+    context.font = `700 ${canvasFontSize}px "ui-rounded", "SF Pro Display", sans-serif`;
     context.textAlign = "center";
     context.textBaseline = "middle";
     context.fillText(String(player.props.label), 0, 1);

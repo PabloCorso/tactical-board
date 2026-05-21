@@ -5,7 +5,7 @@ import {
   createArrowObject,
   DEFAULT_ARROW_DASH_STYLE,
   DEFAULT_ARROW_STROKE_WIDTH,
-  type ArrowBodyStyle,
+  type ArrowKind,
   type ArrowHeadStyle,
   type ArrowLineStyle,
   type ArrowObject,
@@ -15,7 +15,7 @@ import { renderArrow } from "../../core/tools/arrow-tool";
 type ArrowIconLayout = "wide" | "compact";
 
 export type BoardEditorArrowIconStyle = {
-  bodyStyle: ArrowBodyStyle;
+  kind: ArrowKind;
   color?: string;
   strokeWidth?: number;
   lineStyle?: ArrowLineStyle;
@@ -121,7 +121,7 @@ function createArrowIconPreviewObject(
 ): ArrowObject {
   const base = {
     id: "arrow-icon-preview",
-    bodyStyle: draftStyle.bodyStyle,
+    kind: draftStyle.kind,
     color,
     strokeWidth: draftStyle.strokeWidth ?? DEFAULT_ARROW_STROKE_WIDTH,
     lineStyle: draftStyle.lineStyle ?? "solid",
@@ -136,7 +136,7 @@ function createArrowIconPreviewObject(
     ...base,
     start: preview.start,
     end: preview.end,
-    curveOffset: draftStyle.bodyStyle === "curved" ? preview.curveOffset : 0,
+    curveOffset: draftStyle.kind === "curved" ? preview.curveOffset : 0,
   });
 }
 

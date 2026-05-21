@@ -244,14 +244,14 @@ describe("createBoardEditorStore", () => {
           id: "run",
           label: "Run",
           draftStyle: {
-            bodyStyle: "wavy",
+            kind: "wavy",
           },
         },
         {
           id: "screen",
           label: "Screen",
           draftStyle: {
-            bodyStyle: "double",
+            kind: "double",
           },
         },
       ],
@@ -279,7 +279,7 @@ describe("createBoardEditorStore", () => {
       ...DEFAULT_ARROW_TOOL_STATE,
       draftStyle: {
         ...DEFAULT_ARROW_TOOL_STATE.draftStyle,
-        bodyStyle: "double",
+        kind: "double",
       },
     });
 
@@ -287,7 +287,7 @@ describe("createBoardEditorStore", () => {
 
     expect(getArrowToolState(store.getState().toolState).draftStyle).toEqual({
       ...DEFAULT_ARROW_TOOL_STATE.draftStyle,
-      bodyStyle: "wavy",
+      kind: "wavy",
     });
   });
 

@@ -1,13 +1,9 @@
 import type { BoardObject, BoardObjectSize, Point } from "../board/types";
-import {
-  cloneObjectAppearance,
-  DEFAULT_RENDER_APPEARANCE,
-  type ObjectAppearance,
-} from "./object-appearance";
 import { DEFAULT_PRESET_COLOR } from "../colors/preset-colors";
 
 export const PLAYER_OBJECT_TYPE = "player";
 export const DEFAULT_PLAYER_SIZE = 20;
+export const DEFAULT_PLAYER_FONT_SIZE = 9.5;
 export const DEFAULT_PLAYER_COLOR = DEFAULT_PRESET_COLOR.black;
 export const DEFAULT_PLAYER_TRANSFORM_CAPABILITIES = {
   move: true,
@@ -24,7 +20,8 @@ export interface PlayerTransformCapabilities {
 export interface PlayerObjectProps extends Record<string, unknown> {
   label?: string;
   color: string;
-  appearance: ObjectAppearance;
+  fontSize: number;
+  meta?: Record<string, unknown>;
   transformCapabilities: PlayerTransformCapabilities;
 }
 
@@ -39,7 +36,8 @@ type PlayerCoreInput = {
   size?: Partial<BoardObjectSize>;
   label?: string;
   color?: string;
-  appearance?: ObjectAppearance;
+  fontSize?: number;
+  meta?: Record<string, unknown>;
 };
 
 function clonePoint(point: Point): Point {
@@ -68,9 +66,8 @@ function getCanonicalPlayerProps(input: PlayerCoreInput): PlayerObjectProps {
   return {
     label: input.label,
     color: input.color ?? DEFAULT_PLAYER_COLOR,
-    appearance: cloneObjectAppearance(
-      input.appearance ?? DEFAULT_RENDER_APPEARANCE,
-    ),
+    fontSize: input.fontSize ?? DEFAULT_PLAYER_FONT_SIZE,
+    meta: input.meta ? { ...input.meta } : undefined,
     transformCapabilities: {
       ...DEFAULT_PLAYER_TRANSFORM_CAPABILITIES,
     },
@@ -119,7 +116,8 @@ export function updatePlayerObject(
       size: input.size ?? object.size,
       label: input.label ?? object.props.label,
       color: input.color ?? object.props.color,
-      appearance: input.appearance ?? object.props.appearance,
+      fontSize: input.fontSize ?? object.props.fontSize,
+      meta: input.meta ?? object.props.meta,
     },
   );
 }

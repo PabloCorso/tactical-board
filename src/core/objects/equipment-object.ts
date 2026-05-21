@@ -1,9 +1,4 @@
 import type { BoardObject, BoardObjectSize, Point } from "../board/types";
-import {
-  cloneObjectAppearance,
-  DEFAULT_RENDER_APPEARANCE,
-  type ObjectAppearance,
-} from "./object-appearance";
 
 export const EQUIPMENT_OBJECT_TYPE = "equipment";
 const MIN_EQUIPMENT_DIMENSION = 0.25;
@@ -30,7 +25,6 @@ export interface EquipmentDefinitionSnapshot {
   kind: string;
   label: string;
   color?: string;
-  appearance?: ObjectAppearance;
   capabilities?: EquipmentCapabilities;
   transformCapabilities?: EquipmentTransformCapabilities;
   lockedAspectRatio?: boolean;
@@ -44,7 +38,7 @@ export interface EquipmentObjectProps extends Record<string, unknown> {
   kind: string;
   label?: string;
   color?: string;
-  appearance: ObjectAppearance;
+  meta?: Record<string, unknown>;
 }
 
 export type EquipmentObject = BoardObject & {
@@ -66,7 +60,7 @@ type EquipmentCoreInput = {
   kind: string;
   label?: string;
   color?: string;
-  appearance?: ObjectAppearance;
+  meta?: Record<string, unknown>;
   definition?: EquipmentDefinition;
 };
 
@@ -114,7 +108,7 @@ function normalizeEquipmentSize(
 function getCanonicalEquipmentProps(
   input: Pick<
     EquipmentCoreInput,
-    "appearance" | "kind" | "label" | "color" | "definition"
+    "kind" | "label" | "color" | "meta" | "definition"
   >,
 ): EquipmentObjectProps {
   const definition = input.definition;
@@ -123,9 +117,7 @@ function getCanonicalEquipmentProps(
     kind: input.kind,
     label: input.label,
     color: input.color ?? definition?.color,
-    appearance: cloneObjectAppearance(
-      input.appearance ?? definition?.appearance ?? DEFAULT_RENDER_APPEARANCE,
-    ),
+    meta: input.meta ? { ...input.meta } : undefined,
   };
 }
 
@@ -176,7 +168,7 @@ export function updateEquipmentObject(
       kind: input.kind ?? object.props.kind,
       label: input.label ?? object.props.label,
       color: input.color ?? object.props.color,
-      appearance: input.appearance ?? object.props.appearance,
+      meta: input.meta ?? object.props.meta,
       definition: input.definition,
     },
   );

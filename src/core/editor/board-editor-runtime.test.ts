@@ -272,7 +272,6 @@ describe("createBoardEditorRuntime", () => {
         position: { x: 10, y: 10 },
         props: {
           color: "#111827",
-          appearance: { kind: "render", renderer: "player-default" },
         },
       },
     ]);
@@ -337,7 +336,6 @@ describe("createBoardEditorRuntime", () => {
         position: { x: 10, y: 10 },
         props: {
           color: "#111827",
-          appearance: { kind: "render", renderer: "player-default" },
         },
       },
     ]);

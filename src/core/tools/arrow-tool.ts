@@ -8,7 +8,7 @@ import {
   moveArrowObject,
   updateArrowObject,
   type ArrowObject,
-  type ArrowBodyStyle,
+  type ArrowKind,
   type ArrowHeadStyle,
 } from "../objects/arrow-object";
 import { rotatePointAround } from "../objects/object-behaviors";
@@ -286,14 +286,13 @@ function drawArrowPath(context: CanvasRenderingContext2D, points: Point[]) {
 function getArrowGeometry(
   start: Point,
   end: Point,
-  bodyStyle: ArrowBodyStyle,
+  kind: ArrowKind,
   explicitControlPoint: Point | undefined,
   strokeWidth: number,
   startHead: ArrowHeadStyle,
   endHead: ArrowHeadStyle,
 ) {
-  const controlPoint =
-    bodyStyle === "curved" ? explicitControlPoint : undefined;
+  const controlPoint = kind === "curved" ? explicitControlPoint : undefined;
   const startTangent = controlPoint ?? end;
   const endTangent = controlPoint ?? start;
 
@@ -332,7 +331,7 @@ export function renderArrow({
   );
   const bodyStrokeWidth = getArrowBodyStrokeWidth(
     strokeWidth,
-    arrow.props.bodyStyle,
+    arrow.props.kind,
   );
 
   context.save();
@@ -353,7 +352,7 @@ export function renderArrow({
     getArrowGeometry(
       start,
       end,
-      arrow.props.bodyStyle,
+      arrow.props.kind,
       arrow.props.curveOffset !== undefined
         ? surfaceTransform.boardToCanvas(
             getArrowControlPoint(
@@ -372,8 +371,8 @@ export function renderArrow({
   for (const polyline of getArrowBodyPolylines({
     start: pathStart,
     end: pathEnd,
-    controlPoint: arrow.props.bodyStyle === "curved" ? controlPoint : undefined,
-    bodyStyle: arrow.props.bodyStyle,
+    controlPoint: arrow.props.kind === "curved" ? controlPoint : undefined,
+    kind: arrow.props.kind,
     styleScale: surfaceTransform.zoom,
   })) {
     drawArrowPath(context, polyline);
@@ -438,7 +437,7 @@ function hitTestArrow({
   );
 
   const controlPoint =
-    arrow.props.bodyStyle === "curved"
+    arrow.props.kind === "curved"
       ? surfaceTransform.boardToCanvas(
           getArrowControlPoint(
             arrow.props.start,
@@ -452,7 +451,7 @@ function hitTestArrow({
   const { pathStart, pathEnd } = getArrowGeometry(
     start,
     end,
-    arrow.props.bodyStyle,
+    arrow.props.kind,
     controlPoint,
     strokeWidth,
     arrow.props.startHead,
@@ -462,8 +461,8 @@ function hitTestArrow({
   for (const polyline of getArrowBodyPolylines({
     start: pathStart,
     end: pathEnd,
-    controlPoint: arrow.props.bodyStyle === "curved" ? controlPoint : undefined,
-    bodyStyle: arrow.props.bodyStyle,
+    controlPoint: arrow.props.kind === "curved" ? controlPoint : undefined,
+    kind: arrow.props.kind,
     styleScale: surfaceTransform.zoom,
   })) {
     for (let index = 1; index < polyline.length; index += 1) {

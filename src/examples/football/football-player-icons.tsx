@@ -78,7 +78,6 @@ export function FootballPlayerPresetIcon({
         },
         color: draftStyle.color,
         label,
-        appearance: draftStyle.appearance,
       }),
     [draftStyle, label],
   );

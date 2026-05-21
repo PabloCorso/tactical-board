@@ -4,7 +4,7 @@ import {
   DEFAULT_ARROW_STROKE_WIDTH,
   getArrowBodyPolylines,
   getArrowBodyStrokeWidth,
-  getArrowBodyStyleScale,
+  getArrowKindScale,
   getArrowCurveHandlePoint,
   getArrowCurveOffsetFromHandlePoint,
   getArrowWavyPoints,
@@ -19,7 +19,7 @@ describe("createArrowObject", () => {
       color: "#000",
       strokeWidth: 0.4,
       lineStyle: "solid",
-      bodyStyle: "wavy",
+      kind: "wavy",
       startHead: "none",
       endHead: "triangle",
     });
@@ -37,7 +37,7 @@ describe("createArrowObject", () => {
       color: "#000",
       strokeWidth: 0.4,
       lineStyle: "solid",
-      bodyStyle: "double",
+      kind: "double",
       startHead: "none",
       endHead: "triangle",
     });
@@ -50,12 +50,12 @@ describe("createArrowObject", () => {
     const [topLine, bottomLine] = getArrowBodyPolylines({
       start: { x: 10, y: 10 },
       end: { x: 20, y: 10 },
-      bodyStyle: "double",
+      kind: "double",
     });
 
     expect(topLine?.[0]?.y).toBeCloseTo(10.9);
     expect(bottomLine?.[0]?.y).toBeCloseTo(9.1);
-    expect(getArrowBodyStyleScale("double")).toBe(0.3);
+    expect(getArrowKindScale("double")).toBe(0.3);
   });
 
   it("uses half-width body strokes for double arrows", () => {
@@ -106,7 +106,7 @@ describe("createArrowObject", () => {
       end: { x: 20, y: 10 },
       color: "#000",
       lineStyle: "solid",
-      bodyStyle: "straight",
+      kind: "straight",
       startHead: "none",
       endHead: "triangle",
     });

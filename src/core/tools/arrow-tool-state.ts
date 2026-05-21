@@ -1,7 +1,7 @@
 import type { Point } from "../board/types";
 import type { BoardEditorToolState } from "../editor/types";
 import type {
-  ArrowBodyStyle,
+  ArrowKind,
   ArrowObjectProps,
   ArrowHeadStyle,
   ArrowLineStyle,
@@ -19,7 +19,7 @@ export type ArrowDraftStyle = {
   strokeWidth: number;
   lineStyle: ArrowLineStyle;
   dashStyle: ArrowObjectProps["dashStyle"];
-  bodyStyle: ArrowBodyStyle;
+  kind: ArrowKind;
   startHead: ArrowHeadStyle;
   endHead: ArrowHeadStyle;
 };
@@ -35,7 +35,7 @@ export const DEFAULT_ARROW_TOOL_STATE: ArrowToolState = {
     strokeWidth: DEFAULT_ARROW_STROKE_WIDTH,
     lineStyle: "solid",
     dashStyle: [...DEFAULT_ARROW_DASH_STYLE],
-    bodyStyle: "straight",
+    kind: "straight",
     startHead: "none",
     endHead: "triangle",
   },

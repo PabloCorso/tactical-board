@@ -2,7 +2,7 @@ import type { BoardObject, Point } from "../board/types";
 
 export const ARROW_OBJECT_TYPE = "arrow";
 
-export type ArrowBodyStyle = "straight" | "curved" | "wavy" | "double";
+export type ArrowKind = "straight" | "curved" | "wavy" | "double";
 export type ArrowHeadStyle = "none" | "triangle";
 export type ArrowLineStyle = "solid" | "dashed";
 export const THIN_ARROW_STROKE_WIDTH = 2;
@@ -30,7 +30,7 @@ export interface ArrowObjectProps extends Record<string, unknown> {
   strokeWidth: number;
   lineStyle: ArrowLineStyle;
   dashStyle: number[];
-  bodyStyle: ArrowBodyStyle;
+  kind: ArrowKind;
   startHead: ArrowHeadStyle;
   endHead: ArrowHeadStyle;
 }
@@ -47,7 +47,7 @@ type ArrowCoreInput = {
   strokeWidth?: number;
   lineStyle: ArrowLineStyle;
   dashStyle?: number[];
-  bodyStyle: ArrowBodyStyle;
+  kind: ArrowKind;
   controlPoint?: Point;
   curveOffset?: number;
   startHead: ArrowHeadStyle;
@@ -170,10 +170,10 @@ export function getArrowCurveOffsetFromHandlePoint(
 function getResolvedCurveOffset(
   props: Pick<
     ArrowObjectProps,
-    "start" | "end" | "controlPoint" | "curveOffset" | "bodyStyle"
+    "start" | "end" | "controlPoint" | "curveOffset" | "kind"
   >,
 ) {
-  if (props.bodyStyle !== "curved") {
+  if (props.kind !== "curved") {
     return props.curveOffset;
   }
 
@@ -288,28 +288,25 @@ export function getArrowWavyPoints(start: Point, end: Point, styleScale = 1) {
   return points;
 }
 
-export function getArrowBodyStyleScale(bodyStyle: ArrowBodyStyle) {
-  return bodyStyle === "double" ? DOUBLE_LINE_STYLE_SCALE : 1;
+export function getArrowKindScale(kind: ArrowKind) {
+  return kind === "double" ? DOUBLE_LINE_STYLE_SCALE : 1;
 }
 
-export function getArrowBodyStrokeWidth(
-  strokeWidth: number,
-  bodyStyle: ArrowBodyStyle,
-) {
-  return bodyStyle === "double" ? strokeWidth / 2 : strokeWidth;
+export function getArrowBodyStrokeWidth(strokeWidth: number, kind: ArrowKind) {
+  return kind === "double" ? strokeWidth / 2 : strokeWidth;
 }
 
 export function getArrowBodyPolylines(
   props: Pick<
     ArrowObjectProps,
-    "start" | "end" | "controlPoint" | "curveOffset" | "bodyStyle"
+    "start" | "end" | "controlPoint" | "curveOffset" | "kind"
   > & {
     styleScale?: number;
   },
 ) {
   const styleScale = props.styleScale ?? 1;
 
-  switch (props.bodyStyle) {
+  switch (props.kind) {
     case "curved":
       return [
         sampleQuadraticCurve(
@@ -326,9 +323,7 @@ export function getArrowBodyPolylines(
       return [getArrowWavyPoints(props.start, props.end, styleScale)];
     case "double": {
       const lineOffset =
-        DOUBLE_LINE_OFFSET *
-        getArrowBodyStyleScale(props.bodyStyle) *
-        styleScale;
+        DOUBLE_LINE_OFFSET * getArrowKindScale(props.kind) * styleScale;
 
       return [
         [
@@ -349,7 +344,7 @@ export function getArrowBodyPolylines(
 function getArrowBodyPoints(
   props: Pick<
     ArrowObjectProps,
-    "start" | "end" | "controlPoint" | "curveOffset" | "bodyStyle"
+    "start" | "end" | "controlPoint" | "curveOffset" | "kind"
   >,
 ) {
   return getArrowBodyPolylines(props).flat();
@@ -360,7 +355,7 @@ function getCanonicalArrowProps(input: ArrowCoreInput): ArrowObjectProps {
   const start = clonePoint(input.start ?? { x: 0, y: 0 });
   const end = clonePoint(input.end ?? start);
   const curveOffset =
-    input.bodyStyle === "curved"
+    input.kind === "curved"
       ? (input.curveOffset ??
         getArrowCurveOffset(start, end, input.controlPoint))
       : input.curveOffset;
@@ -374,7 +369,7 @@ function getCanonicalArrowProps(input: ArrowCoreInput): ArrowObjectProps {
     strokeWidth,
     lineStyle: input.lineStyle,
     dashStyle: [...(input.dashStyle ?? DEFAULT_ARROW_DASH_STYLE)],
-    bodyStyle: input.bodyStyle,
+    kind: input.kind,
     startHead: input.startHead,
     endHead: input.endHead,
   };
@@ -395,12 +390,7 @@ function createCanonicalArrowObject(
 export function getArrowCenter(
   props: Pick<
     ArrowObjectProps,
-    | "start"
-    | "end"
-    | "controlPoint"
-    | "curveOffset"
-    | "bodyStyle"
-    | "strokeWidth"
+    "start" | "end" | "controlPoint" | "curveOffset" | "kind" | "strokeWidth"
   >,
 ): Point {
   const points = getArrowBodyPoints(props);
@@ -418,12 +408,7 @@ export function getArrowCenter(
 export function getArrowSize(
   props: Pick<
     ArrowObjectProps,
-    | "start"
-    | "end"
-    | "controlPoint"
-    | "curveOffset"
-    | "bodyStyle"
-    | "strokeWidth"
+    "start" | "end" | "controlPoint" | "curveOffset" | "kind" | "strokeWidth"
   >,
 ) {
   const points = getArrowBodyPoints(props);
@@ -502,14 +487,14 @@ export function setArrowCurveOffset(
   return updateArrowObject(object, { curveOffset });
 }
 
-export function setArrowBodyStyle(
+export function setArrowKind(
   object: ArrowObject,
-  bodyStyle: ArrowBodyStyle,
+  kind: ArrowKind,
 ): ArrowObject {
   return updateArrowObject(object, {
-    bodyStyle,
+    kind,
     curveOffset:
-      bodyStyle === "curved"
+      kind === "curved"
         ? (object.props.curveOffset ??
           getDefaultArrowCurveOffset(object.props.start, object.props.end))
         : object.props.curveOffset,

@@ -101,12 +101,12 @@ export function getArrowSelectionCanvasBounds(
   );
   const bodyStrokeWidth = getArrowBodyStrokeWidth(
     strokeWidth,
-    arrow.props.bodyStyle,
+    arrow.props.kind,
   );
   const startCanvas = projection.boardToCanvas(arrow.props.start);
   const endCanvas = projection.boardToCanvas(arrow.props.end);
   const controlCanvas =
-    arrow.props.bodyStyle === "curved"
+    arrow.props.kind === "curved"
       ? projection.boardToCanvas(
           getArrowControlPoint(
             arrow.props.start,
@@ -150,9 +150,8 @@ export function getArrowSelectionCanvasBounds(
   const bodyPoints = getArrowBodyPolylines({
     start: pathStart,
     end: pathEnd,
-    controlPoint:
-      arrow.props.bodyStyle === "curved" ? controlCanvas : undefined,
-    bodyStyle: arrow.props.bodyStyle,
+    controlPoint: arrow.props.kind === "curved" ? controlCanvas : undefined,
+    kind: arrow.props.kind,
     styleScale,
   }).flat();
   const points = [...bodyPoints, ...headPoints];
@@ -196,7 +195,7 @@ export const arrowSelectionAdapter: ObjectSelectionAdapter<
       context.stroke();
     }
 
-    if (object.props.bodyStyle === "curved") {
+    if (object.props.kind === "curved") {
       const handlePoint = projection.boardToCanvas(
         getArrowCurveHandlePoint(
           object.props.start,
@@ -267,7 +266,7 @@ export const arrowSelectionAdapter: ObjectSelectionAdapter<
       };
     }
 
-    if (object.props.bodyStyle !== "curved") {
+    if (object.props.kind !== "curved") {
       return undefined;
     }
 
@@ -317,7 +316,7 @@ export const arrowSelectionAdapter: ObjectSelectionAdapter<
     const start = projection.boardToCanvas(object.props.start);
     const end = projection.boardToCanvas(object.props.end);
     const controlPoint =
-      object.props.bodyStyle === "curved"
+      object.props.kind === "curved"
         ? projection.boardToCanvas(
             getArrowCurveHandlePoint(
               object.props.start,

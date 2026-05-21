@@ -19,7 +19,6 @@ import {
   type EquipmentDefinition,
   type EquipmentObject,
 } from "../objects/equipment-object";
-import { renderObjectAppearanceAsset } from "../rendering/canvas/object-appearance-renderer";
 import {
   getAbsoluteCanvasExtent,
   getRelativeCanvasStrokeWidth,
@@ -177,7 +176,6 @@ function createEquipmentPreviewObject({
     },
     kind: definition.kind,
     color: definition.color,
-    appearance: definition.appearance,
     definition,
   });
 }
@@ -233,28 +231,18 @@ export function createEquipmentRenderer(
     context.lineCap = "round";
     context.lineJoin = "round";
 
-    const renderedAsset = renderObjectAppearanceAsset({
-      appearance: equipment.props.appearance,
-      context,
-      height,
-      requestRender,
-      width,
-    });
+    const customRenderer = renderersByKind[equipment.props.kind];
 
-    if (!renderedAsset) {
-      const customRenderer = renderersByKind[equipment.props.kind];
-
-      if (customRenderer) {
-        customRenderer({
-          context,
-          equipment,
-          color,
-          width,
-          height,
-          strokeWidth,
-          requestRender,
-        });
-      }
+    if (customRenderer) {
+      customRenderer({
+        context,
+        equipment,
+        color,
+        width,
+        height,
+        strokeWidth,
+        requestRender,
+      });
     }
 
     context.restore();

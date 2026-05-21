@@ -2,9 +2,9 @@ import { LineSegmentIcon, LineSegmentsIcon } from "@phosphor-icons/react";
 import {
   THICK_ARROW_STROKE_WIDTH,
   THIN_ARROW_STROKE_WIDTH,
-  setArrowBodyStyle,
+  setArrowKind,
   updateArrowObject,
-  type ArrowBodyStyle,
+  type ArrowKind,
   type ArrowHeadStyle,
   type ArrowLineStyle,
   type ArrowObject,
@@ -25,7 +25,7 @@ import { ColorPicker, DEFAULT_PRESET_COLORS } from "./ui/color-picker";
 import type { IconRender } from "./ui/icon";
 
 const BODY_STYLE_OPTIONS: Array<{
-  value: ArrowBodyStyle;
+  value: ArrowKind;
   label: string;
 }> = [
   { value: "straight", label: "Straight" },
@@ -92,7 +92,7 @@ function getHeadIcon(side: "start" | "end", head: ArrowHeadStyle): IconRender {
   return (
     <BoardEditorArrowIcon
       draftStyle={{
-        bodyStyle: "straight",
+        kind: "straight",
         startHead: side === "start" ? "triangle" : "none",
         endHead: side === "end" ? "triangle" : "none",
       }}
@@ -103,11 +103,11 @@ function getHeadIcon(side: "start" | "end", head: ArrowHeadStyle): IconRender {
   );
 }
 
-function getBodyStyleIcon(bodyStyle: ArrowBodyStyle): IconRender {
+function getBodyStyleIcon(kind: ArrowKind): IconRender {
   return (
     <BoardEditorArrowIcon
       draftStyle={{
-        bodyStyle,
+        kind,
         startHead: "none",
         endHead: "triangle",
       }}
@@ -146,7 +146,7 @@ function ArrowHeadPopoverContent({
 
 type ArrowBodyPopoverContentProps = {
   selectedObject: ArrowObject;
-  onSelect: (value: ArrowBodyStyle) => void;
+  onSelect: (value: ArrowKind) => void;
 };
 
 function ArrowBodyPopoverContent({
@@ -158,7 +158,7 @@ function ArrowBodyPopoverContent({
       {BODY_STYLE_OPTIONS.map((option) => (
         <BoardEditorToolbarOptionButton
           key={option.value}
-          active={selectedObject.props.bodyStyle === option.value}
+          active={selectedObject.props.kind === option.value}
           ariaLabel={`Arrow body ${option.label}`}
           icon={getBodyStyleIcon(option.value)}
           onClick={() => onSelect(option.value)}
@@ -278,8 +278,8 @@ export function BoardEditorArrowSelectionToolbar({
     updateArrow((arrow) => updateArrowObject(arrow, props));
   };
 
-  const updateBodyStyle = (value: ArrowBodyStyle) => {
-    updateArrow((arrow) => setArrowBodyStyle(arrow, value));
+  const updateBodyStyle = (value: ArrowKind) => {
+    updateArrow((arrow) => setArrowKind(arrow, value));
   };
 
   return (
@@ -368,7 +368,7 @@ export function BoardEditorArrowSelectionToolbar({
               onSelect={updateBodyStyle}
             />
           }
-          icon={getBodyStyleIcon(selectedObject.props.bodyStyle)}
+          icon={getBodyStyleIcon(selectedObject.props.kind)}
         />
 
         <BoardEditorToolbarPopoverButton

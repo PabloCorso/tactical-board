@@ -37,7 +37,7 @@ describe("getOrderedBoardObjectIds", () => {
       end: { x: 20, y: 10 },
       color: "#fff",
       lineStyle: "solid",
-      bodyStyle: "straight",
+      kind: "straight",
       startHead: "none",
       endHead: "triangle",
     });

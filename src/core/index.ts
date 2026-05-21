@@ -15,7 +15,6 @@ export * from "./geometry/surface-scale";
 export type * from "./geometry/types";
 export * from "./objects/arrow-object";
 export * from "./objects/equipment-object";
-export * from "./objects/object-appearance";
 export * from "./objects/object-behaviors";
 export * from "./objects/object-selection";
 export * from "./objects/player-object";

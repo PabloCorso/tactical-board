@@ -48,7 +48,7 @@ export const FOOTBALL_ARROW_PRESETS: Array<
     label: "Run",
     variant: "straight-solid",
     draftStyle: {
-      bodyStyle: "straight",
+      kind: "straight",
     },
   },
   {
@@ -56,7 +56,7 @@ export const FOOTBALL_ARROW_PRESETS: Array<
     label: "Dribble",
     variant: "wavy",
     draftStyle: {
-      bodyStyle: "wavy",
+      kind: "wavy",
     },
   },
   {
@@ -64,7 +64,7 @@ export const FOOTBALL_ARROW_PRESETS: Array<
     label: "Lofted pass",
     variant: "curved-solid",
     draftStyle: {
-      bodyStyle: "curved",
+      kind: "curved",
     },
   },
   {
@@ -72,7 +72,7 @@ export const FOOTBALL_ARROW_PRESETS: Array<
     label: "Screen",
     variant: "double",
     draftStyle: {
-      bodyStyle: "double",
+      kind: "double",
     },
   },
 ];

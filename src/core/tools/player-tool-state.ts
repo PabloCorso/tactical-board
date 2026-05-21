@@ -3,14 +3,12 @@ import {
   DEFAULT_PLAYER_COLOR,
   DEFAULT_PLAYER_SIZE,
 } from "../objects/player-object";
-import type { ObjectAppearance } from "../objects/object-appearance";
 
 export const PLAYER_TOOL_ID = "player";
 
 export type PlayerDraftStyle = {
   color: string;
   size: number;
-  appearance: ObjectAppearance;
 };
 
 export type PlayerToolState = {
@@ -22,7 +20,6 @@ export const DEFAULT_PLAYER_TOOL_STATE: PlayerToolState = {
   draftStyle: {
     color: DEFAULT_PLAYER_COLOR,
     size: DEFAULT_PLAYER_SIZE,
-    appearance: { kind: "render", renderer: "player-default" },
   },
   nextNumericLabelByColor: {},
 };

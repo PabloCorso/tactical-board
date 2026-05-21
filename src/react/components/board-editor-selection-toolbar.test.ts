@@ -209,7 +209,7 @@ describe("getSelectionToolbarAnchor", () => {
       props: {
         start: { x: 80, y: 90 },
         end: { x: 120, y: 110 },
-        bodyStyle: "straight",
+        kind: "straight",
       },
     } as unknown as ArrowObject;
 
