@@ -14,10 +14,11 @@ import type {
 import {
   createEquipmentObject,
   EQUIPMENT_OBJECT_TYPE,
+  getEquipmentDefinition,
+  registerEquipmentDefinitions,
   type EquipmentDefinition,
   type EquipmentObject,
 } from "../objects/equipment-object";
-import { DEFAULT_PRESET_COLOR } from "../colors/preset-colors";
 import { renderObjectAppearanceAsset } from "../rendering/canvas/object-appearance-renderer";
 import {
   getAbsoluteCanvasExtent,
@@ -83,6 +84,7 @@ export class EquipmentTool extends BoardEditorTool implements ToolDefinition {
     this.definitionsByKind = Object.fromEntries(
       options.definitions.map((definition) => [definition.kind, definition]),
     );
+    registerEquipmentDefinitions(options.definitions);
     this.renderEquipment = createEquipmentRenderer(options.renderersByKind);
   }
 
@@ -197,16 +199,6 @@ function findDefinition(
   return definitionsByKind[kind] ?? Object.values(definitionsByKind)[0];
 }
 
-function renderEquipmentFrame(
-  context: CanvasRenderingContext2D,
-  width: number,
-  height: number,
-) {
-  context.beginPath();
-  context.roundRect(-width / 2, -height / 2, width, height, 6);
-  context.stroke();
-}
-
 export function createEquipmentRenderer(
   renderersByKind: EquipmentCanvasRendererRegistry = {},
 ): CanvasObjectRenderer {
@@ -218,13 +210,11 @@ export function createEquipmentRenderer(
     surfaceTransform,
   }: CanvasObjectRenderInput) => {
     const equipment = object as EquipmentObject;
+    const definition = getEquipmentDefinition(equipment);
     const bounds = surfaceTransform.getObjectCanvasBounds(equipment);
     const width = getAbsoluteCanvasExtent(bounds.width);
     const height = getAbsoluteCanvasExtent(bounds.height);
-    const color =
-      equipment.props.color ??
-      equipment.props.definition.color ??
-      DEFAULT_PRESET_COLOR.black;
+    const color = equipment.props.color ?? definition?.color ?? "#000000";
     const strokeWidth = getRelativeCanvasStrokeWidth(
       Math.min(width, height),
       0.08,
@@ -264,40 +254,6 @@ export function createEquipmentRenderer(
           strokeWidth,
           requestRender,
         });
-      } else {
-        switch (equipment.props.definition.family) {
-          case "ball":
-            context.beginPath();
-            context.arc(0, 0, Math.min(width, height) / 2, 0, Math.PI * 2);
-            context.fill();
-            context.strokeStyle = "rgba(15, 23, 42, 0.35)";
-            context.stroke();
-            break;
-          case "cone":
-            context.beginPath();
-            context.moveTo(0, -height / 2);
-            context.lineTo(width / 2, height / 2);
-            context.lineTo(-width / 2, height / 2);
-            context.closePath();
-            context.fill();
-            context.globalAlpha *= 0.28;
-            context.fillStyle = "#ffffff";
-            context.fillRect(
-              -width * 0.18,
-              -height * 0.05,
-              width * 0.36,
-              height * 0.16,
-            );
-            break;
-          case "frame":
-            context.fillStyle = "transparent";
-            renderEquipmentFrame(context, width, height);
-            break;
-          default:
-            context.fillStyle = "transparent";
-            renderEquipmentFrame(context, width, height);
-            break;
-        }
       }
     }
 
@@ -312,10 +268,11 @@ export function hitTestEquipment({
   minimumHitRadiusPx,
 }: CanvasObjectHitTestInput) {
   const equipment = object as EquipmentObject;
+  const definition = getEquipmentDefinition(equipment);
   const center = surfaceTransform.boardToCanvas(equipment.position);
   const bounds = surfaceTransform.getObjectCanvasBounds(equipment);
   const effectiveMinimumHitRadiusPx = Math.max(
-    equipment.props.definition.minimumHitRadiusPx ?? minimumHitRadiusPx,
+    definition?.minimumHitRadiusPx ?? minimumHitRadiusPx,
     0,
   );
   const width = Math.max(
@@ -331,9 +288,7 @@ export function hitTestEquipment({
   const dy = canvasPoint.y - center.y;
   const localX = dx * Math.cos(angle) - dy * Math.sin(angle);
   const localY = dx * Math.sin(angle) + dy * Math.cos(angle);
-  const hitTestShape =
-    equipment.props.definition.hitTestShape ??
-    (equipment.props.definition.family === "ball" ? "circle" : "rect");
+  const hitTestShape = definition?.hitTestShape ?? "rect";
 
   if (hitTestShape === "circle") {
     return Math.hypot(localX, localY) <= Math.max(width, height) / 2;

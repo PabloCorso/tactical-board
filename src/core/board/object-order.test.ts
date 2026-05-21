@@ -23,7 +23,6 @@ describe("getOrderedBoardObjectIds", () => {
     const equipmentDefinition: EquipmentDefinition = {
       kind: "cone",
       label: "Cone",
-      family: "cone",
       defaultSize: { width: 1, height: 1 },
     };
     const equipment = createEquipmentObject({

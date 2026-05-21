@@ -61,7 +61,6 @@ export const hurdleEquipment: FootballEquipmentSpec = {
   definition: {
     kind: "hurdle",
     label: "Hurdle",
-    family: "frame",
     defaultSize: {
       width: HURDLE_METRICS.width * HURDLE_DEFAULT_SCALE,
       height: HURDLE_METRICS.height * HURDLE_DEFAULT_SCALE,

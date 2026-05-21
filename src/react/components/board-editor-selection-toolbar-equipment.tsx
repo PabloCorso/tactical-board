@@ -1,4 +1,5 @@
 import {
+  getEquipmentDefinition,
   updateEquipmentObject,
   type EquipmentObject,
 } from "../../core/objects/equipment-object";
@@ -26,7 +27,12 @@ export function BoardEditorEquipmentSelectionToolbar({
 }: BoardEditorSelectionToolbarRendererProps<EquipmentObject>) {
   const store = useBoardEditorContext();
   const toolApi = createToolApi(store);
-  const capabilities = selectedObject.props.definition.capabilities ?? {};
+  const definition = getEquipmentDefinition(selectedObject);
+  const capabilities = definition?.capabilities ?? {};
+  const color =
+    selectedObject.props.color ??
+    definition?.color ??
+    DEFAULT_PRESET_COLOR.black;
 
   const updateEquipment = (
     input: Parameters<typeof updateEquipmentObject>[1],
@@ -48,14 +54,10 @@ export function BoardEditorEquipmentSelectionToolbar({
         {capabilities.color ? (
           <BoardEditorToolbarPopoverButton
             ariaLabel="Equipment color"
-            tooltip={`Color: ${selectedObject.props.color ?? selectedObject.props.definition.color ?? "default"}`}
+            tooltip={`Color: ${color}`}
             content={
               <ColorPicker
-                value={
-                  selectedObject.props.color ??
-                  selectedObject.props.definition.color ??
-                  DEFAULT_PRESET_COLOR.black
-                }
+                value={color}
                 onChange={(value) => updateEquipment({ color: value })}
                 presetColors={[...DEFAULT_PRESET_COLORS]}
               />
@@ -64,17 +66,10 @@ export function BoardEditorEquipmentSelectionToolbar({
               <span
                 className="border-default inline-flex h-5 w-5 rounded-full border"
                 style={{
-                  backgroundColor:
-                    selectedObject.props.color ??
-                    selectedObject.props.definition.color ??
-                    DEFAULT_PRESET_COLOR.black,
+                  backgroundColor: color,
                 }}
               >
-                <span className="sr-only">
-                  {selectedObject.props.color ??
-                    selectedObject.props.definition.color ??
-                    DEFAULT_PRESET_COLOR.black}
-                </span>
+                <span className="sr-only">{color}</span>
               </span>
             }
           />

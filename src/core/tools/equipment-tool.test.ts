@@ -27,7 +27,7 @@ describe("hitTestEquipment", () => {
       definition: {
         kind: "cone",
         label: "Cone",
-        family: "cone",
+        defaultSize: { width: 2, height: 2 },
         minimumHitRadiusPx: 0,
       },
       size: { width: 2, height: 2 },
@@ -54,7 +54,7 @@ describe("hitTestEquipment", () => {
       definition: {
         kind: "hoop",
         label: "Hoop",
-        family: "frame",
+        defaultSize: { width: 20, height: 20 },
         minimumHitRadiusPx: 0,
         hitTestShape: "circle",
       },

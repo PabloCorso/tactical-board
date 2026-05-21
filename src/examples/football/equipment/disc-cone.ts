@@ -54,7 +54,6 @@ export const discConeEquipment: FootballEquipmentSpec = {
   definition: {
     kind: "disc-cone",
     label: "Disc Cone",
-    family: "cone",
     defaultSize: { width: 2.2, height: 2.2 },
     color: "#ffc857",
     capabilities: { color: true },

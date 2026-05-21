@@ -14,7 +14,6 @@ export const ladderEquipment: FootballEquipmentSpec = {
   definition: {
     kind: "ladder",
     label: "Ladder",
-    family: "ladder",
     defaultSize: {
       width: LADDER_METRICS.width * LADDER_DEFAULT_SCALE,
       height: LADDER_METRICS.height * LADDER_DEFAULT_SCALE,

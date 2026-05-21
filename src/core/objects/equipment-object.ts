@@ -8,18 +8,6 @@ import {
 export const EQUIPMENT_OBJECT_TYPE = "equipment";
 const MIN_EQUIPMENT_DIMENSION = 0.25;
 
-export type DefaultEquipmentRenderFamily =
-  | "ball"
-  | "cone"
-  | "frame"
-  | "ladder"
-  | "mannequin"
-  | "pole";
-
-export type EquipmentRenderFamily =
-  | DefaultEquipmentRenderFamily
-  | (string & {});
-
 export interface EquipmentCapabilities {
   color?: boolean;
   label?: boolean;
@@ -41,7 +29,6 @@ export interface EquipmentSelectionBounds {
 export interface EquipmentDefinitionSnapshot {
   kind: string;
   label: string;
-  family: EquipmentRenderFamily;
   color?: string;
   appearance?: ObjectAppearance;
   capabilities?: EquipmentCapabilities;
@@ -58,7 +45,6 @@ export interface EquipmentObjectProps extends Record<string, unknown> {
   label?: string;
   color?: string;
   appearance: ObjectAppearance;
-  definition: EquipmentDefinitionSnapshot;
 }
 
 export type EquipmentObject = BoardObject & {
@@ -81,8 +67,25 @@ type EquipmentCoreInput = {
   label?: string;
   color?: string;
   appearance?: ObjectAppearance;
-  definition: EquipmentDefinitionSnapshot;
+  definition?: EquipmentDefinition;
 };
+
+const equipmentDefinitionsByKind: Record<string, EquipmentDefinitionSnapshot> =
+  {};
+
+export function registerEquipmentDefinitions(
+  definitions: EquipmentDefinition[],
+) {
+  for (const definition of definitions) {
+    equipmentDefinitionsByKind[definition.kind] = definition;
+  }
+}
+
+export function getEquipmentDefinition(
+  equipment: Pick<EquipmentObject, "props">,
+): EquipmentDefinitionSnapshot | undefined {
+  return equipmentDefinitionsByKind[equipment.props.kind];
+}
 
 function clonePoint(point: Point): Point {
   return { x: point.x, y: point.y };
@@ -114,27 +117,15 @@ function getCanonicalEquipmentProps(
     "appearance" | "kind" | "label" | "color" | "definition"
   >,
 ): EquipmentObjectProps {
+  const definition = input.definition;
+
   return {
     kind: input.kind,
     label: input.label,
-    color: input.color ?? input.definition.color,
+    color: input.color ?? definition?.color,
     appearance: cloneObjectAppearance(
-      input.appearance ??
-        input.definition.appearance ??
-        DEFAULT_RENDER_APPEARANCE,
+      input.appearance ?? definition?.appearance ?? DEFAULT_RENDER_APPEARANCE,
     ),
-    definition: {
-      ...input.definition,
-      appearance: input.definition.appearance
-        ? cloneObjectAppearance(input.definition.appearance)
-        : undefined,
-      capabilities: {
-        ...input.definition.capabilities,
-      },
-      transformCapabilities: {
-        ...input.definition.transformCapabilities,
-      },
-    },
   };
 }
 
@@ -142,6 +133,10 @@ function createCanonicalEquipmentObject(
   base: Omit<EquipmentObject, "position" | "rotation" | "size" | "props">,
   input: EquipmentCoreInput,
 ): EquipmentObject {
+  if (input.definition) {
+    equipmentDefinitionsByKind[input.definition.kind] = input.definition;
+  }
+
   return {
     ...base,
     position: clonePoint(input.position),
@@ -182,7 +177,7 @@ export function updateEquipmentObject(
       label: input.label ?? object.props.label,
       color: input.color ?? object.props.color,
       appearance: input.appearance ?? object.props.appearance,
-      definition: input.definition ?? object.props.definition,
+      definition: input.definition,
     },
   );
 }

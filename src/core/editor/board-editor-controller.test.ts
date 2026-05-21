@@ -436,7 +436,6 @@ describe("createBoardEditorController", () => {
         {
           kind: "football-cone",
           label: "Football Cone",
-          family: "cone",
           defaultSize: { width: 1.8, height: 2.2 },
           color: "#ff6b35",
           lockedAspectRatio: true,
@@ -1042,7 +1041,6 @@ describe("createBoardEditorController", () => {
       {
         kind: "cone",
         label: "Cone",
-        family: "cone",
         defaultSize: { width: 1.8, height: 2.2 },
         color: "#ff6b35",
         capabilities: { color: true },
@@ -1105,10 +1103,6 @@ describe("createBoardEditorController", () => {
       props: {
         kind: "cone",
         color: "#ff6b35",
-        definition: {
-          family: "cone",
-          lockedAspectRatio: true,
-        },
       },
     });
   });
@@ -1362,7 +1356,6 @@ describe("createBoardEditorController", () => {
         {
           kind: "goal",
           label: "Goal",
-          family: "frame",
           defaultSize: { width: 6, height: 2 },
           color: "#ffffff",
           capabilities: { color: true },
@@ -1381,7 +1374,7 @@ describe("createBoardEditorController", () => {
       definition: {
         kind: "goal",
         label: "Goal",
-        family: "frame",
+        defaultSize: { width: 6, height: 2 },
         color: "#ffffff",
         capabilities: { color: true },
         transformCapabilities: { resize: true, rotate: true },
@@ -2104,7 +2097,6 @@ describe("createBoardEditorController", () => {
     const definition: EquipmentDefinition = {
       kind: "ladder",
       label: "Ladder",
-      family: "ladder",
       defaultSize: { width: 3.8, height: 14 },
       color: "#0f172a",
       capabilities: { color: true },
@@ -2234,7 +2226,6 @@ describe("createBoardEditorController", () => {
     const definition: EquipmentDefinition = {
       kind: "soccer-ball",
       label: "Ball",
-      family: "ball",
       defaultSize: { width: 1.5, height: 1.5 },
       color: "#ffffff",
       transformCapabilities: { resize: false, rotate: false },
@@ -2329,7 +2320,6 @@ describe("createBoardEditorController", () => {
         {
           kind: "football-cone",
           label: "Football Cone",
-          family: "training-marker",
           defaultSize: { width: 1.8, height: 2.2 },
           color: "#ff6b35",
           lockedAspectRatio: true,
@@ -2348,7 +2338,7 @@ describe("createBoardEditorController", () => {
       definition: {
         kind: "football-cone",
         label: "Football Cone",
-        family: "training-marker",
+        defaultSize: { width: 1.8, height: 2.2 },
         color: "#ff6b35",
         lockedAspectRatio: true,
       },

@@ -91,7 +91,6 @@ export const miniGoalEquipment: FootballEquipmentSpec = {
   definition: {
     kind: "mini-goal",
     label: "Mini Goal",
-    family: "frame",
     defaultSize: {
       width: MINI_GOAL_METRICS.width,
       height: MINI_GOAL_METRICS.height,

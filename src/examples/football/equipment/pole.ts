@@ -10,7 +10,6 @@ export const poleEquipment: FootballEquipmentSpec = {
   definition: {
     kind: "pole",
     label: "Pole",
-    family: "pole",
     defaultSize: {
       width: 2.4 * POLE_DEFAULT_SCALE,
       height: 11 * POLE_DEFAULT_SCALE,

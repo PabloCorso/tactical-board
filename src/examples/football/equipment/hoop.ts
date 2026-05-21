@@ -8,7 +8,6 @@ export const hoopEquipment: FootballEquipmentSpec = {
   definition: {
     kind: "hoop",
     label: "Hoop",
-    family: "frame",
     defaultSize: { width: HOOP_RADIUS * 2, height: HOOP_RADIUS * 2 },
     color: DEFAULT_PRESET_COLOR.red,
     capabilities: { color: true },

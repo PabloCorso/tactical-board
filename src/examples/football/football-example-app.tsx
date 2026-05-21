@@ -77,6 +77,10 @@ const store = createBoardEditorStore({
   ],
 });
 
+if (import.meta.env.DEV) {
+  console.log("Football board state", store.getState().board);
+}
+
 export function FootballExampleApp() {
   return (
     <BoardEditorProvider store={store}>

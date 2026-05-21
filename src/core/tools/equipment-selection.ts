@@ -3,6 +3,7 @@ import {
   resizeEquipmentObject,
   rotateEquipmentObject,
   EQUIPMENT_OBJECT_TYPE,
+  getEquipmentDefinition,
   type EquipmentObject,
 } from "../objects/equipment-object";
 import type {
@@ -28,7 +29,7 @@ const ROTATE_HANDLE_CORNER_INDEX = 3;
 const ROTATE_HANDLE_CORNER_OFFSET_PX = 18;
 
 function getEquipmentTransformCapabilities(equipment: EquipmentObject) {
-  return equipment.props.definition.transformCapabilities;
+  return getEquipmentDefinition(equipment)?.transformCapabilities;
 }
 
 type EquipmentSelectionSession = ObjectSelectionSession & {
@@ -133,7 +134,7 @@ export const equipmentSelectionAdapter: ObjectSelectionAdapter<
               height: object.size?.height ?? 0,
             },
             lockedAspectRatio:
-              object.props.definition.lockedAspectRatio !== false,
+              getEquipmentDefinition(object)?.lockedAspectRatio !== false,
           };
         }
       }

@@ -24,7 +24,6 @@ export const soccerBallEquipment: FootballEquipmentSpec = {
   definition: {
     kind: "soccer-ball",
     label: "Ball",
-    family: "ball",
     defaultSize: { width: 1.5, height: 1.5 },
     color: DEFAULT_PRESET_COLOR.white,
     transformCapabilities: {

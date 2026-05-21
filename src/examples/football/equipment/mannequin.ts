@@ -26,7 +26,6 @@ export const mannequinEquipment: FootballEquipmentSpec = {
   definition: {
     kind: "mannequin",
     label: "Mannequin",
-    family: "mannequin",
     defaultSize: {
       width:
         (MANNEQUIN_SOURCE.width / MANNEQUIN_SOURCE.height) *

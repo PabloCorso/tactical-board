@@ -185,7 +185,6 @@ export const goalEquipment: FootballEquipmentSpec = {
   definition: {
     kind: "goal",
     label: "Goal",
-    family: "frame",
     defaultSize: { width: GOAL_METRICS.width, height: GOAL_METRICS.height },
     color: DEFAULT_PRESET_COLOR.white,
     capabilities: { color: true },

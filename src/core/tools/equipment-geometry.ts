@@ -3,6 +3,7 @@ import type {
   EquipmentObject,
   EquipmentSelectionBounds,
 } from "../objects/equipment-object";
+import { getEquipmentDefinition } from "../objects/equipment-object";
 import {
   getExpandedCanvasRectPoints,
   rotateOffset,
@@ -37,8 +38,8 @@ export function getEquipmentSelectionOutlineCanvasPoints(
   >,
   equipment: EquipmentObject,
 ) {
-  const bounds =
-    equipment.props.definition.selectionBounds ?? DEFAULT_SELECTION_BOUNDS;
+  const definition = getEquipmentDefinition(equipment);
+  const bounds = definition?.selectionBounds ?? DEFAULT_SELECTION_BOUNDS;
   const width = Math.max(
     equipment.size?.width ?? 0,
     MIN_EQUIPMENT_RENDER_SIZE_PX / Math.max(projection.scale, 1),
@@ -64,7 +65,6 @@ export function getEquipmentSelectionOutlineCanvasPoints(
 
   return getExpandedCanvasRectPoints(
     outlinePoints,
-    equipment.props.definition.selectionPaddingPx ??
-      DEFAULT_EQUIPMENT_SELECTION_PADDING_PX,
+    definition?.selectionPaddingPx ?? DEFAULT_EQUIPMENT_SELECTION_PADDING_PX,
   );
 }
