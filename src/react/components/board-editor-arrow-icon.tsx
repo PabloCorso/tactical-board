@@ -10,7 +10,7 @@ import {
   type ArrowLineStyle,
   type ArrowObject,
 } from "../../core/objects/arrow-object";
-import { renderArrow } from "../../tools/arrow-tool";
+import { renderArrow } from "../../core/tools/arrow-tool";
 
 type ArrowIconLayout = "wide" | "compact";
 

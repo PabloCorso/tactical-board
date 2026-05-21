@@ -9,14 +9,14 @@ import {
 import { BoardEditorSelectionToolbar } from "../../react/components/board-editor-selection-toolbar";
 import { BoardEditorToolControl } from "../../react/components/board-editor-tool-control";
 import { BoardEditorToolbar } from "../../react/components/board-editor-toolbar";
-import { ArrowTool } from "../../tools/arrow-tool";
-import { HandTool } from "../../tools/hand-tool";
-import { EquipmentTool } from "../../tools/equipment-tool";
-import { PlayerTool } from "../../tools/player-tool";
-import { ShapeTool } from "../../tools/shape-tool";
-import { SelectTool } from "../../tools/select-tool";
-import { TextTool } from "../../tools/text-tool";
-import { SELECT_TOOL_ID } from "../../tools/select-tool-state";
+import { ArrowTool } from "../../core/tools/arrow-tool";
+import { HandTool } from "../../core/tools/hand-tool";
+import { EquipmentTool } from "../../core/tools/equipment-tool";
+import { PlayerTool } from "../../core/tools/player-tool";
+import { ShapeTool } from "../../core/tools/shape-tool";
+import { SelectTool } from "../../core/tools/select-tool";
+import { TextTool } from "../../core/tools/text-tool";
+import { SELECT_TOOL_ID } from "../../core/tools/select-tool-state";
 import {
   FOOTBALL_EQUIPMENT_DEFINITIONS,
   FOOTBALL_EQUIPMENT_RENDERERS,

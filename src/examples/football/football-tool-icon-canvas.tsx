@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import type { BoardObject } from "../../core/board/types";
 import type { BoardSpaceProjection } from "../../core/geometry/board-space-projection";
-import type { CanvasObjectRenderer } from "../../rendering/canvas/types";
+import type { CanvasObjectRenderer } from "../../core/rendering/canvas/types";
 
 type FootballToolIconCanvasProps<TObject extends BoardObject> = {
   object: TObject;

@@ -13,9 +13,9 @@ The Football Example is the first pressure-test application for the Editor Engin
 ## Consumes
 
 - `src/core` for generic Document, Shape, Selection, history, Tool, geometry, and serialization contracts
-- `src/rendering/canvas` for the Canvas Renderer
+- `src/core/rendering/canvas` for the Canvas Renderer
 - `src/react` for the Board Editor React Adapter
-- `src/tools` for reusable Standard Tools
+- `src/core/tools` for reusable Standard Tools
 
 ## Boundary Rules
 

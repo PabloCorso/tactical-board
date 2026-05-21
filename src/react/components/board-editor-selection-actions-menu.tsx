@@ -8,7 +8,7 @@ import { createToolApi } from "../../core/editor/create-tool-api";
 import {
   deleteSelectedObjects,
   setSelectedObjectIds,
-} from "../../tools/select-tool-actions";
+} from "../../core/tools/select-tool-actions";
 import { useBoardEditorStore } from "../hooks/use-board-editor-store";
 import { useBoardEditorContext } from "./board-editor-context";
 import { BoardEditorToolbarButton } from "./board-editor-toolbar";

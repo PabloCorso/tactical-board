@@ -5,7 +5,7 @@ import { useBoardEditorStore } from "../../react/hooks/use-board-editor-store";
 import {
   getArrowToolState,
   type ArrowDraftStyle,
-} from "../../tools/arrow-tool-state";
+} from "../../core/tools/arrow-tool-state";
 
 export function FootballArrowPresetIcon({
   draftStyle,

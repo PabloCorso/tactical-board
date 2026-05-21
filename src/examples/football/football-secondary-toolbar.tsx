@@ -8,24 +8,27 @@ import {
   BoardEditorToolbarButton,
 } from "../../react/components/board-editor-toolbar";
 import { useBoardEditorStore } from "../../react/hooks/use-board-editor-store";
-import { type ArrowToolPreset } from "../../tools/arrow-tool";
-import { ARROW_TOOL_ID, getArrowToolState } from "../../tools/arrow-tool-state";
+import { type ArrowToolPreset } from "../../core/tools/arrow-tool";
+import {
+  ARROW_TOOL_ID,
+  getArrowToolState,
+} from "../../core/tools/arrow-tool-state";
 import {
   EQUIPMENT_TOOL_ID,
   getEquipmentToolState,
-} from "../../tools/equipment-tool-state";
-import { type PlayerToolPreset } from "../../tools/player-tool";
+} from "../../core/tools/equipment-tool-state";
+import { type PlayerToolPreset } from "../../core/tools/player-tool";
 import {
   getPlayerToolState,
   PLAYER_TOOL_ID,
   type PlayerDraftStyle,
-} from "../../tools/player-tool-state";
-import { type ShapeToolPreset } from "../../tools/shape-tool";
+} from "../../core/tools/player-tool-state";
+import { type ShapeToolPreset } from "../../core/tools/shape-tool";
 import {
   getShapeToolState,
   SHAPE_TOOL_ID,
   type ShapeDraftStyle,
-} from "../../tools/shape-tool-state";
+} from "../../core/tools/shape-tool-state";
 import { FOOTBALL_EQUIPMENT_DEFINITIONS } from "./equipment";
 import { FOOTBALL_PLAYER_PRESET_COLORS } from "./football-example-catalog";
 import {

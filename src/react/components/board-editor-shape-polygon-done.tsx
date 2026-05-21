@@ -1,8 +1,11 @@
 import { createBoardSpaceProjection } from "../../core/geometry/board-space-projection";
 import { createToolApi } from "../../core/editor/create-tool-api";
 import { createShapeObject } from "../../core/objects/shape-object";
-import { completePendingPolygon } from "../../tools/shape-tool";
-import { getShapeToolState, SHAPE_TOOL_ID } from "../../tools/shape-tool-state";
+import { completePendingPolygon } from "../../core/tools/shape-tool";
+import {
+  getShapeToolState,
+  SHAPE_TOOL_ID,
+} from "../../core/tools/shape-tool-state";
 import { useBoardEditorStore } from "../hooks/use-board-editor-store";
 import { useBoardEditorContext } from "./board-editor-context";
 import { cn } from "./misc";

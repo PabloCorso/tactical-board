@@ -22,7 +22,7 @@ import type {
   CanvasObjectHitTesterRegistry,
   CanvasObjectRendererRegistry,
   CanvasOverlayRendererRegistry,
-} from "../../rendering/canvas/types";
+} from "../rendering/canvas/types";
 
 const MAX_HISTORY_ENTRIES = 100;
 

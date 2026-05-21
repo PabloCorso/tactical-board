@@ -2,18 +2,79 @@ import { useMemo } from "react";
 import type { BoardObject } from "../../core/board/types";
 import { createBoardSpaceProjection } from "../../core/geometry/board-space-projection";
 import {
+  ARROW_OBJECT_TYPE,
+  type ArrowObject,
+} from "../../core/objects/arrow-object";
+import {
+  EQUIPMENT_OBJECT_TYPE,
+  type EquipmentObject,
+} from "../../core/objects/equipment-object";
+import {
   getObjectSelectionAdapterForObject,
   type SelectionProjection,
 } from "../../core/objects/object-selection";
-import { getSelectToolState } from "../../tools/select-tool-state";
-import { SELECTION_TOOLBAR_OFFSET_PX } from "../../tools/selection-geometry";
+import {
+  PLAYER_OBJECT_TYPE,
+  type PlayerObject,
+} from "../../core/objects/player-object";
+import {
+  SHAPE_OBJECT_TYPE,
+  type ShapeObject,
+} from "../../core/objects/shape-object";
+import {
+  TEXT_OBJECT_TYPE,
+  type TextObject,
+} from "../../core/objects/text-object";
+import { getSelectToolState } from "../../core/tools/select-tool-state";
+import { SELECTION_TOOLBAR_OFFSET_PX } from "../../core/tools/selection-geometry";
 import { useBoardEditorStore } from "../hooks/use-board-editor-store";
+import { BoardEditorArrowSelectionToolbar } from "./board-editor-selection-toolbar-arrow";
+import { BoardEditorEquipmentSelectionToolbar } from "./board-editor-selection-toolbar-equipment";
+import { BoardEditorPlayerSelectionToolbar } from "./board-editor-selection-toolbar-player";
 import { useBoardEditorContext } from "./board-editor-context";
 import { BoardEditorSelectionActionsMenu } from "./board-editor-selection-actions-menu";
+import { BoardEditorShapeSelectionToolbar } from "./board-editor-selection-toolbar-shape";
+import { BoardEditorTextSelectionToolbar } from "./board-editor-selection-toolbar-text";
+import type { BoardEditorSelectionToolbarRenderer } from "./board-editor-selection-toolbar-types";
 import { BoardEditorSelectionToolbarPositioner } from "./board-editor-selection-toolbar-positioner";
 import { BoardEditorToolbar } from "./board-editor-toolbar";
 
 const SURFACE_INSET = 14;
+const DEFAULT_SELECTION_TOOLBAR_RENDERERS: Record<
+  string,
+  BoardEditorSelectionToolbarRenderer
+> = {
+  [ARROW_OBJECT_TYPE]: (props) => (
+    <BoardEditorArrowSelectionToolbar
+      {...props}
+      selectedObject={props.selectedObject as ArrowObject}
+    />
+  ),
+  [EQUIPMENT_OBJECT_TYPE]: (props) => (
+    <BoardEditorEquipmentSelectionToolbar
+      {...props}
+      selectedObject={props.selectedObject as EquipmentObject}
+    />
+  ),
+  [PLAYER_OBJECT_TYPE]: (props) => (
+    <BoardEditorPlayerSelectionToolbar
+      {...props}
+      selectedObject={props.selectedObject as PlayerObject}
+    />
+  ),
+  [SHAPE_OBJECT_TYPE]: (props) => (
+    <BoardEditorShapeSelectionToolbar
+      {...props}
+      selectedObject={props.selectedObject as ShapeObject}
+    />
+  ),
+  [TEXT_OBJECT_TYPE]: (props) => (
+    <BoardEditorTextSelectionToolbar
+      {...props}
+      selectedObject={props.selectedObject as TextObject}
+    />
+  ),
+};
 
 export function getSelectionToolbarAnchor(
   projection: SelectionProjection,
@@ -152,11 +213,8 @@ export function BoardEditorSelectionToolbar({
     return null;
   }
 
-  const selectionAdapter = getObjectSelectionAdapterForObject(
-    state,
-    selectedObject,
-  );
-  const ToolbarRenderer = selectionAdapter?.toolbarRenderer;
+  const ToolbarRenderer =
+    DEFAULT_SELECTION_TOOLBAR_RENDERERS[selectedObject.type];
   if (!ToolbarRenderer) {
     return null;
   }

@@ -1,5 +1,5 @@
-import { createCanvasRenderer } from "../../rendering/canvas/create-canvas-renderer";
-import type { CanvasRenderer } from "../../rendering/canvas/types";
+import { createCanvasRenderer } from "../rendering/canvas/create-canvas-renderer";
+import type { CanvasRenderer } from "../rendering/canvas/types";
 import { createToolApi } from "./create-tool-api";
 import { createBoardEditorController } from "./board-editor-controller";
 import type { BoardEditorStore } from "../store/board-editor-store";

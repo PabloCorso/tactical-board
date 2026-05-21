@@ -15,7 +15,7 @@ import type {
   CanvasObjectRendererRegistry,
   CanvasOverlayRenderer,
   CanvasOverlayRendererRegistry,
-} from "../../rendering/canvas/types";
+} from "../rendering/canvas/types";
 import type {
   ObjectDefinition,
   ObjectRegistry,

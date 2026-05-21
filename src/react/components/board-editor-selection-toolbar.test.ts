@@ -5,12 +5,12 @@ import type { EquipmentObject } from "../../core/objects/equipment-object";
 import type { ShapeObject } from "../../core/objects/shape-object";
 import type { ArrowObject } from "../../core/objects/arrow-object";
 import type { TextObject } from "../../core/objects/text-object";
-import { playerSelectionAdapter } from "../../tools/player-selection";
-import { equipmentSelectionAdapter } from "../../tools/equipment-selection";
-import { shapeSelectionAdapter } from "../../tools/shape-selection";
-import { arrowSelectionAdapter } from "../../tools/arrow-selection";
-import { textSelectionAdapter } from "../../tools/text-selection";
-import { SELECTION_TOOLBAR_OFFSET_PX } from "../../tools/selection-geometry";
+import { playerSelectionAdapter } from "../../core/tools/player-selection";
+import { equipmentSelectionAdapter } from "../../core/tools/equipment-selection";
+import { shapeSelectionAdapter } from "../../core/tools/shape-selection";
+import { arrowSelectionAdapter } from "../../core/tools/arrow-selection";
+import { textSelectionAdapter } from "../../core/tools/text-selection";
+import { SELECTION_TOOLBAR_OFFSET_PX } from "../../core/tools/selection-geometry";
 import {
   getMultiSelectionToolbarAnchor,
   getSelectionToolbarAnchor,

@@ -11,35 +11,32 @@ import {
   createEquipmentObject,
   type EquipmentDefinition,
 } from "../objects/equipment-object";
-import { getEquipmentSelectionOutlineCanvasPoints } from "../../tools/equipment-geometry";
+import { getEquipmentSelectionOutlineCanvasPoints } from "../tools/equipment-geometry";
 import {
   createPlayerObject,
   type PlayerObject,
 } from "../objects/player-object";
 import { createShapeObject, type ShapeObject } from "../objects/shape-object";
-import { ArrowTool } from "../../tools/arrow-tool";
-import { EquipmentTool } from "../../tools/equipment-tool";
-import { PlayerTool } from "../../tools/player-tool";
-import { getPlayerSelectionOutlineCanvasPoints } from "../../tools/player-selection";
-import { ShapeTool } from "../../tools/shape-tool";
-import { SelectTool } from "../../tools/select-tool";
-import { setSelectedObjectIds } from "../../tools/select-tool-actions";
-import { TextTool } from "../../tools/text-tool";
-import { getArrowToolState } from "../../tools/arrow-tool-state";
-import {
-  getPlayerToolState,
-  PLAYER_TOOL_ID,
-} from "../../tools/player-tool-state";
-import { SELECT_TOOL_ID } from "../../tools/select-tool-state";
-import { getShapeToolState } from "../../tools/shape-tool-state";
-import { getTextToolState, TEXT_TOOL_ID } from "../../tools/text-tool-state";
+import { ArrowTool } from "../tools/arrow-tool";
+import { EquipmentTool } from "../tools/equipment-tool";
+import { PlayerTool } from "../tools/player-tool";
+import { getPlayerSelectionOutlineCanvasPoints } from "../tools/player-selection";
+import { ShapeTool } from "../tools/shape-tool";
+import { SelectTool } from "../tools/select-tool";
+import { setSelectedObjectIds } from "../tools/select-tool-actions";
+import { TextTool } from "../tools/text-tool";
+import { getArrowToolState } from "../tools/arrow-tool-state";
+import { getPlayerToolState, PLAYER_TOOL_ID } from "../tools/player-tool-state";
+import { SELECT_TOOL_ID } from "../tools/select-tool-state";
+import { getShapeToolState } from "../tools/shape-tool-state";
+import { getTextToolState, TEXT_TOOL_ID } from "../tools/text-tool-state";
 import { FOOTBALL_PLAYER_PRESET_COLORS } from "../../examples/football/football-example-catalog";
 import { MAX_VIEWPORT_ZOOM, MIN_VIEWPORT_ZOOM } from "./viewport-utils";
 import {
   getCornerHandleCanvasPoint,
   getRotatedRectBoardPoints,
   rotateOffset,
-} from "../../tools/selection-geometry";
+} from "../tools/selection-geometry";
 
 describe("createBoardEditorController", () => {
   const selectTool = new SelectTool();

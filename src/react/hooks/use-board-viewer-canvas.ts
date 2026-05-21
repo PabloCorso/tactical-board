@@ -12,13 +12,13 @@ import {
   type BoardViewerCanvasRect,
   type BoardViewerViewportMode,
 } from "../../core/viewer/board-viewer-viewport";
-import { createCanvasRenderer } from "../../rendering/canvas/create-canvas-renderer";
+import { createCanvasRenderer } from "../../core/rendering/canvas/create-canvas-renderer";
 import type {
   CanvasObjectRendererRegistry,
   CanvasOverlayItem,
   CanvasOverlayRendererRegistry,
   CanvasRenderer,
-} from "../../rendering/canvas/types";
+} from "../../core/rendering/canvas/types";
 
 export type BoardViewerInitialViewport = Viewport | "fit";
 

@@ -5,7 +5,7 @@ import type {
   CanvasObjectRendererRegistry,
   CanvasOverlayItem,
   CanvasOverlayRendererRegistry,
-} from "../../rendering/canvas/types";
+} from "../../core/rendering/canvas/types";
 import {
   type BoardViewerInitialViewport,
   useBoardViewerCanvas,

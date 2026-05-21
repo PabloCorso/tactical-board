@@ -1,8 +1,8 @@
 import { useEffect, useRef } from "react";
 import type { Board } from "../../core/board/types";
 import type { Viewport } from "../../core/geometry/types";
-import { createCanvasRenderer } from "../../rendering/canvas/create-canvas-renderer";
-import type { CanvasRenderer } from "../../rendering/canvas/types";
+import { createCanvasRenderer } from "../../core/rendering/canvas/create-canvas-renderer";
+import type { CanvasRenderer } from "../../core/rendering/canvas/types";
 
 type UseCanvasRendererOptions = {
   board: Board;

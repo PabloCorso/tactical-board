@@ -3,8 +3,8 @@ import type { EquipmentDefinition } from "../../core/objects/equipment-object";
 import { createEquipmentObject } from "../../core/objects/equipment-object";
 import { useBoardEditorContext } from "../../react/components/board-editor-context";
 import { useBoardEditorStore } from "../../react/hooks/use-board-editor-store";
-import { createEquipmentRenderer } from "../../tools/equipment-tool";
-import { getEquipmentToolState } from "../../tools/equipment-tool-state";
+import { createEquipmentRenderer } from "../../core/tools/equipment-tool";
+import { getEquipmentToolState } from "../../core/tools/equipment-tool-state";
 import {
   FOOTBALL_EQUIPMENT_DEFINITIONS,
   FOOTBALL_EQUIPMENT_RENDERERS,

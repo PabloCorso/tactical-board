@@ -36,23 +36,18 @@ function getImportBoundaryViolations({
 }
 
 describe("core architecture boundary", () => {
-  it("does not import concrete standard tools from src/tools", () => {
+  it("keeps React adapter code out of core", () => {
     const coreRoot = join(process.cwd(), "src/core");
     const violations = getImportBoundaryViolations({
       root: coreRoot,
-      pattern: /from\s+["'](?:\.\.\/){2,}tools\//,
+      pattern: /from\s+["'][^"']*react\//,
     });
 
     expect(violations).toEqual([]);
   });
 
   it("keeps football example code out of production library layers", () => {
-    const libraryRoots = [
-      "src/core",
-      "src/rendering",
-      "src/react",
-      "src/tools",
-    ];
+    const libraryRoots = ["src/core", "src/react"];
     const violations = libraryRoots.flatMap((root) =>
       getImportBoundaryViolations({
         root: join(process.cwd(), root),

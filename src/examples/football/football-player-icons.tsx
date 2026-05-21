@@ -6,12 +6,12 @@ import {
 } from "../../core/objects/player-object";
 import { useBoardEditorContext } from "../../react/components/board-editor-context";
 import { useBoardEditorStore } from "../../react/hooks/use-board-editor-store";
-import { renderPlayer } from "../../tools/player-tool";
+import { renderPlayer } from "../../core/tools/player-tool";
 import {
   getPlayerToolState,
   PLAYER_TOOL_ID,
   type PlayerDraftStyle,
-} from "../../tools/player-tool-state";
+} from "../../core/tools/player-tool-state";
 import { FOOTBALL_PLAYER_PRESET_COLORS } from "./football-example-catalog";
 import { DEFAULT_PRESET_COLOR } from "../../core/colors/preset-colors";
 import { FootballToolIconCanvas } from "./football-tool-icon-canvas";

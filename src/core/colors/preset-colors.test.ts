@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_ARROW_TOOL_STATE } from "../../tools/arrow-tool-state";
-import { DEFAULT_SHAPE_TOOL_STATE } from "../../tools/shape-tool-state";
+import { DEFAULT_ARROW_TOOL_STATE } from "../tools/arrow-tool-state";
+import { DEFAULT_SHAPE_TOOL_STATE } from "../tools/shape-tool-state";
 import { DEFAULT_PLAYER_COLOR } from "../objects/player-object";
 import { DEFAULT_TEXT_COLOR } from "../objects/text-object";
 import { footballBoardExample } from "../../examples/football/football-board-example";

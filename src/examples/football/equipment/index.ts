@@ -1,4 +1,4 @@
-import type { EquipmentCanvasRendererRegistry } from "../../../tools/equipment-tool";
+import type { EquipmentCanvasRendererRegistry } from "../../../core/tools/equipment-tool";
 import { coneEquipment } from "./cone";
 import { discConeEquipment } from "./disc-cone";
 import { goalEquipment } from "./goal";

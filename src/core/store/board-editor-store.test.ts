@@ -4,25 +4,22 @@ import {
   ARROW_TOOL_ID,
   DEFAULT_ARROW_TOOL_STATE,
   getArrowToolState,
-} from "../../tools/arrow-tool-state";
-import { ArrowTool } from "../../tools/arrow-tool";
+} from "../tools/arrow-tool-state";
+import { ArrowTool } from "../tools/arrow-tool";
 import {
   DEFAULT_PLAYER_TOOL_STATE,
   getPlayerToolState,
   PLAYER_TOOL_ID,
-} from "../../tools/player-tool-state";
+} from "../tools/player-tool-state";
 import {
   DEFAULT_SHAPE_TOOL_STATE,
   getShapeToolState,
   SHAPE_TOOL_ID,
-} from "../../tools/shape-tool-state";
-import { ShapeTool } from "../../tools/shape-tool";
-import { PlayerTool } from "../../tools/player-tool";
-import {
-  getSelectToolState,
-  SELECT_TOOL_ID,
-} from "../../tools/select-tool-state";
-import { SelectTool } from "../../tools/select-tool";
+} from "../tools/shape-tool-state";
+import { ShapeTool } from "../tools/shape-tool";
+import { PlayerTool } from "../tools/player-tool";
+import { getSelectToolState, SELECT_TOOL_ID } from "../tools/select-tool-state";
+import { SelectTool } from "../tools/select-tool";
 
 describe("createBoardEditorStore", () => {
   const selectTool = new SelectTool();

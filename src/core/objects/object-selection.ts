@@ -1,4 +1,3 @@
-import type { ComponentType } from "react";
 import type { BoardObject, ObjectId, Point } from "../board/types";
 import type { BoardEditorState } from "../editor/types";
 import type { createBoardSpaceProjection } from "../geometry/board-space-projection";
@@ -8,22 +7,6 @@ export type SelectionProjection = Pick<
   ReturnType<typeof createBoardSpaceProjection>,
   "getObjectCanvasBounds" | "boardToCanvas" | "canvasToBoard" | "scale"
 >;
-
-export interface SelectionToolbarRendererProps<
-  TObject extends BoardObject = BoardObject,
-> {
-  className?: string;
-  selectedObject: TObject;
-  toolbarLeft: number;
-  toolbarTop: number;
-  toolbarBottom: number;
-  viewportHeight: number;
-  viewportWidth: number;
-}
-
-export type SelectionToolbarRenderer<
-  TObject extends BoardObject = BoardObject,
-> = ComponentType<SelectionToolbarRendererProps<TObject>>;
 
 export interface ObjectSelectionRenderInput<
   TObject extends BoardObject = BoardObject,
@@ -97,7 +80,6 @@ export interface ObjectSelectionAdapter<
   getToolbarAnchor?: (
     input: ObjectSelectionToolbarAnchorInput<TObject>,
   ) => { left: number; top: number } | undefined;
-  toolbarRenderer?: SelectionToolbarRenderer<TObject>;
 }
 
 export type ErasedObjectSelectionAdapter<

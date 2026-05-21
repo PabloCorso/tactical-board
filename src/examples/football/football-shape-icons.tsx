@@ -5,11 +5,11 @@ import {
 } from "../../core/objects/shape-object";
 import { useBoardEditorContext } from "../../react/components/board-editor-context";
 import { useBoardEditorStore } from "../../react/hooks/use-board-editor-store";
-import { renderShape } from "../../tools/shape-tool";
+import { renderShape } from "../../core/tools/shape-tool";
 import {
   getShapeToolState,
   type ShapeDraftStyle,
-} from "../../tools/shape-tool-state";
+} from "../../core/tools/shape-tool-state";
 import { FootballToolIconCanvas } from "./football-tool-icon-canvas";
 
 export function FootballShapePresetIcon({

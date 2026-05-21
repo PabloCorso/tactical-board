@@ -6,7 +6,7 @@ import type {
   CanvasObjectRenderer,
   CanvasOverlayItem,
   CanvasOverlayRenderer,
-} from "../../rendering/canvas/types";
+} from "../rendering/canvas/types";
 import type { ObjectDefinition } from "../objects/types";
 
 export interface ToolPointerEvent {
