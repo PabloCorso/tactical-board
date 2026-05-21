@@ -1,9 +1,4 @@
-import type {
-  BoardObject,
-  BoardObjectSize,
-  MeasurementUnit,
-  Point,
-} from "../board/types";
+import type { BoardObject, BoardObjectSize, Point } from "../board/types";
 import {
   cloneObjectAppearance,
   DEFAULT_RENDER_APPEARANCE,
@@ -82,7 +77,6 @@ type EquipmentCoreInput = {
   position: Point;
   rotation?: number;
   size?: Partial<BoardObjectSize>;
-  unit?: MeasurementUnit;
   kind: string;
   label?: string;
   color?: string;
@@ -101,7 +95,6 @@ function normalizeRotation(rotation = 0) {
 
 function normalizeEquipmentSize(
   size: Partial<BoardObjectSize> | undefined,
-  unit?: MeasurementUnit,
 ): BoardObjectSize {
   return {
     width: Math.max(
@@ -112,8 +105,6 @@ function normalizeEquipmentSize(
       size?.height ?? size?.width ?? MIN_EQUIPMENT_DIMENSION,
       MIN_EQUIPMENT_DIMENSION,
     ),
-    mode: size?.mode ?? "world",
-    unit: size?.unit ?? unit,
   };
 }
 
@@ -155,7 +146,7 @@ function createCanonicalEquipmentObject(
     ...base,
     position: clonePoint(input.position),
     rotation: normalizeRotation(input.rotation),
-    size: normalizeEquipmentSize(input.size, input.unit),
+    size: normalizeEquipmentSize(input.size),
     props: getCanonicalEquipmentProps(input),
   };
 }
@@ -187,7 +178,6 @@ export function updateEquipmentObject(
       position: input.position ?? object.position,
       rotation: input.rotation ?? object.rotation,
       size: input.size ?? object.size,
-      unit: input.unit ?? object.size?.unit,
       kind: input.kind ?? object.props.kind,
       label: input.label ?? object.props.label,
       color: input.color ?? object.props.color,

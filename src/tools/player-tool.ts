@@ -107,7 +107,6 @@ export class PlayerTool extends BoardEditorTool implements ToolDefinition {
       createPlayerPreviewObject({
         id: playerId,
         point: event.point,
-        unit: state.board.surface.unit,
         draftStyle: playerState.draftStyle,
         label,
       }),
@@ -140,7 +139,6 @@ export class PlayerTool extends BoardEditorTool implements ToolDefinition {
       createPlayerPreviewObject({
         id: "player-preview",
         point: event.point,
-        unit: state.board.surface.unit,
         draftStyle: playerState.draftStyle,
         label,
       }),
@@ -151,13 +149,11 @@ export class PlayerTool extends BoardEditorTool implements ToolDefinition {
 function createPlayerPreviewObject({
   id,
   point,
-  unit,
   draftStyle,
   label,
 }: {
   id: string;
   point: Parameters<NonNullable<ToolDefinition["onPointerMove"]>>[0]["point"];
-  unit: BoardEditorState["board"]["surface"]["unit"];
   draftStyle: ReturnType<typeof getPlayerToolState>["draftStyle"];
   label?: string;
 }) {
@@ -168,13 +164,10 @@ function createPlayerPreviewObject({
     size: {
       width: draftStyle.size,
       height: draftStyle.size,
-      mode: "world",
-      unit,
     },
     color: draftStyle.color,
     appearance: draftStyle.appearance,
     label,
-    unit,
   });
 }
 
@@ -283,7 +276,7 @@ function hitTestPlayer({
   minimumHitRadiusPx,
 }: CanvasObjectHitTestInput) {
   const player = object as PlayerObject;
-  const center = surfaceTransform.worldToCanvas(player.position);
+  const center = surfaceTransform.boardToCanvas(player.position);
   const bounds = surfaceTransform.getObjectCanvasBounds(player);
   const radius = Math.max(
     Math.min(bounds.width, bounds.height) / 2,

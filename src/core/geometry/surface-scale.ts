@@ -1,9 +1,8 @@
 import type { DocumentBackgroundConfig } from "../board/types";
 import { clampViewportZoom } from "../editor/viewport-zoom";
-import { getDocumentCoordinateSystem } from "./document-coordinate-system";
 import type { Rect } from "./types";
 
-export function getSurfaceFitPixelsPerUnit(
+export function getSurfaceFitScale(
   surface: Pick<DocumentBackgroundConfig, "width" | "height">,
   frame: Pick<Rect, "width" | "height">,
 ) {
@@ -13,36 +12,9 @@ export function getSurfaceFitPixelsPerUnit(
   );
 }
 
-export function getSurfaceBasePixelsPerUnit(
-  surface: Pick<DocumentBackgroundConfig, "width" | "height"> &
-    Partial<
-      Pick<
-        DocumentBackgroundConfig,
-        "basePixelsPerUnit" | "unit" | "origin" | "coordinateSystem"
-      >
-    >,
-  frame: Pick<Rect, "width" | "height">,
-) {
-  return (
-    getDocumentCoordinateSystem(surface).basePixelsPerUnit ??
-    getSurfaceFitPixelsPerUnit(surface, frame)
-  );
-}
-
 export function getViewportZoomToFitSurface(
-  surface: Pick<DocumentBackgroundConfig, "width" | "height"> &
-    Partial<
-      Pick<
-        DocumentBackgroundConfig,
-        "basePixelsPerUnit" | "unit" | "origin" | "coordinateSystem"
-      >
-    >,
+  surface: Pick<DocumentBackgroundConfig, "width" | "height">,
   frame: Pick<Rect, "width" | "height">,
 ) {
-  const fitPixelsPerUnit = getSurfaceFitPixelsPerUnit(surface, frame);
-  const basePixelsPerUnit = getSurfaceBasePixelsPerUnit(surface, frame);
-
-  return clampViewportZoom(
-    fitPixelsPerUnit / Math.max(basePixelsPerUnit, 1e-9),
-  );
+  return clampViewportZoom(getSurfaceFitScale(surface, frame));
 }

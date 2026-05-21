@@ -62,13 +62,11 @@ export function getTextEditorOverlayState(
 
   return {
     ...activeSession,
-    anchorCanvasPoint: projection.worldToCanvas(
+    anchorCanvasPoint: projection.boardToCanvas(
       activeSession.session.anchorPosition,
     ),
     objectBounds,
-    scale:
-      projection.pixelsPerUnit /
-      activeSession.object.props.referencePixelsPerUnit,
+    scale: projection.scale,
   };
 }
 

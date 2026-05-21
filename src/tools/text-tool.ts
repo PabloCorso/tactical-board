@@ -148,8 +148,7 @@ export function renderText({
 }: CanvasObjectRenderInput) {
   const textObject = object as TextObject;
   const bounds = surfaceTransform.getObjectCanvasBounds(textObject);
-  const scale =
-    surfaceTransform.pixelsPerUnit / textObject.props.referencePixelsPerUnit;
+  const scale = surfaceTransform.scale;
   const canvasFontSize = textObject.props.fontSize * scale;
   const canvasWrapWidth =
     typeof textObject.props.wrapWidth === "number"
@@ -194,7 +193,7 @@ export function hitTestText({
   minimumHitRadiusPx,
 }: CanvasObjectHitTestInput) {
   const textObject = object as TextObject;
-  const center = surfaceTransform.worldToCanvas(textObject.position);
+  const center = surfaceTransform.boardToCanvas(textObject.position);
   const bounds = surfaceTransform.getObjectCanvasBounds(textObject);
   const localX = canvasPoint.x - center.x;
   const localY = canvasPoint.y - center.y;

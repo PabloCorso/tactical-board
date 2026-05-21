@@ -33,7 +33,6 @@ export function FootballEquipmentDefinitionIcon({
         size: {
           width: definition.defaultSize.width,
           height: definition.defaultSize.height,
-          mode: "world",
         },
         kind: definition.kind,
         color: definition.color,

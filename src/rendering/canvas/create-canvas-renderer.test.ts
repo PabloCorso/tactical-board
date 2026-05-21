@@ -133,9 +133,9 @@ describe("createCanvasRenderer", () => {
     expect(operations).toContainEqual({
       kind: "stroke-rect",
       strokeStyle: "#ffffff",
-      lineWidth: 1.46,
-      width: 58.4,
-      height: 29.2,
+      lineWidth: 0.5,
+      width: 20,
+      height: 10,
     });
   });
 });

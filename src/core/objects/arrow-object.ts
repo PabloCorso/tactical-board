@@ -5,8 +5,8 @@ export const ARROW_OBJECT_TYPE = "arrow";
 export type ArrowBodyStyle = "straight" | "curved" | "wavy" | "double";
 export type ArrowHeadStyle = "none" | "triangle";
 export type ArrowLineStyle = "solid" | "dashed";
-export const THIN_ARROW_STROKE_WIDTH = 0.225;
-export const THICK_ARROW_STROKE_WIDTH = 0.35;
+export const THIN_ARROW_STROKE_WIDTH = 2;
+export const THICK_ARROW_STROKE_WIDTH = 3;
 export const DEFAULT_ARROW_STROKE_WIDTH = THIN_ARROW_STROKE_WIDTH;
 export const DEFAULT_ARROW_DASH_STYLE = [8, 4] as const;
 const DEFAULT_CURVE_BEND_RATIO = 0.18;
@@ -435,7 +435,6 @@ export function getArrowSize(
   return {
     width: Math.abs(maxX - minX) + DEFAULT_ARROW_PADDING * 2,
     height: Math.abs(maxY - minY) + DEFAULT_ARROW_PADDING * 2,
-    mode: "world" as const,
   };
 }
 

@@ -45,7 +45,7 @@ export function getViewportForZoomAtCanvasPoint({
     canvasRect,
     surfaceInset: SURFACE_INSET,
   });
-  const worldPoint = currentProjection.canvasToWorld(anchorCanvasPoint);
+  const boardPoint = currentProjection.canvasToBoard(anchorCanvasPoint);
   const nextViewport = {
     ...viewport,
     zoom: nextZoom,
@@ -56,7 +56,7 @@ export function getViewportForZoomAtCanvasPoint({
     canvasRect,
     surfaceInset: SURFACE_INSET,
   });
-  const nextCanvasPoint = nextProjection.worldToCanvas(worldPoint);
+  const nextCanvasPoint = nextProjection.boardToCanvas(boardPoint);
 
   return {
     ...nextViewport,

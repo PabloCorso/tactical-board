@@ -54,7 +54,6 @@ describe("createBoardEditorRuntime", () => {
         surface: {
           width: 100,
           height: 50,
-          basePixelsPerUnit: 8,
         },
         objects: {
           byId: {},
@@ -244,7 +243,6 @@ describe("createBoardEditorRuntime", () => {
         surface: {
           width: 100,
           height: 50,
-          unit: "m",
         },
         objects: {
           byId: {},
@@ -309,7 +307,6 @@ describe("createBoardEditorRuntime", () => {
         surface: {
           width: 100,
           height: 50,
-          unit: "m",
         },
         objects: {
           byId: {},
@@ -376,7 +373,6 @@ describe("createBoardEditorRuntime", () => {
         surface: {
           width: 100,
           height: 50,
-          unit: "m",
         },
         objects: {
           byId: {},
@@ -445,7 +441,6 @@ describe("createBoardEditorRuntime", () => {
         surface: {
           width: 100,
           height: 50,
-          unit: "m",
         },
         objects: {
           byId: {},

@@ -59,27 +59,27 @@ function toRadians(angle: number) {
 function applyMarkingStyle(
   context: CanvasRenderingContext2D,
   marking: BoardSurfaceMarking,
-  pixelsPerUnit: number,
+  scale: number,
 ) {
   context.globalAlpha = marking.opacity ?? 1;
   context.fillStyle = marking.fill ?? "transparent";
   context.strokeStyle = marking.stroke ?? "transparent";
-  context.lineWidth = (marking.strokeWidth ?? 0) * pixelsPerUnit;
+  context.lineWidth = (marking.strokeWidth ?? 0) * scale;
 }
 
 function drawSurfaceMarking(
   context: CanvasRenderingContext2D,
   marking: BoardSurfaceMarking,
-  worldToCanvas: (point: { x: number; y: number }) => { x: number; y: number },
-  pixelsPerUnit: number,
+  boardToCanvas: (point: { x: number; y: number }) => { x: number; y: number },
+  scale: number,
 ) {
-  applyMarkingStyle(context, marking, pixelsPerUnit);
+  applyMarkingStyle(context, marking, scale);
 
   switch (marking.kind) {
     case "rect": {
-      const topLeft = worldToCanvas({ x: marking.x, y: marking.y });
-      const width = marking.width * pixelsPerUnit;
-      const height = marking.height * pixelsPerUnit;
+      const topLeft = boardToCanvas({ x: marking.x, y: marking.y });
+      const width = marking.width * scale;
+      const height = marking.height * scale;
       if (marking.fill) {
         context.fillRect(topLeft.x, topLeft.y, width, height);
       }
@@ -89,8 +89,8 @@ function drawSurfaceMarking(
       return;
     }
     case "line": {
-      const from = worldToCanvas({ x: marking.x1, y: marking.y1 });
-      const to = worldToCanvas({ x: marking.x2, y: marking.y2 });
+      const from = boardToCanvas({ x: marking.x1, y: marking.y1 });
+      const to = boardToCanvas({ x: marking.x2, y: marking.y2 });
       context.beginPath();
       context.moveTo(from.x, from.y);
       context.lineTo(to.x, to.y);
@@ -98,15 +98,9 @@ function drawSurfaceMarking(
       return;
     }
     case "circle": {
-      const center = worldToCanvas({ x: marking.cx, y: marking.cy });
+      const center = boardToCanvas({ x: marking.cx, y: marking.cy });
       context.beginPath();
-      context.arc(
-        center.x,
-        center.y,
-        marking.r * pixelsPerUnit,
-        0,
-        Math.PI * 2,
-      );
+      context.arc(center.x, center.y, marking.r * scale, 0, Math.PI * 2);
       if (marking.fill) {
         context.fill();
       }
@@ -116,12 +110,12 @@ function drawSurfaceMarking(
       return;
     }
     case "arc": {
-      const center = worldToCanvas({ x: marking.cx, y: marking.cy });
+      const center = boardToCanvas({ x: marking.cx, y: marking.cy });
       context.beginPath();
       context.arc(
         center.x,
         center.y,
-        marking.r * pixelsPerUnit,
+        marking.r * scale,
         toRadians(marking.startAngle),
         toRadians(marking.endAngle),
       );
@@ -143,7 +137,7 @@ const defaultObjectRenderer: CanvasObjectRenderer = ({
   appearance,
   surfaceTransform,
 }) => {
-  const { x, y } = surfaceTransform.worldToCanvas(object.position);
+  const { x, y } = surfaceTransform.boardToCanvas(object.position);
   const objectRadius = getObjectRadius({ object, surfaceTransform });
   const tokenFill = context.createLinearGradient(
     x,
@@ -187,15 +181,15 @@ function drawRectOverlay({
   const origin =
     overlay.coordinateSpace === "canvas"
       ? { x: overlay.x, y: overlay.y }
-      : surfaceTransform.worldToCanvas({ x: overlay.x, y: overlay.y });
+      : surfaceTransform.boardToCanvas({ x: overlay.x, y: overlay.y });
   const width =
     overlay.coordinateSpace === "canvas"
       ? overlay.width
-      : overlay.width * surfaceTransform.pixelsPerUnit;
+      : overlay.width * surfaceTransform.scale;
   const height =
     overlay.coordinateSpace === "canvas"
       ? overlay.height
-      : overlay.height * surfaceTransform.pixelsPerUnit;
+      : overlay.height * surfaceTransform.scale;
 
   context.save();
   context.fillStyle = overlay.fill ?? "transparent";
@@ -273,8 +267,8 @@ export function createCanvasRenderer(): CanvasRenderer {
         drawSurfaceMarking(
           context,
           marking,
-          projection.worldToCanvas,
-          projection.pixelsPerUnit,
+          projection.boardToCanvas,
+          projection.scale,
         );
       }
 

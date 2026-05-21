@@ -1,10 +1,4 @@
-import type {
-  DocumentBackgroundConfig,
-  DocumentUnit,
-  Point,
-} from "../board/types";
-import { getDocumentCoordinateSystem } from "./document-coordinate-system";
-import { getSurfaceBasePixelsPerUnit } from "./surface-scale";
+import type { DocumentBackgroundConfig, Point } from "../board/types";
 
 export interface Rect {
   x: number;
@@ -15,11 +9,9 @@ export interface Rect {
 
 export interface BoardSurfaceTransform {
   frame: Rect;
-  documentUnit: DocumentUnit;
-  pixelsPerUnit: number;
-  worldOrigin: Point;
-  worldToCanvas: (point: Point) => Point;
-  canvasToWorld: (point: Point) => Point;
+  scale: number;
+  boardToCanvas: (point: Point) => Point;
+  canvasToBoard: (point: Point) => Point;
 }
 
 export function createBoardSurfaceTransform({
@@ -31,12 +23,9 @@ export function createBoardSurfaceTransform({
   frame: Rect;
   zoom?: number;
 }): BoardSurfaceTransform {
-  const coordinateSystem = getDocumentCoordinateSystem(surface);
-  const worldOrigin = coordinateSystem.origin ?? { x: 0, y: 0 };
-  const basePixelsPerUnit = getSurfaceBasePixelsPerUnit(surface, frame);
-  const pixelsPerUnit = basePixelsPerUnit * zoom;
-  const renderWidth = surface.width * pixelsPerUnit;
-  const renderHeight = surface.height * pixelsPerUnit;
+  const scale = zoom;
+  const renderWidth = surface.width * scale;
+  const renderHeight = surface.height * scale;
   const offsetX = frame.x + (frame.width - renderWidth) / 2;
   const offsetY = frame.y + (frame.height - renderHeight) / 2;
 
@@ -47,16 +36,14 @@ export function createBoardSurfaceTransform({
       width: renderWidth,
       height: renderHeight,
     },
-    documentUnit: coordinateSystem.unit,
-    pixelsPerUnit,
-    worldOrigin,
-    worldToCanvas: (point) => ({
-      x: offsetX + (point.x - worldOrigin.x) * pixelsPerUnit,
-      y: offsetY + (point.y - worldOrigin.y) * pixelsPerUnit,
+    scale,
+    boardToCanvas: (point) => ({
+      x: offsetX + point.x * scale,
+      y: offsetY + point.y * scale,
     }),
-    canvasToWorld: (point) => ({
-      x: worldOrigin.x + (point.x - offsetX) / pixelsPerUnit,
-      y: worldOrigin.y + (point.y - offsetY) / pixelsPerUnit,
+    canvasToBoard: (point) => ({
+      x: (point.x - offsetX) / scale,
+      y: (point.y - offsetY) / scale,
     }),
   };
 }

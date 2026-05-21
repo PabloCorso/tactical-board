@@ -15,7 +15,7 @@ import { rotatePointAround } from "../core/objects/object-behaviors";
 import { scaleCanvasDashStyle } from "../rendering/canvas/style-scale";
 import {
   getArrowHeadLength,
-  getWorldCanvasStrokeWidth,
+  getScaledCanvasStrokeWidth,
 } from "../rendering/canvas/object-render-scale";
 import type {
   CanvasObjectHitTestInput,
@@ -326,9 +326,9 @@ export function renderArrow({
   surfaceTransform,
 }: CanvasObjectRenderInput) {
   const arrow = object as unknown as ArrowObject;
-  const strokeWidth = getWorldCanvasStrokeWidth(
+  const strokeWidth = getScaledCanvasStrokeWidth(
     arrow.props.strokeWidth,
-    surfaceTransform.pixelsPerUnit,
+    surfaceTransform.scale,
   );
   const bodyStrokeWidth = getArrowBodyStrokeWidth(
     strokeWidth,
@@ -347,15 +347,15 @@ export function renderArrow({
       : [],
   );
 
-  const start = surfaceTransform.worldToCanvas(arrow.props.start);
-  const end = surfaceTransform.worldToCanvas(arrow.props.end);
+  const start = surfaceTransform.boardToCanvas(arrow.props.start);
+  const end = surfaceTransform.boardToCanvas(arrow.props.end);
   const { controlPoint, pathStart, pathEnd, startTangent, endTangent } =
     getArrowGeometry(
       start,
       end,
       arrow.props.bodyStyle,
       arrow.props.curveOffset !== undefined
-        ? surfaceTransform.worldToCanvas(
+        ? surfaceTransform.boardToCanvas(
             getArrowControlPoint(
               arrow.props.start,
               arrow.props.end,
@@ -430,7 +430,7 @@ function hitTestArrow({
   minimumHitRadiusPx,
 }: CanvasObjectHitTestInput) {
   const arrow = object as unknown as ArrowObject;
-  const strokeWidth = arrow.props.strokeWidth * surfaceTransform.pixelsPerUnit;
+  const strokeWidth = arrow.props.strokeWidth * surfaceTransform.scale;
   const threshold = Math.max(
     MIN_HIT_DISTANCE_PX,
     minimumHitRadiusPx / 2,
@@ -439,7 +439,7 @@ function hitTestArrow({
 
   const controlPoint =
     arrow.props.bodyStyle === "curved"
-      ? surfaceTransform.worldToCanvas(
+      ? surfaceTransform.boardToCanvas(
           getArrowControlPoint(
             arrow.props.start,
             arrow.props.end,
@@ -447,8 +447,8 @@ function hitTestArrow({
           ),
         )
       : undefined;
-  const start = surfaceTransform.worldToCanvas(arrow.props.start);
-  const end = surfaceTransform.worldToCanvas(arrow.props.end);
+  const start = surfaceTransform.boardToCanvas(arrow.props.start);
+  const end = surfaceTransform.boardToCanvas(arrow.props.end);
   const { pathStart, pathEnd } = getArrowGeometry(
     start,
     end,

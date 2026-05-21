@@ -17,7 +17,6 @@ import {
   type EquipmentDefinition,
   type EquipmentObject,
 } from "../core/objects/equipment-object";
-import type { MeasurementUnit } from "../core/board/types";
 import { DEFAULT_PRESET_COLOR } from "../core/colors/preset-colors";
 import { renderObjectAppearanceAsset } from "../rendering/canvas/object-appearance-renderer";
 import {
@@ -129,7 +128,6 @@ export class EquipmentTool extends BoardEditorTool implements ToolDefinition {
       createEquipmentPreviewObject({
         id: createEquipmentId(state.board.objects.byId),
         point: event.point,
-        unit: state.board.surface.unit,
         definition,
       }),
     ]);
@@ -152,7 +150,6 @@ export class EquipmentTool extends BoardEditorTool implements ToolDefinition {
       createEquipmentPreviewObject({
         id: "equipment-preview",
         point: event.point,
-        unit: state.board.surface.unit,
         definition,
       }),
     ]);
@@ -162,12 +159,10 @@ export class EquipmentTool extends BoardEditorTool implements ToolDefinition {
 function createEquipmentPreviewObject({
   id,
   point,
-  unit,
   definition,
 }: {
   id: string;
   point: ToolPointerEvent["point"];
-  unit?: MeasurementUnit;
   definition: EquipmentDefinition;
 }) {
   return createEquipmentObject({
@@ -177,10 +172,7 @@ function createEquipmentPreviewObject({
     size: {
       width: definition.defaultSize.width,
       height: definition.defaultSize.height,
-      mode: "world",
-      unit,
     },
-    unit,
     kind: definition.kind,
     color: definition.color,
     appearance: definition.appearance,
@@ -320,7 +312,7 @@ export function hitTestEquipment({
   minimumHitRadiusPx,
 }: CanvasObjectHitTestInput) {
   const equipment = object as EquipmentObject;
-  const center = surfaceTransform.worldToCanvas(equipment.position);
+  const center = surfaceTransform.boardToCanvas(equipment.position);
   const bounds = surfaceTransform.getObjectCanvasBounds(equipment);
   const effectiveMinimumHitRadiusPx = Math.max(
     equipment.props.definition.minimumHitRadiusPx ?? minimumHitRadiusPx,

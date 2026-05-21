@@ -4,7 +4,7 @@ import type { Viewport } from "../../core/geometry/types";
 
 export interface CanvasRectOverlayItem {
   kind: "rect";
-  coordinateSpace?: "world" | "canvas";
+  coordinateSpace?: "board" | "canvas";
   x: number;
   y: number;
   width: number;

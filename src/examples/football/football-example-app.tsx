@@ -45,6 +45,10 @@ const footballShapeTool = new ShapeTool({
   presets: FOOTBALL_SHAPE_PRESETS.map(
     ({ variant: _variant, ...preset }) => preset,
   ),
+  defaultPreviewSize: {
+    width: 128,
+    height: 96,
+  },
 });
 
 const footballPlayerTool = new PlayerTool({

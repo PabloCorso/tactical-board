@@ -22,15 +22,15 @@ describe("getArrowSelectionCanvasBounds", () => {
         width: 160,
         height: 80,
       }),
-      worldToCanvas: ({ x, y }: { x: number; y: number }) => ({
+      boardToCanvas: ({ x, y }: { x: number; y: number }) => ({
         x: x * 10,
         y: y * 10,
       }),
-      canvasToWorld: ({ x, y }: { x: number; y: number }) => ({
+      canvasToBoard: ({ x, y }: { x: number; y: number }) => ({
         x: x / 10,
         y: y / 10,
       }),
-      pixelsPerUnit: 10,
+      scale: 10,
       zoom: 1,
     };
 
@@ -61,15 +61,15 @@ describe("getArrowSelectionCanvasBounds", () => {
         width: 160,
         height: 80,
       }),
-      worldToCanvas: ({ x, y }: { x: number; y: number }) => ({
+      boardToCanvas: ({ x, y }: { x: number; y: number }) => ({
         x: x * 10,
         y: y * 10,
       }),
-      canvasToWorld: ({ x, y }: { x: number; y: number }) => ({
+      canvasToBoard: ({ x, y }: { x: number; y: number }) => ({
         x: x / 10,
         y: y / 10,
       }),
-      pixelsPerUnit: 10,
+      scale: 10,
       zoom: 1,
     };
 
@@ -98,15 +98,15 @@ describe("getArrowSelectionCanvasBounds", () => {
         width: 160,
         height: 80,
       }),
-      worldToCanvas: ({ x, y }: { x: number; y: number }) => ({
+      boardToCanvas: ({ x, y }: { x: number; y: number }) => ({
         x: x * 10,
         y: y * 10,
       }),
-      canvasToWorld: ({ x, y }: { x: number; y: number }) => ({
+      canvasToBoard: ({ x, y }: { x: number; y: number }) => ({
         x: x / 10,
         y: y / 10,
       }),
-      pixelsPerUnit: 10,
+      scale: 10,
       zoom: 1,
     };
 

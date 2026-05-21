@@ -11,8 +11,8 @@ export type ShapeKind =
 export type ShapeLineStyle = "solid" | "dashed";
 export type ShapeFillStyle = "none" | "solid" | "diagonal-stripes";
 
-export const THIN_SHAPE_STROKE_WIDTH = 0.225;
-export const THICK_SHAPE_STROKE_WIDTH = 0.35;
+export const THIN_SHAPE_STROKE_WIDTH = 2;
+export const THICK_SHAPE_STROKE_WIDTH = 3;
 export const DEFAULT_SHAPE_STROKE_WIDTH = THIN_SHAPE_STROKE_WIDTH;
 export const DEFAULT_SHAPE_DASH_STYLE = [8, 4] as const;
 export const DEFAULT_SHAPE_FILL_OPACITY = 0.15;
@@ -175,7 +175,6 @@ export function getShapeSize(
   return {
     width: Math.abs(bounds.maxX - bounds.minX),
     height: Math.abs(bounds.maxY - bounds.minY),
-    mode: "world" as const,
   };
 }
 

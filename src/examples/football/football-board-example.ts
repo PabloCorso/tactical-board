@@ -16,6 +16,7 @@ import {
 } from "./football-example-catalog";
 import { DEFAULT_PRESET_COLOR } from "../../core/colors/preset-colors";
 import { FOOTBALL_EQUIPMENT_DEFINITIONS } from "./equipment";
+import { metersToPixels, pointMetersToPixels } from "./football-units";
 
 const pitchMetrics = {
   field: { length: 105, width: 68 },
@@ -69,7 +70,7 @@ function createFootballPitchMarkings(): BoardSurfaceMarking[] {
     fill: index % 2 === 0 ? pitchColors.stripeLight : pitchColors.stripeDark,
   }));
 
-  return [
+  const markings: BoardSurfaceMarking[] = [
     ...stripes,
     {
       kind: "rect",
@@ -215,6 +216,57 @@ function createFootballPitchMarkings(): BoardSurfaceMarking[] {
       strokeWidth: pitchMetrics.lineWidth,
     },
   ];
+
+  return markings.map((marking) => {
+    switch (marking.kind) {
+      case "rect":
+        return {
+          ...marking,
+          x: metersToPixels(marking.x),
+          y: metersToPixels(marking.y),
+          width: metersToPixels(marking.width),
+          height: metersToPixels(marking.height),
+          strokeWidth:
+            marking.strokeWidth === undefined
+              ? undefined
+              : metersToPixels(marking.strokeWidth),
+        };
+      case "line":
+        return {
+          ...marking,
+          x1: metersToPixels(marking.x1),
+          y1: metersToPixels(marking.y1),
+          x2: metersToPixels(marking.x2),
+          y2: metersToPixels(marking.y2),
+          strokeWidth:
+            marking.strokeWidth === undefined
+              ? undefined
+              : metersToPixels(marking.strokeWidth),
+        };
+      case "circle":
+        return {
+          ...marking,
+          cx: metersToPixels(marking.cx),
+          cy: metersToPixels(marking.cy),
+          r: metersToPixels(marking.r),
+          strokeWidth:
+            marking.strokeWidth === undefined
+              ? undefined
+              : metersToPixels(marking.strokeWidth),
+        };
+      case "arc":
+        return {
+          ...marking,
+          cx: metersToPixels(marking.cx),
+          cy: metersToPixels(marking.cy),
+          r: metersToPixels(marking.r),
+          strokeWidth:
+            marking.strokeWidth === undefined
+              ? undefined
+              : metersToPixels(marking.strokeWidth),
+        };
+    }
+  });
 }
 
 const surfaceWidth =
@@ -270,8 +322,8 @@ const arrowExampleEntries = arrowBodyStyles.flatMap((bodyStyle, bodyIndex) =>
           id,
           createArrowObject({
             id,
-            start: { x: startX, y: startY },
-            end: { x: startX + 6.5, y: startY },
+            start: pointMetersToPixels({ x: startX, y: startY }),
+            end: pointMetersToPixels({ x: startX + 6.5, y: startY }),
             color: DEFAULT_PRESET_COLOR.black,
             lineStyle,
             bodyStyle,
@@ -324,11 +376,11 @@ const shapeExampleEntries = shapeKinds.flatMap((kind, row) =>
                     { x: startX + 4.2, y: startY + 0.9 },
                     { x: startX + 4.5, y: startY + 3.3 },
                     { x: startX + 2.1, y: startY + 4.5 },
-                  ],
+                  ].map(pointMetersToPixels),
                 }
               : {
-                  start: { x: startX, y: startY },
-                  end: { x: endX, y: endY },
+                  start: pointMetersToPixels({ x: startX, y: startY }),
+                  end: pointMetersToPixels({ x: endX, y: endY }),
                 }),
           }),
         ] as const;
@@ -350,10 +402,10 @@ const playerExampleEntries = FOOTBALL_PLAYER_PRESET_COLORS.map(
       id,
       createPlayerObject({
         id,
-        position: {
+        position: pointMetersToPixels({
           x: fieldStartX + 6 + column * 4.6,
           y: fieldStartY + 45 + row * 4.8,
-        },
+        }),
         color,
         appearance:
           index === 0
@@ -381,18 +433,15 @@ const equipmentExampleEntries = FOOTBALL_EQUIPMENT_DEFINITIONS.map(
       id,
       createEquipmentObject({
         id,
-        position: {
+        position: pointMetersToPixels({
           x: fieldStartX + 31 + column * 12,
           y: fieldStartY + 44 + row * 8.5,
-        },
+        }),
         rotation: 0,
         size: {
           width: definition.defaultSize.width,
           height: definition.defaultSize.height,
-          mode: "world",
-          unit: "m",
         },
-        unit: "m",
         kind: definition.kind,
         color: definition.color,
         definition,
@@ -409,10 +458,10 @@ const textExampleEntries = [
     "text-example-note",
     createTextObject({
       id: "text-example-note",
-      position: {
+      position: pointMetersToPixels({
         x: fieldStartX + 10,
         y: fieldStartY + 40,
-      },
+      }),
       text: "Press",
       color: DEFAULT_PRESET_COLOR.black,
       fontSize: 14,
@@ -430,10 +479,8 @@ export const footballBoardExample = createBoard({
     name: "Football Example",
   },
   surface: {
-    width: surfaceWidth,
-    height: surfaceHeight,
-    basePixelsPerUnit: 8,
-    unit: "m",
+    width: metersToPixels(surfaceWidth),
+    height: metersToPixels(surfaceHeight),
     background: pitchColors.outer,
     markings: createFootballPitchMarkings(),
     markup: {

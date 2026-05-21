@@ -11,13 +11,6 @@ import {
 
 const SURFACE_INSET = 14;
 
-function getTextCanvasScale(
-  object: TextObject,
-  projection: ReturnType<typeof createTextToolProjection>,
-) {
-  return projection.pixelsPerUnit / object.props.referencePixelsPerUnit;
-}
-
 export function createTextToolProjection(
   state: Pick<BoardEditorState, "board" | "ui">,
   canvasRect: { width: number; height: number },
@@ -37,11 +30,10 @@ export function getTextAnchorPosition(
 ) {
   const projection = createTextToolProjection(state, canvasRect);
   const bounds = projection.getObjectCanvasBounds(object);
-  const scale = getTextCanvasScale(object, projection);
 
-  return projection.canvasToWorld({
-    x: bounds.x + (TEXT_HORIZONTAL_PADDING_PX * scale) / 2,
-    y: bounds.y + (TEXT_VERTICAL_PADDING_PX * scale) / 2,
+  return projection.canvasToBoard({
+    x: bounds.x + (TEXT_HORIZONTAL_PADDING_PX * projection.scale) / 2,
+    y: bounds.y + (TEXT_VERTICAL_PADDING_PX * projection.scale) / 2,
   });
 }
 
@@ -54,20 +46,19 @@ export function updateAnchoredTextObject(
 ) {
   const projection = createTextToolProjection(state, canvasRect);
   const nextObject = updateTextObject(object, input);
-  const anchorCanvasPoint = projection.worldToCanvas(anchorPosition);
+  const anchorCanvasPoint = projection.boardToCanvas(anchorPosition);
   const nextSize = nextObject.size ?? { width: 0, height: 0 };
-  const scale = getTextCanvasScale(nextObject, projection);
-  const horizontalPadding = TEXT_HORIZONTAL_PADDING_PX * scale;
-  const verticalPadding = TEXT_VERTICAL_PADDING_PX * scale;
+  const horizontalPadding = TEXT_HORIZONTAL_PADDING_PX * projection.scale;
+  const verticalPadding = TEXT_VERTICAL_PADDING_PX * projection.scale;
 
   return updateTextObject(nextObject, {
-    position: projection.canvasToWorld({
+    position: projection.canvasToBoard({
       x:
         anchorCanvasPoint.x +
-        (nextSize.width * projection.pixelsPerUnit - horizontalPadding) / 2,
+        (nextSize.width * projection.scale - horizontalPadding) / 2,
       y:
         anchorCanvasPoint.y +
-        (nextSize.height * projection.pixelsPerUnit - verticalPadding) / 2,
+        (nextSize.height * projection.scale - verticalPadding) / 2,
     }),
   });
 }
@@ -85,9 +76,6 @@ export function createAnchoredTextObject(
     createTextObject({
       ...objectInput,
       position: anchorPosition,
-      referencePixelsPerUnit:
-        createTextToolProjection(state, canvasRect).pixelsPerUnit /
-        Math.max(state.ui.viewport.zoom, 1e-9),
     }),
     {},
     anchorPosition,

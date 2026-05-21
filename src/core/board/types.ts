@@ -3,16 +3,12 @@ export type ShapeId = string;
 export type ShapeType = string;
 export type ToolId = string;
 export type SkinId = string;
-export type DocumentUnit = "px" | "m" | (string & {});
-export type ShapeSizeMode = "world" | "screen";
 
 // Compatibility names kept while Board-facing APIs migrate incrementally.
 // Prefer Document/Shape vocabulary for new core Editor Engine work.
 export type BoardId = DocumentId;
 export type ObjectId = ShapeId;
 export type ObjectType = ShapeType;
-export type MeasurementUnit = DocumentUnit;
-export type BoardObjectSizeMode = ShapeSizeMode;
 
 export interface Point {
   x: number;
@@ -24,10 +20,7 @@ export interface Size {
   height: number;
 }
 
-export interface ShapeSize extends Size {
-  mode?: ShapeSizeMode;
-  unit?: MeasurementUnit;
-}
+export type ShapeSize = Size;
 
 export interface DocumentMetadata {
   name?: string;
@@ -38,21 +31,6 @@ export interface DocumentMetadata {
 export interface DocumentStyleRef {
   themeId?: string;
   skinIds?: Partial<Record<ShapeType, SkinId>>;
-}
-
-export interface DocumentCoordinateSystem {
-  /**
-   * Declares the unit used by Document world coordinates. The Editor Engine
-   * treats the unit as scale metadata only; domain meaning belongs to Board or
-   * Host App layers.
-   */
-  unit: DocumentUnit;
-  /**
-   * Canonical screen scale for one Document world unit before viewport zoom.
-   * When omitted, renderers fit the Document into the available canvas frame.
-   */
-  basePixelsPerUnit?: number;
-  origin?: Point;
 }
 
 export interface Shape {
@@ -73,12 +51,6 @@ export interface ShapeIndex {
 export interface DocumentBackgroundConfig {
   width: number;
   height: number;
-  coordinateSystem?: DocumentCoordinateSystem;
-  // Compatibility fields kept for existing Board surface presets.
-  // Prefer coordinateSystem for new generic Document code.
-  basePixelsPerUnit?: number;
-  unit?: DocumentUnit;
-  origin?: Point;
   fill?: string;
 }
 

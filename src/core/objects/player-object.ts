@@ -1,9 +1,4 @@
-import type {
-  BoardObject,
-  BoardObjectSize,
-  MeasurementUnit,
-  Point,
-} from "../board/types";
+import type { BoardObject, BoardObjectSize, Point } from "../board/types";
 import {
   cloneObjectAppearance,
   DEFAULT_RENDER_APPEARANCE,
@@ -12,7 +7,7 @@ import {
 import { DEFAULT_PRESET_COLOR } from "../colors/preset-colors";
 
 export const PLAYER_OBJECT_TYPE = "player";
-export const DEFAULT_PLAYER_SIZE = 2.5;
+export const DEFAULT_PLAYER_SIZE = 20;
 export const DEFAULT_PLAYER_COLOR = DEFAULT_PRESET_COLOR.black;
 export const DEFAULT_PLAYER_TRANSFORM_CAPABILITIES = {
   move: true,
@@ -42,7 +37,6 @@ type PlayerCoreInput = {
   position: Point;
   rotation?: number;
   size?: Partial<BoardObjectSize>;
-  unit?: MeasurementUnit;
   label?: string;
   color?: string;
   appearance?: ObjectAppearance;
@@ -59,17 +53,14 @@ function normalizeRotation(rotation = 0) {
 
 function normalizePlayerSize(
   size: Partial<BoardObjectSize> | undefined,
-  unit?: MeasurementUnit,
 ): BoardObjectSize {
   const rawWidth = size?.width ?? size?.height ?? DEFAULT_PLAYER_SIZE;
   const rawHeight = size?.height ?? size?.width ?? rawWidth;
-  const dimension = Math.max(rawWidth, rawHeight, 0.25);
+  const dimension = Math.max(rawWidth, rawHeight, 2);
 
   return {
     width: dimension,
     height: dimension,
-    mode: size?.mode ?? "world",
-    unit: size?.unit ?? unit,
   };
 }
 
@@ -94,7 +85,7 @@ function createCanonicalPlayerObject(
     ...base,
     position: clonePoint(input.position),
     rotation: normalizeRotation(input.rotation),
-    size: normalizePlayerSize(input.size, input.unit),
+    size: normalizePlayerSize(input.size),
     props: getCanonicalPlayerProps(input),
   };
 }
@@ -126,7 +117,6 @@ export function updatePlayerObject(
       position: input.position ?? object.position,
       rotation: input.rotation ?? object.rotation,
       size: input.size ?? object.size,
-      unit: input.unit ?? object.size?.unit,
       label: input.label ?? object.props.label,
       color: input.color ?? object.props.color,
       appearance: input.appearance ?? object.props.appearance,

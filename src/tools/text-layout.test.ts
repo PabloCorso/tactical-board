@@ -21,7 +21,6 @@ const state: Pick<BoardEditorState, "board" | "ui"> = {
     surface: {
       width: 100,
       height: 50,
-      origin: { x: 0, y: 0 },
     },
     objects: {
       byId: {},
@@ -46,8 +45,8 @@ const canvasRect = {
 
 describe("text layout anchoring", () => {
   it("uses measured glyph width instead of a character-count estimate", () => {
-    expect(getTextBoxSize("WW", 24, undefined, 10).width).toBeGreaterThan(
-      getTextBoxSize("ii", 24, undefined, 10).width,
+    expect(getTextBoxSize("WW", 24).width).toBeGreaterThan(
+      getTextBoxSize("ii", 24).width,
     );
   });
 
@@ -95,7 +94,7 @@ describe("text layout anchoring", () => {
     );
     const projection = createTextToolProjection(state, canvasRect);
     const bounds = projection.getObjectCanvasBounds(updated);
-    const anchorCanvasPoint = projection.worldToCanvas(anchorPosition);
+    const anchorCanvasPoint = projection.boardToCanvas(anchorPosition);
 
     expect(bounds.x + TEXT_HORIZONTAL_PADDING_PX / 2).toBeCloseTo(
       anchorCanvasPoint.x,
@@ -127,7 +126,7 @@ describe("text layout anchoring", () => {
     );
     const projection = createTextToolProjection(state, canvasRect);
     const bounds = projection.getObjectCanvasBounds(updated);
-    const anchorCanvasPoint = projection.worldToCanvas(anchorPosition);
+    const anchorCanvasPoint = projection.boardToCanvas(anchorPosition);
 
     expect(bounds.x + TEXT_HORIZONTAL_PADDING_PX / 2).toBeCloseTo(
       anchorCanvasPoint.x,
@@ -138,24 +137,19 @@ describe("text layout anchoring", () => {
   });
 
   it("uses the explicit wrap width and grows vertically as lines wrap", () => {
-    const wrapped = getTextBoxSize("hello world hello world", 20, 100, 10);
-    const unwrapped = getTextBoxSize(
-      "hello world hello world",
-      20,
-      undefined,
-      10,
-    );
+    const wrapped = getTextBoxSize("hello world hello world", 20, 100);
+    const unwrapped = getTextBoxSize("hello world hello world", 20);
 
-    expect(wrapped.width).toBe((100 + TEXT_HORIZONTAL_PADDING_PX) / 10);
+    expect(wrapped.width).toBe(100 + TEXT_HORIZONTAL_PADDING_PX);
     expect(wrapped.width).toBeLessThan(unwrapped.width);
     expect(wrapped.height).toBeGreaterThan(unwrapped.height);
   });
 
   it("clamps wrap width to the minimum content width", () => {
-    const wrapped = getTextBoxSize("hello", 20, 1, 10);
+    const wrapped = getTextBoxSize("hello", 20, 1);
 
     expect(wrapped.width).toBe(
-      (MIN_TEXT_CONTENT_WIDTH_PX + TEXT_HORIZONTAL_PADDING_PX) / 10,
+      MIN_TEXT_CONTENT_WIDTH_PX + TEXT_HORIZONTAL_PADDING_PX,
     );
   });
 });

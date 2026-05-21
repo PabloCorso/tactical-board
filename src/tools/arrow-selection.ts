@@ -19,7 +19,7 @@ import { BoardEditorArrowSelectionToolbar } from "../react/components/board-edit
 import { SELECTION_TOOLBAR_OFFSET_PX } from "./selection-geometry";
 import {
   getArrowHeadLength,
-  getWorldCanvasStrokeWidth,
+  getScaledCanvasStrokeWidth,
 } from "../rendering/canvas/object-render-scale";
 
 const ARROW_ENDPOINT_HANDLE_RADIUS_PX = 4;
@@ -96,19 +96,19 @@ export function getArrowSelectionCanvasBounds(
     "zoom" in projection && typeof projection.zoom === "number"
       ? projection.zoom
       : 1;
-  const strokeWidth = getWorldCanvasStrokeWidth(
+  const strokeWidth = getScaledCanvasStrokeWidth(
     arrow.props.strokeWidth,
-    projection.pixelsPerUnit,
+    projection.scale,
   );
   const bodyStrokeWidth = getArrowBodyStrokeWidth(
     strokeWidth,
     arrow.props.bodyStyle,
   );
-  const startCanvas = projection.worldToCanvas(arrow.props.start);
-  const endCanvas = projection.worldToCanvas(arrow.props.end);
+  const startCanvas = projection.boardToCanvas(arrow.props.start);
+  const endCanvas = projection.boardToCanvas(arrow.props.end);
   const controlCanvas =
     arrow.props.bodyStyle === "curved"
-      ? projection.worldToCanvas(
+      ? projection.boardToCanvas(
           getArrowControlPoint(
             arrow.props.start,
             arrow.props.end,
@@ -174,8 +174,8 @@ export const arrowSelectionAdapter: ObjectSelectionAdapter<
   getCanvasBounds: ({ object, projection }) =>
     getArrowSelectionCanvasBounds(projection, object),
   renderSelection: ({ context, object, projection, color }) => {
-    const startPoint = projection.worldToCanvas(object.props.start);
-    const endPoint = projection.worldToCanvas(object.props.end);
+    const startPoint = projection.boardToCanvas(object.props.start);
+    const endPoint = projection.boardToCanvas(object.props.end);
 
     context.save();
     context.fillStyle = colors.white;
@@ -183,7 +183,7 @@ export const arrowSelectionAdapter: ObjectSelectionAdapter<
     context.lineWidth = 1.5;
 
     for (const point of [object.props.start, object.props.end].map((endpoint) =>
-      projection.worldToCanvas(endpoint),
+      projection.boardToCanvas(endpoint),
     )) {
       context.beginPath();
       context.arc(
@@ -198,7 +198,7 @@ export const arrowSelectionAdapter: ObjectSelectionAdapter<
     }
 
     if (object.props.bodyStyle === "curved") {
-      const handlePoint = projection.worldToCanvas(
+      const handlePoint = projection.boardToCanvas(
         getArrowCurveHandlePoint(
           object.props.start,
           object.props.end,
@@ -233,39 +233,54 @@ export const arrowSelectionAdapter: ObjectSelectionAdapter<
       return undefined;
     }
 
-    const canvasPoint = projection.worldToCanvas(event.point);
+    const canvasPoint = projection.boardToCanvas(event.point);
 
-    for (const { endpoint, point } of [
-      { endpoint: "start" as const, point: object.props.start },
-      { endpoint: "end" as const, point: object.props.end },
-    ]) {
-      const endpointCanvasPoint = projection.worldToCanvas(point);
-      const distance = Math.hypot(
-        canvasPoint.x - endpointCanvasPoint.x,
-        canvasPoint.y - endpointCanvasPoint.y,
-      );
+    const startCanvasPoint = projection.boardToCanvas(object.props.start);
+    const endCanvasPoint = projection.boardToCanvas(object.props.end);
+    const endpointHitRadius = Math.min(
+      ARROW_ENDPOINT_HANDLE_HIT_RADIUS_PX,
+      Math.max(
+        ARROW_ENDPOINT_HANDLE_RADIUS_PX,
+        Math.hypot(
+          startCanvasPoint.x - endCanvasPoint.x,
+          startCanvasPoint.y - endCanvasPoint.y,
+        ) /
+          2 -
+          0.001,
+      ),
+    );
+    const endpointHits = [
+      { endpoint: "start" as const, point: startCanvasPoint },
+      { endpoint: "end" as const, point: endCanvasPoint },
+    ]
+      .map(({ endpoint, point }) => ({
+        endpoint,
+        distance: Math.hypot(canvasPoint.x - point.x, canvasPoint.y - point.y),
+      }))
+      .filter(({ distance }) => distance <= endpointHitRadius)
+      .sort((left, right) => left.distance - right.distance);
+    const endpointHit = endpointHits[0];
 
-      if (distance <= ARROW_ENDPOINT_HANDLE_HIT_RADIUS_PX) {
-        return {
-          kind: "endpoint",
-          endpoint,
-        };
-      }
+    if (endpointHit) {
+      return {
+        kind: "endpoint",
+        endpoint: endpointHit.endpoint,
+      };
     }
 
     if (object.props.bodyStyle !== "curved") {
       return undefined;
     }
 
-    const handlePoint = projection.worldToCanvas(
+    const handlePoint = projection.boardToCanvas(
       getArrowCurveHandlePoint(
         object.props.start,
         object.props.end,
         object.props.curveOffset,
       ),
     );
-    const startPoint = projection.worldToCanvas(object.props.start);
-    const endPoint = projection.worldToCanvas(object.props.end);
+    const startPoint = projection.boardToCanvas(object.props.start);
+    const endPoint = projection.boardToCanvas(object.props.end);
     const angle = Math.atan2(
       endPoint.y - startPoint.y,
       endPoint.x - startPoint.x,
@@ -300,11 +315,11 @@ export const arrowSelectionAdapter: ObjectSelectionAdapter<
     }
   },
   getToolbarAnchor: ({ object, projection }) => {
-    const start = projection.worldToCanvas(object.props.start);
-    const end = projection.worldToCanvas(object.props.end);
+    const start = projection.boardToCanvas(object.props.start);
+    const end = projection.boardToCanvas(object.props.end);
     const controlPoint =
       object.props.bodyStyle === "curved"
-        ? projection.worldToCanvas(
+        ? projection.boardToCanvas(
             getArrowCurveHandlePoint(
               object.props.start,
               object.props.end,

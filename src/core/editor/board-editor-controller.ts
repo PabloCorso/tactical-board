@@ -63,7 +63,7 @@ function getBoardPoint(
     surfaceInset: SURFACE_INSET,
   });
 
-  return projection.canvasToWorld({
+  return projection.canvasToBoard({
     x: clientPoint.x - canvasRect.left,
     y: clientPoint.y - canvasRect.top,
   });

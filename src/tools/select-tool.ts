@@ -32,7 +32,7 @@ import {
   drawRoundedSquareHandle,
   getCornerHandleCanvasPoint,
   getRotationFromPointer,
-  getRotatedRectWorldPoints,
+  getRotatedRectBoardPoints,
   renderRotateHandleIcon,
 } from "./selection-geometry";
 import {
@@ -230,8 +230,8 @@ function getMarqueeObjectIds(
     canvasRect,
     surfaceInset: SURFACE_INSET,
   });
-  const marqueeStart = projection.worldToCanvas(marquee.origin);
-  const marqueeEnd = projection.worldToCanvas(marquee.current);
+  const marqueeStart = projection.boardToCanvas(marquee.origin);
+  const marqueeEnd = projection.boardToCanvas(marquee.current);
   const marqueeBounds = getSelectionBounds(marqueeStart, marqueeEnd);
 
   return state.board.objects.order.filter((objectId) => {
@@ -261,7 +261,7 @@ function createMarqueeOverlayItem(
 ): CanvasRectOverlayItem {
   return {
     kind: "rect",
-    coordinateSpace: "world",
+    coordinateSpace: "board",
     x: Math.min(marquee.origin.x, marquee.current.x),
     y: Math.min(marquee.origin.y, marquee.current.y),
     width: Math.abs(marquee.current.x - marquee.origin.x),
@@ -314,7 +314,7 @@ function getGroupSelectionCanvasBounds(
   };
 }
 
-function getGroupSelectionWorldBounds(
+function getGroupSelectionBoardBounds(
   state: Pick<BoardEditorState, "objectRegistry">,
   projection: SelectionProjection,
   objects: BoardObject[],
@@ -334,11 +334,11 @@ function getGroupSelectionWorldBounds(
     return undefined;
   }
 
-  const min = projection.canvasToWorld({
+  const min = projection.canvasToBoard({
     x: canvasBounds.left,
     y: canvasBounds.top,
   });
-  const max = projection.canvasToWorld({
+  const max = projection.canvasToBoard({
     x: canvasBounds.right,
     y: canvasBounds.bottom,
   });
@@ -458,12 +458,12 @@ function getGroupSelectionOutlineCanvasPoints(
     y: (overlay.bounds.minY + overlay.bounds.maxY) / 2,
   };
 
-  return getRotatedRectWorldPoints({
+  return getRotatedRectBoardPoints({
     center,
     width: overlay.bounds.maxX - overlay.bounds.minX,
     height: overlay.bounds.maxY - overlay.bounds.minY,
     rotation: overlay.rotation,
-  }).map((point) => projection.worldToCanvas(point));
+  }).map((point) => projection.boardToCanvas(point));
 }
 
 function distanceToSegment(point: Point, start: Point, end: Point) {
@@ -532,7 +532,7 @@ function isGroupSelectionChromeHit(
     return false;
   }
 
-  const canvasPoint = projection.worldToCanvas(event.point);
+  const canvasPoint = projection.boardToCanvas(event.point);
   const corners = getGroupSelectionCanvasPoints(canvasBounds);
 
   for (const handlePoint of corners) {
@@ -964,13 +964,13 @@ function hitGroupSelectionHandle(
     objects,
     selectionAdaptersByObjectId,
   );
-  const worldBounds = getGroupSelectionWorldBounds(state, projection, objects);
+  const boardBounds = getGroupSelectionBoardBounds(state, projection, objects);
 
-  if (!canvasBounds || !worldBounds) {
+  if (!canvasBounds || !boardBounds) {
     return undefined;
   }
 
-  const canvasPoint = projection.worldToCanvas(event.point);
+  const canvasPoint = projection.boardToCanvas(event.point);
   const corners = getGroupSelectionCanvasPoints(canvasBounds);
   const handles: GroupSelectionHandle[] = [
     "top-left",
@@ -1004,8 +1004,8 @@ function hitGroupSelectionHandle(
         pointerOffset: {
           x:
             event.point.x -
-            (index === 1 || index === 2 ? worldBounds.maxX : worldBounds.minX),
-          y: event.point.y - (index >= 2 ? worldBounds.maxY : worldBounds.minY),
+            (index === 1 || index === 2 ? boardBounds.maxX : boardBounds.minX),
+          y: event.point.y - (index >= 2 ? boardBounds.maxY : boardBounds.minY),
         },
       };
     }
@@ -1015,22 +1015,22 @@ function hitGroupSelectionHandle(
     {
       handle: "top" as const,
       distance: distanceToSegment(canvasPoint, corners[0]!, corners[1]!),
-      pointerOffset: { x: 0, y: event.point.y - worldBounds.minY },
+      pointerOffset: { x: 0, y: event.point.y - boardBounds.minY },
     },
     {
       handle: "right" as const,
       distance: distanceToSegment(canvasPoint, corners[1]!, corners[2]!),
-      pointerOffset: { x: event.point.x - worldBounds.maxX, y: 0 },
+      pointerOffset: { x: event.point.x - boardBounds.maxX, y: 0 },
     },
     {
       handle: "bottom" as const,
       distance: distanceToSegment(canvasPoint, corners[2]!, corners[3]!),
-      pointerOffset: { x: 0, y: event.point.y - worldBounds.maxY },
+      pointerOffset: { x: 0, y: event.point.y - boardBounds.maxY },
     },
     {
       handle: "left" as const,
       distance: distanceToSegment(canvasPoint, corners[3]!, corners[0]!),
-      pointerOffset: { x: event.point.x - worldBounds.minX, y: 0 },
+      pointerOffset: { x: event.point.x - boardBounds.minX, y: 0 },
     },
   ];
 
@@ -1052,10 +1052,10 @@ function hitGroupSelectionHandle(
     return {
       kind: nearest.kind,
       handle: nearest.handle,
-      bounds: worldBounds,
+      bounds: boardBounds,
       center: {
-        x: (worldBounds.minX + worldBounds.maxX) / 2,
-        y: (worldBounds.minY + worldBounds.maxY) / 2,
+        x: (boardBounds.minX + boardBounds.maxX) / 2,
+        y: (boardBounds.minY + boardBounds.maxY) / 2,
       },
       pointerOffset: nearest.pointerOffset,
       initialObjects: objects,
@@ -1075,15 +1075,15 @@ function hitGroupSelectionHandle(
   if (rotateDistance <= GROUP_ROTATE_HANDLE_HIT_RADIUS_PX) {
     return {
       kind: "rotate",
-      bounds: worldBounds,
+      bounds: boardBounds,
       center: {
-        x: (worldBounds.minX + worldBounds.maxX) / 2,
-        y: (worldBounds.minY + worldBounds.maxY) / 2,
+        x: (boardBounds.minX + boardBounds.maxX) / 2,
+        y: (boardBounds.minY + boardBounds.maxY) / 2,
       },
       initialPointerAngle: getPointerAngle(
         {
-          x: (worldBounds.minX + worldBounds.maxX) / 2,
-          y: (worldBounds.minY + worldBounds.maxY) / 2,
+          x: (boardBounds.minX + boardBounds.maxX) / 2,
+          y: (boardBounds.minY + boardBounds.maxY) / 2,
         },
         event.point,
       ),

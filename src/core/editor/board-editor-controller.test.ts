@@ -37,7 +37,7 @@ import { FOOTBALL_PLAYER_PRESET_COLORS } from "../../examples/football/football-
 import { MAX_VIEWPORT_ZOOM, MIN_VIEWPORT_ZOOM } from "./viewport-utils";
 import {
   getCornerHandleCanvasPoint,
-  getRotatedRectWorldPoints,
+  getRotatedRectBoardPoints,
   rotateOffset,
 } from "../../tools/selection-geometry";
 
@@ -133,8 +133,8 @@ describe("createBoardEditorController", () => {
       canvasRect,
       surfaceInset: 14,
     });
-    const startPoint = projection.worldToCanvas(existingArrow.props.start);
-    const endPoint = projection.worldToCanvas({ x: 30, y: 15 });
+    const startPoint = projection.boardToCanvas(existingArrow.props.start);
+    const endPoint = projection.boardToCanvas({ x: 30, y: 15 });
 
     controller.dispatchPointerEvent("onPointerDown", {
       clientPoint: {
@@ -199,7 +199,6 @@ describe("createBoardEditorController", () => {
         surface: {
           width: 100,
           height: 50,
-          unit: "m",
         },
         objects: {
           byId: {},
@@ -226,7 +225,7 @@ describe("createBoardEditorController", () => {
       canvasRect,
       surfaceInset: 14,
     });
-    const previewPoint = projection.worldToCanvas({ x: 25, y: 12 });
+    const previewPoint = projection.boardToCanvas({ x: 25, y: 12 });
 
     controller.dispatchPointerEvent("onPointerMove", {
       clientPoint: previewPoint,
@@ -256,7 +255,6 @@ describe("createBoardEditorController", () => {
         surface: {
           width: 100,
           height: 50,
-          unit: "m",
         },
         objects: {
           byId: {},
@@ -284,7 +282,7 @@ describe("createBoardEditorController", () => {
       canvasRect,
       surfaceInset: 14,
     });
-    const previewPoint = projection.worldToCanvas({ x: 25, y: 12 });
+    const previewPoint = projection.boardToCanvas({ x: 25, y: 12 });
 
     controller.dispatchPointerEvent("onPointerMove", {
       clientPoint: previewPoint,
@@ -309,7 +307,6 @@ describe("createBoardEditorController", () => {
         surface: {
           width: 100,
           height: 50,
-          unit: "m",
         },
         objects: {
           byId: {},
@@ -340,7 +337,7 @@ describe("createBoardEditorController", () => {
       canvasRect,
       surfaceInset: 14,
     });
-    const placementPoint = projection.worldToCanvas({ x: 30, y: 18 });
+    const placementPoint = projection.boardToCanvas({ x: 30, y: 18 });
 
     controller.dispatchPointerEvent("onPointerDown", {
       clientPoint: placementPoint,
@@ -360,9 +357,7 @@ describe("createBoardEditorController", () => {
         color: "#16a34a",
         fontSize: 30,
       },
-      size: {
-        mode: "world",
-      },
+      size: {},
     });
     expect(store.getState().selection.selectedObjectIds).toEqual(["text-1"]);
     const editingSession = getTextToolState(
@@ -397,7 +392,6 @@ describe("createBoardEditorController", () => {
         surface: {
           width: 100,
           height: 50,
-          unit: "m",
         },
         objects: {
           byId: {
@@ -424,7 +418,7 @@ describe("createBoardEditorController", () => {
       canvasRect,
       surfaceInset: 14,
     });
-    const targetPoint = projection.worldToCanvas(player.position);
+    const targetPoint = projection.boardToCanvas(player.position);
 
     expect(
       controller.createToolPointerEvent({
@@ -460,7 +454,6 @@ describe("createBoardEditorController", () => {
         surface: {
           width: 100,
           height: 50,
-          unit: "m",
         },
         objects: {
           byId: {},
@@ -487,7 +480,7 @@ describe("createBoardEditorController", () => {
       canvasRect,
       surfaceInset: 14,
     });
-    const previewPoint = projection.worldToCanvas({ x: 32, y: 18 });
+    const previewPoint = projection.boardToCanvas({ x: 32, y: 18 });
 
     controller.dispatchPointerEvent("onPointerMove", {
       clientPoint: previewPoint,
@@ -561,9 +554,9 @@ describe("createBoardEditorController", () => {
       canvasRect,
       surfaceInset: 14,
     });
-    const endPoint = projection.worldToCanvas(existingArrow.props.end);
-    const middleEndPoint = projection.worldToCanvas({ x: 28, y: 14 });
-    const nextEndPoint = projection.worldToCanvas({ x: 35, y: 18 });
+    const endPoint = projection.boardToCanvas(existingArrow.props.end);
+    const middleEndPoint = projection.boardToCanvas({ x: 28, y: 14 });
+    const nextEndPoint = projection.boardToCanvas({ x: 35, y: 18 });
 
     controller.dispatchPointerEvent("onPointerDown", {
       clientPoint: endPoint,
@@ -674,8 +667,8 @@ describe("createBoardEditorController", () => {
       canvasRect,
       surfaceInset: 14,
     });
-    const rightHandle = projection.worldToCanvas({ x: 20, y: 14 });
-    const nextRightHandle = projection.worldToCanvas({ x: 30, y: 14 });
+    const rightHandle = projection.boardToCanvas({ x: 20, y: 14 });
+    const nextRightHandle = projection.boardToCanvas({ x: 30, y: 14 });
 
     controller.dispatchPointerEvent("onPointerDown", {
       clientPoint: rightHandle,
@@ -716,7 +709,6 @@ describe("createBoardEditorController", () => {
         surface: {
           width: 100,
           height: 50,
-          unit: "m",
         },
         objects: {
           byId: {},
@@ -744,7 +736,7 @@ describe("createBoardEditorController", () => {
       surfaceInset: 14,
     });
 
-    const firstBlue = projection.worldToCanvas({ x: 10, y: 10 });
+    const firstBlue = projection.boardToCanvas({ x: 10, y: 10 });
     controller.dispatchPointerEvent("onPointerDown", {
       clientPoint: firstBlue,
       pointerId: 1,
@@ -755,7 +747,7 @@ describe("createBoardEditorController", () => {
       canvasRect,
     });
 
-    const secondBlue = projection.worldToCanvas({ x: 20, y: 10 });
+    const secondBlue = projection.boardToCanvas({ x: 20, y: 10 });
     controller.dispatchPointerEvent("onPointerDown", {
       clientPoint: secondBlue,
       pointerId: 1,
@@ -767,7 +759,7 @@ describe("createBoardEditorController", () => {
     });
 
     setPlayerDraftStyle(toolApi, { color: "#ff6b35" });
-    const firstOrange = projection.worldToCanvas({ x: 30, y: 10 });
+    const firstOrange = projection.boardToCanvas({ x: 30, y: 10 });
     controller.dispatchPointerEvent("onPointerDown", {
       clientPoint: firstOrange,
       pointerId: 1,
@@ -779,7 +771,7 @@ describe("createBoardEditorController", () => {
     });
 
     setPlayerDraftStyle(toolApi, { color: "#1f1f1f" });
-    const firstBlack = projection.worldToCanvas({ x: 40, y: 10 });
+    const firstBlack = projection.boardToCanvas({ x: 40, y: 10 });
     controller.dispatchPointerEvent("onPointerDown", {
       clientPoint: firstBlack,
       pointerId: 1,
@@ -791,7 +783,7 @@ describe("createBoardEditorController", () => {
     });
 
     setPlayerDraftStyle(toolApi, { color: "#ff6b35" });
-    const secondOrange = projection.worldToCanvas({ x: 50, y: 10 });
+    const secondOrange = projection.boardToCanvas({ x: 50, y: 10 });
     controller.dispatchPointerEvent("onPointerDown", {
       clientPoint: secondOrange,
       pointerId: 1,
@@ -853,7 +845,6 @@ describe("createBoardEditorController", () => {
         surface: {
           width: 100,
           height: 50,
-          unit: "m",
         },
         objects: {
           byId: {
@@ -883,7 +874,7 @@ describe("createBoardEditorController", () => {
       canvasRect,
       surfaceInset: 14,
     });
-    const nextBlue = projection.worldToCanvas({ x: 20, y: 10 });
+    const nextBlue = projection.boardToCanvas({ x: 20, y: 10 });
 
     controller.dispatchPointerEvent("onPointerDown", {
       clientPoint: nextBlue,
@@ -933,7 +924,6 @@ describe("createBoardEditorController", () => {
         surface: {
           width: 100,
           height: 50,
-          unit: "m",
         },
         objects: {
           byId: Object.fromEntries(
@@ -989,7 +979,6 @@ describe("createBoardEditorController", () => {
         surface: {
           width: 100,
           height: 50,
-          unit: "m",
         },
         objects: {
           byId: {},
@@ -1016,7 +1005,7 @@ describe("createBoardEditorController", () => {
       canvasRect,
       surfaceInset: 14,
     });
-    const point = projection.worldToCanvas({ x: 16, y: 12 });
+    const point = projection.boardToCanvas({ x: 16, y: 12 });
 
     controller.dispatchPointerEvent("onPointerDown", {
       clientPoint: point,
@@ -1048,7 +1037,7 @@ describe("createBoardEditorController", () => {
     const existingPlayer = createPlayerObject({
       id: "player-1",
       position: { x: 10, y: 10 },
-      size: { width: 2, height: 2, mode: "world", unit: "m" },
+      size: { width: 2, height: 2 },
       color: "#1f6feb",
       label: "1",
     });
@@ -1060,7 +1049,6 @@ describe("createBoardEditorController", () => {
         surface: {
           width: 100,
           height: 50,
-          unit: "m",
         },
         objects: {
           byId: {
@@ -1091,8 +1079,8 @@ describe("createBoardEditorController", () => {
       surfaceInset: 14,
     });
 
-    const bottomRightHandle = projection.worldToCanvas({ x: 11, y: 11 });
-    const nextSizeHandle = projection.worldToCanvas({ x: 12, y: 12 });
+    const bottomRightHandle = projection.boardToCanvas({ x: 11, y: 11 });
+    const nextSizeHandle = projection.boardToCanvas({ x: 12, y: 12 });
 
     controller.dispatchPointerEvent("onPointerDown", {
       clientPoint: bottomRightHandle,
@@ -1124,7 +1112,7 @@ describe("createBoardEditorController", () => {
     const existingPlayer = createPlayerObject({
       id: "player-1",
       position: { x: 10, y: 10 },
-      size: { width: 2, height: 2, mode: "world", unit: "m" },
+      size: { width: 2, height: 2 },
       color: "#1f6feb",
       label: "1",
     });
@@ -1140,7 +1128,6 @@ describe("createBoardEditorController", () => {
         surface: {
           width: 100,
           height: 50,
-          unit: "m",
         },
         objects: {
           byId: {
@@ -1175,7 +1162,7 @@ describe("createBoardEditorController", () => {
       3,
       18,
     );
-    const rightOfCenter = projection.worldToCanvas({ x: 12, y: 10 });
+    const rightOfCenter = projection.boardToCanvas({ x: 12, y: 10 });
 
     controller.dispatchPointerEvent("onPointerDown", {
       clientPoint: rotationHandle,
@@ -1197,10 +1184,8 @@ describe("createBoardEditorController", () => {
     });
 
     expect(
-      store.getState().board.objects.byId[existingPlayer.id],
-    ).toMatchObject({
-      rotation: 225,
-    });
+      store.getState().board.objects.byId[existingPlayer.id]?.rotation,
+    ).toBeCloseTo(225);
   });
 
   it("does not snap a selected player rotation on the initial drag", () => {
@@ -1209,7 +1194,7 @@ describe("createBoardEditorController", () => {
       id: "player-1",
       position: { x: 10, y: 10 },
       rotation: 30,
-      size: { width: 2.5, height: 2.5, mode: "world", unit: "m" },
+      size: { width: 2.5, height: 2.5 },
       color: "#111827",
       label: "1",
     });
@@ -1225,7 +1210,6 @@ describe("createBoardEditorController", () => {
         surface: {
           width: 100,
           height: 50,
-          unit: "m",
         },
         objects: {
           byId: {
@@ -1310,7 +1294,7 @@ describe("createBoardEditorController", () => {
       id: "equipment-1",
       position: { x: 10, y: 10 },
       rotation: 0,
-      size: { width: 6, height: 2, mode: "world", unit: "m" },
+      size: { width: 6, height: 2 },
       kind: "goal",
       color: "#ffffff",
       definition: {
@@ -1331,7 +1315,6 @@ describe("createBoardEditorController", () => {
         surface: {
           width: 100,
           height: 50,
-          unit: "m",
         },
         objects: {
           byId: {
@@ -1362,8 +1345,8 @@ describe("createBoardEditorController", () => {
       surfaceInset: 14,
     });
 
-    const bottomRightHandle = projection.worldToCanvas({ x: 13, y: 11 });
-    const nextBottomRightHandle = projection.worldToCanvas({ x: 16, y: 12 });
+    const bottomRightHandle = projection.boardToCanvas({ x: 13, y: 11 });
+    const nextBottomRightHandle = projection.boardToCanvas({ x: 16, y: 12 });
 
     controller.dispatchPointerEvent("onPointerDown", {
       clientPoint: bottomRightHandle,
@@ -1398,7 +1381,7 @@ describe("createBoardEditorController", () => {
       3,
       18,
     );
-    const rightOfCenter = projection.worldToCanvas({ x: 12, y: 10 });
+    const rightOfCenter = projection.boardToCanvas({ x: 12, y: 10 });
 
     controller.dispatchPointerEvent("onPointerDown", {
       clientPoint: rotationHandle,
@@ -1420,10 +1403,8 @@ describe("createBoardEditorController", () => {
     });
 
     expect(
-      store.getState().board.objects.byId[existingEquipment.id],
-    ).toMatchObject({
-      rotation: 198.43494882292202,
-    });
+      store.getState().board.objects.byId[existingEquipment.id]?.rotation,
+    ).toBeCloseTo(213.6900675259797);
   });
 
   it("shows one group overlay and resizes a multi selection by redistributing object positions", () => {
@@ -1432,14 +1413,14 @@ describe("createBoardEditorController", () => {
       id: "player-1",
       position: { x: 10, y: 10 },
       rotation: 0,
-      size: { width: 2.5, height: 2.5, mode: "world", unit: "m" },
+      size: { width: 2.5, height: 2.5 },
       color: "#ffffff",
     });
     const secondPlayer = createPlayerObject({
       id: "player-2",
       position: { x: 20, y: 10 },
       rotation: 0,
-      size: { width: 2.5, height: 2.5, mode: "world", unit: "m" },
+      size: { width: 2.5, height: 2.5 },
       color: "#111827",
     });
     const store = createBoardEditorStore({
@@ -1450,7 +1431,6 @@ describe("createBoardEditorController", () => {
         surface: {
           width: 100,
           height: 50,
-          unit: "m",
         },
         objects: {
           byId: {
@@ -1495,18 +1475,18 @@ describe("createBoardEditorController", () => {
       x: bounds.right,
       y: (bounds.top + bounds.bottom) / 2,
     };
-    const initialWorldBounds = {
-      minX: projection.canvasToWorld({ x: bounds.left, y: bounds.top }).x,
-      maxX: projection.canvasToWorld({ x: bounds.right, y: bounds.bottom }).x,
+    const initialBoardBounds = {
+      minX: projection.canvasToBoard({ x: bounds.left, y: bounds.top }).x,
+      maxX: projection.canvasToBoard({ x: bounds.right, y: bounds.bottom }).x,
     };
-    const nextMaxX = initialWorldBounds.maxX + 10;
-    const intermediateMaxX = initialWorldBounds.maxX + 4;
+    const nextMaxX = initialBoardBounds.maxX + 10;
+    const intermediateMaxX = initialBoardBounds.maxX + 4;
     const intermediateDragPoint = {
-      x: projection.worldToCanvas({ x: intermediateMaxX, y: 0 }).x,
+      x: projection.boardToCanvas({ x: intermediateMaxX, y: 0 }).x,
       y: handlePoint.y,
     };
     const dragPoint = {
-      x: projection.worldToCanvas({ x: nextMaxX, y: 0 }).x,
+      x: projection.boardToCanvas({ x: nextMaxX, y: 0 }).x,
       y: handlePoint.y,
     };
 
@@ -1545,10 +1525,10 @@ describe("createBoardEditorController", () => {
       secondPlayer.id
     ] as PlayerObject;
     const remapX = (value: number) =>
-      initialWorldBounds.minX +
-      ((value - initialWorldBounds.minX) /
-        (initialWorldBounds.maxX - initialWorldBounds.minX)) *
-        (nextMaxX - initialWorldBounds.minX);
+      initialBoardBounds.minX +
+      ((value - initialBoardBounds.minX) /
+        (initialBoardBounds.maxX - initialBoardBounds.minX)) *
+        (nextMaxX - initialBoardBounds.minX);
 
     expect(resizedFirstPlayer.position.x).toBeCloseTo(
       remapX(firstPlayer.position.x),
@@ -1568,14 +1548,14 @@ describe("createBoardEditorController", () => {
       id: "player-1",
       position: { x: 10, y: 10 },
       rotation: 0,
-      size: { width: 2.5, height: 2.5, mode: "world", unit: "m" },
+      size: { width: 2.5, height: 2.5 },
       color: "#ffffff",
     });
     const secondPlayer = createPlayerObject({
       id: "player-2",
       position: { x: 20, y: 20 },
       rotation: 0,
-      size: { width: 2.5, height: 2.5, mode: "world", unit: "m" },
+      size: { width: 2.5, height: 2.5 },
       color: "#111827",
     });
     const store = createBoardEditorStore({
@@ -1586,7 +1566,6 @@ describe("createBoardEditorController", () => {
         surface: {
           width: 100,
           height: 50,
-          unit: "m",
         },
         objects: {
           byId: {
@@ -1625,17 +1604,17 @@ describe("createBoardEditorController", () => {
       x: bounds.right,
       y: bounds.bottom,
     };
-    const initialWorldBounds = {
-      minX: projection.canvasToWorld({ x: bounds.left, y: bounds.top }).x,
-      maxX: projection.canvasToWorld({ x: bounds.right, y: bounds.bottom }).x,
-      minY: projection.canvasToWorld({ x: bounds.left, y: bounds.top }).y,
-      maxY: projection.canvasToWorld({ x: bounds.right, y: bounds.bottom }).y,
+    const initialBoardBounds = {
+      minX: projection.canvasToBoard({ x: bounds.left, y: bounds.top }).x,
+      maxX: projection.canvasToBoard({ x: bounds.right, y: bounds.bottom }).x,
+      minY: projection.canvasToBoard({ x: bounds.left, y: bounds.top }).y,
+      maxY: projection.canvasToBoard({ x: bounds.right, y: bounds.bottom }).y,
     };
     const nextBounds = {
-      maxX: initialWorldBounds.maxX + 8,
-      maxY: initialWorldBounds.maxY + 6,
+      maxX: initialBoardBounds.maxX + 8,
+      maxY: initialBoardBounds.maxY + 6,
     };
-    const dragPoint = projection.worldToCanvas({
+    const dragPoint = projection.boardToCanvas({
       x: nextBounds.maxX,
       y: nextBounds.maxY,
     });
@@ -1676,9 +1655,9 @@ describe("createBoardEditorController", () => {
     expect(resizedFirstPlayer.position.x).toBeCloseTo(
       remap(
         firstPlayer.position.x,
-        initialWorldBounds.minX,
-        initialWorldBounds.maxX,
-        initialWorldBounds.minX,
+        initialBoardBounds.minX,
+        initialBoardBounds.maxX,
+        initialBoardBounds.minX,
         nextBounds.maxX,
       ),
       6,
@@ -1686,9 +1665,9 @@ describe("createBoardEditorController", () => {
     expect(resizedFirstPlayer.position.y).toBeCloseTo(
       remap(
         firstPlayer.position.y,
-        initialWorldBounds.minY,
-        initialWorldBounds.maxY,
-        initialWorldBounds.minY,
+        initialBoardBounds.minY,
+        initialBoardBounds.maxY,
+        initialBoardBounds.minY,
         nextBounds.maxY,
       ),
       6,
@@ -1696,9 +1675,9 @@ describe("createBoardEditorController", () => {
     expect(resizedSecondPlayer.position.x).toBeCloseTo(
       remap(
         secondPlayer.position.x,
-        initialWorldBounds.minX,
-        initialWorldBounds.maxX,
-        initialWorldBounds.minX,
+        initialBoardBounds.minX,
+        initialBoardBounds.maxX,
+        initialBoardBounds.minX,
         nextBounds.maxX,
       ),
       6,
@@ -1706,9 +1685,9 @@ describe("createBoardEditorController", () => {
     expect(resizedSecondPlayer.position.y).toBeCloseTo(
       remap(
         secondPlayer.position.y,
-        initialWorldBounds.minY,
-        initialWorldBounds.maxY,
-        initialWorldBounds.minY,
+        initialBoardBounds.minY,
+        initialBoardBounds.maxY,
+        initialBoardBounds.minY,
         nextBounds.maxY,
       ),
       6,
@@ -1721,14 +1700,14 @@ describe("createBoardEditorController", () => {
       id: "player-1",
       position: { x: 10, y: 10 },
       rotation: 0,
-      size: { width: 2.5, height: 2.5, mode: "world", unit: "m" },
+      size: { width: 2.5, height: 2.5 },
       color: "#ffffff",
     });
     const baseSecondPlayer = createPlayerObject({
       id: "player-2",
       position: { x: 20, y: 10 },
       rotation: 90,
-      size: { width: 2.5, height: 2.5, mode: "world", unit: "m" },
+      size: { width: 2.5, height: 2.5 },
       color: "#111827",
     });
     const firstPlayer = {
@@ -1759,7 +1738,6 @@ describe("createBoardEditorController", () => {
         surface: {
           width: 100,
           height: 50,
-          unit: "m",
         },
         objects: {
           byId: {
@@ -1794,7 +1772,7 @@ describe("createBoardEditorController", () => {
       firstPlayer,
       secondPlayer,
     ]);
-    const center = projection.canvasToWorld({
+    const center = projection.canvasToBoard({
       x: (bounds.left + bounds.right) / 2,
       y: (bounds.top + bounds.bottom) / 2,
     });
@@ -1805,22 +1783,22 @@ describe("createBoardEditorController", () => {
       x: bounds.left - (dx / length) * 18,
       y: bounds.bottom + (dy / length) * 18,
     };
-    const rotateTargetWorld = { x: center.x, y: center.y - 10 };
-    const intermediateRotateTargetWorld = {
+    const rotateTargetBoard = { x: center.x, y: center.y - 10 };
+    const intermediateRotateTargetBoard = {
       x: center.x + 7,
       y: center.y - 7,
     };
-    const intermediateRotateTarget = projection.worldToCanvas(
-      intermediateRotateTargetWorld,
+    const intermediateRotateTarget = projection.boardToCanvas(
+      intermediateRotateTargetBoard,
     );
-    const rotateTarget = projection.worldToCanvas(rotateTargetWorld);
+    const rotateTarget = projection.boardToCanvas(rotateTargetBoard);
     const initialAngle = Math.atan2(
-      projection.canvasToWorld(rotateHandle).y - center.y,
-      projection.canvasToWorld(rotateHandle).x - center.x,
+      projection.canvasToBoard(rotateHandle).y - center.y,
+      projection.canvasToBoard(rotateHandle).x - center.x,
     );
     const nextAngle = Math.atan2(
-      rotateTargetWorld.y - center.y,
-      rotateTargetWorld.x - center.x,
+      rotateTargetBoard.y - center.y,
+      rotateTargetBoard.x - center.x,
     );
     const rotationDelta = ((nextAngle - initialAngle) * 180) / Math.PI;
     const rotateAround = (
@@ -1928,14 +1906,14 @@ describe("createBoardEditorController", () => {
       id: "player-1",
       position: { x: 10, y: 10 },
       rotation: 0,
-      size: { width: 2.5, height: 2.5, mode: "world", unit: "m" },
+      size: { width: 2.5, height: 2.5 },
       color: "#ffffff",
     });
     const secondPlayer = createPlayerObject({
       id: "player-2",
       position: { x: 20, y: 10 },
       rotation: 90,
-      size: { width: 2.5, height: 2.5, mode: "world", unit: "m" },
+      size: { width: 2.5, height: 2.5 },
       color: "#111827",
     });
     const firstPlayer = {
@@ -1956,7 +1934,6 @@ describe("createBoardEditorController", () => {
         surface: {
           width: 100,
           height: 50,
-          unit: "m",
         },
         objects: {
           byId: {
@@ -2060,7 +2037,7 @@ describe("createBoardEditorController", () => {
       id: "equipment-1",
       position: { x: 10, y: 10 },
       rotation: 0,
-      size: { width: 3.8, height: 14, mode: "world", unit: "m" },
+      size: { width: 3.8, height: 14 },
       kind: definition.kind,
       color: definition.color,
       definition,
@@ -2073,7 +2050,6 @@ describe("createBoardEditorController", () => {
         surface: {
           width: 100,
           height: 50,
-          unit: "m",
         },
         objects: {
           byId: {
@@ -2104,8 +2080,8 @@ describe("createBoardEditorController", () => {
       surfaceInset: 14,
     });
 
-    const cornerPoint = projection.worldToCanvas({ x: 11.9, y: 17 });
-    const dragPoint = projection.worldToCanvas({ x: 13.9, y: 18 });
+    const cornerPoint = projection.boardToCanvas({ x: 11.9, y: 17 });
+    const dragPoint = projection.boardToCanvas({ x: 13.9, y: 18 });
 
     controller.dispatchPointerEvent("onPointerDown", {
       clientPoint: cornerPoint,
@@ -2143,7 +2119,7 @@ describe("createBoardEditorController", () => {
       3,
       18,
     );
-    const rotateTarget = projection.worldToCanvas({ x: 13, y: 10 });
+    const rotateTarget = projection.boardToCanvas({ x: 13, y: 10 });
 
     controller.dispatchPointerEvent("onPointerDown", {
       clientPoint: rotationHandle,
@@ -2190,7 +2166,7 @@ describe("createBoardEditorController", () => {
       id: "equipment-1",
       position: { x: 10, y: 10 },
       rotation: 0,
-      size: { width: 1.5, height: 1.5, mode: "world", unit: "m" },
+      size: { width: 1.5, height: 1.5 },
       kind: definition.kind,
       color: definition.color,
       definition,
@@ -2203,7 +2179,6 @@ describe("createBoardEditorController", () => {
         surface: {
           width: 100,
           height: 50,
-          unit: "m",
         },
         objects: {
           byId: {
@@ -2234,8 +2209,8 @@ describe("createBoardEditorController", () => {
       surfaceInset: 14,
     });
 
-    const edgePoint = projection.worldToCanvas({ x: 10.75, y: 10.75 });
-    const dragPoint = projection.worldToCanvas({ x: 12.75, y: 11.75 });
+    const edgePoint = projection.boardToCanvas({ x: 10.75, y: 10.75 });
+    const dragPoint = projection.boardToCanvas({ x: 12.75, y: 11.75 });
 
     controller.dispatchPointerEvent("onPointerDown", {
       clientPoint: edgePoint,
@@ -2286,7 +2261,7 @@ describe("createBoardEditorController", () => {
     const equipment = createEquipmentObject({
       id: "equipment-1",
       position: { x: 10, y: 10 },
-      size: { width: 1.8, height: 2.2, mode: "world", unit: "m" },
+      size: { width: 1.8, height: 2.2 },
       kind: "football-cone",
       color: "#ff6b35",
       definition: {
@@ -2305,7 +2280,6 @@ describe("createBoardEditorController", () => {
         surface: {
           width: 100,
           height: 50,
-          unit: "m",
         },
         objects: {
           byId: {
@@ -2425,8 +2399,8 @@ describe("createBoardEditorController", () => {
       canvasRect,
       surfaceInset: 14,
     });
-    const bottomRightHandle = projection.worldToCanvas({ x: 20, y: 18 });
-    const nextBottomRightHandle = projection.worldToCanvas({ x: 30, y: 24 });
+    const bottomRightHandle = projection.boardToCanvas({ x: 20, y: 18 });
+    const nextBottomRightHandle = projection.boardToCanvas({ x: 30, y: 24 });
 
     controller.dispatchPointerEvent("onPointerDown", {
       clientPoint: bottomRightHandle,
@@ -2508,8 +2482,8 @@ describe("createBoardEditorController", () => {
       surfaceInset: 14,
     });
     const center = { x: 15, y: 14 };
-    const centerCanvas = projection.worldToCanvas(center);
-    const bottomLeftCanvas = projection.worldToCanvas({ x: 10, y: 18 });
+    const centerCanvas = projection.boardToCanvas(center);
+    const bottomLeftCanvas = projection.boardToCanvas({ x: 10, y: 18 });
     const dx = bottomLeftCanvas.x - centerCanvas.x;
     const dy = bottomLeftCanvas.y - centerCanvas.y;
     const length = Math.hypot(dx, dy);
@@ -2517,9 +2491,9 @@ describe("createBoardEditorController", () => {
       x: bottomLeftCanvas.x + (dx / length) * 18,
       y: bottomLeftCanvas.y + (dy / length) * 18,
     };
-    const handleWorld = projection.canvasToWorld(rotationHandle);
-    const targetWorld = { x: 25, y: 14 };
-    const targetCanvas = projection.worldToCanvas(targetWorld);
+    const handleBoard = projection.canvasToBoard(rotationHandle);
+    const targetBoard = { x: 25, y: 14 };
+    const targetCanvas = projection.boardToCanvas(targetBoard);
 
     controller.dispatchPointerEvent("onPointerDown", {
       clientPoint: rotationHandle,
@@ -2541,8 +2515,8 @@ describe("createBoardEditorController", () => {
     });
 
     const expectedRotation =
-      (((((Math.atan2(targetWorld.y - center.y, targetWorld.x - center.x) -
-        Math.atan2(handleWorld.y - center.y, handleWorld.x - center.x)) *
+      (((((Math.atan2(targetBoard.y - center.y, targetBoard.x - center.x) -
+        Math.atan2(handleBoard.y - center.y, handleBoard.x - center.x)) *
         180) /
         Math.PI) %
         360) +
@@ -2607,7 +2581,7 @@ describe("createBoardEditorController", () => {
       canvasRect,
       surfaceInset: 14,
     });
-    const initialCorners = getRotatedRectWorldPoints({
+    const initialCorners = getRotatedRectBoardPoints({
       center: existingShape.position,
       width: existingShape.size?.width ?? 0,
       height: existingShape.size?.height ?? 0,
@@ -2635,7 +2609,7 @@ describe("createBoardEditorController", () => {
     };
 
     controller.dispatchPointerEvent("onPointerDown", {
-      clientPoint: projection.worldToCanvas(initialBottomRight),
+      clientPoint: projection.boardToCanvas(initialBottomRight),
       pointerId: 1,
       ctrlKey: false,
       shiftKey: false,
@@ -2644,7 +2618,7 @@ describe("createBoardEditorController", () => {
       canvasRect,
     });
     controller.dispatchPointerEvent("onPointerMove", {
-      clientPoint: projection.worldToCanvas(targetBottomRight),
+      clientPoint: projection.boardToCanvas(targetBottomRight),
       pointerId: 1,
       ctrlKey: false,
       shiftKey: false,
@@ -2656,7 +2630,7 @@ describe("createBoardEditorController", () => {
     const resizedShape = store.getState().board.objects.byId[
       existingShape.id
     ] as ShapeObject;
-    const resizedCorners = getRotatedRectWorldPoints({
+    const resizedCorners = getRotatedRectBoardPoints({
       center: resizedShape.position,
       width: resizedShape.size?.width ?? 0,
       height: resizedShape.size?.height ?? 0,
@@ -2705,7 +2679,7 @@ describe("createBoardEditorController", () => {
       canvasRect,
       surfaceInset: 14,
     });
-    const previewPoint = projection.worldToCanvas({ x: 24, y: 18 });
+    const previewPoint = projection.boardToCanvas({ x: 24, y: 18 });
 
     controller.dispatchPointerEvent("onPointerMove", {
       clientPoint: previewPoint,
@@ -2766,7 +2740,7 @@ describe("createBoardEditorController", () => {
       canvasRect,
       surfaceInset: 14,
     });
-    const clickPoint = projection.worldToCanvas({ x: 24, y: 18 });
+    const clickPoint = projection.boardToCanvas({ x: 24, y: 18 });
 
     controller.dispatchPointerEvent("onPointerDown", {
       clientPoint: clickPoint,
@@ -2798,6 +2772,79 @@ describe("createBoardEditorController", () => {
         kind: "rectangle",
         start: { x: 24, y: 18 },
         end: { x: 40, y: 30 },
+      },
+    });
+  });
+
+  it("lets consumers configure the shape click-preview size", () => {
+    const shapeTool = new ShapeTool({
+      defaultPreviewSize: {
+        width: 128,
+        height: 96,
+      },
+    });
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 920,
+          height: 592,
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      initialToolId: shapeTool.id,
+      tools: [selectTool, shapeTool],
+    });
+    const toolApi = createToolApi(store);
+    shapeTool.registerCapabilities?.(toolApi);
+
+    const controller = createBoardEditorController(store);
+    const canvasRect = {
+      left: 0,
+      top: 0,
+      width: 1000,
+      height: 700,
+    };
+    const projection = createBoardSpaceProjection({
+      surface: store.getState().board.surface,
+      viewport: store.getState().ui.viewport,
+      canvasRect,
+      surfaceInset: 14,
+    });
+    const clickPoint = projection.boardToCanvas({ x: 80, y: 64 });
+
+    controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: clickPoint,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+    controller.dispatchPointerEvent("onPointerUp", {
+      clientPoint: clickPoint,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    expect(store.getState().board.objects.byId["shape-1"]).toMatchObject({
+      type: "shape",
+      position: { x: 144, y: 112 },
+      props: {
+        kind: "rectangle",
+        start: { x: 80, y: 64 },
+        end: { x: 208, y: 160 },
       },
     });
   });
@@ -2838,8 +2885,8 @@ describe("createBoardEditorController", () => {
       canvasRect,
       surfaceInset: 14,
     });
-    const startPoint = projection.worldToCanvas({ x: 10, y: 10 });
-    const endPoint = projection.worldToCanvas({ x: 24, y: 18 });
+    const startPoint = projection.boardToCanvas({ x: 10, y: 10 });
+    const endPoint = projection.boardToCanvas({ x: 24, y: 18 });
 
     controller.dispatchPointerEvent("onPointerDown", {
       clientPoint: startPoint,
@@ -2918,8 +2965,8 @@ describe("createBoardEditorController", () => {
       canvasRect,
       surfaceInset: 14,
     });
-    const startPoint = projection.worldToCanvas({ x: 10, y: 10 });
-    const endPoint = projection.worldToCanvas({ x: 24, y: 18 });
+    const startPoint = projection.boardToCanvas({ x: 10, y: 10 });
+    const endPoint = projection.boardToCanvas({ x: 24, y: 18 });
 
     controller.dispatchPointerEvent("onPointerDown", {
       clientPoint: startPoint,
@@ -3010,9 +3057,9 @@ describe("createBoardEditorController", () => {
       canvasRect,
       surfaceInset: 14,
     });
-    const firstPoint = projection.worldToCanvas({ x: 10, y: 10 });
-    const secondPoint = projection.worldToCanvas({ x: 18, y: 16 });
-    const thirdPoint = projection.worldToCanvas({ x: 14, y: 24 });
+    const firstPoint = projection.boardToCanvas({ x: 10, y: 10 });
+    const secondPoint = projection.boardToCanvas({ x: 18, y: 16 });
+    const thirdPoint = projection.boardToCanvas({ x: 14, y: 24 });
 
     controller.dispatchPointerEvent("onPointerDown", {
       clientPoint: firstPoint,
@@ -3129,10 +3176,10 @@ describe("createBoardEditorController", () => {
       canvasRect,
       surfaceInset: 14,
     });
-    const firstPoint = projection.worldToCanvas({ x: 10, y: 10 });
-    const secondPoint = projection.worldToCanvas({ x: 18, y: 16 });
-    const thirdPoint = projection.worldToCanvas({ x: 14, y: 24 });
-    const finishPoint = projection.worldToCanvas({ x: 22, y: 18 });
+    const firstPoint = projection.boardToCanvas({ x: 10, y: 10 });
+    const secondPoint = projection.boardToCanvas({ x: 18, y: 16 });
+    const thirdPoint = projection.boardToCanvas({ x: 14, y: 24 });
+    const finishPoint = projection.boardToCanvas({ x: 22, y: 18 });
 
     controller.dispatchPointerEvent("onPointerDown", {
       clientPoint: firstPoint,
@@ -3214,7 +3261,6 @@ describe("createBoardEditorController", () => {
         surface: {
           width: 100,
           height: 50,
-          unit: "m",
         },
         objects: {
           byId: {
@@ -3243,8 +3289,8 @@ describe("createBoardEditorController", () => {
       canvasRect,
       surfaceInset: 14,
     });
-    const bottomRightHandle = projection.worldToCanvas({ x: 20.08, y: 20.08 });
-    const nextBottomRightHandle = projection.worldToCanvas({
+    const bottomRightHandle = projection.boardToCanvas({ x: 20.08, y: 20.08 });
+    const nextBottomRightHandle = projection.boardToCanvas({
       x: 22.08,
       y: 22.08,
     });
@@ -3284,7 +3330,7 @@ describe("createBoardEditorController", () => {
     const existingArrow = createArrowObject({
       id: "arrow-1",
       start: { x: 10, y: 10 },
-      end: { x: 20, y: 10 },
+      end: { x: 40, y: 10 },
       color: "#fff",
       strokeWidth: 0.225,
       lineStyle: "solid",
@@ -3329,9 +3375,9 @@ describe("createBoardEditorController", () => {
       canvasRect,
       surfaceInset: 14,
     });
-    const bodyPoint = projection.worldToCanvas({ x: 15, y: 10 });
-    const middleBodyPoint = projection.worldToCanvas({ x: 16, y: 12 });
-    const nextBodyPoint = projection.worldToCanvas({ x: 18, y: 14 });
+    const bodyPoint = projection.boardToCanvas({ x: 25, y: 10 });
+    const middleBodyPoint = projection.boardToCanvas({ x: 26, y: 12 });
+    const nextBodyPoint = projection.boardToCanvas({ x: 28, y: 14 });
 
     controller.dispatchPointerEvent("onPointerDown", {
       clientPoint: bodyPoint,
@@ -3374,7 +3420,7 @@ describe("createBoardEditorController", () => {
       {
         props: {
           start: { x: 13, y: 14 },
-          end: { x: 23, y: 14 },
+          end: { x: 43, y: 14 },
         },
       },
     );
@@ -3386,7 +3432,7 @@ describe("createBoardEditorController", () => {
       {
         props: {
           start: { x: 10, y: 10 },
-          end: { x: 20, y: 10 },
+          end: { x: 40, y: 10 },
         },
       },
     );
@@ -3449,8 +3495,8 @@ describe("createBoardEditorController", () => {
       canvasRect,
       surfaceInset: 14,
     });
-    const bodyPoint = projection.worldToCanvas({ x: 15, y: 10 });
-    const nextBodyPoint = projection.worldToCanvas({ x: 18, y: 14 });
+    const bodyPoint = projection.boardToCanvas({ x: 15, y: 10 });
+    const nextBodyPoint = projection.boardToCanvas({ x: 18, y: 14 });
 
     controller.dispatchPointerEvent("onPointerDown", {
       clientPoint: bodyPoint,
@@ -3627,7 +3673,7 @@ describe("createBoardEditorController", () => {
       canvasRect,
       surfaceInset: 14,
     });
-    const worldPoint = beforeProjection.canvasToWorld({ x: 300, y: 200 });
+    const boardPoint = beforeProjection.canvasToBoard({ x: 300, y: 200 });
     const handled = controller.dispatchWheelEvent({
       clientPoint: { x: 300, y: 200 },
       deltaX: 0,
@@ -3649,8 +3695,8 @@ describe("createBoardEditorController", () => {
       surfaceInset: 14,
     });
 
-    expect(afterProjection.worldToCanvas(worldPoint).x).toBeCloseTo(300);
-    expect(afterProjection.worldToCanvas(worldPoint).y).toBeCloseTo(200);
+    expect(afterProjection.boardToCanvas(boardPoint).x).toBeCloseTo(300);
+    expect(afterProjection.boardToCanvas(boardPoint).y).toBeCloseTo(200);
   });
 
   it("clamps modifier + wheel zoom", () => {
@@ -3710,7 +3756,7 @@ describe("createBoardEditorController", () => {
     const existingArrow = createArrowObject({
       id: "arrow-1",
       start: { x: 10, y: 10 },
-      end: { x: 20, y: 10 },
+      end: { x: 40, y: 10 },
       color: "#fff",
       strokeWidth: 2,
       lineStyle: "solid",
@@ -3742,6 +3788,10 @@ describe("createBoardEditorController", () => {
     const toolApi = createToolApi(store);
     arrowTool.registerCapabilities?.(toolApi);
     setSelectedObjectIds(toolApi, [existingArrow.id]);
+    store.getState().actions.setViewport({
+      pan: { x: 0, y: 0 },
+      zoom: 4,
+    });
 
     const controller = createBoardEditorController(store);
     const canvasRect = {
@@ -3756,8 +3806,8 @@ describe("createBoardEditorController", () => {
       canvasRect,
       surfaceInset: 14,
     });
-    const bodyPoint = projection.worldToCanvas({ x: 15, y: 11 });
-    const nextBodyPoint = projection.worldToCanvas({ x: 18, y: 15 });
+    const bodyPoint = projection.boardToCanvas({ x: 20, y: 11 });
+    const nextBodyPoint = projection.boardToCanvas({ x: 23, y: 15 });
 
     controller.dispatchPointerEvent("onPointerDown", {
       clientPoint: bodyPoint,
@@ -3782,7 +3832,7 @@ describe("createBoardEditorController", () => {
       {
         props: {
           start: { x: 13, y: 14 },
-          end: { x: 23, y: 14 },
+          end: { x: 43, y: 14 },
           curveOffset: initialCurveOffset,
         },
       },
@@ -3844,8 +3894,8 @@ describe("createBoardEditorController", () => {
       canvasRect,
       surfaceInset: 14,
     });
-    const controlPoint = projection.worldToCanvas(initialHandlePoint);
-    const nextControlPoint = projection.worldToCanvas({ x: 15, y: 5 });
+    const controlPoint = projection.boardToCanvas(initialHandlePoint);
+    const nextControlPoint = projection.boardToCanvas({ x: 15, y: 5 });
 
     controller.dispatchPointerEvent("onPointerDown", {
       clientPoint: controlPoint,

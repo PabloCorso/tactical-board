@@ -6,7 +6,7 @@ import type { ToolPointerEvent } from "../tools/types";
 
 export type SelectionProjection = Pick<
   ReturnType<typeof createBoardSpaceProjection>,
-  "getObjectCanvasBounds" | "worldToCanvas" | "canvasToWorld" | "pixelsPerUnit"
+  "getObjectCanvasBounds" | "boardToCanvas" | "canvasToBoard" | "scale"
 >;
 
 export interface SelectionToolbarRendererProps<

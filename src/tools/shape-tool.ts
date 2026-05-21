@@ -12,7 +12,7 @@ import {
   scaleCanvasDashStyle,
   scaleCanvasStyleValue,
 } from "../rendering/canvas/style-scale";
-import { getWorldCanvasStrokeWidth } from "../rendering/canvas/object-render-scale";
+import { getScaledCanvasStrokeWidth } from "../rendering/canvas/object-render-scale";
 import type {
   CanvasObjectHitTestInput,
   CanvasObjectRenderInput,
@@ -48,6 +48,10 @@ export type ShapeToolPreset = {
 
 type CreateShapeToolOptions = {
   presets?: ShapeToolPreset[];
+  defaultPreviewSize?: {
+    width: number;
+    height: number;
+  };
 };
 
 const shapeObjectDefinition = defineObjectDefinition({
@@ -79,10 +83,13 @@ export class ShapeTool extends BoardEditorTool implements ToolDefinition {
   readonly label = "Shape";
 
   private readonly presets: ShapeToolPreset[];
+  private readonly defaultPreviewSize;
 
   constructor(options: CreateShapeToolOptions = {}) {
     super();
     this.presets = options.presets ?? [];
+    this.defaultPreviewSize =
+      options.defaultPreviewSize ?? DEFAULT_SHAPE_PREVIEW_SIZE;
   }
 
   onActivate(api: ToolApi) {
@@ -142,7 +149,11 @@ export class ShapeTool extends BoardEditorTool implements ToolDefinition {
     api: ToolApi,
   ) {
     const shapeState = getShapeToolState(api.getState().toolState);
-    const preview = getPendingShapePreview(shapeState, event.point);
+    const preview = getPendingShapePreview(
+      shapeState,
+      event.point,
+      this.defaultPreviewSize,
+    );
 
     if (!preview) {
       api.clearPreviewObjects();
@@ -179,6 +190,7 @@ export class ShapeTool extends BoardEditorTool implements ToolDefinition {
             id: shapeId,
             point: event.point,
             draftStyle: shapeState.draftStyle,
+            size: this.defaultPreviewSize,
           }),
     ]);
     cancelPendingShape(api);
@@ -319,20 +331,17 @@ function getRenderedShapeCanvasPoints(
 ) {
   return getShapePoints(shape.props)
     .map((point) => rotatePointAround(point, shape.position, shape.rotation))
-    .map((point) => surfaceTransform.worldToCanvas(point));
+    .map((point) => surfaceTransform.boardToCanvas(point));
 }
 
 function getRenderedRectangleMetrics(
   shape: ShapeObject,
   surfaceTransform: CanvasObjectRenderInput["surfaceTransform"],
 ) {
-  const center = surfaceTransform.worldToCanvas(shape.position);
-  const width = Math.abs(
-    (shape.size?.width ?? 0) * surfaceTransform.pixelsPerUnit,
-  );
+  const center = surfaceTransform.boardToCanvas(shape.position);
+  const width = Math.abs((shape.size?.width ?? 0) * surfaceTransform.scale);
   const height = Math.abs(
-    (shape.size?.height ?? shape.size?.width ?? 0) *
-      surfaceTransform.pixelsPerUnit,
+    (shape.size?.height ?? shape.size?.width ?? 0) * surfaceTransform.scale,
   );
   const radius = Math.min(
     Math.min(width, height) * RECTANGLE_CORNER_RADIUS_RATIO,
@@ -416,11 +425,10 @@ function createRenderedShapePath(
   const path = new Path2D();
 
   if (shape.props.kind === "oval") {
-    const center = surfaceTransform.worldToCanvas(shape.position);
-    const width = (shape.size?.width ?? 0) * surfaceTransform.pixelsPerUnit;
+    const center = surfaceTransform.boardToCanvas(shape.position);
+    const width = (shape.size?.width ?? 0) * surfaceTransform.scale;
     const height =
-      (shape.size?.height ?? shape.size?.width ?? 0) *
-      surfaceTransform.pixelsPerUnit;
+      (shape.size?.height ?? shape.size?.width ?? 0) * surfaceTransform.scale;
 
     path.ellipse(
       center.x,
@@ -462,11 +470,10 @@ function getRenderedShapeCanvasBounds(
   surfaceTransform: CanvasObjectRenderInput["surfaceTransform"],
 ) {
   if (shape.props.kind === "oval") {
-    const center = surfaceTransform.worldToCanvas(shape.position);
-    const width = (shape.size?.width ?? 0) * surfaceTransform.pixelsPerUnit;
+    const center = surfaceTransform.boardToCanvas(shape.position);
+    const width = (shape.size?.width ?? 0) * surfaceTransform.scale;
     const height =
-      (shape.size?.height ?? shape.size?.width ?? 0) *
-      surfaceTransform.pixelsPerUnit;
+      (shape.size?.height ?? shape.size?.width ?? 0) * surfaceTransform.scale;
     const radius = Math.hypot(width, height) / 2;
 
     return {
@@ -480,7 +487,7 @@ function getRenderedShapeCanvasBounds(
   const points = getRenderedShapeCanvasPoints(shape, surfaceTransform);
 
   if (points.length === 0) {
-    const center = surfaceTransform.worldToCanvas(shape.position);
+    const center = surfaceTransform.boardToCanvas(shape.position);
 
     return {
       minX: center.x,
@@ -513,10 +520,8 @@ function fillDiagonalStripes(
     DIAGONAL_STRIPE_LINE_WIDTH_PX,
     surfaceTransform.zoom,
   );
-  const worldOriginCanvasPoint = surfaceTransform.worldToCanvas(
-    surfaceTransform.worldOrigin,
-  );
-  const phase = worldOriginCanvasPoint.x + worldOriginCanvasPoint.y;
+  const boardOriginCanvasPoint = surfaceTransform.boardToCanvas({ x: 0, y: 0 });
+  const phase = boardOriginCanvasPoint.x + boardOriginCanvasPoint.y;
   const extent = Math.max(bounds.maxX - bounds.minX, bounds.maxY - bounds.minY);
   const minSum = bounds.minX + bounds.minY - extent;
   const maxSum = bounds.maxX + bounds.maxY + extent;
@@ -552,9 +557,9 @@ export function renderShape({
   const shape = object as ShapeObject;
   const path = createRenderedShapePath(shape, surfaceTransform);
   const bounds = getRenderedShapeCanvasBounds(shape, surfaceTransform);
-  const strokeWidth = getWorldCanvasStrokeWidth(
+  const strokeWidth = getScaledCanvasStrokeWidth(
     shape.props.strokeWidth,
-    surfaceTransform.pixelsPerUnit,
+    surfaceTransform.scale,
   );
 
   context.save();
@@ -688,20 +693,19 @@ function hitTestShape({
   const threshold = Math.max(
     MIN_HIT_DISTANCE_PX,
     minimumHitRadiusPx / 2,
-    shape.props.strokeWidth * surfaceTransform.pixelsPerUnit,
+    shape.props.strokeWidth * surfaceTransform.scale,
   );
 
   if (shape.props.kind === "oval") {
-    const center = surfaceTransform.worldToCanvas(shape.position);
+    const center = surfaceTransform.boardToCanvas(shape.position);
     const localOffset = getRotatedOffsetFromCenter(
       canvasPoint,
       center,
       -(shape.rotation ?? 0),
     );
-    const width = (shape.size?.width ?? 0) * surfaceTransform.pixelsPerUnit;
+    const width = (shape.size?.width ?? 0) * surfaceTransform.scale;
     const height =
-      (shape.size?.height ?? shape.size?.width ?? 0) *
-      surfaceTransform.pixelsPerUnit;
+      (shape.size?.height ?? shape.size?.width ?? 0) * surfaceTransform.scale;
     const rx = Math.max(Math.abs(width) / 2, threshold);
     const ry = Math.max(Math.abs(height) / 2, threshold);
     const normalized =
@@ -779,6 +783,10 @@ function hitTestShape({
 function getPendingShapePreview(
   shapeState: ReturnType<typeof getShapeToolState>,
   point: Point,
+  defaultPreviewSize: {
+    width: number;
+    height: number;
+  },
 ) {
   if (shapeState.pendingPoints.length === 0) {
     return shapeState.draftStyle.kind === "polygon"
@@ -787,6 +795,7 @@ function getPendingShapePreview(
           id: "shape-preview",
           point,
           draftStyle: shapeState.draftStyle,
+          size: defaultPreviewSize,
         });
   }
 
@@ -810,10 +819,15 @@ function createDefaultShapePreview({
   id,
   point,
   draftStyle,
+  size,
 }: {
   id: string;
   point: Point;
   draftStyle: ReturnType<typeof getShapeToolState>["draftStyle"];
+  size: {
+    width: number;
+    height: number;
+  };
 }) {
   return createShapeObject({
     id,
@@ -822,8 +836,8 @@ function createDefaultShapePreview({
       y: point.y,
     },
     end: {
-      x: point.x + DEFAULT_SHAPE_PREVIEW_SIZE.width,
-      y: point.y + DEFAULT_SHAPE_PREVIEW_SIZE.height,
+      x: point.x + size.width,
+      y: point.y + size.height,
     },
     ...draftStyle,
   });
@@ -847,8 +861,8 @@ function shouldFinishPolygon(
     canvasRect: event.canvasRect,
     surfaceInset: 14,
   });
-  const firstPoint = projection.worldToCanvas(pendingPoints[0]);
-  const candidate = projection.worldToCanvas(nextPoint);
+  const firstPoint = projection.boardToCanvas(pendingPoints[0]);
+  const candidate = projection.boardToCanvas(nextPoint);
 
   return (
     Math.hypot(firstPoint.x - candidate.x, firstPoint.y - candidate.y) <=

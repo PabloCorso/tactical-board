@@ -64,7 +64,7 @@ export const textSelectionAdapter: ObjectSelectionAdapter<TextObject> = {
   },
   getToolbarAnchor: ({ object, projection }) =>
     getSelectionToolbarAnchorFromSelectionChrome({
-      left: projection.worldToCanvas(object.position).x,
+      left: projection.boardToCanvas(object.position).x,
       outlinePoints: getTextSelectionOutlineCanvasPoints(projection, object),
     }),
   toolbarRenderer: BoardEditorTextSelectionToolbar,

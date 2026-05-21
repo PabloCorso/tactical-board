@@ -17,7 +17,7 @@ import {
   drawRoundedSquareHandle,
   getCornerHandleCanvasPoint,
   getExpandedCanvasRectPoints,
-  getRotatedRectWorldPoints,
+  getRotatedRectBoardPoints,
   getRotationFromPointer,
   getSelectionToolbarAnchorFromSelectionChrome,
   renderRotateHandleIcon,
@@ -65,12 +65,12 @@ export function getPlayerSelectionOutlineCanvasPoints(
   player: PlayerObject,
 ) {
   return getExpandedCanvasRectPoints(
-    getRotatedRectWorldPoints({
+    getRotatedRectBoardPoints({
       center: player.position,
       width: player.size?.width ?? 0,
       height: player.size?.height ?? player.size?.width ?? 0,
       rotation: player.rotation,
-    }).map((point) => projection.worldToCanvas(point)),
+    }).map((point) => projection.boardToCanvas(point)),
     getPlayerSelectionPaddingPx(projection, player),
   );
 }
@@ -143,7 +143,7 @@ export const playerSelectionAdapter: ObjectSelectionAdapter<
     }
 
     const transformCapabilities = getPlayerTransformCapabilities(object);
-    const canvasPoint = projection.worldToCanvas(event.point);
+    const canvasPoint = projection.boardToCanvas(event.point);
     if (transformCapabilities.resize !== false) {
       const handlePoints = getPlayerSelectionOutlineCanvasPoints(
         projection,
@@ -222,7 +222,7 @@ export const playerSelectionAdapter: ObjectSelectionAdapter<
         : getPlayerRotateHandleCanvasPoint(projection, object);
 
     return getSelectionToolbarAnchorFromSelectionChrome({
-      left: projection.worldToCanvas(object.position).x,
+      left: projection.boardToCanvas(object.position).x,
       outlinePoints,
       rotateHandlePoint,
       rotateHandleRadiusPx: PLAYER_ROTATE_HANDLE_RADIUS_PX,

@@ -33,27 +33,20 @@ export function getEquipmentRenderedCanvasSize(
 export function getEquipmentSelectionOutlineCanvasPoints(
   projection: Pick<
     BoardSpaceProjection,
-    "getObjectCanvasBounds" | "worldToCanvas" | "pixelsPerUnit"
+    "getObjectCanvasBounds" | "boardToCanvas" | "scale"
   >,
   equipment: EquipmentObject,
 ) {
   const bounds =
     equipment.props.definition.selectionBounds ?? DEFAULT_SELECTION_BOUNDS;
-  const width =
-    equipment.size?.mode === "screen"
-      ? Math.max(
-          (equipment.size?.width ?? 0) / Math.max(projection.pixelsPerUnit, 1),
-          MIN_EQUIPMENT_RENDER_SIZE_PX / Math.max(projection.pixelsPerUnit, 1),
-        )
-      : Math.max(equipment.size?.width ?? 0, 0.25);
-  const height =
-    equipment.size?.mode === "screen"
-      ? Math.max(
-          (equipment.size?.height ?? equipment.size?.width ?? 0) /
-            Math.max(projection.pixelsPerUnit, 1),
-          MIN_EQUIPMENT_RENDER_SIZE_PX / Math.max(projection.pixelsPerUnit, 1),
-        )
-      : Math.max(equipment.size?.height ?? equipment.size?.width ?? 0, 0.25);
+  const width = Math.max(
+    equipment.size?.width ?? 0,
+    MIN_EQUIPMENT_RENDER_SIZE_PX / Math.max(projection.scale, 1),
+  );
+  const height = Math.max(
+    equipment.size?.height ?? equipment.size?.width ?? 0,
+    MIN_EQUIPMENT_RENDER_SIZE_PX / Math.max(projection.scale, 1),
+  );
 
   const outlinePoints = [
     { x: width * bounds.left, y: height * bounds.top },
@@ -63,7 +56,7 @@ export function getEquipmentSelectionOutlineCanvasPoints(
   ].map((point) => {
     const rotated = rotateOffset(point.x, point.y, equipment.rotation);
 
-    return projection.worldToCanvas({
+    return projection.boardToCanvas({
       x: equipment.position.x + rotated.x,
       y: equipment.position.y + rotated.y,
     });

@@ -1,24 +1,21 @@
 import type {
   BoardObject,
   DocumentBackgroundConfig,
-  DocumentUnit,
   Point,
 } from "../board/types";
 import { createBoardSurfaceTransform } from "./create-board-surface-transform";
 import type { Rect, Viewport } from "./types";
 
 const DEFAULT_SURFACE_INSET = 14;
-const DEFAULT_OBJECT_DIAMETER = 1.8;
+const DEFAULT_OBJECT_DIAMETER = 18;
 const DEFAULT_MINIMUM_HIT_RADIUS_PX = 24;
 
 export interface BoardSpaceProjection {
   frame: Rect;
-  documentUnit: DocumentUnit;
   zoom: number;
-  pixelsPerUnit: number;
-  worldOrigin: Point;
-  worldToCanvas: (point: Point) => Point;
-  canvasToWorld: (point: Point) => Point;
+  scale: number;
+  boardToCanvas: (point: Point) => Point;
+  canvasToBoard: (point: Point) => Point;
   getObjectCanvasRadius: (object: BoardObject) => number;
   getObjectCanvasBounds: (object: BoardObject) => Rect;
   hitTestObject: (
@@ -57,13 +54,9 @@ export function createBoardSpaceProjection({
     const height =
       object.size?.height ?? object.size?.width ?? DEFAULT_OBJECT_DIAMETER;
 
-    if (object.size?.mode === "screen") {
-      return { width, height };
-    }
-
     return {
-      width: width * surfaceTransform.pixelsPerUnit,
-      height: height * surfaceTransform.pixelsPerUnit,
+      width: width * surfaceTransform.scale,
+      height: height * surfaceTransform.scale,
     };
   };
 
@@ -73,7 +66,7 @@ export function createBoardSpaceProjection({
   };
 
   const getObjectCanvasBounds = (object: BoardObject): Rect => {
-    const center = surfaceTransform.worldToCanvas(object.position);
+    const center = surfaceTransform.boardToCanvas(object.position);
     const { width, height } = getObjectCanvasSize(object);
 
     return {
@@ -86,16 +79,14 @@ export function createBoardSpaceProjection({
 
   return {
     frame: surfaceTransform.frame,
-    documentUnit: surfaceTransform.documentUnit,
     zoom: viewport.zoom,
-    pixelsPerUnit: surfaceTransform.pixelsPerUnit,
-    worldOrigin: surfaceTransform.worldOrigin,
-    worldToCanvas: surfaceTransform.worldToCanvas,
-    canvasToWorld: surfaceTransform.canvasToWorld,
+    scale: surfaceTransform.scale,
+    boardToCanvas: surfaceTransform.boardToCanvas,
+    canvasToBoard: surfaceTransform.canvasToBoard,
     getObjectCanvasRadius,
     getObjectCanvasBounds,
     hitTestObject: (object, canvasPoint, options) => {
-      const center = surfaceTransform.worldToCanvas(object.position);
+      const center = surfaceTransform.boardToCanvas(object.position);
       const radius = Math.max(
         getObjectCanvasRadius(object),
         options?.minimumHitRadiusPx ?? DEFAULT_MINIMUM_HIT_RADIUS_PX,

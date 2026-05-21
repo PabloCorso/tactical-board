@@ -107,16 +107,11 @@ describe("Document and Shape compatibility vocabulary", () => {
     const background: DocumentBackgroundConfig = {
       width: 320,
       height: 180,
-      coordinateSystem: {
-        unit: "px",
-        basePixelsPerUnit: 1,
-      },
       fill: "#f8fafc",
     };
     const surfacePreset: BoardSurfacePreset = {
       width: 320,
       height: 180,
-      unit: "m",
       background: "#177238",
       markings: [
         {
@@ -135,8 +130,7 @@ describe("Document and Shape compatibility vocabulary", () => {
     };
 
     expect("markings" in background).toBe(false);
-    expect(background.coordinateSystem?.unit).toBe("px");
-    expect(surfacePreset.unit).toBe("m");
+    expect(background.fill).toBe("#f8fafc");
     expect(surfacePreset.markings).toHaveLength(1);
   });
 });

@@ -32,7 +32,7 @@ export function BoardEditorShapePolygonDone() {
     canvasRect: state.ui.canvasRect,
     surfaceInset: 14,
   });
-  const firstPoint = projection.worldToCanvas(shapeState.pendingPoints[0]);
+  const firstPoint = projection.boardToCanvas(shapeState.pendingPoints[0]);
 
   return (
     <div

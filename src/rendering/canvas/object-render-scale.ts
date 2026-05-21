@@ -2,11 +2,8 @@ export function getAbsoluteCanvasExtent(extent: number) {
   return Math.abs(extent);
 }
 
-export function getWorldCanvasStrokeWidth(
-  strokeWidth: number,
-  pixelsPerUnit: number,
-) {
-  return Math.abs(strokeWidth * pixelsPerUnit);
+export function getScaledCanvasStrokeWidth(strokeWidth: number, scale: number) {
+  return Math.abs(strokeWidth * scale);
 }
 
 export function getRelativeCanvasStrokeWidth(extent: number, ratio: number) {

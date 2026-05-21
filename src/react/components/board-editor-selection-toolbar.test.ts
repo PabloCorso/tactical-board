@@ -62,9 +62,9 @@ describe("shouldShowSelectionToolbar", () => {
 describe("getSelectionToolbarAnchor", () => {
   const projection = {
     getObjectCanvasBounds: () => ({ x: 80, y: 80, width: 40, height: 40 }),
-    worldToCanvas: ({ x, y }: { x: number; y: number }) => ({ x, y }),
-    canvasToWorld: ({ x, y }: { x: number; y: number }) => ({ x, y }),
-    pixelsPerUnit: 1,
+    boardToCanvas: ({ x, y }: { x: number; y: number }) => ({ x, y }),
+    canvasToBoard: ({ x, y }: { x: number; y: number }) => ({ x, y }),
+    scale: 1,
   };
   const state = {
     objectRegistry: {
@@ -229,7 +229,7 @@ describe("getSelectionToolbarAnchor", () => {
       type: "text",
       id: "text-1",
       position: { x: 100, y: 100 },
-      size: { width: 120, height: 32, mode: "screen" },
+      size: { width: 120, height: 32 },
       props: {
         text: "Press",
         color: "#111827",
@@ -254,9 +254,9 @@ describe("getMultiSelectionToolbarAnchor", () => {
         object.id === "a"
           ? { x: 80, y: 70, width: 40, height: 20 }
           : { x: 140, y: 90, width: 20, height: 30 },
-      worldToCanvas: ({ x, y }: { x: number; y: number }) => ({ x, y }),
-      canvasToWorld: ({ x, y }: { x: number; y: number }) => ({ x, y }),
-      pixelsPerUnit: 1,
+      boardToCanvas: ({ x, y }: { x: number; y: number }) => ({ x, y }),
+      canvasToBoard: ({ x, y }: { x: number; y: number }) => ({ x, y }),
+      scale: 1,
     };
 
     expect(
@@ -278,9 +278,9 @@ describe("getSelectionBounds", () => {
         object.id === "a"
           ? { x: 80, y: 70, width: 40, height: 20 }
           : { x: 140, y: 90, width: 20, height: 30 },
-      worldToCanvas: ({ x, y }: { x: number; y: number }) => ({ x, y }),
-      canvasToWorld: ({ x, y }: { x: number; y: number }) => ({ x, y }),
-      pixelsPerUnit: 1,
+      boardToCanvas: ({ x, y }: { x: number; y: number }) => ({ x, y }),
+      canvasToBoard: ({ x, y }: { x: number; y: number }) => ({ x, y }),
+      scale: 1,
     };
 
     expect(

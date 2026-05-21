@@ -9,6 +9,7 @@ import { mannequinEquipment } from "./mannequin";
 import { miniGoalEquipment } from "./mini-goal";
 import { poleEquipment } from "./pole";
 import { soccerBallEquipment } from "./soccer-ball";
+import { equipmentDefinitionMetersToPixels } from "../football-units";
 
 const footballEquipment = [
   soccerBallEquipment,
@@ -24,7 +25,7 @@ const footballEquipment = [
 ];
 
 export const FOOTBALL_EQUIPMENT_DEFINITIONS = footballEquipment.map(
-  ({ definition }) => definition,
+  ({ definition }) => equipmentDefinitionMetersToPixels(definition),
 );
 
 export const FOOTBALL_EQUIPMENT_RENDERERS = Object.fromEntries(

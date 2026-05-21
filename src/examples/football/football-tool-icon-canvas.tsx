@@ -108,19 +108,17 @@ export function createCenteredObjectIconProjection(
   const offsetX = inset + (usableWidth - objectWidth * scale) / 2;
   const offsetY = inset + (usableHeight - objectHeight * scale) / 2;
 
-  const worldToCanvas = (point: { x: number; y: number }) => ({
+  const boardToCanvas = (point: { x: number; y: number }) => ({
     x: (point.x - left) * scale + offsetX,
     y: (point.y - top) * scale + offsetY,
   });
 
   return {
     frame: { x: 0, y: 0, width, height },
-    documentUnit: object.size?.unit ?? "px",
     zoom: scale,
-    pixelsPerUnit: scale,
-    worldOrigin: { x: left, y: top },
-    worldToCanvas,
-    canvasToWorld: (point) => ({
+    scale: scale,
+    boardToCanvas,
+    canvasToBoard: (point) => ({
       x: (point.x - offsetX) / scale + left,
       y: (point.y - offsetY) / scale + top,
     }),
@@ -129,7 +127,7 @@ export function createCenteredObjectIconProjection(
       return (targetWidth * scale) / 2;
     },
     getObjectCanvasBounds: (target) => {
-      const canvasCenter = worldToCanvas(target.position);
+      const canvasCenter = boardToCanvas(target.position);
       const targetWidth = (target.size?.width ?? 0) * scale;
       const targetHeight =
         (target.size?.height ?? target.size?.width ?? 0) * scale;

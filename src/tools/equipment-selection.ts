@@ -112,7 +112,7 @@ export const equipmentSelectionAdapter: ObjectSelectionAdapter<
     }
 
     const transformCapabilities = getEquipmentTransformCapabilities(object);
-    const canvasPoint = projection.worldToCanvas(event.point);
+    const canvasPoint = projection.boardToCanvas(event.point);
     if (transformCapabilities?.resize !== false) {
       const handlePoints = getEquipmentSelectionOutlineCanvasPoints(
         projection,
@@ -215,7 +215,7 @@ export const equipmentSelectionAdapter: ObjectSelectionAdapter<
         : getEquipmentRotateHandleCanvasPoint(projection, object);
 
     return getSelectionToolbarAnchorFromSelectionChrome({
-      left: projection.worldToCanvas(object.position).x,
+      left: projection.boardToCanvas(object.position).x,
       outlinePoints,
       rotateHandlePoint,
       rotateHandleRadiusPx: EQUIPMENT_ROTATE_HANDLE_RADIUS_PX,

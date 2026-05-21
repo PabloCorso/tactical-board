@@ -4,13 +4,13 @@ import {
   getPlayerBorderWidth,
   getPlayerLabelFontSize,
   getRelativeCanvasStrokeWidth,
-  getWorldCanvasStrokeWidth,
+  getScaledCanvasStrokeWidth,
 } from "./object-render-scale";
 
 describe("object render scaling", () => {
-  it("keeps world stroke widths proportional to viewport zoom", () => {
-    expect(getWorldCanvasStrokeWidth(0.4, 2)).toBeCloseTo(0.8);
-    expect(getWorldCanvasStrokeWidth(0.4, 4)).toBeCloseTo(1.6);
+  it("keeps scaled stroke widths proportional to viewport zoom", () => {
+    expect(getScaledCanvasStrokeWidth(0.4, 2)).toBeCloseTo(0.8);
+    expect(getScaledCanvasStrokeWidth(0.4, 4)).toBeCloseTo(1.6);
   });
 
   it("derives player chrome from the rendered token radius", () => {

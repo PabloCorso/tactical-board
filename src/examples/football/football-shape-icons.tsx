@@ -24,8 +24,8 @@ export function FootballShapePresetIcon({
   height?: number;
 }) {
   const shape = useMemo(
-    () => createShapeIconPreviewObject(draftStyle),
-    [draftStyle],
+    () => createShapeIconPreviewObject(draftStyle, width, height),
+    [draftStyle, height, width],
   );
 
   return (
@@ -60,7 +60,19 @@ export function FootballShapeToolIcon() {
   );
 }
 
-function createShapeIconPreviewObject(draftStyle: ShapeDraftStyle) {
+function createShapeIconPreviewObject(
+  draftStyle: ShapeDraftStyle,
+  width: number,
+  height: number,
+) {
+  const inset = 2;
+  const left = inset;
+  const top = inset;
+  const right = width - inset;
+  const bottom = height - inset;
+  const centerX = (left + right) / 2;
+  const shapeWidth = right - left;
+  const shapeHeight = bottom - top;
   const base = {
     id: "shape-icon-preview",
     color: draftStyle.color,
@@ -77,41 +89,41 @@ function createShapeIconPreviewObject(draftStyle: ShapeDraftStyle) {
       return createShapeObject({
         ...base,
         kind: "oval",
-        start: { x: 0.75, y: 0.8 },
-        end: { x: 5.25, y: 3.2 },
+        start: { x: left, y: top },
+        end: { x: right, y: bottom },
       });
     case "triangle":
       return createShapeObject({
         ...base,
         kind: "triangle",
-        start: { x: 1.1, y: 0.8 },
-        end: { x: 4.9, y: 3.2 },
+        start: { x: left, y: top },
+        end: { x: right, y: bottom },
       });
     case "diamond":
       return createShapeObject({
         ...base,
         kind: "diamond",
-        start: { x: 1.1, y: 0.8 },
-        end: { x: 4.9, y: 3.2 },
+        start: { x: left, y: top },
+        end: { x: right, y: bottom },
       });
     case "polygon":
       return createShapeObject({
         ...base,
         kind: "polygon",
         points: [
-          { x: 1.1, y: 2.8 },
-          { x: 1.9, y: 0.8 },
-          { x: 4.1, y: 1.0 },
-          { x: 4.9, y: 2.7 },
-          { x: 2.4, y: 3.2 },
+          { x: left, y: top + shapeHeight * 0.82 },
+          { x: left + shapeWidth * 0.22, y: top },
+          { x: right - shapeWidth * 0.2, y: top + shapeHeight * 0.08 },
+          { x: right, y: top + shapeHeight * 0.76 },
+          { x: centerX - shapeWidth * 0.14, y: bottom },
         ],
       });
     default:
       return createShapeObject({
         ...base,
         kind: draftStyle.kind as ShapeKind,
-        start: { x: 0.95, y: 0.9 },
-        end: { x: 5.05, y: 3.1 },
+        start: { x: left, y: top },
+        end: { x: right, y: bottom },
       });
   }
 }

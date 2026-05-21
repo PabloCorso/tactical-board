@@ -8,7 +8,6 @@ describe("hitTestEquipment", () => {
     surface: {
       width: 100,
       height: 50,
-      origin: { x: 0, y: 0 },
     },
     viewport: {
       pan: { x: 10, y: 20 },
@@ -31,15 +30,15 @@ describe("hitTestEquipment", () => {
         family: "cone",
         minimumHitRadiusPx: 0,
       },
-      size: { width: 2, height: 2, mode: "screen" },
+      size: { width: 2, height: 2 },
     });
 
     expect(
       hitTestEquipment({
         object: equipment,
         canvasPoint: {
-          x: projection.worldToCanvas(equipment.position).x + 12,
-          y: projection.worldToCanvas(equipment.position).y,
+          x: projection.boardToCanvas(equipment.position).x + 12,
+          y: projection.boardToCanvas(equipment.position).y,
         },
         surfaceTransform: projection,
         minimumHitRadiusPx: 24,
@@ -59,15 +58,15 @@ describe("hitTestEquipment", () => {
         minimumHitRadiusPx: 0,
         hitTestShape: "circle",
       },
-      size: { width: 20, height: 20, mode: "screen" },
+      size: { width: 20, height: 20 },
     });
 
     expect(
       hitTestEquipment({
         object: equipment,
         canvasPoint: {
-          x: projection.worldToCanvas(equipment.position).x + 9,
-          y: projection.worldToCanvas(equipment.position).y + 9,
+          x: projection.boardToCanvas(equipment.position).x + 9,
+          y: projection.boardToCanvas(equipment.position).y + 9,
         },
         surfaceTransform: projection,
         minimumHitRadiusPx: 24,

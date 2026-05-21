@@ -19,7 +19,7 @@ import {
   getBoundsFromCanvasPoints,
   getCornerHandleCanvasPoint,
   getExpandedCanvasRectPoints,
-  getRotatedRectWorldPoints,
+  getRotatedRectBoardPoints,
   getRotationFromPointer,
   getSelectionToolbarAnchorFromSelectionChrome,
   renderRotateHandleIcon,
@@ -58,7 +58,7 @@ type ShapeSelectionSession = ObjectSelectionSession & {
 };
 
 function getShapeResizeHandlePoints(shape: ShapeObject) {
-  return getRotatedRectWorldPoints({
+  return getRotatedRectBoardPoints({
     center: shape.position,
     width: shape.size?.width ?? 0,
     height: shape.size?.height ?? 0,
@@ -86,7 +86,7 @@ function getShapeSelectionPaddingPx(
     return 0;
   }
 
-  return Math.max(1.5, shape.props.strokeWidth * projection.pixelsPerUnit) / 2;
+  return Math.max(1.5, shape.props.strokeWidth * projection.scale) / 2;
 }
 
 export function getShapeSelectionOutlineCanvasPoints(
@@ -99,13 +99,13 @@ export function getShapeSelectionOutlineCanvasPoints(
 
   return getExpandedCanvasRectPoints(
     getShapeResizeHandlePoints(shape).map(({ point }) =>
-      projection.worldToCanvas(point),
+      projection.boardToCanvas(point),
     ),
     paddingPx,
   );
 }
 
-function getShapeSelectionBoundsWorld(
+function getShapeSelectionBoundsBoard(
   projection: Parameters<
     NonNullable<ObjectSelectionAdapter<ShapeObject>["renderSelection"]>
   >[0]["projection"],
@@ -113,7 +113,7 @@ function getShapeSelectionBoundsWorld(
 ) {
   const shapeBounds = getShapeBounds(shape.props);
   const padding =
-    getShapeSelectionPaddingPx(projection, shape) / projection.pixelsPerUnit;
+    getShapeSelectionPaddingPx(projection, shape) / projection.scale;
 
   return {
     minX: shapeBounds.minX - padding,
@@ -239,7 +239,7 @@ export const shapeSelectionAdapter: ObjectSelectionAdapter<
       return undefined;
     }
 
-    const canvasPoint = projection.worldToCanvas(event.point);
+    const canvasPoint = projection.boardToCanvas(event.point);
     const outlinePoints = getShapeSelectionOutlineCanvasPoints(
       projection,
       object,
@@ -249,7 +249,7 @@ export const shapeSelectionAdapter: ObjectSelectionAdapter<
           distance: number;
         })
       | undefined;
-    const { minX, maxX, minY, maxY, padding } = getShapeSelectionBoundsWorld(
+    const { minX, maxX, minY, maxY, padding } = getShapeSelectionBoundsBoard(
       projection,
       object,
     );
@@ -518,7 +518,7 @@ export const shapeSelectionAdapter: ObjectSelectionAdapter<
     );
 
     return getSelectionToolbarAnchorFromSelectionChrome({
-      left: projection.worldToCanvas(object.position).x,
+      left: projection.boardToCanvas(object.position).x,
       outlinePoints,
       rotateHandlePoint,
       rotateHandleRadiusPx: ROTATE_HANDLE_RADIUS_PX,

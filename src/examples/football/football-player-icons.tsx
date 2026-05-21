@@ -75,7 +75,6 @@ export function FootballPlayerPresetIcon({
         size: {
           width: draftStyle.size,
           height: draftStyle.size,
-          mode: "world",
         },
         color: draftStyle.color,
         label,

@@ -16,7 +16,7 @@ export function rotateOffset(x: number, y: number, rotation = 0) {
   };
 }
 
-export function getRotatedRectWorldPoints({
+export function getRotatedRectBoardPoints({
   center,
   width,
   height,

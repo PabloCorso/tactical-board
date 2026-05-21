@@ -10,7 +10,6 @@ const projection = createBoardSpaceProjection({
   surface: {
     width: 100,
     height: 50,
-    origin: { x: 0, y: 0 },
   },
   viewport: {
     pan: { x: 0, y: 0 },
@@ -36,7 +35,7 @@ describe("selection outlines", () => {
     const player = createPlayerObject({
       id: "player-1",
       position: { x: 20, y: 10 },
-      size: { width: 120, height: 120, mode: "screen" },
+      size: { width: 120, height: 120 },
       color: "#111827",
     });
     const objectBounds = projection.getObjectCanvasBounds(player);
@@ -54,12 +53,12 @@ describe("selection outlines", () => {
     const equipment = createEquipmentObject({
       id: "hoop-1",
       position: { x: 20, y: 10 },
-      size: { width: 120, height: 120, mode: "screen" },
+      size: { width: 120, height: 120 },
       kind: hoopEquipment.definition.kind,
       color: hoopEquipment.definition.color,
       definition: hoopEquipment.definition,
     });
-    const center = projection.worldToCanvas(equipment.position);
+    const center = projection.boardToCanvas(equipment.position);
     const size = equipment.size!;
     const rawHalfWidth =
       size.width * hoopEquipment.definition.selectionBounds!.right;

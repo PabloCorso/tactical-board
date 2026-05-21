@@ -13,7 +13,6 @@ export const TEXT_CHARACTER_WIDTH_RATIO = 0.64;
 export const TEXT_HORIZONTAL_PADDING_PX = 12;
 export const TEXT_VERTICAL_PADDING_PX = 8;
 export const MIN_TEXT_CONTENT_WIDTH_PX = 10;
-export const DEFAULT_TEXT_REFERENCE_PIXELS_PER_UNIT = 10;
 
 export type TextLineMetrics = {
   ascent: number;
@@ -27,7 +26,6 @@ export interface TextObjectProps extends Record<string, unknown> {
   text: string;
   color: string;
   fontSize: number;
-  referencePixelsPerUnit: number;
   wrapWidth?: number;
 }
 
@@ -42,7 +40,6 @@ type TextCoreInput = {
   text?: string;
   color?: string;
   fontSize?: number;
-  referencePixelsPerUnit?: number;
   wrapWidth?: number;
 };
 
@@ -69,19 +66,6 @@ function normalizeWrapWidth(wrapWidth: number | undefined) {
   }
 
   return Math.max(MIN_TEXT_CONTENT_WIDTH_PX, wrapWidth);
-}
-
-function normalizeReferencePixelsPerUnit(
-  referencePixelsPerUnit = DEFAULT_TEXT_REFERENCE_PIXELS_PER_UNIT,
-) {
-  if (
-    Number.isNaN(referencePixelsPerUnit) ||
-    !Number.isFinite(referencePixelsPerUnit)
-  ) {
-    return 1;
-  }
-
-  return Math.max(referencePixelsPerUnit, 1e-9);
 }
 
 let textMeasureContext:
@@ -275,11 +259,7 @@ export function getTextBoxSize(
   text: string,
   fontSize: number,
   wrapWidth?: number,
-  referencePixelsPerUnit = DEFAULT_TEXT_REFERENCE_PIXELS_PER_UNIT,
 ) {
-  const normalizedReferencePixelsPerUnit = normalizeReferencePixelsPerUnit(
-    referencePixelsPerUnit,
-  );
   const lines = getWrappedTextLines(text, fontSize, wrapWidth);
   const normalizedWrapWidth = normalizeWrapWidth(wrapWidth);
   const lineMetrics = getTextLineMetrics(fontSize);
@@ -291,13 +271,8 @@ export function getTextBoxSize(
     );
 
   return {
-    width:
-      (contentWidth + TEXT_HORIZONTAL_PADDING_PX) /
-      normalizedReferencePixelsPerUnit,
-    height:
-      (lines.length * lineMetrics.lineHeight + TEXT_VERTICAL_PADDING_PX) /
-      normalizedReferencePixelsPerUnit,
-    mode: "world" as const,
+    width: contentWidth + TEXT_HORIZONTAL_PADDING_PX,
+    height: lines.length * lineMetrics.lineHeight + TEXT_VERTICAL_PADDING_PX,
   };
 }
 
@@ -306,9 +281,6 @@ function getCanonicalTextProps(input: TextCoreInput): TextObjectProps {
     text: normalizeText(input.text),
     color: input.color ?? DEFAULT_TEXT_COLOR,
     fontSize: normalizeFontSize(input.fontSize),
-    referencePixelsPerUnit: normalizeReferencePixelsPerUnit(
-      input.referencePixelsPerUnit,
-    ),
     wrapWidth: normalizeWrapWidth(input.wrapWidth),
   };
 }
@@ -323,12 +295,7 @@ function createCanonicalTextObject(
     ...base,
     position: clonePoint(input.position),
     rotation: normalizeRotation(input.rotation),
-    size: getTextBoxSize(
-      props.text,
-      props.fontSize,
-      props.wrapWidth,
-      props.referencePixelsPerUnit,
-    ),
+    size: getTextBoxSize(props.text, props.fontSize, props.wrapWidth),
     props,
   };
 }
@@ -362,8 +329,6 @@ export function updateTextObject(
       text: input.text ?? object.props.text,
       color: input.color ?? object.props.color,
       fontSize: input.fontSize ?? object.props.fontSize,
-      referencePixelsPerUnit:
-        input.referencePixelsPerUnit ?? object.props.referencePixelsPerUnit,
       wrapWidth: input.wrapWidth ?? object.props.wrapWidth,
     },
   );
