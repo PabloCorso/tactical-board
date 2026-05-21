@@ -699,6 +699,90 @@ describe("createBoardEditorController", () => {
     );
   });
 
+  it("drags a shape with no fill from its transparent interior", () => {
+    const shapeTool = new ShapeTool();
+    const existingShape = createShapeObject({
+      id: "shape-1",
+      kind: "rectangle",
+      start: { x: 10, y: 10 },
+      end: { x: 20, y: 18 },
+      color: "#fff",
+      lineStyle: "solid",
+      fillStyle: "none",
+      bordered: true,
+    });
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        surface: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {
+            [existingShape.id]: existingShape,
+          },
+          order: [existingShape.id],
+        },
+        style: {},
+      },
+      initialToolId: SELECT_TOOL_ID,
+      tools: [selectTool, shapeTool],
+    });
+    const toolApi = createToolApi(store);
+    shapeTool.registerCapabilities?.(toolApi);
+
+    const controller = createBoardEditorController(store);
+    const canvasRect = {
+      left: 0,
+      top: 0,
+      width: 1000,
+      height: 500,
+    };
+    const projection = createBoardSpaceProjection({
+      surface: store.getState().board.surface,
+      viewport: store.getState().ui.viewport,
+      canvasRect,
+      surfaceInset: 14,
+    });
+    const interiorPoint = projection.boardToCanvas({ x: 15, y: 14 });
+    const nextInteriorPoint = projection.boardToCanvas({ x: 25, y: 19 });
+
+    controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: interiorPoint,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+    controller.dispatchPointerEvent("onPointerMove", {
+      clientPoint: nextInteriorPoint,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    expect(store.getState().selection.selectedObjectIds).toEqual([
+      existingShape.id,
+    ]);
+    expect(store.getState().board.objects.byId[existingShape.id]).toMatchObject(
+      {
+        position: { x: 25, y: 19 },
+        props: {
+          start: { x: 20, y: 15 },
+          end: { x: 30, y: 23 },
+        },
+      },
+    );
+  });
+
   it("places players with numeric labels sequenced by color", () => {
     const playerTool = new PlayerTool();
     const store = createBoardEditorStore({

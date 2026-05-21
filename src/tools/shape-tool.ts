@@ -712,17 +712,7 @@ function hitTestShape({
       (localOffset.x * localOffset.x) / (rx * rx) +
       (localOffset.y * localOffset.y) / (ry * ry);
 
-    if (shape.props.fillStyle !== "none") {
-      return normalized <= 1;
-    }
-
-    const innerRx = Math.max(rx - threshold, 0.0001);
-    const innerRy = Math.max(ry - threshold, 0.0001);
-    const innerNormalized =
-      (localOffset.x * localOffset.x) / (innerRx * innerRx) +
-      (localOffset.y * localOffset.y) / (innerRy * innerRy);
-
-    return normalized <= 1.1 && innerNormalized >= 1;
+    return normalized <= 1;
   }
 
   if (shape.props.kind === "rectangle") {
@@ -733,35 +723,11 @@ function hitTestShape({
       -(shape.rotation ?? 0),
     );
 
-    if (shape.props.fillStyle !== "none") {
-      return isPointInsideRoundedRectangle(
-        localOffset,
-        metrics.halfWidth,
-        metrics.halfHeight,
-        metrics.radius,
-      );
-    }
-
-    const outerInset = threshold / 2;
-    const innerInset = Math.min(
-      threshold / 2,
+    return isPointInsideRoundedRectangle(
+      localOffset,
       metrics.halfWidth,
       metrics.halfHeight,
-    );
-
-    return (
-      isPointInsideRoundedRectangle(
-        localOffset,
-        metrics.halfWidth + outerInset,
-        metrics.halfHeight + outerInset,
-        metrics.radius + outerInset,
-      ) &&
-      !isPointInsideRoundedRectangle(
-        localOffset,
-        Math.max(metrics.halfWidth - innerInset, 0),
-        Math.max(metrics.halfHeight - innerInset, 0),
-        Math.max(metrics.radius - innerInset, 0),
-      )
+      metrics.radius,
     );
   }
 
@@ -774,10 +740,7 @@ function hitTestShape({
     }
   }
 
-  return (
-    shape.props.fillStyle !== "none" &&
-    isPointInsidePolygon(canvasPoint, points)
-  );
+  return isPointInsidePolygon(canvasPoint, points);
 }
 
 function getPendingShapePreview(
