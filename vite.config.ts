@@ -16,6 +16,18 @@ const dirname =
 // More info at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon
 export default defineConfig({
   plugins: [tailwindcss(), react()],
+  publicDir: false,
+  build: {
+    lib: {
+      entry: path.resolve(dirname, "src/index.ts"),
+      fileName: "tactical-board",
+      formats: ["es", "cjs"],
+      name: "TacticalBoard",
+    },
+    rollupOptions: {
+      external: ["react", "react-dom", "react/jsx-runtime"],
+    },
+  },
   resolve: {
     alias: {
       "#app": path.resolve(dirname, "src"),

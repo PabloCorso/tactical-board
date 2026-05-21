@@ -2,7 +2,7 @@ import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 import { type IconProps as PhosphorIconProps } from "@phosphor-icons/react";
 import { type VariantProps, cva } from "class-variance-authority";
-import { cn } from "#app/utils/misc.tsx";
+import { cn } from "../misc";
 
 export const iconVariants = cva("shrink-0", {
   variants: {

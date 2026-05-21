@@ -2,7 +2,7 @@ import { Menu as MenuPrimitive } from "@base-ui/react/menu";
 import { type useRender } from "@base-ui/react/use-render";
 import { CaretRightIcon, CheckIcon } from "@phosphor-icons/react/dist/ssr";
 import { cva, type VariantProps } from "class-variance-authority";
-import { cn } from "#app/utils/misc";
+import { cn } from "../misc";
 import { Icon, type IconProps } from "./icon.tsx";
 
 export type DropdownMenuProps = MenuPrimitive.Root.Props;

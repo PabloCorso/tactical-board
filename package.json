@@ -1,11 +1,29 @@
 {
-  "name": "tactical-board",
-  "private": true,
-  "version": "0.0.0",
+  "name": "@pablocorso/tactical-board",
+  "private": false,
+  "version": "0.1.0",
   "type": "module",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/tactical-board.cjs",
+  "module": "./dist/tactical-board.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/tactical-board.js",
+      "require": "./dist/tactical-board.cjs"
+    }
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "restricted"
+  },
   "scripts": {
     "dev": "vite --host",
-    "build": "tsc && vite build",
+    "build": "vite build --emptyOutDir && npm run build:types",
+    "build:types": "tsc --project tsconfig.build.json",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
@@ -15,6 +33,7 @@
     "typecheck": "tsc",
     "validate": "run-p lint typecheck test",
     "preview": "vite preview",
+    "prepublishOnly": "npm run build",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },
@@ -24,10 +43,12 @@
     "base-ui": "^0.0.294",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "react": "^19.2.5",
-    "react-dom": "^19.2.5",
     "tailwind-merge": "^3.6.0",
     "zustand": "^5.0.13"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^5.1.2",
@@ -52,6 +73,8 @@
     "playwright": "^1.59.1",
     "prettier": "^3.8.3",
     "prettier-plugin-tailwindcss": "^0.8.0",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
     "storybook": "^10.3.6",
     "tailwindcss": "^4.2.4",
     "typescript": "~6.0.2",

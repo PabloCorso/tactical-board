@@ -1,7 +1,7 @@
 import type { Ref } from "react";
 import { Button as ButtonPrimitive } from "@base-ui/react/button";
 import { cva, type VariantProps } from "class-variance-authority";
-import { cn } from "#app/utils/misc";
+import { cn } from "../misc";
 import { Icon, type IconProps, type IconRender } from "./icon.tsx";
 import { Spinner } from "./spinner.tsx";
 

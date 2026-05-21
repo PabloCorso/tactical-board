@@ -1,6 +1,6 @@
 import { Popover as PopoverPrimitive } from "@base-ui/react/popover";
 import * as React from "react";
-import { cn } from "#app/utils/misc";
+import { cn } from "../misc";
 import { floatingContentClassName } from "./floating-content.tsx";
 
 export type PopoverProps = PopoverPrimitive.Root.Props;

@@ -1,5 +1,5 @@
 import { Tooltip as TooltipPrimitive } from "@base-ui/react/tooltip";
-import { cn } from "#app/utils/misc.tsx";
+import { cn } from "../misc";
 
 export type TooltipProviderProps = TooltipPrimitive.Provider.Props;
 

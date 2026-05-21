@@ -1,6 +1,6 @@
 export { DEFAULT_PRESET_COLORS } from "../../../core/colors/preset-colors";
 import { DEFAULT_PRESET_COLORS } from "../../../core/colors/preset-colors";
-import { cn } from "#app/utils/misc";
+import { cn } from "../misc";
 
 const CUSTOM_COLOR_SWATCH_BACKGROUND =
   "radial-gradient(50% 50% at 50% 50%, #ffffff 0%, transparent 100%), conic-gradient(from 0deg at 50% 50%, red, #ffa800 47.73deg, #ff0 79.56deg, #0f0 121.33deg, #0ff 180.99deg, #00f 238.67deg, #f0f 294.36deg, red 360deg), #c4c4c4";
