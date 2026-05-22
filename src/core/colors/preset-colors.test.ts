@@ -3,7 +3,7 @@ import { DEFAULT_ARROW_TOOL_STATE } from "../tools/arrow-tool-state";
 import { DEFAULT_SHAPE_TOOL_STATE } from "../tools/shape-tool-state";
 import { DEFAULT_PLAYER_COLOR } from "../objects/player-object";
 import { DEFAULT_TEXT_COLOR } from "../objects/text-object";
-import { footballShowcaseBoard } from "../../react/football/football-board";
+import { footballShowcaseBoard } from "../../examples/football/football-showcase-board";
 import { DEFAULT_PRESET_COLOR, DEFAULT_PRESET_COLORS } from "./preset-colors";
 
 describe("preset-backed default colors", () => {

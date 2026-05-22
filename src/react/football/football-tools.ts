@@ -19,7 +19,7 @@ import {
   FOOTBALL_ARROW_PRESETS,
   FOOTBALL_PLAYER_PRESETS,
   FOOTBALL_SHAPE_PRESETS,
-} from "./football-secondary-toolbar";
+} from "./football-catalog";
 
 type PlayerImageCacheEntry = {
   image: HTMLImageElement;

@@ -8,12 +8,13 @@ import {
   BoardViewerCanvas,
   createBoardEditorStore,
 } from ".";
-import { FootballBoardEditor, footballShowcaseBoard } from "./react";
+import { createFootballBoard, FootballBoardEditor } from "./react";
 
 describe("SSR safety", () => {
   it("server-renders the public React exports with static imports", () => {
+    const board = createFootballBoard();
     const store = createBoardEditorStore({
-      initialBoard: footballShowcaseBoard,
+      initialBoard: board,
     });
 
     expect(() =>
@@ -29,7 +30,7 @@ describe("SSR safety", () => {
     expect(() =>
       renderToString(
         createElement(BoardViewerCanvas, {
-          board: footballShowcaseBoard,
+          board,
         }),
       ),
     ).not.toThrow();

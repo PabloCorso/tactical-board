@@ -15,7 +15,7 @@ import { BoardEditorSelectionToolbar } from "../components/board-editor-selectio
 import { BoardEditorToolControl } from "../components/board-editor-tool-control";
 import { BoardEditorToolbar } from "../components/board-editor-toolbar";
 import { SELECT_TOOL_ID } from "../../core/tools/select-tool-state";
-import { footballShowcaseBoard } from "./football-board";
+import { createFootballBoard } from "./football-board";
 import { FootballSecondaryToolbar } from "./football-secondary-toolbar";
 import {
   FootballArrowToolIcon,
@@ -32,7 +32,7 @@ export type FootballBoardEditorProps = {
 };
 
 export function createFootballBoardEditorStore(
-  initialBoard: Board = footballShowcaseBoard,
+  initialBoard: Board = createFootballBoard(),
 ) {
   return createBoardEditorStore({
     initialBoard,
@@ -43,11 +43,13 @@ export function createFootballBoardEditorStore(
 
 export function FootballBoardEditor({
   className = "relative h-dvh w-full overflow-hidden",
-  initialBoard = footballShowcaseBoard,
+  initialBoard,
   store: providedStore,
 }: FootballBoardEditorProps = {}) {
   const store = useMemo(
-    () => providedStore ?? createFootballBoardEditorStore(initialBoard),
+    () =>
+      providedStore ??
+      createFootballBoardEditorStore(initialBoard ?? createFootballBoard()),
     [initialBoard, providedStore],
   );
 

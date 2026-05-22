@@ -8,7 +8,6 @@ import {
   BoardEditorToolbarButton,
 } from "../components/board-editor-toolbar";
 import { useBoardEditorStore } from "../hooks/use-board-editor-store";
-import { type ArrowToolPreset } from "../../core/tools/arrow-tool";
 import {
   ARROW_TOOL_ID,
   getArrowToolState,
@@ -17,122 +16,28 @@ import {
   EQUIPMENT_TOOL_ID,
   getEquipmentToolState,
 } from "../../core/tools/equipment-tool-state";
-import { type PlayerToolPreset } from "../../core/tools/player-tool";
 import {
   getPlayerToolState,
   PLAYER_TOOL_ID,
   type PlayerDraftStyle,
 } from "../../core/tools/player-tool-state";
-import { type ShapeToolPreset } from "../../core/tools/shape-tool";
 import {
   getShapeToolState,
   SHAPE_TOOL_ID,
   type ShapeDraftStyle,
 } from "../../core/tools/shape-tool-state";
 import { FOOTBALL_EQUIPMENT_DEFINITIONS } from "./equipment";
-import { FOOTBALL_PLAYER_PRESET_COLORS } from "./football-catalog";
+import {
+  FOOTBALL_ARROW_PRESETS,
+  FOOTBALL_PLAYER_PRESETS,
+  FOOTBALL_SHAPE_PRESETS,
+} from "./football-catalog";
 import {
   FootballArrowPresetIcon,
   FootballEquipmentDefinitionIcon,
   FootballPlayerPresetIcon,
   FootballShapePresetIcon,
 } from "./football-tool-icons";
-
-export const FOOTBALL_ARROW_PRESETS: Array<
-  ArrowToolPreset & {
-    variant: "straight-solid" | "wavy" | "curved-solid" | "double";
-  }
-> = [
-  {
-    id: "run",
-    label: "Run",
-    variant: "straight-solid",
-    draftStyle: {
-      kind: "straight",
-    },
-  },
-  {
-    id: "dribble",
-    label: "Dribble",
-    variant: "wavy",
-    draftStyle: {
-      kind: "wavy",
-    },
-  },
-  {
-    id: "lofted-pass",
-    label: "Lofted pass",
-    variant: "curved-solid",
-    draftStyle: {
-      kind: "curved",
-    },
-  },
-  {
-    id: "screen",
-    label: "Screen",
-    variant: "double",
-    draftStyle: {
-      kind: "double",
-    },
-  },
-];
-
-export const FOOTBALL_SHAPE_PRESETS: Array<
-  ShapeToolPreset & {
-    variant: "rectangle" | "oval" | "triangle" | "diamond" | "polygon";
-  }
-> = [
-  {
-    id: "shape-rectangle",
-    label: "Rectangle",
-    variant: "rectangle",
-    draftStyle: {
-      kind: "rectangle",
-    },
-  },
-  {
-    id: "shape-oval",
-    label: "Oval",
-    variant: "oval",
-    draftStyle: {
-      kind: "oval",
-    },
-  },
-  {
-    id: "shape-triangle",
-    label: "Triangle",
-    variant: "triangle",
-    draftStyle: {
-      kind: "triangle",
-    },
-  },
-  {
-    id: "shape-diamond",
-    label: "Diamond",
-    variant: "diamond",
-    draftStyle: {
-      kind: "diamond",
-    },
-  },
-  {
-    id: "shape-polygon",
-    label: "Polygon",
-    variant: "polygon",
-    draftStyle: {
-      kind: "polygon",
-    },
-  },
-];
-
-export const FOOTBALL_PLAYER_PRESETS: PlayerToolPreset[] =
-  FOOTBALL_PLAYER_PRESET_COLORS.map((color, index) => ({
-    id: `team-color-${index + 1}`,
-    label: String(index + 1),
-    tooltip: `Player color ${color}`,
-    draftStyle: {
-      color,
-    },
-  }));
 
 function matchesDraftStyle<T extends Record<string, unknown>>(
   current: T,

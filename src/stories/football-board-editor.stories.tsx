@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { footballShowcaseBoard } from "../examples/football/football-showcase-board";
 import { FootballBoardEditor } from "../react";
 
 const meta = {
@@ -19,4 +20,10 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const FullEditor: Story = {};
+export const EmptyBoard: Story = {};
+
+export const ShowcaseBoard: Story = {
+  args: {
+    initialBoard: footballShowcaseBoard,
+  },
+};

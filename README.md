@@ -95,7 +95,7 @@ import {
 } from "@pablocorso/tactical-board/react";
 ```
 
-`FootballBoardEditor` accepts a caller-owned store or initial board, while `createFootballBoard()` creates an empty full-pitch football document. `footballShowcaseBoard` remains available for Storybook and visual smoke testing.
+`FootballBoardEditor` accepts a caller-owned store or initial board. Without either, it creates an empty full-pitch football document via `createFootballBoard()`. Local showcase data lives under `src/examples` for Storybook and visual smoke testing rather than the public football surface.
 
 Run `npm run storybook` and open `React/Board Editor/Football` for an interactive reference.
 

@@ -2,6 +2,9 @@ import {
   DEFAULT_PRESET_COLOR,
   DEFAULT_PRESET_COLORS,
 } from "../../core/colors/preset-colors";
+import type { ArrowToolPreset } from "../../core/tools/arrow-tool";
+import type { PlayerToolPreset } from "../../core/tools/player-tool";
+import type { ShapeToolPreset } from "../../core/tools/shape-tool";
 
 export const FOOTBALL_PLAYER_PRESET_COLORS = [
   DEFAULT_PRESET_COLOR.red,
@@ -11,6 +14,102 @@ export const FOOTBALL_PLAYER_PRESET_COLORS = [
       color !== DEFAULT_PRESET_COLOR.red && color !== DEFAULT_PRESET_COLOR.blue,
   ),
 ];
+
+export const FOOTBALL_ARROW_PRESETS: Array<
+  ArrowToolPreset & {
+    variant: "straight-solid" | "wavy" | "curved-solid" | "double";
+  }
+> = [
+  {
+    id: "run",
+    label: "Run",
+    variant: "straight-solid",
+    draftStyle: {
+      kind: "straight",
+    },
+  },
+  {
+    id: "dribble",
+    label: "Dribble",
+    variant: "wavy",
+    draftStyle: {
+      kind: "wavy",
+    },
+  },
+  {
+    id: "lofted-pass",
+    label: "Lofted pass",
+    variant: "curved-solid",
+    draftStyle: {
+      kind: "curved",
+    },
+  },
+  {
+    id: "screen",
+    label: "Screen",
+    variant: "double",
+    draftStyle: {
+      kind: "double",
+    },
+  },
+];
+
+export const FOOTBALL_SHAPE_PRESETS: Array<
+  ShapeToolPreset & {
+    variant: "rectangle" | "oval" | "triangle" | "diamond" | "polygon";
+  }
+> = [
+  {
+    id: "shape-rectangle",
+    label: "Rectangle",
+    variant: "rectangle",
+    draftStyle: {
+      kind: "rectangle",
+    },
+  },
+  {
+    id: "shape-oval",
+    label: "Oval",
+    variant: "oval",
+    draftStyle: {
+      kind: "oval",
+    },
+  },
+  {
+    id: "shape-triangle",
+    label: "Triangle",
+    variant: "triangle",
+    draftStyle: {
+      kind: "triangle",
+    },
+  },
+  {
+    id: "shape-diamond",
+    label: "Diamond",
+    variant: "diamond",
+    draftStyle: {
+      kind: "diamond",
+    },
+  },
+  {
+    id: "shape-polygon",
+    label: "Polygon",
+    variant: "polygon",
+    draftStyle: {
+      kind: "polygon",
+    },
+  },
+];
+
+export const FOOTBALL_PLAYER_PRESETS: PlayerToolPreset[] =
+  FOOTBALL_PLAYER_PRESET_COLORS.map((color, index) => ({
+    id: `team-color-${index + 1}`,
+    label: String(index + 1),
+    tooltip: `Player color ${color}`,
+    draftStyle: {
+      color,
+    },
+  }));
 
 export const PLAYER_SHIRT_SVG_BY_COLOR = Object.fromEntries(
   FOOTBALL_PLAYER_PRESET_COLORS.map((color) => [
