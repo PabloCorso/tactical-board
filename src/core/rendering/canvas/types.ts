@@ -67,6 +67,8 @@ export interface CanvasRenderRequest {
   canvas: HTMLCanvasElement;
   board: Board;
   viewport: Viewport;
+  extendBackground?: boolean;
+  surfaceInset?: number;
   requestRender?: () => void;
   previewObjects?: BoardObject[];
   overlayItems?: CanvasOverlayItem[];

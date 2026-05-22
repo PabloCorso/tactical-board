@@ -17,6 +17,8 @@ export type BoardViewerCanvasProps = {
   className?: string;
   frameClassName?: string;
   mode?: BoardViewerViewportMode;
+  fitPadding?: number;
+  extendBackground?: boolean;
   viewport?: Viewport;
   initialViewport?: BoardViewerInitialViewport;
   onViewportChange?: (viewport: Viewport) => void;
@@ -30,6 +32,8 @@ export function BoardViewerCanvas({
   className,
   frameClassName,
   mode = "fit",
+  fitPadding,
+  extendBackground,
   viewport,
   initialViewport,
   onViewportChange,
@@ -40,6 +44,8 @@ export function BoardViewerCanvas({
   const { canvasRef } = useBoardViewerCanvas({
     board,
     mode,
+    fitPadding,
+    extendBackground,
     viewport,
     initialViewport,
     onViewportChange,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { BoardSurfaceConfig } from "../board/types";
+import type { Board, BoardSurfaceConfig } from "../board/types";
 import {
   getBoardViewerViewport,
   getBoardViewerViewportFromPan,
@@ -9,6 +9,18 @@ import {
 const surface: BoardSurfaceConfig = {
   width: 100,
   height: 50,
+};
+
+const board: Board = {
+  id: "viewer-board",
+  version: 1,
+  metadata: {},
+  surface,
+  objects: {
+    byId: {},
+    order: [],
+  },
+  style: {},
 };
 
 describe("board viewer viewport", () => {
@@ -29,6 +41,95 @@ describe("board viewer viewport", () => {
       },
       zoom: 2,
     });
+  });
+
+  it("allows viewer fit mode to zoom out below the editor minimum", () => {
+    expect(
+      getBoardViewerViewport({
+        mode: "fit",
+        surface,
+        canvasRect: {
+          width: 68,
+          height: 48,
+        },
+      }),
+    ).toEqual({
+      pan: {
+        x: 0,
+        y: 0,
+      },
+      zoom: 0.4,
+    });
+  });
+
+  it("keeps fit zoom positive before the canvas has a measured size", () => {
+    const viewport = getBoardViewerViewport({
+      mode: "fit",
+      surface,
+      canvasRect: {
+        width: 1,
+        height: 1,
+      },
+    });
+
+    expect(viewport.zoom).toBeGreaterThan(0);
+  });
+
+  it("uses custom fit padding for viewer fit mode", () => {
+    expect(
+      getBoardViewerViewport({
+        mode: "fit",
+        surface,
+        canvasRect: {
+          width: 200,
+          height: 100,
+        },
+        fitPadding: 0,
+      }),
+    ).toEqual({
+      pan: {
+        x: 0,
+        y: 0,
+      },
+      zoom: 2,
+    });
+  });
+
+  it("fits the board content bounds in fit-content mode", () => {
+    const contentBoard: Board = {
+      ...board,
+      objects: {
+        byId: {
+          outside: {
+            id: "outside",
+            type: "marker",
+            position: {
+              x: 120,
+              y: 25,
+            },
+            size: {
+              width: 20,
+              height: 20,
+            },
+            props: {},
+          },
+        },
+        order: ["outside"],
+      },
+    };
+    const viewport = getBoardViewerViewport({
+      board: contentBoard,
+      mode: "fit-content",
+      surface,
+      canvasRect: {
+        width: 228,
+        height: 128,
+      },
+    });
+
+    expect(viewport.zoom).toBeCloseTo(200 / 130);
+    expect(viewport.pan.x).toBeCloseTo(-((130 / 2 - 50) * viewport.zoom));
+    expect(viewport.pan.y).toBe(0);
   });
 
   it("uses the supplied viewport outside fit mode", () => {

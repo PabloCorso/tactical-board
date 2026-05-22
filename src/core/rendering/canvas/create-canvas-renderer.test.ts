@@ -5,6 +5,12 @@ import { createCanvasRenderer } from "./create-canvas-renderer";
 type DrawOperation =
   | { kind: "surface-fill"; fillStyle: string }
   | {
+      kind: "fill-rect";
+      fillStyle: string;
+      width: number;
+      height: number;
+    }
+  | {
       kind: "stroke-rect";
       strokeStyle: string;
       lineWidth: number;
@@ -31,7 +37,14 @@ function createFakeCanvas() {
         fillStyle: String(this.fillStyle),
       });
     },
-    fillRect: () => {},
+    fillRect(_x: number, _y: number, width: number, height: number) {
+      operations.push({
+        kind: "fill-rect",
+        fillStyle: String(this.fillStyle),
+        width,
+        height,
+      });
+    },
     strokeRect(_x: number, _y: number, width: number, height: number) {
       operations.push({
         kind: "stroke-rect",
@@ -136,6 +149,35 @@ describe("createCanvasRenderer", () => {
       lineWidth: 0.5,
       width: 20,
       height: 10,
+    });
+  });
+
+  it("can extend the board background across the full canvas", () => {
+    const { canvas, operations } = createFakeCanvas();
+
+    createCanvasRenderer().render({
+      canvas,
+      board: createEmptyBoard({
+        width: 100,
+        height: 50,
+        background: "#177238",
+      }),
+      viewport: {
+        pan: { x: 0, y: 0 },
+        zoom: 1,
+      },
+      extendBackground: true,
+    });
+
+    expect(operations.at(0)).toEqual({
+      kind: "fill-rect",
+      fillStyle: "#177238",
+      width: 320,
+      height: 200,
+    });
+    expect(operations.at(1)).toEqual({
+      kind: "surface-fill",
+      fillStyle: "#177238",
     });
   });
 });

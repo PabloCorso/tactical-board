@@ -19,6 +19,14 @@ const TOKEN_BORDER = "rgba(214,187,103,0.22)";
 const TEXT_FONT = '700 18px "ui-rounded", "SF Pro Display", sans-serif';
 const DEFAULT_SURFACE_BACKGROUND = "rgba(255,255,255,0.03)";
 
+function getSurfaceBackground(board: {
+  surface: { background?: string; fill?: string };
+}) {
+  return (
+    board.surface.background ?? board.surface.fill ?? DEFAULT_SURFACE_BACKGROUND
+  );
+}
+
 function syncCanvasSize(canvas: HTMLCanvasElement) {
   const width = Math.max(1, Math.floor(canvas.clientWidth));
   const height = Math.max(1, Math.floor(canvas.clientHeight));
@@ -224,6 +232,8 @@ export function createCanvasRenderer(): CanvasRenderer {
       canvas,
       board,
       viewport,
+      extendBackground = false,
+      surfaceInset = SURFACE_INSET,
       requestRender = () => {},
       previewObjects = [],
       overlayItems = [],
@@ -239,6 +249,11 @@ export function createCanvasRenderer(): CanvasRenderer {
       context.setTransform(ratio, 0, 0, ratio, 0, 0);
       context.clearRect(0, 0, width, height);
 
+      if (extendBackground) {
+        context.fillStyle = getSurfaceBackground(board);
+        context.fillRect(0, 0, width, height);
+      }
+
       const projection = createBoardSpaceProjection({
         surface: board.surface,
         viewport,
@@ -246,7 +261,7 @@ export function createCanvasRenderer(): CanvasRenderer {
           width,
           height,
         },
-        surfaceInset: SURFACE_INSET,
+        surfaceInset,
       });
 
       drawRoundedRect(
@@ -257,10 +272,7 @@ export function createCanvasRenderer(): CanvasRenderer {
         projection.frame.height,
         SURFACE_RADIUS,
       );
-      context.fillStyle =
-        board.surface.background ??
-        board.surface.fill ??
-        DEFAULT_SURFACE_BACKGROUND;
+      context.fillStyle = getSurfaceBackground(board);
       context.fill();
 
       for (const marking of board.surface.markings ?? []) {

@@ -6,6 +6,7 @@ import {
   getViewportToFitSurface,
 } from "../../core/editor/viewport-utils";
 import {
+  DEFAULT_BOARD_VIEWER_FIT_PADDING,
   getBoardViewerViewport,
   getBoardViewerViewportFromPan,
   getBoardViewerViewportFromWheel,
@@ -25,6 +26,8 @@ export type BoardViewerInitialViewport = Viewport | "fit";
 export type UseBoardViewerCanvasOptions = {
   board: Board;
   mode?: BoardViewerViewportMode;
+  fitPadding?: number;
+  extendBackground?: boolean;
   viewport?: Viewport;
   initialViewport?: BoardViewerInitialViewport;
   onViewportChange?: (viewport: Viewport) => void;
@@ -43,6 +46,8 @@ function getCanvasRect(canvas: HTMLCanvasElement): BoardViewerCanvasRect {
 export function useBoardViewerCanvas({
   board,
   mode = "fit",
+  fitPadding = DEFAULT_BOARD_VIEWER_FIT_PADDING,
+  extendBackground,
   viewport,
   initialViewport = "fit",
   onViewportChange,
@@ -123,12 +128,14 @@ export function useBoardViewerCanvas({
   const effectiveViewport = useMemo(
     () =>
       getBoardViewerViewport({
+        board,
         mode,
         surface: board.surface,
         canvasRect: canvasRect ?? { width: 1, height: 1 },
         viewport: mode === "interactive" ? interactiveViewport : viewport,
+        fitPadding,
       }),
-    [board.surface, canvasRect, interactiveViewport, mode, viewport],
+    [board, canvasRect, fitPadding, interactiveViewport, mode, viewport],
   );
 
   useEffect(
@@ -174,6 +181,8 @@ export function useBoardViewerCanvas({
       canvas,
       board,
       viewport: effectiveViewport,
+      extendBackground,
+      surfaceInset: fitPadding,
       requestRender,
       objectRenderers,
       overlayItems,
@@ -182,6 +191,8 @@ export function useBoardViewerCanvas({
   }, [
     board,
     effectiveViewport,
+    extendBackground,
+    fitPadding,
     objectRenderers,
     overlayItems,
     overlayRenderers,
