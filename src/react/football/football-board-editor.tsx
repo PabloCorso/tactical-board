@@ -12,17 +12,10 @@ import {
   BoardEditorShapePolygonDone,
 } from "../components/board-editor";
 import { BoardEditorSelectionToolbar } from "../components/board-editor-selection-toolbar";
-import { BoardEditorToolControl } from "../components/board-editor-tool-control";
-import { BoardEditorToolbar } from "../components/board-editor-toolbar";
 import { SELECT_TOOL_ID } from "../../core/tools/select-tool-state";
 import { createFootballBoard } from "./football-board";
+import { FootballPrimaryToolbar } from "./football-primary-toolbar";
 import { FootballSecondaryToolbar } from "./football-secondary-toolbar";
-import {
-  FootballArrowToolIcon,
-  FootballEquipmentToolIcon,
-  FootballPlayerToolIcon,
-  FootballShapeToolIcon,
-} from "./football-tool-icons";
 import { createFootballTools } from "./football-tools";
 
 export type FootballBoardEditorProps = {
@@ -62,27 +55,7 @@ export function FootballBoardEditor({
         <BoardEditorSelectionToolbar />
         <div className="pointer-events-none absolute inset-y-4 left-4 flex items-center">
           <div className="pointer-events-auto flex items-center gap-3">
-            <BoardEditorToolbar className="flex-col">
-              <BoardEditorToolControl toolId="select" />
-              <BoardEditorToolControl toolId="hand" />
-              <BoardEditorToolControl
-                toolId="player"
-                icon={<FootballPlayerToolIcon />}
-              />
-              <BoardEditorToolControl
-                toolId="equipment"
-                icon={<FootballEquipmentToolIcon />}
-              />
-              <BoardEditorToolControl toolId="text" />
-              <BoardEditorToolControl
-                toolId="arrow"
-                icon={<FootballArrowToolIcon />}
-              />
-              <BoardEditorToolControl
-                toolId="shape"
-                icon={<FootballShapeToolIcon />}
-              />
-            </BoardEditorToolbar>
+            <FootballPrimaryToolbar />
             <FootballSecondaryToolbar className="flex-col" />
           </div>
         </div>

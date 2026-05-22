@@ -1,6 +1,7 @@
 export * from "./football-board";
 export * from "./football-board-editor";
 export * from "./football-catalog";
+export * from "./football-primary-toolbar";
 export * from "./football-secondary-toolbar";
 export * from "./football-tools";
 export * from "./football-tool-icon-canvas";

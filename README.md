@@ -97,6 +97,46 @@ import {
 
 `FootballBoardEditor` accepts a caller-owned store or initial board. Without either, it creates an empty full-pitch football document via `createFootballBoard()`. Local showcase data lives under `src/examples` for Storybook and visual smoke testing rather than the public football surface.
 
+Football UI is also composable. Use `createFootballBoardEditorStore()` for the football tool setup, then arrange the generic React adapter pieces and football toolbar pieces in your own shell:
+
+```tsx
+import {
+  BoardEditor,
+  BoardEditorCanvas,
+  BoardEditorCanvasToolbar,
+  BoardEditorProvider,
+  BoardEditorSelectionToolbar,
+  BoardEditorShapePolygonDone,
+  createFootballBoard,
+  createFootballBoardEditorStore,
+  FootballPrimaryToolbar,
+  FootballSecondaryToolbar,
+} from "@pablocorso/tactical-board/react";
+
+const store = createFootballBoardEditorStore(
+  createFootballBoard({ id: "match-plan", name: "Match Plan" }),
+);
+
+export function CustomFootballBoardEditor() {
+  return (
+    <BoardEditorProvider store={store}>
+      <BoardEditor className="relative h-dvh w-full overflow-hidden">
+        <BoardEditorCanvas />
+        <BoardEditorShapePolygonDone />
+        <BoardEditorCanvasToolbar />
+        <BoardEditorSelectionToolbar />
+        <div className="pointer-events-none absolute inset-y-4 left-4 flex items-center">
+          <div className="pointer-events-auto flex items-center gap-3">
+            <FootballPrimaryToolbar />
+            <FootballSecondaryToolbar className="flex-col" />
+          </div>
+        </div>
+      </BoardEditor>
+    </BoardEditorProvider>
+  );
+}
+```
+
 Run `npm run storybook` and open `React/Board Editor/Football` for an interactive reference.
 
 ## SSR compatibility
