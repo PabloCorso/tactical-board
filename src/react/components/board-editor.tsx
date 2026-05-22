@@ -2,7 +2,6 @@ import {
   type CSSProperties,
   type PropsWithChildren,
   type ReactNode,
-  useLayoutEffect,
   useMemo,
   useRef,
 } from "react";
@@ -16,6 +15,7 @@ import {
 } from "../../core/objects/text-object";
 import { useBoardEditorCanvas } from "../hooks/use-board-editor-canvas";
 import { useBoardEditorStore } from "../hooks/use-board-editor-store";
+import { useIsomorphicLayoutEffect } from "../hooks/use-isomorphic-layout-effect";
 import {
   finishTextEditingSession,
   getTextEditorOverlayState,
@@ -119,7 +119,7 @@ function BoardEditorTextEditorOverlay() {
   const overlayState = useMemo(() => getTextEditorOverlayState(state), [state]);
   const editingSession = overlayState?.session;
 
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     const textarea = textareaRef.current;
 
     if (!textarea || !editingSession) {

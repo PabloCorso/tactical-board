@@ -1,9 +1,5 @@
-import {
-  type PropsWithChildren,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
+import { type PropsWithChildren, useRef, useState } from "react";
+import { useIsomorphicLayoutEffect } from "../hooks/use-isomorphic-layout-effect";
 
 const VIEWPORT_PADDING_PX = 10;
 
@@ -73,7 +69,7 @@ export function BoardEditorSelectionToolbarPositioner({
   const contentRef = useRef<HTMLDivElement | null>(null);
   const [toolbarSize, setToolbarSize] = useState({ width: 0, height: 0 });
 
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     const node = contentRef.current;
 
     if (!node) {
@@ -91,6 +87,10 @@ export function BoardEditorSelectionToolbarPositioner({
     };
 
     measure();
+
+    if (typeof ResizeObserver === "undefined") {
+      return;
+    }
 
     const resizeObserver = new ResizeObserver(measure);
     resizeObserver.observe(node);

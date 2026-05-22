@@ -95,3 +95,14 @@ import { FootballExampleApp } from "@pablocorso/tactical-board/examples/football
 The example exports the football board document, football-specific tool presets, equipment definitions, toolbar composition, icons, and the full `FootballExampleApp`. It is still an example boundary rather than a stable football preset API.
 
 Run `npm run storybook` and open `React/Board Editor/Football Example` for an interactive reference.
+
+## SSR compatibility
+
+The package is safe to statically import and server-render in React SSR apps,
+including React Router SSR apps. Consumers should not need to wrap tactical-board
+imports in `useEffect` or dynamic `import()` just to avoid browser globals.
+
+During SSR the React adapter renders structural HTML, including empty
+`<canvas>` elements. Browser-only work such as `canvas.getContext("2d")`,
+`ResizeObserver`, pointer input, focus management, and animation frame scheduling
+runs after hydration.
