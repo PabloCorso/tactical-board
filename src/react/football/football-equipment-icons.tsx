@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 import type { EquipmentDefinition } from "../../core/objects/equipment-object";
 import { createEquipmentObject } from "../../core/objects/equipment-object";
-import { useBoardEditorContext } from "../../react/components/board-editor-context";
-import { useBoardEditorStore } from "../../react/hooks/use-board-editor-store";
+import { useBoardEditorContext } from "../components/board-editor-context";
+import { useBoardEditorStore } from "../hooks/use-board-editor-store";
 import { createEquipmentRenderer } from "../../core/tools/equipment-tool";
 import { getEquipmentToolState } from "../../core/tools/equipment-tool-state";
 import {

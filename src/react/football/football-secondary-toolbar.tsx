@@ -2,12 +2,12 @@ import { useMemo } from "react";
 import { PLAYER_OBJECT_TYPE } from "../../core/objects/player-object";
 import { createToolApi } from "../../core/editor/create-tool-api";
 import type { BoardEditorState } from "../../core/editor/types";
-import { useBoardEditorContext } from "../../react/components/board-editor-context";
+import { useBoardEditorContext } from "../components/board-editor-context";
 import {
   BoardEditorToolbar,
   BoardEditorToolbarButton,
-} from "../../react/components/board-editor-toolbar";
-import { useBoardEditorStore } from "../../react/hooks/use-board-editor-store";
+} from "../components/board-editor-toolbar";
+import { useBoardEditorStore } from "../hooks/use-board-editor-store";
 import { type ArrowToolPreset } from "../../core/tools/arrow-tool";
 import {
   ARROW_TOOL_ID,
@@ -30,7 +30,7 @@ import {
   type ShapeDraftStyle,
 } from "../../core/tools/shape-tool-state";
 import { FOOTBALL_EQUIPMENT_DEFINITIONS } from "./equipment";
-import { FOOTBALL_PLAYER_PRESET_COLORS } from "./football-example-catalog";
+import { FOOTBALL_PLAYER_PRESET_COLORS } from "./football-catalog";
 import {
   FootballArrowPresetIcon,
   FootballEquipmentDefinitionIcon,

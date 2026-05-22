@@ -6,9 +6,9 @@ Reusable tactical board/editor library scaffolded around a simple layered archit
 - `src/rendering/canvas`: the Canvas Renderer. It paints Document or Board state and transient overlays to HTML canvas.
 - `src/react`: the React Adapter and Board Editor UI shell. It wires DOM input and subscriptions without owning canonical Document state.
 - `src/tools`: reusable Standard Tools such as Select, Hand, Shape, Arrow, Text, Player, and Equipment.
-- `src/examples/football`: the first Football Board pressure-test application. It owns football-specific surfaces, dimensions, object presets, skins, and coach-facing workflows while it remains under examples.
+- `src/react/football`: the first consumer-ready Football Board package. It owns football-specific surfaces, dimensions, object presets, skins, and the composed React editor while still exporting the parts for custom editors.
 
-The shared Board Library boundary is still emerging. Do not extract a broad `src/board` or `src/presets` layer until a concrete boundary is proven by more than the football example.
+The shared Board Library boundary is still emerging. Do not extract a broad `src/board` or `src/presets` layer until a concrete boundary is proven by more than the football package.
 
 See [architecture.md](./architecture.md), [CONTEXT.md](./CONTEXT.md), and [docs/adr](./docs/adr) for the agreed glossary, boundaries, and architectural decisions.
 
@@ -86,15 +86,18 @@ export function TrainingBoardEditor() {
 }
 ```
 
-The football implementation is the current full React composition example. It is published as an example subpath, so consumers can inspect or render it without relying on `src` files being present in `node_modules`:
+The football implementation is published as a React preset package. Consumers can render the composed editor or import the underlying board, tool, equipment, icon, and toolbar parts:
 
 ```tsx
-import { FootballExampleApp } from "@pablocorso/tactical-board/examples/football";
+import {
+  createFootballBoard,
+  FootballBoardEditor,
+} from "@pablocorso/tactical-board/react";
 ```
 
-The example exports the football board document, football-specific tool presets, equipment definitions, toolbar composition, icons, and the full `FootballExampleApp`. It is still an example boundary rather than a stable football preset API.
+`FootballBoardEditor` accepts a caller-owned store or initial board, while `createFootballBoard()` creates an empty full-pitch football document. `footballShowcaseBoard` remains available for Storybook and visual smoke testing.
 
-Run `npm run storybook` and open `React/Board Editor/Football Example` for an interactive reference.
+Run `npm run storybook` and open `React/Board Editor/Football` for an interactive reference.
 
 ## SSR compatibility
 

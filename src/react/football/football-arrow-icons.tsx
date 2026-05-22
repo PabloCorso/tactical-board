@@ -1,7 +1,7 @@
 import { useMemo } from "react";
-import { BoardEditorArrowIcon } from "../../react/components/board-editor-arrow-icon";
-import { useBoardEditorContext } from "../../react/components/board-editor-context";
-import { useBoardEditorStore } from "../../react/hooks/use-board-editor-store";
+import { BoardEditorArrowIcon } from "../components/board-editor-arrow-icon";
+import { useBoardEditorContext } from "../components/board-editor-context";
+import { useBoardEditorStore } from "../hooks/use-board-editor-store";
 import {
   getArrowToolState,
   type ArrowDraftStyle,

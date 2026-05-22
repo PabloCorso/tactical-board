@@ -1,5 +1,5 @@
-import { FootballExampleApp } from "./examples/football/football-example-app";
+import { FootballBoardEditor } from "./react";
 
 export default function App() {
-  return <FootballExampleApp />;
+  return <FootballBoardEditor />;
 }

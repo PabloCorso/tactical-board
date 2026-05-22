@@ -21,10 +21,7 @@ export default defineConfig({
     lib: {
       entry: {
         "tactical-board": path.resolve(dirname, "src/index.ts"),
-        "examples/football": path.resolve(
-          dirname,
-          "src/examples/football/index.ts",
-        ),
+        react: path.resolve(dirname, "src/react/index.ts"),
       },
       fileName: (format, entryName) =>
         `${entryName}.${format === "es" ? "js" : "cjs"}`,

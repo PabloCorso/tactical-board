@@ -30,7 +30,7 @@ import { getPlayerToolState, PLAYER_TOOL_ID } from "../tools/player-tool-state";
 import { SELECT_TOOL_ID } from "../tools/select-tool-state";
 import { getShapeToolState } from "../tools/shape-tool-state";
 import { getTextToolState, TEXT_TOOL_ID } from "../tools/text-tool-state";
-import { FOOTBALL_PLAYER_PRESET_COLORS } from "../../examples/football/football-example-catalog";
+import { FOOTBALL_PLAYER_PRESET_COLORS } from "../../react/football/football-catalog";
 import { MAX_VIEWPORT_ZOOM, MIN_VIEWPORT_ZOOM } from "./viewport-utils";
 import {
   getCornerHandleCanvasPoint,

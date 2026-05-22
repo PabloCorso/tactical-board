@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { FootballExampleApp } from "../examples/football/football-example-app";
+import { FootballBoardEditor } from "../react";
 
 const meta = {
-  title: "React/Board Editor/Football Example",
-  component: FootballExampleApp,
+  title: "React/Board Editor/Football",
+  component: FootballBoardEditor,
   parameters: {
     layout: "fullscreen",
     docs: {
@@ -13,7 +13,7 @@ const meta = {
       },
     },
   },
-} satisfies Meta<typeof FootballExampleApp>;
+} satisfies Meta<typeof FootballBoardEditor>;
 
 export default meta;
 

@@ -9,14 +9,21 @@ import {
   type ShapeKind,
   type ShapeLineStyle,
 } from "../../core/objects/shape-object";
-import type { BoardSurfaceMarking } from "../../core/board/types";
-import { FOOTBALL_PLAYER_PRESET_COLORS } from "./football-example-catalog";
+import type {
+  Board,
+  BoardMetadata,
+  BoardSurfaceConfig,
+  BoardSurfaceMarking,
+  BoardStyleRef,
+  ObjectIndex,
+} from "../../core/board/types";
+import { FOOTBALL_PLAYER_PRESET_COLORS } from "./football-catalog";
 import { DEFAULT_PRESET_COLOR } from "../../core/colors/preset-colors";
 import { FOOTBALL_EQUIPMENT_DEFINITIONS } from "./equipment";
 import { metersToPixels, pointMetersToPixels } from "./football-units";
 import playerOneImage from "../../assets/player-1.png";
 
-const pitchMetrics = {
+export const FOOTBALL_FULL_PITCH_METRICS = {
   field: { length: 105, width: 68 },
   perimeter: { touchline: 5, goalLine: 3 },
   goal: {
@@ -34,7 +41,7 @@ const pitchMetrics = {
   lineWidth: 0.4,
 };
 
-const pitchColors = {
+export const FOOTBALL_PITCH_COLORS = {
   outer: "#177238",
   stripeDark: "#257e3f",
   stripeLight: "#2d8747",
@@ -43,20 +50,22 @@ const pitchColors = {
 
 const STRIPE_COUNT = 19;
 
-function createFootballPitchMarkings(): BoardSurfaceMarking[] {
-  const outerMarginX = pitchMetrics.perimeter.touchline;
-  const outerMarginY = pitchMetrics.perimeter.goalLine;
-  const width = pitchMetrics.field.length;
-  const height = pitchMetrics.field.width;
+export function createFootballPitchMarkings(): BoardSurfaceMarking[] {
+  const outerMarginX = FOOTBALL_FULL_PITCH_METRICS.perimeter.touchline;
+  const outerMarginY = FOOTBALL_FULL_PITCH_METRICS.perimeter.goalLine;
+  const width = FOOTBALL_FULL_PITCH_METRICS.field.length;
+  const height = FOOTBALL_FULL_PITCH_METRICS.field.width;
   const centerX = outerMarginX + width / 2;
   const centerY = outerMarginY + height / 2;
 
   const goalWidth =
-    pitchMetrics.goal.areaDepth * 2 + pitchMetrics.goal.postsWidth;
-  const goalDepth = pitchMetrics.goal.areaDepth;
+    FOOTBALL_FULL_PITCH_METRICS.goal.areaDepth * 2 +
+    FOOTBALL_FULL_PITCH_METRICS.goal.postsWidth;
+  const goalDepth = FOOTBALL_FULL_PITCH_METRICS.goal.areaDepth;
   const penaltyWidth =
-    pitchMetrics.penalty.areaDepth * 2 + pitchMetrics.goal.postsWidth;
-  const penaltyDepth = pitchMetrics.penalty.areaDepth;
+    FOOTBALL_FULL_PITCH_METRICS.penalty.areaDepth * 2 +
+    FOOTBALL_FULL_PITCH_METRICS.goal.postsWidth;
+  const penaltyDepth = FOOTBALL_FULL_PITCH_METRICS.penalty.areaDepth;
   const stripeWidth = width / STRIPE_COUNT;
 
   const stripes = Array.from({ length: STRIPE_COUNT }, (_, index) => ({
@@ -65,7 +74,10 @@ function createFootballPitchMarkings(): BoardSurfaceMarking[] {
     y: outerMarginY,
     width: stripeWidth,
     height,
-    fill: index % 2 === 0 ? pitchColors.stripeLight : pitchColors.stripeDark,
+    fill:
+      index % 2 === 0
+        ? FOOTBALL_PITCH_COLORS.stripeLight
+        : FOOTBALL_PITCH_COLORS.stripeDark,
   }));
 
   const markings: BoardSurfaceMarking[] = [
@@ -76,8 +88,8 @@ function createFootballPitchMarkings(): BoardSurfaceMarking[] {
       y: outerMarginY,
       width,
       height,
-      stroke: pitchColors.line,
-      strokeWidth: pitchMetrics.lineWidth,
+      stroke: FOOTBALL_PITCH_COLORS.line,
+      strokeWidth: FOOTBALL_FULL_PITCH_METRICS.lineWidth,
     },
     {
       kind: "line",
@@ -85,23 +97,23 @@ function createFootballPitchMarkings(): BoardSurfaceMarking[] {
       y1: outerMarginY,
       x2: centerX,
       y2: outerMarginY + height,
-      stroke: pitchColors.line,
-      strokeWidth: pitchMetrics.lineWidth,
+      stroke: FOOTBALL_PITCH_COLORS.line,
+      strokeWidth: FOOTBALL_FULL_PITCH_METRICS.lineWidth,
     },
     {
       kind: "circle",
       cx: centerX,
       cy: centerY,
-      r: pitchMetrics.centerCircle.radius,
-      stroke: pitchColors.line,
-      strokeWidth: pitchMetrics.lineWidth,
+      r: FOOTBALL_FULL_PITCH_METRICS.centerCircle.radius,
+      stroke: FOOTBALL_PITCH_COLORS.line,
+      strokeWidth: FOOTBALL_FULL_PITCH_METRICS.lineWidth,
     },
     {
       kind: "circle",
       cx: centerX,
       cy: centerY,
-      r: pitchMetrics.centerCircle.spotRadius,
-      fill: pitchColors.line,
+      r: FOOTBALL_FULL_PITCH_METRICS.centerCircle.spotRadius,
+      fill: FOOTBALL_PITCH_COLORS.line,
     },
     {
       kind: "rect",
@@ -109,8 +121,8 @@ function createFootballPitchMarkings(): BoardSurfaceMarking[] {
       y: centerY - penaltyWidth / 2,
       width: penaltyDepth,
       height: penaltyWidth,
-      stroke: pitchColors.line,
-      strokeWidth: pitchMetrics.lineWidth,
+      stroke: FOOTBALL_PITCH_COLORS.line,
+      strokeWidth: FOOTBALL_FULL_PITCH_METRICS.lineWidth,
     },
     {
       kind: "rect",
@@ -118,8 +130,8 @@ function createFootballPitchMarkings(): BoardSurfaceMarking[] {
       y: centerY - penaltyWidth / 2,
       width: penaltyDepth,
       height: penaltyWidth,
-      stroke: pitchColors.line,
-      strokeWidth: pitchMetrics.lineWidth,
+      stroke: FOOTBALL_PITCH_COLORS.line,
+      strokeWidth: FOOTBALL_FULL_PITCH_METRICS.lineWidth,
     },
     {
       kind: "rect",
@@ -127,8 +139,8 @@ function createFootballPitchMarkings(): BoardSurfaceMarking[] {
       y: centerY - goalWidth / 2,
       width: goalDepth,
       height: goalWidth,
-      stroke: pitchColors.line,
-      strokeWidth: pitchMetrics.lineWidth,
+      stroke: FOOTBALL_PITCH_COLORS.line,
+      strokeWidth: FOOTBALL_FULL_PITCH_METRICS.lineWidth,
     },
     {
       kind: "rect",
@@ -136,82 +148,88 @@ function createFootballPitchMarkings(): BoardSurfaceMarking[] {
       y: centerY - goalWidth / 2,
       width: goalDepth,
       height: goalWidth,
-      stroke: pitchColors.line,
-      strokeWidth: pitchMetrics.lineWidth,
+      stroke: FOOTBALL_PITCH_COLORS.line,
+      strokeWidth: FOOTBALL_FULL_PITCH_METRICS.lineWidth,
     },
     {
       kind: "circle",
-      cx: outerMarginX + pitchMetrics.penalty.spotDistance,
+      cx: outerMarginX + FOOTBALL_FULL_PITCH_METRICS.penalty.spotDistance,
       cy: centerY,
-      r: pitchMetrics.penalty.spotRadius,
-      fill: pitchColors.line,
+      r: FOOTBALL_FULL_PITCH_METRICS.penalty.spotRadius,
+      fill: FOOTBALL_PITCH_COLORS.line,
     },
     {
       kind: "circle",
-      cx: outerMarginX + width - pitchMetrics.penalty.spotDistance,
+      cx:
+        outerMarginX +
+        width -
+        FOOTBALL_FULL_PITCH_METRICS.penalty.spotDistance,
       cy: centerY,
-      r: pitchMetrics.penalty.spotRadius,
-      fill: pitchColors.line,
+      r: FOOTBALL_FULL_PITCH_METRICS.penalty.spotRadius,
+      fill: FOOTBALL_PITCH_COLORS.line,
     },
     {
       kind: "arc",
-      cx: outerMarginX + pitchMetrics.penalty.spotDistance,
+      cx: outerMarginX + FOOTBALL_FULL_PITCH_METRICS.penalty.spotDistance,
       cy: centerY,
-      r: pitchMetrics.penalty.arcRadius,
+      r: FOOTBALL_FULL_PITCH_METRICS.penalty.arcRadius,
       startAngle: -52,
       endAngle: 52,
-      stroke: pitchColors.line,
-      strokeWidth: pitchMetrics.lineWidth,
+      stroke: FOOTBALL_PITCH_COLORS.line,
+      strokeWidth: FOOTBALL_FULL_PITCH_METRICS.lineWidth,
     },
     {
       kind: "arc",
-      cx: outerMarginX + width - pitchMetrics.penalty.spotDistance,
+      cx:
+        outerMarginX +
+        width -
+        FOOTBALL_FULL_PITCH_METRICS.penalty.spotDistance,
       cy: centerY,
-      r: pitchMetrics.penalty.arcRadius,
+      r: FOOTBALL_FULL_PITCH_METRICS.penalty.arcRadius,
       startAngle: 128,
       endAngle: 232,
-      stroke: pitchColors.line,
-      strokeWidth: pitchMetrics.lineWidth,
+      stroke: FOOTBALL_PITCH_COLORS.line,
+      strokeWidth: FOOTBALL_FULL_PITCH_METRICS.lineWidth,
     },
     {
       kind: "arc",
       cx: outerMarginX,
       cy: outerMarginY,
-      r: pitchMetrics.cornerArcRadius,
+      r: FOOTBALL_FULL_PITCH_METRICS.cornerArcRadius,
       startAngle: 0,
       endAngle: 90,
-      stroke: pitchColors.line,
-      strokeWidth: pitchMetrics.lineWidth,
+      stroke: FOOTBALL_PITCH_COLORS.line,
+      strokeWidth: FOOTBALL_FULL_PITCH_METRICS.lineWidth,
     },
     {
       kind: "arc",
       cx: outerMarginX + width,
       cy: outerMarginY,
-      r: pitchMetrics.cornerArcRadius,
+      r: FOOTBALL_FULL_PITCH_METRICS.cornerArcRadius,
       startAngle: 90,
       endAngle: 180,
-      stroke: pitchColors.line,
-      strokeWidth: pitchMetrics.lineWidth,
+      stroke: FOOTBALL_PITCH_COLORS.line,
+      strokeWidth: FOOTBALL_FULL_PITCH_METRICS.lineWidth,
     },
     {
       kind: "arc",
       cx: outerMarginX + width,
       cy: outerMarginY + height,
-      r: pitchMetrics.cornerArcRadius,
+      r: FOOTBALL_FULL_PITCH_METRICS.cornerArcRadius,
       startAngle: 180,
       endAngle: 270,
-      stroke: pitchColors.line,
-      strokeWidth: pitchMetrics.lineWidth,
+      stroke: FOOTBALL_PITCH_COLORS.line,
+      strokeWidth: FOOTBALL_FULL_PITCH_METRICS.lineWidth,
     },
     {
       kind: "arc",
       cx: outerMarginX,
       cy: outerMarginY + height,
-      r: pitchMetrics.cornerArcRadius,
+      r: FOOTBALL_FULL_PITCH_METRICS.cornerArcRadius,
       startAngle: 270,
       endAngle: 360,
-      stroke: pitchColors.line,
-      strokeWidth: pitchMetrics.lineWidth,
+      stroke: FOOTBALL_PITCH_COLORS.line,
+      strokeWidth: FOOTBALL_FULL_PITCH_METRICS.lineWidth,
     },
   ];
 
@@ -268,11 +286,13 @@ function createFootballPitchMarkings(): BoardSurfaceMarking[] {
 }
 
 const surfaceWidth =
-  pitchMetrics.field.length + pitchMetrics.perimeter.touchline * 2;
+  FOOTBALL_FULL_PITCH_METRICS.field.length +
+  FOOTBALL_FULL_PITCH_METRICS.perimeter.touchline * 2;
 const surfaceHeight =
-  pitchMetrics.field.width + pitchMetrics.perimeter.goalLine * 2;
-const fieldStartX = pitchMetrics.perimeter.touchline;
-const fieldStartY = pitchMetrics.perimeter.goalLine;
+  FOOTBALL_FULL_PITCH_METRICS.field.width +
+  FOOTBALL_FULL_PITCH_METRICS.perimeter.goalLine * 2;
+const fieldStartX = FOOTBALL_FULL_PITCH_METRICS.perimeter.touchline;
+const fieldStartY = FOOTBALL_FULL_PITCH_METRICS.perimeter.goalLine;
 
 const arrowBodyStyles = ["straight", "curved", "wavy", "double"] as const;
 const arrowHeadStyles = ["none", "triangle"] as const;
@@ -295,7 +315,7 @@ const shapeFillStyles = [
 ] as const satisfies readonly ShapeFillStyle[];
 const shapeBorderStyles = [true, false] as const;
 
-const arrowExampleEntries = arrowBodyStyles.flatMap((kind, bodyIndex) =>
+const arrowShowcaseEntries = arrowBodyStyles.flatMap((kind, bodyIndex) =>
   arrowLineStyles.flatMap((lineStyle, lineStyleIndex) =>
     arrowHeadStyles.flatMap((startHead, startHeadIndex) =>
       arrowHeadStyles.map((endHead, endHeadIndex) => {
@@ -334,10 +354,10 @@ const arrowExampleEntries = arrowBodyStyles.flatMap((kind, bodyIndex) =>
   ),
 );
 
-const arrowExampleObjects = Object.fromEntries(arrowExampleEntries);
-const arrowExampleOrder = arrowExampleEntries.map(([id]) => id);
+const arrowShowcaseObjects = Object.fromEntries(arrowShowcaseEntries);
+const arrowShowcaseOrder = arrowShowcaseEntries.map(([id]) => id);
 
-const shapeExampleEntries = shapeKinds.flatMap((kind, row) =>
+const shapeShowcaseEntries = shapeKinds.flatMap((kind, row) =>
   shapeLineStyles.flatMap((lineStyle, lineStyleIndex) =>
     shapeFillStyles.flatMap((fillStyle, fillStyleIndex) =>
       shapeBorderStyles.map((bordered, borderIndex) => {
@@ -387,14 +407,14 @@ const shapeExampleEntries = shapeKinds.flatMap((kind, row) =>
   ),
 );
 
-const shapeExampleObjects = Object.fromEntries(shapeExampleEntries);
-const shapeExampleOrder = shapeExampleEntries.map(([id]) => id);
+const shapeShowcaseObjects = Object.fromEntries(shapeShowcaseEntries);
+const shapeShowcaseOrder = shapeShowcaseEntries.map(([id]) => id);
 
-const playerExampleEntries = FOOTBALL_PLAYER_PRESET_COLORS.map(
+const playerShowcaseEntries = FOOTBALL_PLAYER_PRESET_COLORS.map(
   (color, index) => {
     const column = index % 4;
     const row = Math.floor(index / 4);
-    const id = `player-example-${index + 1}`;
+    const id = `player-showcase-${index + 1}`;
 
     return [
       id,
@@ -413,14 +433,14 @@ const playerExampleEntries = FOOTBALL_PLAYER_PRESET_COLORS.map(
   },
 );
 
-const playerExampleObjects = Object.fromEntries(playerExampleEntries);
-const playerExampleOrder = playerExampleEntries.map(([id]) => id);
+const playerShowcaseObjects = Object.fromEntries(playerShowcaseEntries);
+const playerShowcaseOrder = playerShowcaseEntries.map(([id]) => id);
 
-const equipmentExampleEntries = FOOTBALL_EQUIPMENT_DEFINITIONS.map(
+const equipmentShowcaseEntries = FOOTBALL_EQUIPMENT_DEFINITIONS.map(
   (definition, index) => {
     const column = index % 4;
     const row = Math.floor(index / 4);
-    const id = `equipment-example-${definition.kind}`;
+    const id = `equipment-showcase-${definition.kind}`;
 
     return [
       id,
@@ -443,14 +463,14 @@ const equipmentExampleEntries = FOOTBALL_EQUIPMENT_DEFINITIONS.map(
   },
 );
 
-const equipmentExampleObjects = Object.fromEntries(equipmentExampleEntries);
-const equipmentExampleOrder = equipmentExampleEntries.map(([id]) => id);
+const equipmentShowcaseObjects = Object.fromEntries(equipmentShowcaseEntries);
+const equipmentShowcaseOrder = equipmentShowcaseEntries.map(([id]) => id);
 
-const textExampleEntries = [
+const textShowcaseEntries = [
   [
-    "text-example-note",
+    "text-showcase-note",
     createTextObject({
-      id: "text-example-note",
+      id: "text-showcase-note",
       position: pointMetersToPixels({
         x: fieldStartX + 10,
         y: fieldStartY + 40,
@@ -462,40 +482,72 @@ const textExampleEntries = [
   ] as const,
 ];
 
-const textExampleObjects = Object.fromEntries(textExampleEntries);
-const textExampleOrder = textExampleEntries.map(([id]) => id);
+const textShowcaseObjects = Object.fromEntries(textShowcaseEntries);
+const textShowcaseOrder = textShowcaseEntries.map(([id]) => id);
 
-export const footballBoardExample = createBoard({
-  id: "football-example-board",
-  version: 1,
-  metadata: {
-    name: "Football Example",
-  },
-  surface: {
+export function createFootballPitchSurface(): BoardSurfaceConfig {
+  return {
     width: metersToPixels(surfaceWidth),
     height: metersToPixels(surfaceHeight),
-    background: pitchColors.outer,
+    background: FOOTBALL_PITCH_COLORS.outer,
     markings: createFootballPitchMarkings(),
     markup: {
       sport: "football",
       variant: "full-pitch",
     },
-  },
+  };
+}
+
+export type CreateFootballBoardOptions = {
+  id?: string;
+  metadata?: BoardMetadata;
+  name?: string;
+  objects?: ObjectIndex;
+  style?: BoardStyleRef;
+  surface?: Partial<BoardSurfaceConfig>;
+};
+
+export function createFootballBoard({
+  id = "football-board",
+  metadata,
+  name = "Football Board",
+  objects = { byId: {}, order: [] },
+  style = {},
+  surface,
+}: CreateFootballBoardOptions = {}): Board {
+  return createBoard({
+    id,
+    version: 1,
+    metadata: {
+      name,
+      ...metadata,
+    },
+    surface: {
+      ...createFootballPitchSurface(),
+      ...surface,
+    },
+    objects,
+    style,
+  });
+}
+
+export const footballShowcaseBoard = createFootballBoard({
+  id: "football-showcase-board",
+  name: "Football Showcase",
   objects: {
     byId: {
-      ...playerExampleObjects,
-      ...equipmentExampleObjects,
-      ...textExampleObjects,
-      ...arrowExampleObjects,
-      ...shapeExampleObjects,
+      ...playerShowcaseObjects,
+      ...equipmentShowcaseObjects,
+      ...textShowcaseObjects,
+      ...arrowShowcaseObjects,
+      ...shapeShowcaseObjects,
     },
     order: [
-      ...playerExampleOrder,
-      ...equipmentExampleOrder,
-      ...textExampleOrder,
-      ...arrowExampleOrder,
-      ...shapeExampleOrder,
+      ...playerShowcaseOrder,
+      ...equipmentShowcaseOrder,
+      ...textShowcaseOrder,
+      ...arrowShowcaseOrder,
+      ...shapeShowcaseOrder,
     ],
   },
-  style: {},
 });

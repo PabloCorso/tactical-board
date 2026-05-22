@@ -8,12 +8,12 @@ import {
   BoardViewerCanvas,
   createBoardEditorStore,
 } from ".";
-import { FootballExampleApp, footballBoardExample } from "./examples/football";
+import { FootballBoardEditor, footballShowcaseBoard } from "./react";
 
 describe("SSR safety", () => {
   it("server-renders the public React exports with static imports", () => {
     const store = createBoardEditorStore({
-      initialBoard: footballBoardExample,
+      initialBoard: footballShowcaseBoard,
     });
 
     expect(() =>
@@ -29,14 +29,14 @@ describe("SSR safety", () => {
     expect(() =>
       renderToString(
         createElement(BoardViewerCanvas, {
-          board: footballBoardExample,
+          board: footballShowcaseBoard,
         }),
       ),
     ).not.toThrow();
   });
 
-  it("server-renders the football example entrypoint with static imports", () => {
-    const html = renderToString(createElement(FootballExampleApp));
+  it("server-renders the football React entrypoint with static imports", () => {
+    const html = renderToString(createElement(FootballBoardEditor));
 
     expect(html).toContain("<canvas");
   });

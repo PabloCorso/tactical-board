@@ -16,6 +16,7 @@ export * from "./components/board-editor-tool-control";
 export * from "./components/board-editor-tool-icons";
 export * from "./components/board-editor-toolbar";
 export * from "./components/board-viewer";
+export * from "./football";
 export * from "./hooks/use-board-editor-canvas";
 export * from "./hooks/use-board-editor-store";
 export * from "./hooks/use-board-viewer-canvas";

@@ -97,11 +97,11 @@ Own:
 - board-specific Document Backgrounds and Surface Presets
 - board-specific Shapes such as Player Tokens and equipment
 - board or sport-specific presets, dimensions, and coach-facing UI
-- Football Example as the first pressure-test application
+- Football as the first consumer-ready React board package
 
-The football editor remains under `src/examples/football` for now, but it is not disposable demo code. Shared board abstractions should be extracted only when multiple sports or concrete planning use cases prove the boundary.
+The football editor lives under `src/react/football`. It is not disposable demo code: it is the first React consumer package for football-specific board creation, tools, equipment, icons, and editor composition. Shared board abstractions should be extracted only when multiple sports or concrete planning use cases prove the boundary.
 
-The current `src/core/board` directory is a compatibility namespace for Board-facing types and helpers during the incremental migration from Board/Object vocabulary to Document/Shape vocabulary. It is not a fully extracted shared Board Library layer. New shared Board Library code should appear only when a concrete boundary exists outside the Football Example.
+The current `src/core/board` directory is a compatibility namespace for Board-facing types and helpers during the incremental migration from Board/Object vocabulary to Document/Shape vocabulary. It is not a fully extracted shared Board Library layer. New shared Board Library code should appear only when a concrete boundary exists outside the football package.
 
 ## Data Model
 

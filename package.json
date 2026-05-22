@@ -15,10 +15,10 @@
       "import": "./dist/tactical-board.js",
       "require": "./dist/tactical-board.cjs"
     },
-    "./examples/football": {
-      "types": "./dist/examples/football/index.d.ts",
-      "import": "./dist/examples/football.js",
-      "require": "./dist/examples/football.cjs"
+    "./react": {
+      "types": "./dist/react/index.d.ts",
+      "import": "./dist/react.js",
+      "require": "./dist/react.cjs"
     }
   },
   "publishConfig": {

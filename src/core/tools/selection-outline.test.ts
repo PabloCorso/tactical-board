@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createBoardSpaceProjection } from "../geometry/board-space-projection";
 import { createEquipmentObject } from "../objects/equipment-object";
 import { createPlayerObject } from "../objects/player-object";
-import { hoopEquipment } from "../../examples/football/equipment/hoop";
+import { hoopEquipment } from "../../react/football/equipment/hoop";
 import { getEquipmentSelectionOutlineCanvasPoints } from "./equipment-geometry";
 import { getPlayerSelectionOutlineCanvasPoints } from "./player-selection";
 

@@ -3,7 +3,7 @@ import { DEFAULT_ARROW_TOOL_STATE } from "../tools/arrow-tool-state";
 import { DEFAULT_SHAPE_TOOL_STATE } from "../tools/shape-tool-state";
 import { DEFAULT_PLAYER_COLOR } from "../objects/player-object";
 import { DEFAULT_TEXT_COLOR } from "../objects/text-object";
-import { footballBoardExample } from "../../examples/football/football-board-example";
+import { footballShowcaseBoard } from "../../react/football/football-board";
 import { DEFAULT_PRESET_COLOR, DEFAULT_PRESET_COLORS } from "./preset-colors";
 
 describe("preset-backed default colors", () => {
@@ -25,17 +25,17 @@ describe("preset-backed default colors", () => {
     );
   });
 
-  it("uses the preset black for football example arrows and shapes", () => {
-    const exampleObjects = Object.values(footballBoardExample.objects.byId);
+  it("uses the preset black for football showcase arrows and shapes", () => {
+    const showcaseObjects = Object.values(footballShowcaseBoard.objects.byId);
 
-    const exampleArrow = exampleObjects.find(
+    const showcaseArrow = showcaseObjects.find(
       (object) => object.id === "arrow-straight-solid-start-none-end-none",
     );
-    const exampleShape = exampleObjects.find(
+    const showcaseShape = showcaseObjects.find(
       (object) => object.id === "shape-rectangle-solid-none-bordered",
     );
 
-    expect(exampleArrow?.props.color).toBe(DEFAULT_PRESET_COLOR.black);
-    expect(exampleShape?.props.color).toBe(DEFAULT_PRESET_COLOR.black);
+    expect(showcaseArrow?.props.color).toBe(DEFAULT_PRESET_COLOR.black);
+    expect(showcaseShape?.props.color).toBe(DEFAULT_PRESET_COLOR.black);
   });
 });

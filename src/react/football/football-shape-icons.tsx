@@ -3,8 +3,8 @@ import {
   createShapeObject,
   type ShapeKind,
 } from "../../core/objects/shape-object";
-import { useBoardEditorContext } from "../../react/components/board-editor-context";
-import { useBoardEditorStore } from "../../react/hooks/use-board-editor-store";
+import { useBoardEditorContext } from "../components/board-editor-context";
+import { useBoardEditorStore } from "../hooks/use-board-editor-store";
 import { renderShape } from "../../core/tools/shape-tool";
 import {
   getShapeToolState,
