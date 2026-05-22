@@ -19,8 +19,15 @@ export default defineConfig({
   publicDir: false,
   build: {
     lib: {
-      entry: path.resolve(dirname, "src/index.ts"),
-      fileName: "tactical-board",
+      entry: {
+        "tactical-board": path.resolve(dirname, "src/index.ts"),
+        "examples/football": path.resolve(
+          dirname,
+          "src/examples/football/index.ts",
+        ),
+      },
+      fileName: (format, entryName) =>
+        `${entryName}.${format === "es" ? "js" : "cjs"}`,
       formats: ["es", "cjs"],
       name: "TacticalBoard",
     },

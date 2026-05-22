@@ -1,6 +1,7 @@
 import addonDocs from "@storybook/addon-docs";
 import addonA11y from "@storybook/addon-a11y";
 import { definePreview } from "@storybook/react-vite";
+import "../src/tailwind.css";
 
 export default definePreview({
   parameters: {
