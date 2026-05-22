@@ -13,6 +13,25 @@ const dirname =
     ? __dirname
     : path.dirname(fileURLToPath(import.meta.url));
 
+const libraryExternalPackages = [
+  "@base-ui/react",
+  "@phosphor-icons/react",
+  "base-ui",
+  "class-variance-authority",
+  "clsx",
+  "react",
+  "react-dom",
+  "tailwind-merge",
+  "use-sync-external-store",
+  "zustand",
+];
+
+function isLibraryExternal(id: string) {
+  return libraryExternalPackages.some(
+    (packageName) => id === packageName || id.startsWith(`${packageName}/`),
+  );
+}
+
 // More info at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon
 export default defineConfig({
   plugins: [tailwindcss(), react()],
@@ -29,7 +48,7 @@ export default defineConfig({
       name: "TacticalBoard",
     },
     rollupOptions: {
-      external: ["react", "react-dom", "react/jsx-runtime"],
+      external: isLibraryExternal,
     },
   },
   resolve: {
