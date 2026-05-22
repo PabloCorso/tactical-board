@@ -1,30 +1,8 @@
 import type { ComponentProps } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { ARROW_OBJECT_TYPE } from "../core/objects/arrow-object";
-import { EQUIPMENT_OBJECT_TYPE } from "../core/objects/equipment-object";
-import { PLAYER_OBJECT_TYPE } from "../core/objects/player-object";
-import { SHAPE_OBJECT_TYPE } from "../core/objects/shape-object";
-import { TEXT_OBJECT_TYPE } from "../core/objects/text-object";
-import type { CanvasObjectRendererRegistry } from "../core/rendering/canvas/types";
-import { renderArrow } from "../core/tools/arrow-tool";
-import { createEquipmentRenderer } from "../core/tools/equipment-tool";
-import { renderShape } from "../core/tools/shape-tool";
-import { renderText } from "../core/tools/text-tool";
 import { footballShowcaseBoard } from "../examples/football/football-showcase-board";
-import { BoardViewerCanvas } from "../react";
-import { FOOTBALL_EQUIPMENT_RENDERERS } from "../react/football/equipment";
-import { renderFootballPlayer } from "../react/football/football-tools";
+import { FootballBoardViewerCanvas } from "../react";
 import { cn } from "../react/components/misc";
-
-const footballObjectRenderers = {
-  [PLAYER_OBJECT_TYPE]: renderFootballPlayer,
-  [EQUIPMENT_OBJECT_TYPE]: createEquipmentRenderer(
-    FOOTBALL_EQUIPMENT_RENDERERS,
-  ),
-  [TEXT_OBJECT_TYPE]: renderText,
-  [ARROW_OBJECT_TYPE]: renderArrow,
-  [SHAPE_OBJECT_TYPE]: renderShape,
-} satisfies CanvasObjectRendererRegistry;
 
 const footballBoardPreviewMetrics = {
   aspectRatio:
@@ -100,13 +78,12 @@ function TacticalBoardCardItem({
           className="relative w-full overflow-hidden rounded-t-xl bg-neutral-950"
           style={{ aspectRatio: footballBoardPreviewMetrics.aspectRatio }}
         >
-          <BoardViewerCanvas
+          <FootballBoardViewerCanvas
             board={footballShowcaseBoard}
             extendBackground
             fitPadding={0}
             frameClassName="h-full flex-none"
             mode="fit-content"
-            objectRenderers={footballObjectRenderers}
           />
         </div>
         <div className="flex flex-col gap-1 border-t px-4 py-3">

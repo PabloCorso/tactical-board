@@ -10,18 +10,29 @@ import {
   BoardEditorShapePolygonDone,
   createFootballBoard,
   createFootballBoardEditorStore,
+  FootballBoardViewerCanvas,
   FootballBoardEditor,
   FootballPrimaryToolbar,
   FootballSecondaryToolbar,
+  getFootballObjectRenderers,
 } from ".";
+import { ARROW_OBJECT_TYPE } from "../core/objects/arrow-object";
+import { EQUIPMENT_OBJECT_TYPE } from "../core/objects/equipment-object";
+import { PLAYER_OBJECT_TYPE } from "../core/objects/player-object";
+import { SHAPE_OBJECT_TYPE } from "../core/objects/shape-object";
+import { TEXT_OBJECT_TYPE } from "../core/objects/text-object";
 
 describe("React public surface", () => {
-  it("exports the simple and composable football editor modules", () => {
+  it("exports the simple and composable football modules", () => {
     const board = createFootballBoard({ id: "public-surface-board" });
     const store = createFootballBoardEditorStore(board);
 
     expect(() =>
       renderToString(createElement(FootballBoardEditor)),
+    ).not.toThrow();
+
+    expect(() =>
+      renderToString(createElement(FootballBoardViewerCanvas, { board })),
     ).not.toThrow();
 
     expect(() =>
@@ -42,5 +53,25 @@ describe("React public surface", () => {
         ),
       ),
     ).not.toThrow();
+  });
+
+  it("exports football viewer object renderers", () => {
+    const customPlayerRenderer = () => {};
+    const renderers = getFootballObjectRenderers();
+    const overriddenRenderers = getFootballObjectRenderers({
+      [PLAYER_OBJECT_TYPE]: customPlayerRenderer,
+    });
+
+    expect(renderers[PLAYER_OBJECT_TYPE]).toBeTypeOf("function");
+    expect(renderers[EQUIPMENT_OBJECT_TYPE]).toBeTypeOf("function");
+    expect(renderers[TEXT_OBJECT_TYPE]).toBeTypeOf("function");
+    expect(renderers[ARROW_OBJECT_TYPE]).toBeTypeOf("function");
+    expect(renderers[SHAPE_OBJECT_TYPE]).toBeTypeOf("function");
+    expect(overriddenRenderers[PLAYER_OBJECT_TYPE]).toBe(
+      customPlayerRenderer,
+    );
+    expect(overriddenRenderers[EQUIPMENT_OBJECT_TYPE]).toBe(
+      renderers[EQUIPMENT_OBJECT_TYPE],
+    );
   });
 });

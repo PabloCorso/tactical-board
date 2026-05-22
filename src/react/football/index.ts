@@ -1,5 +1,6 @@
 export * from "./football-board";
 export * from "./football-board-editor";
+export * from "./football-board-viewer";
 export * from "./football-catalog";
 export * from "./football-primary-toolbar";
 export * from "./football-secondary-toolbar";
