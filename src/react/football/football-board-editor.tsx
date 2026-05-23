@@ -12,6 +12,7 @@ import {
   BoardEditorShapePolygonDone,
 } from "../components/board-editor";
 import { BoardEditorSelectionToolbar } from "../components/board-editor-selection-toolbar";
+import { BoardEditorToolbarDock } from "../components/board-editor-toolbar";
 import { SELECT_TOOL_ID } from "../../core/tools/select-tool-state";
 import { createFootballBoard } from "./football-board";
 import { FootballPrimaryToolbar } from "./football-primary-toolbar";
@@ -53,12 +54,10 @@ export function FootballBoardEditor({
         <BoardEditorShapePolygonDone />
         <BoardEditorCanvasToolbar />
         <BoardEditorSelectionToolbar />
-        <div className="pointer-events-none absolute inset-y-4 left-4 flex items-center">
-          <div className="pointer-events-auto flex items-center gap-3">
-            <FootballPrimaryToolbar />
-            <FootballSecondaryToolbar className="flex-col" />
-          </div>
-        </div>
+        <BoardEditorToolbarDock>
+          <FootballPrimaryToolbar />
+          <FootballSecondaryToolbar />
+        </BoardEditorToolbarDock>
       </BoardEditor>
     </BoardEditorProvider>
   );

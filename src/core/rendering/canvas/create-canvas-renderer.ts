@@ -2,8 +2,6 @@ import type { BoardSurfaceMarking } from "../../board/types";
 import { createBoardSpaceProjection } from "../../geometry/board-space-projection";
 import { getOrderedBoardObjectIds } from "../../board/object-order";
 import type {
-  CanvasObjectRenderInput,
-  CanvasObjectRenderer,
   CanvasOverlayRenderInput,
   CanvasOverlayRendererRegistry,
   CanvasRectOverlayItem,
@@ -12,11 +10,6 @@ import type {
 
 const SURFACE_INSET = 14;
 const SURFACE_RADIUS = 10;
-const TOKEN_TOP = "#f8f1d3";
-const TOKEN_BOTTOM = "#d6bb67";
-const TOKEN_TEXT = "#09231d";
-const TOKEN_BORDER = "rgba(214,187,103,0.22)";
-const TEXT_FONT = '700 18px "ui-rounded", "SF Pro Display", sans-serif';
 const DEFAULT_SURFACE_BACKGROUND = "rgba(255,255,255,0.03)";
 
 function getSurfaceBackground(board: {
@@ -133,52 +126,6 @@ function drawSurfaceMarking(
   }
 }
 
-function getObjectRadius(
-  input: Pick<CanvasObjectRenderInput, "object" | "surfaceTransform">,
-) {
-  return input.surfaceTransform.getObjectCanvasRadius(input.object);
-}
-
-const defaultObjectRenderer: CanvasObjectRenderer = ({
-  context,
-  object,
-  appearance,
-  surfaceTransform,
-}) => {
-  const { x, y } = surfaceTransform.boardToCanvas(object.position);
-  const objectRadius = getObjectRadius({ object, surfaceTransform });
-  const tokenFill = context.createLinearGradient(
-    x,
-    y - objectRadius,
-    x,
-    y + objectRadius,
-  );
-  tokenFill.addColorStop(0, TOKEN_TOP);
-  tokenFill.addColorStop(1, TOKEN_BOTTOM);
-
-  context.save();
-  context.globalAlpha = appearance === "preview" ? 0.55 : 1;
-  context.fillStyle = tokenFill;
-  context.beginPath();
-  context.arc(x, y, objectRadius, 0, Math.PI * 2);
-  context.fill();
-
-  context.strokeStyle = TOKEN_BORDER;
-  context.lineWidth = 1;
-  context.stroke();
-
-  context.fillStyle = TOKEN_TEXT;
-  context.font = TEXT_FONT;
-  context.textAlign = "center";
-  context.textBaseline = "middle";
-  context.fillText(
-    String(object.props.label ?? object.props.number ?? object.type),
-    x,
-    y + 1,
-  );
-  context.restore();
-};
-
 function drawRectOverlay({
   context,
   overlay,
@@ -290,8 +237,8 @@ export function createCanvasRenderer(): CanvasRenderer {
           continue;
         }
 
-        const renderer = objectRenderers[object.type] ?? defaultObjectRenderer;
-        renderer({
+        const renderer = objectRenderers[object.type];
+        renderer?.({
           context,
           object,
           appearance: "default",
@@ -301,9 +248,8 @@ export function createCanvasRenderer(): CanvasRenderer {
       }
 
       for (const previewObject of previewObjects) {
-        const renderer =
-          objectRenderers[previewObject.type] ?? defaultObjectRenderer;
-        renderer({
+        const renderer = objectRenderers[previewObject.type];
+        renderer?.({
           context,
           object: previewObject,
           appearance: "preview",

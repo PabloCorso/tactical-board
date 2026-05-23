@@ -1,5 +1,8 @@
 import { BoardEditorToolControl } from "../components/board-editor-tool-control";
-import { BoardEditorToolbar } from "../components/board-editor-toolbar";
+import {
+  BoardEditorToolbar,
+  type BoardEditorToolbarProps,
+} from "../components/board-editor-toolbar";
 import {
   FootballArrowToolIcon,
   FootballEquipmentToolIcon,
@@ -7,15 +10,17 @@ import {
   FootballShapeToolIcon,
 } from "./football-tool-icons";
 
-export type FootballPrimaryToolbarProps = {
-  className?: string;
-};
+export type FootballPrimaryToolbarProps = Omit<
+  BoardEditorToolbarProps,
+  "children"
+>;
 
 export function FootballPrimaryToolbar({
-  className = "flex-col",
+  orientation = "vertical",
+  ...toolbarProps
 }: FootballPrimaryToolbarProps) {
   return (
-    <BoardEditorToolbar className={className}>
+    <BoardEditorToolbar {...toolbarProps} orientation={orientation}>
       <BoardEditorToolControl toolId="select" />
       <BoardEditorToolControl toolId="hand" />
       <BoardEditorToolControl

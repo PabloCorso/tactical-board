@@ -180,4 +180,57 @@ describe("createCanvasRenderer", () => {
       fillStyle: "#177238",
     });
   });
+
+  it("renders only objects with registered renderers", () => {
+    const { canvas, operations } = createFakeCanvas();
+
+    createCanvasRenderer().render({
+      canvas,
+      board: {
+        ...createEmptyBoard({
+          width: 100,
+          height: 50,
+          fill: "#f8fafc",
+        }),
+        objects: {
+          byId: {
+            registered: {
+              id: "registered",
+              type: "registered",
+              position: { x: 10, y: 10 },
+              rotation: 0,
+              size: { width: 10, height: 10 },
+              props: {},
+            },
+            missing: {
+              id: "missing",
+              type: "missing",
+              position: { x: 20, y: 20 },
+              rotation: 0,
+              size: { width: 10, height: 10 },
+              props: {},
+            },
+          },
+          order: ["registered", "missing"],
+        },
+      },
+      viewport: {
+        pan: { x: 0, y: 0 },
+        zoom: 1,
+      },
+      objectRenderers: {
+        registered: ({ context }) => {
+          context.fillStyle = "#123456";
+          context.fillRect(0, 0, 4, 4);
+        },
+      },
+    });
+
+    expect(
+      operations.filter(
+        (operation) =>
+          operation.kind === "fill-rect" && operation.fillStyle === "#123456",
+      ),
+    ).toHaveLength(1);
+  });
 });

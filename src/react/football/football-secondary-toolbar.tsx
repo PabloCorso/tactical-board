@@ -6,6 +6,7 @@ import { useBoardEditorContext } from "../components/board-editor-context";
 import {
   BoardEditorToolbar,
   BoardEditorToolbarButton,
+  type BoardEditorToolbarProps,
 } from "../components/board-editor-toolbar";
 import { useBoardEditorStore } from "../hooks/use-board-editor-store";
 import {
@@ -83,11 +84,15 @@ function getNextPlayerLabel(state: BoardEditorState, color: string) {
   return String(Math.max(nextLabelFromState, nextLabelFromBoard));
 }
 
+export type FootballSecondaryToolbarProps = Omit<
+  BoardEditorToolbarProps,
+  "children"
+>;
+
 export function FootballSecondaryToolbar({
-  className,
-}: {
-  className?: string;
-}) {
+  orientation = "vertical",
+  ...toolbarProps
+}: FootballSecondaryToolbarProps) {
   const editorStore = useBoardEditorContext();
   const toolApi = useMemo(() => createToolApi(editorStore), [editorStore]);
   const state = useBoardEditorStore(
@@ -100,7 +105,7 @@ export function FootballSecondaryToolbar({
     const playerState = getPlayerToolState(state.toolState);
 
     return (
-      <BoardEditorToolbar className={className}>
+      <BoardEditorToolbar {...toolbarProps} orientation={orientation}>
         {FOOTBALL_PLAYER_PRESETS.map((preset) => {
           const color = preset.draftStyle.color;
           const label =
@@ -155,7 +160,7 @@ export function FootballSecondaryToolbar({
     const equipmentState = getEquipmentToolState(state.toolState);
 
     return (
-      <BoardEditorToolbar className={className}>
+      <BoardEditorToolbar {...toolbarProps} orientation={orientation}>
         {FOOTBALL_EQUIPMENT_DEFINITIONS.map((definition) => (
           <BoardEditorToolbarButton
             aria-label={definition.label}
@@ -193,7 +198,7 @@ export function FootballSecondaryToolbar({
     const arrowState = getArrowToolState(state.toolState);
 
     return (
-      <BoardEditorToolbar className={className}>
+      <BoardEditorToolbar {...toolbarProps} orientation={orientation}>
         {FOOTBALL_ARROW_PRESETS.map((preset) => (
           <BoardEditorToolbarButton
             aria-label={preset.tooltip ?? preset.label}
@@ -233,7 +238,7 @@ export function FootballSecondaryToolbar({
     const shapeState = getShapeToolState(state.toolState);
 
     return (
-      <BoardEditorToolbar className={className}>
+      <BoardEditorToolbar {...toolbarProps} orientation={orientation}>
         {FOOTBALL_SHAPE_PRESETS.map((preset) => (
           <BoardEditorToolbarButton
             aria-label={preset.tooltip ?? preset.label}

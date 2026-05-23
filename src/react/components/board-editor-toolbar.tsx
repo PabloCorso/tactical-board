@@ -12,7 +12,12 @@ import type { IconRender } from "./ui/icon";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
-type BoardEditorToolbarOrientation = "horizontal" | "vertical";
+export type BoardEditorToolbarOrientation = "horizontal" | "vertical";
+export type BoardEditorToolbarDockPlacement =
+  | "top"
+  | "right"
+  | "bottom"
+  | "left";
 
 type BoardEditorToolbarContextValue = {
   orientation: BoardEditorToolbarOrientation;
@@ -27,6 +32,12 @@ export type BoardEditorToolbarProps = PropsWithChildren & {
   orientation?: BoardEditorToolbarOrientation;
 };
 
+export type BoardEditorToolbarDockProps = PropsWithChildren & {
+  className?: string;
+  contentClassName?: string;
+  placement?: BoardEditorToolbarDockPlacement;
+};
+
 export function BoardEditorToolbar({
   children,
   className,
@@ -38,7 +49,7 @@ export function BoardEditorToolbar({
         role="toolbar"
         aria-orientation={orientation}
         className={cn(
-          "bg-surface/90 mx-auto inline-flex w-max flex-nowrap items-center justify-center gap-0.5 rounded-xl border p-1 shadow-lg backdrop-blur-sm",
+          "bg-surface mx-auto inline-flex w-max flex-nowrap items-center justify-center gap-0.5 rounded-xl border p-1 shadow-lg",
           "aria-[orientation=vertical]:flex-col",
           className,
         )}
@@ -46,6 +57,36 @@ export function BoardEditorToolbar({
         {children}
       </aside>
     </BoardEditorToolbarContext.Provider>
+  );
+}
+
+export function BoardEditorToolbarDock({
+  children,
+  className,
+  contentClassName,
+  placement = "left",
+}: BoardEditorToolbarDockProps) {
+  return (
+    <div
+      data-placement={placement}
+      className={cn(
+        "pointer-events-none absolute flex",
+        "data-[placement=left]:inset-y-4 data-[placement=left]:left-4 data-[placement=left]:items-center",
+        "data-[placement=right]:inset-y-4 data-[placement=right]:right-4 data-[placement=right]:items-center",
+        "data-[placement=top]:inset-x-4 data-[placement=top]:top-4 data-[placement=top]:justify-center",
+        "data-[placement=bottom]:inset-x-4 data-[placement=bottom]:bottom-4 data-[placement=bottom]:justify-center",
+        className,
+      )}
+    >
+      <div
+        className={cn(
+          "pointer-events-auto flex items-center gap-3",
+          contentClassName,
+        )}
+      >
+        {children}
+      </div>
+    </div>
   );
 }
 
