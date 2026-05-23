@@ -72,9 +72,7 @@ describe("React public surface", () => {
     expect(renderers[TEXT_OBJECT_TYPE]).toBeTypeOf("function");
     expect(renderers[ARROW_OBJECT_TYPE]).toBeTypeOf("function");
     expect(renderers[SHAPE_OBJECT_TYPE]).toBeTypeOf("function");
-    expect(overriddenRenderers[PLAYER_OBJECT_TYPE]).toBe(
-      customPlayerRenderer,
-    );
+    expect(overriddenRenderers[PLAYER_OBJECT_TYPE]).toBe(customPlayerRenderer);
     expect(overriddenRenderers[EQUIPMENT_OBJECT_TYPE]).toBe(
       renderers[EQUIPMENT_OBJECT_TYPE],
     );

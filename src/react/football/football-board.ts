@@ -147,9 +147,7 @@ export function createFootballPitchMarkings(): BoardSurfaceMarking[] {
     {
       kind: "circle",
       cx:
-        outerMarginX +
-        width -
-        FOOTBALL_FULL_PITCH_METRICS.penalty.spotDistance,
+        outerMarginX + width - FOOTBALL_FULL_PITCH_METRICS.penalty.spotDistance,
       cy: centerY,
       r: FOOTBALL_FULL_PITCH_METRICS.penalty.spotRadius,
       fill: FOOTBALL_PITCH_COLORS.line,
@@ -167,9 +165,7 @@ export function createFootballPitchMarkings(): BoardSurfaceMarking[] {
     {
       kind: "arc",
       cx:
-        outerMarginX +
-        width -
-        FOOTBALL_FULL_PITCH_METRICS.penalty.spotDistance,
+        outerMarginX + width - FOOTBALL_FULL_PITCH_METRICS.penalty.spotDistance,
       cy: centerY,
       r: FOOTBALL_FULL_PITCH_METRICS.penalty.arcRadius,
       startAngle: 128,

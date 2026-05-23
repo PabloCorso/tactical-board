@@ -14,7 +14,7 @@ export type CardProps = ComponentProps<"div">;
 function Card({ className, ...props }: CardProps) {
   return (
     <div
-      className={cn("overflow-clip rounded-xl border bg-surface", className)}
+      className={cn("bg-surface overflow-clip rounded-xl border", className)}
       {...props}
     />
   );
@@ -34,7 +34,7 @@ function CardTitle({ className, ...props }: CardTitleProps) {
 export type CardDescriptionProps = ComponentProps<"p">;
 
 function CardDescription({ className, ...props }: CardDescriptionProps) {
-  return <p className={cn("text-sm text-secondary", className)} {...props} />;
+  return <p className={cn("text-secondary text-sm", className)} {...props} />;
 }
 
 export type CardContentProps = ComponentProps<"div">;
@@ -97,7 +97,7 @@ function TacticalBoardCardItem({
 
 function TacticalBoardCard() {
   return (
-    <main className="min-h-dvh bg-screen p-6">
+    <main className="bg-screen min-h-dvh p-6">
       <div
         className="grid gap-4"
         style={{

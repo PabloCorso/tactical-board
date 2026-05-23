@@ -47,9 +47,6 @@ export function FootballBoardViewerCanvas({
   );
 
   return (
-    <BoardViewerCanvas
-      {...props}
-      objectRenderers={mergedObjectRenderers}
-    />
+    <BoardViewerCanvas {...props} objectRenderers={mergedObjectRenderers} />
   );
 }
