@@ -5,6 +5,7 @@ import { useBoardEditorContext } from "../components/board-editor-context";
 import { useBoardEditorStore } from "../hooks/use-board-editor-store";
 import { createEquipmentRenderer } from "../../core/tools/equipment-tool";
 import { getEquipmentToolState } from "../../core/tools/equipment-tool-state";
+import { cn } from "../components/misc";
 import {
   FOOTBALL_EQUIPMENT_DEFINITIONS,
   FOOTBALL_EQUIPMENT_RENDERERS,
@@ -17,7 +18,7 @@ const renderFootballEquipment = createEquipmentRenderer(
 
 export function FootballEquipmentDefinitionIcon({
   definition,
-  className = "h-5 w-5",
+  className,
   size = 24,
 }: {
   definition: EquipmentDefinition;
@@ -45,7 +46,7 @@ export function FootballEquipmentDefinitionIcon({
     <FootballToolIconCanvas
       object={equipment}
       renderer={renderFootballEquipment}
-      className={className}
+      className={cn("h-5 w-5", className)}
       width={size}
       height={size}
     />

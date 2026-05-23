@@ -14,6 +14,7 @@ import {
 } from "../../core/tools/player-tool-state";
 import { FOOTBALL_PLAYER_PRESET_COLORS } from "./football-catalog";
 import { DEFAULT_PRESET_COLOR } from "../../core/colors/preset-colors";
+import { cn } from "../components/misc";
 import { FootballToolIconCanvas } from "./football-tool-icon-canvas";
 
 function parseNumericLabel(label: unknown) {
@@ -57,7 +58,7 @@ function getCurrentPlayerLabel(
 export function FootballPlayerPresetIcon({
   draftStyle,
   label,
-  className = "h-5 w-5",
+  className,
   width = 20,
   height = 20,
 }: {
@@ -86,7 +87,7 @@ export function FootballPlayerPresetIcon({
     <FootballToolIconCanvas
       object={player}
       renderer={renderPlayer}
-      className={className}
+      className={cn("h-5 w-5", className)}
       width={width}
       height={height}
     />

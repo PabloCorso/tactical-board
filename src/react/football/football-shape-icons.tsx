@@ -10,11 +10,12 @@ import {
   getShapeToolState,
   type ShapeDraftStyle,
 } from "../../core/tools/shape-tool-state";
+import { cn } from "../components/misc";
 import { FootballToolIconCanvas } from "./football-tool-icon-canvas";
 
 export function FootballShapePresetIcon({
   draftStyle,
-  className = "h-5 w-10",
+  className,
   width = 40,
   height = 20,
 }: {
@@ -32,7 +33,7 @@ export function FootballShapePresetIcon({
     <FootballToolIconCanvas
       object={shape}
       renderer={renderShape}
-      className={className}
+      className={cn("h-5 w-10", className)}
       width={width}
       height={height}
     />

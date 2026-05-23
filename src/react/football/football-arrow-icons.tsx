@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { BoardEditorArrowIcon } from "../components/board-editor-arrow-icon";
 import { useBoardEditorContext } from "../components/board-editor-context";
+import { cn } from "../components/misc";
 import { useBoardEditorStore } from "../hooks/use-board-editor-store";
 import {
   getArrowToolState,
@@ -9,7 +10,7 @@ import {
 
 export function FootballArrowPresetIcon({
   draftStyle,
-  className = "h-5 w-10",
+  className,
   width = 40,
   height = 20,
 }: {
@@ -30,7 +31,7 @@ export function FootballArrowPresetIcon({
   return (
     <BoardEditorArrowIcon
       draftStyle={draftStyle}
-      className={className}
+      className={cn("h-5 w-10", className)}
       width={width}
       height={height}
       layout="wide"

@@ -13,6 +13,7 @@ import {
 } from "../components/board-editor";
 import { BoardEditorSelectionToolbar } from "../components/board-editor-selection-toolbar";
 import { BoardEditorToolbarDock } from "../components/board-editor-toolbar";
+import { cn } from "../components/misc";
 import { SELECT_TOOL_ID } from "../../core/tools/select-tool-state";
 import { createFootballBoard } from "./football-board";
 import { FootballPrimaryToolbar } from "./football-primary-toolbar";
@@ -36,7 +37,7 @@ export function createFootballBoardEditorStore(
 }
 
 export function FootballBoardEditor({
-  className = "relative h-dvh w-full overflow-hidden",
+  className,
   initialBoard,
   store: providedStore,
 }: FootballBoardEditorProps = {}) {
@@ -49,7 +50,9 @@ export function FootballBoardEditor({
 
   return (
     <BoardEditorProvider store={store}>
-      <BoardEditor className={className}>
+      <BoardEditor
+        className={cn("relative h-dvh w-full overflow-hidden", className)}
+      >
         <BoardEditorCanvas />
         <BoardEditorShapePolygonDone />
         <BoardEditorCanvasToolbar />
