@@ -1,5 +1,6 @@
 import type {
   Board,
+  BoardSurfaceConfig,
   BoardObject,
   Document,
   ObjectId,
@@ -70,6 +71,7 @@ export interface BoardEditorActions {
   endHistoryBatch: () => void;
   undo: () => void;
   redo: () => void;
+  setSurface: (surface: BoardSurfaceConfig) => void;
   addObjects: (objects: BoardObject[]) => void;
   bringObjectsToFront: (objectIds: ObjectId[]) => void;
   duplicateObjects: (objectIds: ObjectId[]) => ObjectId[];

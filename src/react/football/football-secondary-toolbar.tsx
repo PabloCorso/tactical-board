@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { PLAYER_OBJECT_TYPE } from "../../core/objects/player-object";
 import { createToolApi } from "../../core/editor/create-tool-api";
 import type { BoardEditorState } from "../../core/editor/types";
+import { getViewportToFitSurface } from "../../core/editor/viewport-utils";
 import { useBoardEditorContext } from "../components/board-editor-context";
 import {
   BoardEditorToolbar,
@@ -33,6 +34,13 @@ import {
   FOOTBALL_PLAYER_PRESETS,
   FOOTBALL_SHAPE_PRESETS,
 } from "./football-catalog";
+import { createFootballPitchSurface } from "./football-board";
+import {
+  FOOTBALL_PITCH_SURFACE_OPTIONS,
+  FOOTBALL_PITCH_TOOL_ID,
+  FootballPitchSurfacePreview,
+  getFootballPitchSurfaceVariant,
+} from "./football-pitch-surface-icons";
 import {
   FootballArrowPresetIcon,
   FootballEquipmentDefinitionIcon,
@@ -100,6 +108,46 @@ export function FootballSecondaryToolbar({
     (currentState) => currentState,
   );
   const activeToolId = state.ui.activeToolId;
+
+  if (activeToolId === FOOTBALL_PITCH_TOOL_ID) {
+    const variant = getFootballPitchSurfaceVariant(
+      state.board.surface.markup?.variant,
+    );
+
+    return (
+      <BoardEditorToolbar {...toolbarProps} orientation={orientation}>
+        {FOOTBALL_PITCH_SURFACE_OPTIONS.map((option) => (
+          <BoardEditorToolbarButton
+            active={variant === option.value}
+            aria-label={option.label}
+            className="h-auto w-auto p-1.5"
+            key={option.value}
+            onClick={() => {
+              const surface = createFootballPitchSurface(option.value);
+              toolApi.setSurface(surface);
+
+              if (state.ui.canvasRect) {
+                state.actions.setViewport(
+                  getViewportToFitSurface({
+                    surface,
+                    canvasRect: state.ui.canvasRect,
+                  }),
+                );
+              }
+            }}
+            tooltip={option.label}
+          >
+            <FootballPitchSurfacePreview
+              className="rounded-md"
+              variant={option.value}
+              width={104}
+              height={64}
+            />
+          </BoardEditorToolbarButton>
+        ))}
+      </BoardEditorToolbar>
+    );
+  }
 
   if (activeToolId === PLAYER_TOOL_ID) {
     const playerState = getPlayerToolState(state.toolState);

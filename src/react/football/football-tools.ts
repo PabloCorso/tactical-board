@@ -20,6 +20,7 @@ import {
   FOOTBALL_PLAYER_PRESETS,
   FOOTBALL_SHAPE_PRESETS,
 } from "./football-catalog";
+import { FOOTBALL_PITCH_TOOL_ID } from "./football-pitch-surface-icons";
 
 type PlayerImageCacheEntry = {
   image: HTMLImageElement;
@@ -133,5 +134,9 @@ export function createFootballTools(): ToolRegistration[] {
         height: 96,
       },
     }),
+    {
+      id: FOOTBALL_PITCH_TOOL_ID,
+      label: "Pitch",
+    },
   ];
 }

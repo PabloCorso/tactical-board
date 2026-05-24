@@ -48,6 +48,36 @@ describe("createBoardEditorStore", () => {
       ],
     });
 
+  it("updates the board surface through history", () => {
+    const store = createStore();
+
+    store.getState().actions.setSurface({
+      width: 200,
+      height: 100,
+      background: "#177238",
+      markup: {
+        sport: "football",
+        variant: "half-pitch",
+      },
+    });
+
+    expect(store.getState().board.surface).toMatchObject({
+      width: 200,
+      height: 100,
+      background: "#177238",
+      markup: {
+        variant: "half-pitch",
+      },
+    });
+
+    store.getState().actions.undo();
+
+    expect(store.getState().board.surface).toEqual({
+      width: 100,
+      height: 50,
+    });
+  });
+
   it("preserves editor selection and resets select interaction when switching away", () => {
     const store = createBoardEditorStore({
       initialBoard: {

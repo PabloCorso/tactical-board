@@ -302,6 +302,7 @@ export function createEditorStore({
             duplicateObjects: actions.duplicateObjects,
             deleteObjects: actions.deleteObjects,
             sendObjectsToBack: actions.sendObjectsToBack,
+            setSurface: actions.setSurface,
             updateObjects: actions.updateObjects,
             setPreviewObjects: actions.setPreviewObjects,
             clearPreviewObjects: actions.clearPreviewObjects,
@@ -551,6 +552,23 @@ export function createEditorStore({
               ...state.board.objects,
               order: nextOrder,
             },
+          };
+
+          return {
+            board: nextBoard,
+            history: recordHistoryForBoardChange(state),
+          };
+        });
+      },
+      setSurface: (surface) => {
+        set((state) => {
+          if (state.board.surface === surface) {
+            return state;
+          }
+
+          const nextBoard = {
+            ...state.board,
+            surface,
           };
 
           return {

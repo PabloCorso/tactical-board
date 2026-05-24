@@ -14,6 +14,7 @@ export function createToolApi(store: BoardEditorStore): ToolApi {
     duplicateObjects: actions.duplicateObjects,
     deleteObjects: actions.deleteObjects,
     sendObjectsToBack: actions.sendObjectsToBack,
+    setSurface: actions.setSurface,
     updateObjects: actions.updateObjects,
     setPreviewObjects: actions.setPreviewObjects,
     clearPreviewObjects: actions.clearPreviewObjects,
