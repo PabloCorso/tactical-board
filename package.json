@@ -6,6 +6,9 @@
   "files": [
     "dist"
   ],
+  "sideEffects": [
+    "*.css"
+  ],
   "main": "./dist/tactical-board.cjs",
   "module": "./dist/tactical-board.js",
   "types": "./dist/index.d.ts",
@@ -19,7 +22,8 @@
       "types": "./dist/react/index.d.ts",
       "import": "./dist/react.js",
       "require": "./dist/react.cjs"
-    }
+    },
+    "./styles.css": "./dist/styles.css"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com",

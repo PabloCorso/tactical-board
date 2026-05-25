@@ -26,7 +26,6 @@ import {
   type SelectToolState,
   SELECT_TOOL_ID,
 } from "./select-tool-state";
-import colors from "tailwindcss/colors";
 import {
   drawClosedCanvasPath,
   drawRoundedSquareHandle,
@@ -40,7 +39,8 @@ import {
   rotateBoardObject,
 } from "../objects/object-behaviors";
 
-const DEFAULT_SELECTION_COLOR = colors.sky[400];
+const DEFAULT_SELECTION_COLOR = "#38bdf8";
+const SELECTION_HANDLE_FILL_COLOR = "#ffffff";
 const SELECTION_OVERLAY_KIND = "select:selection-ring";
 const GROUP_SELECTION_OVERLAY_KIND = "select:group-selection-ring";
 const GROUP_SELECTION_HANDLE_RADIUS_PX = 4;
@@ -200,10 +200,25 @@ function getSelectionBounds(
 
 function withAlpha(color: string, alpha: number) {
   const clampedAlpha = Math.max(0, Math.min(1, alpha));
-  const rounded = Math.round(clampedAlpha * 255);
-  const alphaHex = rounded.toString(16).padStart(2, "0");
+  const hexMatch = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(color.trim());
 
-  return `${color}${alphaHex}`;
+  if (hexMatch) {
+    const hex = hexMatch[1]!;
+    const expanded =
+      hex.length === 3
+        ? hex
+            .split("")
+            .map((character) => `${character}${character}`)
+            .join("")
+        : hex;
+    const red = Number.parseInt(expanded.slice(0, 2), 16);
+    const green = Number.parseInt(expanded.slice(2, 4), 16);
+    const blue = Number.parseInt(expanded.slice(4, 6), 16);
+
+    return `rgba(${red}, ${green}, ${blue}, ${clampedAlpha})`;
+  }
+
+  return color;
 }
 
 function getSelectionAccentColor(
@@ -757,7 +772,7 @@ function registerSelectOverlayRenderer(
       context.save();
       context.strokeStyle = overlay.color;
       context.lineWidth = 1.5;
-      context.fillStyle = colors.white;
+      context.fillStyle = SELECTION_HANDLE_FILL_COLOR;
       drawClosedCanvasPath(context, outlinePoints);
       context.stroke();
 

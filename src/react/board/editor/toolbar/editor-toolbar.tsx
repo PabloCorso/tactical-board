@@ -50,7 +50,7 @@ export function BoardEditorToolbar({
         aria-orientation={orientation}
         className={cn(
           "bg-surface mx-auto inline-flex w-max flex-nowrap items-center justify-center gap-0.5 rounded-xl border p-1 shadow-lg",
-          "aria-[orientation=vertical]:flex-col",
+          orientation === "vertical" && "flex-col",
           className,
         )}
       >
@@ -66,15 +66,19 @@ export function BoardEditorToolbarDock({
   contentClassName,
   placement = "left",
 }: BoardEditorToolbarDockProps) {
+  const placementClassName = {
+    bottom: "inset-x-4 bottom-4 justify-center",
+    left: "inset-y-4 left-4 items-center",
+    right: "inset-y-4 right-4 items-center",
+    top: "inset-x-4 top-4 justify-center",
+  } satisfies Record<BoardEditorToolbarDockPlacement, string>;
+
   return (
     <div
       data-placement={placement}
       className={cn(
         "pointer-events-none absolute flex",
-        "data-[placement=left]:inset-y-4 data-[placement=left]:left-4 data-[placement=left]:items-center",
-        "data-[placement=right]:inset-y-4 data-[placement=right]:right-4 data-[placement=right]:items-center",
-        "data-[placement=top]:inset-x-4 data-[placement=top]:top-4 data-[placement=top]:justify-center",
-        "data-[placement=bottom]:inset-x-4 data-[placement=bottom]:bottom-4 data-[placement=bottom]:justify-center",
+        placementClassName[placement],
         className,
       )}
     >
@@ -155,8 +159,8 @@ export function BoardEditorToolbarSeparator({
       aria-orientation={orientation}
       className={cn(
         "shrink-0 bg-(--border-default)",
-        "aria-[orientation=horizontal]:mx-0.5 aria-[orientation=horizontal]:w-px aria-[orientation=horizontal]:self-stretch",
-        "aria-[orientation=vertical]:my-0.5 aria-[orientation=vertical]:h-px aria-[orientation=vertical]:self-stretch",
+        orientation === "horizontal" && "mx-0.5 w-px self-stretch",
+        orientation === "vertical" && "my-0.5 h-px self-stretch",
         className,
       )}
       {...props}

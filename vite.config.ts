@@ -41,7 +41,9 @@ export default defineConfig({
       entry: {
         "tactical-board": path.resolve(dirname, "src/index.ts"),
         react: path.resolve(dirname, "src/react/index.ts"),
+        styles: path.resolve(dirname, "src/styles.ts"),
       },
+      cssFileName: "styles",
       fileName: (format, entryName) =>
         `${entryName}.${format === "es" ? "js" : "cjs"}`,
       formats: ["es", "cjs"],
