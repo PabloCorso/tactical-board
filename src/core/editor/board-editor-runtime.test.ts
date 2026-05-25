@@ -231,6 +231,74 @@ describe("createBoardEditorRuntime", () => {
     createCanvasRendererSpy.mockRestore();
   });
 
+  it("passes the editor background extension setting to the renderer", () => {
+    const render = vi.fn();
+    const createCanvasRendererSpy = vi
+      .spyOn(canvasRendererModule, "createCanvasRenderer")
+      .mockReturnValue({ render });
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        frame: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      tools: [
+        {
+          id: SELECT_TOOL_ID,
+          label: "Select",
+        },
+      ],
+    });
+    const canvas = createCanvasStub();
+    const originalRequestAnimationFrame = globalThis.requestAnimationFrame;
+    const originalCancelAnimationFrame = globalThis.cancelAnimationFrame;
+    vi.stubGlobal(
+      "requestAnimationFrame",
+      vi.fn((callback: FrameRequestCallback) => {
+        callback(0);
+        return 1;
+      }),
+    );
+    vi.stubGlobal("cancelAnimationFrame", vi.fn());
+
+    const defaultRuntime = createBoardEditorRuntime({ store });
+    defaultRuntime.mount(canvas);
+
+    expect(render).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        extendBackground: true,
+      }),
+    );
+    defaultRuntime.unmount();
+
+    const optOutRuntime = createBoardEditorRuntime({
+      extendBackground: false,
+      store,
+    });
+    optOutRuntime.mount(canvas);
+
+    expect(render).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        extendBackground: false,
+      }),
+    );
+
+    optOutRuntime.unmount();
+    vi.unstubAllGlobals();
+    globalThis.requestAnimationFrame = originalRequestAnimationFrame;
+    globalThis.cancelAnimationFrame = originalCancelAnimationFrame;
+    createCanvasRendererSpy.mockRestore();
+  });
+
   it("clears previews when the pointer leaves the canvas without capture", () => {
     const store = createBoardEditorStore({
       initialBoard: {

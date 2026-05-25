@@ -3,12 +3,19 @@ import { createBoardEditorRuntime } from "../../core/editor/board-editor-runtime
 import type { BoardEditorStore } from "../../core/store/board-editor-store";
 
 type UseBoardEditorCanvasOptions = {
+  extendBackground?: boolean;
   store: BoardEditorStore;
 };
 
-export function useBoardEditorCanvas({ store }: UseBoardEditorCanvasOptions) {
+export function useBoardEditorCanvas({
+  extendBackground,
+  store,
+}: UseBoardEditorCanvasOptions) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const runtime = useMemo(() => createBoardEditorRuntime({ store }), [store]);
+  const runtime = useMemo(
+    () => createBoardEditorRuntime({ extendBackground, store }),
+    [extendBackground, store],
+  );
 
   useEffect(
     function mountBoardEditorRuntime() {

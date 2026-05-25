@@ -41,6 +41,7 @@ export type BoardEditorProviderProps = PropsWithChildren & {
 
 export type BoardEditorCanvasProps = {
   className?: string;
+  extendBackground?: boolean;
   frameClassName?: string;
 };
 
@@ -71,10 +72,11 @@ export function BoardEditor({ children, className }: BoardEditorProps) {
 
 export function BoardEditorCanvas({
   className,
+  extendBackground,
   frameClassName,
 }: BoardEditorCanvasProps) {
   const store = useBoardEditorContext();
-  const { canvasRef } = useBoardEditorCanvas({ store });
+  const { canvasRef } = useBoardEditorCanvas({ extendBackground, store });
   const activeToolId = useBoardEditorStore(
     store,
     (state) => state.ui.activeToolId,

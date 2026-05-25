@@ -23,6 +23,7 @@ import { createFootballTools } from "./football-tools";
 
 export type FootballBoardEditorProps = {
   className?: string;
+  extendBackground?: boolean;
   initialBoard?: Board;
   store?: BoardEditorStore;
   fitPadding?: number;
@@ -52,6 +53,7 @@ export function createFootballBoardEditorStore(
 
 export function FootballBoardEditor({
   className,
+  extendBackground,
   initialBoard,
   store: providedStore,
   fitPadding,
@@ -72,7 +74,7 @@ export function FootballBoardEditor({
       <BoardEditor
         className={cn("relative h-dvh w-full overflow-hidden", className)}
       >
-        <BoardEditorCanvas />
+        <BoardEditorCanvas extendBackground={extendBackground} />
         <BoardEditorShapePolygonDone />
         <BoardEditorCanvasToolbar />
         <BoardEditorSelectionToolbar />

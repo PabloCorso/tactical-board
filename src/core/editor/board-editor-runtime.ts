@@ -12,10 +12,12 @@ export interface BoardEditorRuntime {
 }
 
 export interface CreateBoardEditorRuntimeOptions {
+  extendBackground?: boolean;
   store: BoardEditorStore;
 }
 
 export function createBoardEditorRuntime({
+  extendBackground = true,
   store,
 }: CreateBoardEditorRuntimeOptions): BoardEditorRuntime {
   const controller = createBoardEditorController(store);
@@ -72,6 +74,7 @@ export function createBoardEditorRuntime({
       canvas,
       board: state.board,
       viewport: state.ui.viewport,
+      extendBackground,
       fitPadding: state.ui.fitPadding,
       requestRender,
       previewObjects: state.rendering.previewObjects,

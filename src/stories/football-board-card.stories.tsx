@@ -80,7 +80,6 @@ function TacticalBoardCardItem({
         >
           <FootballBoardViewerCanvas
             board={footballShowcaseBoard}
-            extendBackground
             fitPadding={0}
             frameClassName="h-full flex-none"
             mode="fit-content"

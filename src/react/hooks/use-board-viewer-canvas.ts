@@ -47,7 +47,7 @@ export function useBoardViewerCanvas({
   board,
   mode = "fit",
   fitPadding = DEFAULT_BOARD_VIEWER_FIT_PADDING,
-  extendBackground,
+  extendBackground = true,
   viewport,
   initialViewport = "fit",
   onViewportChange,
