@@ -45,7 +45,6 @@ export type EquipmentCanvasRenderInput = {
   width: number;
   height: number;
   strokeWidth: number;
-  requestRender: () => void;
 };
 
 export type EquipmentCanvasRenderer = (
@@ -204,7 +203,6 @@ export function createEquipmentRenderer(
     context,
     object,
     appearance,
-    requestRender,
     frameTransform,
   }: CanvasObjectRenderInput) => {
     const equipment = object as EquipmentObject;
@@ -241,7 +239,6 @@ export function createEquipmentRenderer(
         width,
         height,
         strokeWidth,
-        requestRender,
       });
     }
 
