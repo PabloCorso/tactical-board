@@ -327,21 +327,21 @@ function rotatePointAround(point: Point, center: Point, rotation = 0): Point {
 
 function getRenderedShapeCanvasPoints(
   shape: ShapeObject,
-  surfaceTransform: CanvasObjectRenderInput["surfaceTransform"],
+  frameTransform: CanvasObjectRenderInput["frameTransform"],
 ) {
   return getShapePoints(shape.props)
     .map((point) => rotatePointAround(point, shape.position, shape.rotation))
-    .map((point) => surfaceTransform.boardToCanvas(point));
+    .map((point) => frameTransform.boardToCanvas(point));
 }
 
 function getRenderedRectangleMetrics(
   shape: ShapeObject,
-  surfaceTransform: CanvasObjectRenderInput["surfaceTransform"],
+  frameTransform: CanvasObjectRenderInput["frameTransform"],
 ) {
-  const center = surfaceTransform.boardToCanvas(shape.position);
-  const width = Math.abs((shape.size?.width ?? 0) * surfaceTransform.scale);
+  const center = frameTransform.boardToCanvas(shape.position);
+  const width = Math.abs((shape.size?.width ?? 0) * frameTransform.scale);
   const height = Math.abs(
-    (shape.size?.height ?? shape.size?.width ?? 0) * surfaceTransform.scale,
+    (shape.size?.height ?? shape.size?.width ?? 0) * frameTransform.scale,
   );
   const radius = Math.min(
     Math.min(width, height) * RECTANGLE_CORNER_RADIUS_RATIO,
@@ -377,11 +377,11 @@ function rotateLocalCanvasPoint(
 function traceRoundedRectanglePath(
   path: Path2D,
   shape: ShapeObject,
-  surfaceTransform: CanvasObjectRenderInput["surfaceTransform"],
+  frameTransform: CanvasObjectRenderInput["frameTransform"],
 ) {
   const { center, halfWidth, halfHeight, radius } = getRenderedRectangleMetrics(
     shape,
-    surfaceTransform,
+    frameTransform,
   );
   const rotation = shape.rotation ?? 0;
   const topLeft = rotateLocalCanvasPoint(
@@ -420,15 +420,15 @@ function traceRoundedRectanglePath(
 
 function createRenderedShapePath(
   shape: ShapeObject,
-  surfaceTransform: CanvasObjectRenderInput["surfaceTransform"],
+  frameTransform: CanvasObjectRenderInput["frameTransform"],
 ) {
   const path = new Path2D();
 
   if (shape.props.kind === "oval") {
-    const center = surfaceTransform.boardToCanvas(shape.position);
-    const width = (shape.size?.width ?? 0) * surfaceTransform.scale;
+    const center = frameTransform.boardToCanvas(shape.position);
+    const width = (shape.size?.width ?? 0) * frameTransform.scale;
     const height =
-      (shape.size?.height ?? shape.size?.width ?? 0) * surfaceTransform.scale;
+      (shape.size?.height ?? shape.size?.width ?? 0) * frameTransform.scale;
 
     path.ellipse(
       center.x,
@@ -444,11 +444,11 @@ function createRenderedShapePath(
   }
 
   if (shape.props.kind === "rectangle") {
-    traceRoundedRectanglePath(path, shape, surfaceTransform);
+    traceRoundedRectanglePath(path, shape, frameTransform);
     return path;
   }
 
-  const points = getRenderedShapeCanvasPoints(shape, surfaceTransform);
+  const points = getRenderedShapeCanvasPoints(shape, frameTransform);
 
   if (points.length === 0) {
     return path;
@@ -467,13 +467,13 @@ function createRenderedShapePath(
 
 function getRenderedShapeCanvasBounds(
   shape: ShapeObject,
-  surfaceTransform: CanvasObjectRenderInput["surfaceTransform"],
+  frameTransform: CanvasObjectRenderInput["frameTransform"],
 ) {
   if (shape.props.kind === "oval") {
-    const center = surfaceTransform.boardToCanvas(shape.position);
-    const width = (shape.size?.width ?? 0) * surfaceTransform.scale;
+    const center = frameTransform.boardToCanvas(shape.position);
+    const width = (shape.size?.width ?? 0) * frameTransform.scale;
     const height =
-      (shape.size?.height ?? shape.size?.width ?? 0) * surfaceTransform.scale;
+      (shape.size?.height ?? shape.size?.width ?? 0) * frameTransform.scale;
     const radius = Math.hypot(width, height) / 2;
 
     return {
@@ -484,10 +484,10 @@ function getRenderedShapeCanvasBounds(
     };
   }
 
-  const points = getRenderedShapeCanvasPoints(shape, surfaceTransform);
+  const points = getRenderedShapeCanvasPoints(shape, frameTransform);
 
   if (points.length === 0) {
-    const center = surfaceTransform.boardToCanvas(shape.position);
+    const center = frameTransform.boardToCanvas(shape.position);
 
     return {
       minX: center.x,
@@ -510,17 +510,17 @@ function fillDiagonalStripes(
   path: Path2D,
   bounds: ReturnType<typeof getRenderedShapeCanvasBounds>,
   color: string,
-  surfaceTransform: CanvasObjectRenderInput["surfaceTransform"],
+  frameTransform: CanvasObjectRenderInput["frameTransform"],
 ) {
   const tileSize = scaleCanvasStyleValue(
     DIAGONAL_STRIPE_TILE_SIZE_PX,
-    surfaceTransform.zoom,
+    frameTransform.zoom,
   );
   const lineWidth = scaleCanvasStyleValue(
     DIAGONAL_STRIPE_LINE_WIDTH_PX,
-    surfaceTransform.zoom,
+    frameTransform.zoom,
   );
-  const boardOriginCanvasPoint = surfaceTransform.boardToCanvas({ x: 0, y: 0 });
+  const boardOriginCanvasPoint = frameTransform.boardToCanvas({ x: 0, y: 0 });
   const phase = boardOriginCanvasPoint.x + boardOriginCanvasPoint.y;
   const extent = Math.max(bounds.maxX - bounds.minX, bounds.maxY - bounds.minY);
   const minSum = bounds.minX + bounds.minY - extent;
@@ -552,14 +552,14 @@ export function renderShape({
   context,
   object,
   appearance,
-  surfaceTransform,
+  frameTransform,
 }: CanvasObjectRenderInput) {
   const shape = object as ShapeObject;
-  const path = createRenderedShapePath(shape, surfaceTransform);
-  const bounds = getRenderedShapeCanvasBounds(shape, surfaceTransform);
+  const path = createRenderedShapePath(shape, frameTransform);
+  const bounds = getRenderedShapeCanvasBounds(shape, frameTransform);
   const strokeWidth = getScaledCanvasStrokeWidth(
     shape.props.strokeWidth,
-    surfaceTransform.scale,
+    frameTransform.scale,
   );
 
   context.save();
@@ -571,7 +571,7 @@ export function renderShape({
   context.lineJoin = "round";
   context.setLineDash(
     shape.props.lineStyle === "dashed"
-      ? scaleCanvasDashStyle(shape.props.dashStyle, surfaceTransform.zoom)
+      ? scaleCanvasDashStyle(shape.props.dashStyle, frameTransform.zoom)
       : [],
   );
 
@@ -587,7 +587,7 @@ export function renderShape({
         path,
         bounds,
         shape.props.color,
-        surfaceTransform,
+        frameTransform,
       );
     }
     context.restore();
@@ -685,27 +685,27 @@ function isPointInsideRoundedRectangle(
 function hitTestShape({
   object,
   canvasPoint,
-  surfaceTransform,
+  frameTransform,
   minimumHitRadiusPx,
 }: CanvasObjectHitTestInput) {
   const shape = object as ShapeObject;
-  const points = getRenderedShapeCanvasPoints(shape, surfaceTransform);
+  const points = getRenderedShapeCanvasPoints(shape, frameTransform);
   const threshold = Math.max(
     MIN_HIT_DISTANCE_PX,
     minimumHitRadiusPx / 2,
-    shape.props.strokeWidth * surfaceTransform.scale,
+    shape.props.strokeWidth * frameTransform.scale,
   );
 
   if (shape.props.kind === "oval") {
-    const center = surfaceTransform.boardToCanvas(shape.position);
+    const center = frameTransform.boardToCanvas(shape.position);
     const localOffset = getRotatedOffsetFromCenter(
       canvasPoint,
       center,
       -(shape.rotation ?? 0),
     );
-    const width = (shape.size?.width ?? 0) * surfaceTransform.scale;
+    const width = (shape.size?.width ?? 0) * frameTransform.scale;
     const height =
-      (shape.size?.height ?? shape.size?.width ?? 0) * surfaceTransform.scale;
+      (shape.size?.height ?? shape.size?.width ?? 0) * frameTransform.scale;
     const rx = Math.max(Math.abs(width) / 2, threshold);
     const ry = Math.max(Math.abs(height) / 2, threshold);
     const normalized =
@@ -716,7 +716,7 @@ function hitTestShape({
   }
 
   if (shape.props.kind === "rectangle") {
-    const metrics = getRenderedRectangleMetrics(shape, surfaceTransform);
+    const metrics = getRenderedRectangleMetrics(shape, frameTransform);
     const localOffset = getRotatedOffsetFromCenter(
       canvasPoint,
       metrics.center,
@@ -818,11 +818,12 @@ function shouldFinishPolygon(
     return false;
   }
 
+  const state = api.getState();
   const projection = createBoardSpaceProjection({
-    surface: api.getState().board.surface,
-    viewport: api.getState().ui.viewport,
+    frame: state.board.frame,
+    viewport: state.ui.viewport,
     canvasRect: event.canvasRect,
-    surfaceInset: 14,
+    fitPadding: state.ui.fitPadding,
   });
   const firstPoint = projection.boardToCanvas(pendingPoints[0]);
   const candidate = projection.boardToCanvas(nextPoint);

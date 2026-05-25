@@ -29,7 +29,7 @@ describe("createBoardEditorStore", () => {
         id: "board-1",
         version: 1,
         metadata: {},
-        surface: {
+        frame: {
           width: 100,
           height: 50,
         },
@@ -48,10 +48,10 @@ describe("createBoardEditorStore", () => {
       ],
     });
 
-  it("updates the board surface through history", () => {
+  it("updates the board frame through history", () => {
     const store = createStore();
 
-    store.getState().actions.setSurface({
+    store.getState().actions.setFrame({
       width: 200,
       height: 100,
       background: "#177238",
@@ -61,7 +61,7 @@ describe("createBoardEditorStore", () => {
       },
     });
 
-    expect(store.getState().board.surface).toMatchObject({
+    expect(store.getState().board.frame).toMatchObject({
       width: 200,
       height: 100,
       background: "#177238",
@@ -72,9 +72,106 @@ describe("createBoardEditorStore", () => {
 
     store.getState().actions.undo();
 
-    expect(store.getState().board.surface).toEqual({
+    expect(store.getState().board.frame).toEqual({
       width: 100,
       height: 50,
+    });
+  });
+
+  it("keeps the viewport free by default", () => {
+    const store = createStore();
+
+    store.getState().actions.setCanvasRect({ width: 220, height: 120 });
+    store.getState().actions.setViewport({
+      pan: { x: 500, y: -300 },
+      zoom: 0.1,
+    });
+
+    expect(store.getState().ui.viewport).toEqual({
+      pan: { x: 500, y: -300 },
+      zoom: 0.1,
+    });
+  });
+
+  it("constrains contained viewport changes to the fit frame", () => {
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        frame: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      tools: [selectTool],
+      navigationMode: "contained",
+    });
+
+    store.getState().actions.setCanvasRect({ width: 228, height: 128 });
+    store.getState().actions.setViewport({
+      pan: { x: 500, y: -300 },
+      zoom: 0.5,
+    });
+
+    expect(store.getState().ui.viewport).toEqual({
+      pan: { x: 0, y: 0 },
+      zoom: 2.28,
+    });
+
+    store.getState().actions.setViewport({
+      pan: { x: 500, y: -300 },
+      zoom: 4,
+    });
+
+    expect(store.getState().ui.viewport).toEqual({
+      pan: { x: 86, y: -36 },
+      zoom: 4,
+    });
+
+    store.getState().actions.panViewport({ x: -300, y: 300 });
+
+    expect(store.getState().ui.viewport).toEqual({
+      pan: { x: -86, y: 36 },
+      zoom: 4,
+    });
+  });
+
+  it("uses viewport frame padding when constraining navigation", () => {
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        frame: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      tools: [selectTool],
+      fitPadding: 14,
+      navigationMode: "contained",
+    });
+
+    store.getState().actions.setCanvasRect({ width: 228, height: 128 });
+    store.getState().actions.setViewport({
+      pan: { x: 500, y: -300 },
+      zoom: 4,
+    });
+
+    expect(store.getState().ui.viewport).toEqual({
+      pan: { x: 100, y: -50 },
+      zoom: 4,
     });
   });
 
@@ -84,7 +181,7 @@ describe("createBoardEditorStore", () => {
         id: "board-1",
         version: 1,
         metadata: {},
-        surface: {
+        frame: {
           width: 100,
           height: 50,
         },
@@ -141,7 +238,7 @@ describe("createBoardEditorStore", () => {
         id: "board-1",
         version: 1,
         metadata: {},
-        surface: {
+        frame: {
           width: 100,
           height: 50,
         },
@@ -187,7 +284,7 @@ describe("createBoardEditorStore", () => {
         id: "board-1",
         version: 1,
         metadata: {},
-        surface: {
+        frame: {
           width: 100,
           height: 50,
         },
@@ -243,7 +340,7 @@ describe("createBoardEditorStore", () => {
         id: "board-1",
         version: 1,
         metadata: {},
-        surface: {
+        frame: {
           width: 100,
           height: 50,
         },
@@ -291,7 +388,7 @@ describe("createBoardEditorStore", () => {
         id: "board-1",
         version: 1,
         metadata: {},
-        surface: {
+        frame: {
           width: 100,
           height: 50,
         },
@@ -346,7 +443,7 @@ describe("createBoardEditorStore", () => {
         id: "board-1",
         version: 1,
         metadata: {},
-        surface: {
+        frame: {
           width: 100,
           height: 50,
         },
@@ -384,7 +481,7 @@ describe("createBoardEditorStore", () => {
         id: "board-1",
         version: 1,
         metadata: {},
-        surface: {
+        frame: {
           width: 100,
           height: 50,
         },
@@ -421,7 +518,7 @@ describe("createBoardEditorStore", () => {
         id: "board-1",
         version: 1,
         metadata: {},
-        surface: {
+        frame: {
           width: 100,
           height: 50,
         },
@@ -461,7 +558,7 @@ describe("createBoardEditorStore", () => {
         id: "board-1",
         version: 1,
         metadata: {},
-        surface: {
+        frame: {
           width: 100,
           height: 50,
         },
@@ -508,7 +605,7 @@ describe("createBoardEditorStore", () => {
         id: "board-1",
         version: 1,
         metadata: {},
-        surface: {
+        frame: {
           width: 100,
           height: 50,
         },
@@ -555,7 +652,7 @@ describe("createBoardEditorStore", () => {
         id: "board-1",
         version: 1,
         metadata: {},
-        surface: {
+        frame: {
           width: 100,
           height: 50,
         },
@@ -635,7 +732,7 @@ describe("createBoardEditorStore", () => {
         id: "board-1",
         version: 1,
         metadata: {},
-        surface: {
+        frame: {
           width: 100,
           height: 50,
         },
@@ -682,7 +779,7 @@ describe("createBoardEditorStore", () => {
         id: "board-1",
         version: 1,
         metadata: {},
-        surface: {
+        frame: {
           width: 100,
           height: 50,
         },
@@ -717,7 +814,7 @@ describe("createBoardEditorStore", () => {
         id: "board-1",
         version: 1,
         metadata: {},
-        surface: {
+        frame: {
           width: 100,
           height: 50,
         },

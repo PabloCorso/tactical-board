@@ -1,27 +1,25 @@
 import { useEffect, useMemo, useRef } from "react";
 import type {
-  BoardSurfaceConfig,
-  BoardSurfaceMarking,
+  BoardFrameConfig,
+  BoardFrameMarking,
 } from "../../core/board/types";
 import {
-  createFootballPitchSurface,
-  type FootballPitchSurfaceVariant,
+  createFootballPitch,
+  type FootballPitchVariant,
 } from "./football-board";
 
 export const FOOTBALL_PITCH_TOOL_ID = "pitch";
 
-export const FOOTBALL_PITCH_SURFACE_OPTIONS: Array<{
+export const FOOTBALL_PITCH_OPTIONS: Array<{
   label: string;
-  value: FootballPitchSurfaceVariant;
+  value: FootballPitchVariant;
 }> = [
   { label: "Full pitch", value: "full-pitch" },
   { label: "Half pitch", value: "half-pitch" },
   { label: "Reduced space", value: "reduced-space" },
 ];
 
-export function getFootballPitchSurfaceVariant(
-  value: unknown,
-): FootballPitchSurfaceVariant {
+export function getFootballPitchVariant(value: unknown): FootballPitchVariant {
   if (
     value === "full-pitch" ||
     value === "half-pitch" ||
@@ -33,30 +31,30 @@ export function getFootballPitchSurfaceVariant(
   return "full-pitch";
 }
 
-export type FootballPitchSurfacePreviewProps = {
+export type FootballPitchPreviewProps = {
   className?: string;
-  variant: FootballPitchSurfaceVariant;
+  variant: FootballPitchVariant;
   width: number;
   height: number;
 };
 
-export function FootballPitchSurfacePreview({
+export function FootballPitchPreview({
   className,
   variant,
   width,
   height,
-}: FootballPitchSurfacePreviewProps) {
+}: FootballPitchPreviewProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const surface = useMemo(() => createFootballPitchSurface(variant), [variant]);
+  const frame = useMemo(() => createFootballPitch(variant), [variant]);
 
   useEffect(() => {
-    drawFootballPitchSurfacePreviewCanvas({
+    drawFootballPitchPreviewCanvas({
       canvas: canvasRef.current,
       height,
-      surface,
+      frame,
       width,
     });
-  }, [height, surface, width]);
+  }, [height, frame, width]);
 
   return (
     <canvas
@@ -68,15 +66,15 @@ export function FootballPitchSurfacePreview({
   );
 }
 
-function drawFootballPitchSurfacePreviewCanvas({
+function drawFootballPitchPreviewCanvas({
   canvas,
   height,
-  surface,
+  frame,
   width,
 }: {
   canvas: HTMLCanvasElement | null;
   height: number;
-  surface: BoardSurfaceConfig;
+  frame: BoardFrameConfig;
   width: number;
 }) {
   const context = canvas?.getContext("2d");
@@ -92,18 +90,18 @@ function drawFootballPitchSurfacePreviewCanvas({
   context.setTransform(1, 0, 0, 1, 0, 0);
   context.clearRect(0, 0, canvas.width, canvas.height);
   context.scale(ratio, ratio);
-  drawFootballPitchSurfacePreview(context, surface, width, height);
+  drawFootballPitchPreview(context, frame, width, height);
 }
 
-function drawFootballPitchSurfacePreview(
+function drawFootballPitchPreview(
   context: CanvasRenderingContext2D,
-  surface: BoardSurfaceConfig,
+  frame: BoardFrameConfig,
   width: number,
   height: number,
 ) {
-  const scale = Math.min(width / surface.width, height / surface.height);
-  const renderWidth = surface.width * scale;
-  const renderHeight = surface.height * scale;
+  const scale = Math.min(width / frame.width, height / frame.height);
+  const renderWidth = frame.width * scale;
+  const renderHeight = frame.height * scale;
   const offsetX = (width - renderWidth) / 2;
   const offsetY = (height - renderHeight) / 2;
   const radius = Math.min(6, renderWidth / 18, renderHeight / 18);
@@ -118,10 +116,10 @@ function drawFootballPitchSurfacePreview(
     radius,
   );
   context.clip();
-  context.fillStyle = surface.background ?? surface.fill ?? "#177238";
+  context.fillStyle = frame.background ?? frame.fill ?? "#177238";
   context.fillRect(offsetX, offsetY, renderWidth, renderHeight);
 
-  for (const marking of surface.markings ?? []) {
+  for (const marking of frame.markings ?? []) {
     drawFootballPitchMarkingPreview(context, marking, scale, offsetX, offsetY);
   }
 
@@ -158,7 +156,7 @@ function traceRoundedRect(
 
 function drawFootballPitchMarkingPreview(
   context: CanvasRenderingContext2D,
-  marking: BoardSurfaceMarking,
+  marking: BoardFrameMarking,
   scale: number,
   offsetX: number,
   offsetY: number,

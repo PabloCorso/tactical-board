@@ -40,7 +40,6 @@ import {
   rotateBoardObject,
 } from "../objects/object-behaviors";
 
-const SURFACE_INSET = 14;
 const DEFAULT_SELECTION_COLOR = colors.sky[400];
 const SELECTION_OVERLAY_KIND = "select:selection-ring";
 const GROUP_SELECTION_OVERLAY_KIND = "select:group-selection-ring";
@@ -225,10 +224,10 @@ function getMarqueeObjectIds(
   >,
 ) {
   const projection = createBoardSpaceProjection({
-    surface: state.board.surface,
+    frame: state.board.frame,
     viewport: state.ui.viewport,
     canvasRect,
-    surfaceInset: SURFACE_INSET,
+    fitPadding: state.ui.fitPadding,
   });
   const marqueeStart = projection.boardToCanvas(marquee.origin);
   const marqueeEnd = projection.boardToCanvas(marquee.current);
@@ -690,7 +689,7 @@ function registerSelectOverlayRenderer(
 ) {
   registerOverlayRenderer(
     SELECTION_OVERLAY_KIND,
-    ({ context, overlay, surfaceTransform }: CanvasOverlayRenderInput) => {
+    ({ context, overlay, frameTransform }: CanvasOverlayRenderInput) => {
       if (!isSelectionOverlayItem(overlay)) {
         return;
       }
@@ -702,19 +701,19 @@ function registerSelectOverlayRenderer(
       overlay.selectionAdapter.renderSelection({
         context,
         object: overlay.object,
-        projection: surfaceTransform as SelectionProjection,
+        projection: frameTransform as SelectionProjection,
         color: overlay.color,
       });
     },
   );
   registerOverlayRenderer(
     GROUP_SELECTION_OVERLAY_KIND,
-    ({ context, overlay, surfaceTransform }: CanvasOverlayRenderInput) => {
+    ({ context, overlay, frameTransform }: CanvasOverlayRenderInput) => {
       if (!isGroupSelectionOverlayItem(overlay)) {
         return;
       }
       const outlinePoints = getGroupSelectionOutlineCanvasPoints(
-        surfaceTransform as SelectionProjection,
+        frameTransform as SelectionProjection,
         overlay,
       );
 
@@ -725,7 +724,7 @@ function registerSelectOverlayRenderer(
         overlay.rotation === undefined
           ? (() => {
               const canvasBounds = getGroupSelectionCanvasBounds(
-                surfaceTransform as SelectionProjection,
+                frameTransform as SelectionProjection,
                 overlay.objects,
                 overlay.selectionAdaptersByObjectId,
               );
@@ -802,10 +801,10 @@ function beginSelectionInteraction(event: ToolPointerEvent, api: ToolApi) {
   const state = api.getState();
   const selectedObjectIds = state.selection.selectedObjectIds;
   const projection = createBoardSpaceProjection({
-    surface: state.board.surface,
+    frame: state.board.frame,
     viewport: state.ui.viewport,
     canvasRect: event.canvasRect,
-    surfaceInset: SURFACE_INSET,
+    fitPadding: state.ui.fitPadding,
   });
   const groupSelectionSession =
     selectedObjectIds.length > 1

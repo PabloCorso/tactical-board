@@ -2,14 +2,14 @@ import { createBoard } from "../../core/board/create-board";
 import type {
   Board,
   BoardMetadata,
-  BoardSurfaceConfig,
-  BoardSurfaceMarking,
+  BoardFrameConfig,
+  BoardFrameMarking,
   BoardStyleRef,
   ObjectIndex,
 } from "../../core/board/types";
 import { metersToPixels } from "./football-units";
 
-export type FootballPitchSurfaceVariant =
+export type FootballPitchVariant =
   | "full-pitch"
   | "half-pitch"
   | "reduced-space";
@@ -42,10 +42,10 @@ export const FOOTBALL_PITCH_COLORS = {
 const STRIPE_COUNT = 19;
 
 type FootballPitchMarkingOptions = {
-  variant?: Extract<FootballPitchSurfaceVariant, "full-pitch" | "half-pitch">;
+  variant?: Extract<FootballPitchVariant, "full-pitch" | "half-pitch">;
 };
 
-function scaleFootballMarkings(markings: BoardSurfaceMarking[]) {
+function scaleFootballMarkings(markings: BoardFrameMarking[]) {
   return markings.map((marking) => {
     switch (marking.kind) {
       case "rect":
@@ -99,12 +99,12 @@ function scaleFootballMarkings(markings: BoardSurfaceMarking[]) {
 }
 
 function rotateFootballMarkingsMinus90(
-  markings: BoardSurfaceMarking[],
-  surfaceWidth: number,
-): BoardSurfaceMarking[] {
+  markings: BoardFrameMarking[],
+  frameWidth: number,
+): BoardFrameMarking[] {
   const rotatePoint = ({ x, y }: { x: number; y: number }) => ({
     x: y,
-    y: surfaceWidth - x,
+    y: frameWidth - x,
   });
 
   return markings.map((marking) => {
@@ -161,7 +161,7 @@ function rotateFootballMarkingsMinus90(
 
 export function createFootballPitchMarkings({
   variant = "full-pitch",
-}: FootballPitchMarkingOptions = {}): BoardSurfaceMarking[] {
+}: FootballPitchMarkingOptions = {}): BoardFrameMarking[] {
   if (variant === "half-pitch") {
     return createFootballHalfPitchMarkings();
   }
@@ -195,7 +195,7 @@ export function createFootballPitchMarkings({
         : FOOTBALL_PITCH_COLORS.stripeDark,
   }));
 
-  const markings: BoardSurfaceMarking[] = [
+  const markings: BoardFrameMarking[] = [
     ...stripes,
     {
       kind: "rect",
@@ -347,7 +347,7 @@ export function createFootballPitchMarkings({
   return scaleFootballMarkings(markings);
 }
 
-function createFootballHalfPitchMarkings(): BoardSurfaceMarking[] {
+function createFootballHalfPitchMarkings(): BoardFrameMarking[] {
   const outerMarginX = FOOTBALL_FULL_PITCH_METRICS.perimeter.goalLine;
   const outerMarginY = FOOTBALL_FULL_PITCH_METRICS.perimeter.touchline;
   const width = FOOTBALL_FULL_PITCH_METRICS.field.length / 2;
@@ -391,7 +391,7 @@ function createFootballHalfPitchMarkings(): BoardSurfaceMarking[] {
 
   const goalLineX = outerMarginX + width;
 
-  const markings: BoardSurfaceMarking[] = [
+  const markings: BoardFrameMarking[] = [
     ...stripes,
     {
       kind: "rect",
@@ -411,6 +411,13 @@ function createFootballHalfPitchMarkings(): BoardSurfaceMarking[] {
       endAngle: 90,
       stroke: FOOTBALL_PITCH_COLORS.line,
       strokeWidth: FOOTBALL_FULL_PITCH_METRICS.lineWidth,
+    },
+    {
+      kind: "circle",
+      cx: outerMarginX,
+      cy: centerY,
+      r: FOOTBALL_FULL_PITCH_METRICS.centerCircle.spotRadius,
+      fill: FOOTBALL_PITCH_COLORS.line,
     },
     {
       kind: "rect",
@@ -470,30 +477,30 @@ function createFootballHalfPitchMarkings(): BoardSurfaceMarking[] {
   ];
 
   return scaleFootballMarkings(
-    rotateFootballMarkingsMinus90(markings, halfPitchSurfaceHeight),
+    rotateFootballMarkingsMinus90(markings, halfPitchFrameHeight),
   );
 }
 
-const fullPitchSurfaceWidth =
+const fullPitchFrameWidth =
   FOOTBALL_FULL_PITCH_METRICS.field.length +
   FOOTBALL_FULL_PITCH_METRICS.perimeter.touchline * 2;
-const halfPitchSurfaceWidth =
+const halfPitchFrameWidth =
   FOOTBALL_FULL_PITCH_METRICS.field.width +
   FOOTBALL_FULL_PITCH_METRICS.perimeter.touchline * 2;
-const halfPitchSurfaceHeight =
+const halfPitchFrameHeight =
   FOOTBALL_FULL_PITCH_METRICS.field.length / 2 +
   FOOTBALL_FULL_PITCH_METRICS.perimeter.goalLine * 2;
-const pitchSurfaceHeight =
+const pitchFrameHeight =
   FOOTBALL_FULL_PITCH_METRICS.field.width +
   FOOTBALL_FULL_PITCH_METRICS.perimeter.goalLine * 2;
 
-export function createFootballPitchSurface(
-  variant: FootballPitchSurfaceVariant = "full-pitch",
-): BoardSurfaceConfig {
+export function createFootballPitch(
+  variant: FootballPitchVariant = "full-pitch",
+): BoardFrameConfig {
   if (variant === "reduced-space") {
     return {
-      width: metersToPixels(halfPitchSurfaceWidth),
-      height: metersToPixels(halfPitchSurfaceHeight),
+      width: metersToPixels(halfPitchFrameWidth),
+      height: metersToPixels(halfPitchFrameHeight),
       background: FOOTBALL_PITCH_COLORS.outer,
       markings: [],
       markup: {
@@ -507,10 +514,10 @@ export function createFootballPitchSurface(
 
   return {
     width: metersToPixels(
-      isHalfPitch ? halfPitchSurfaceWidth : fullPitchSurfaceWidth,
+      isHalfPitch ? halfPitchFrameWidth : fullPitchFrameWidth,
     ),
     height: metersToPixels(
-      isHalfPitch ? halfPitchSurfaceHeight : pitchSurfaceHeight,
+      isHalfPitch ? halfPitchFrameHeight : pitchFrameHeight,
     ),
     background: FOOTBALL_PITCH_COLORS.outer,
     markings: createFootballPitchMarkings({ variant }),
@@ -527,7 +534,7 @@ export type CreateFootballBoardOptions = {
   name?: string;
   objects?: ObjectIndex;
   style?: BoardStyleRef;
-  surface?: Partial<BoardSurfaceConfig>;
+  frame?: Partial<BoardFrameConfig>;
 };
 
 export function createFootballBoard({
@@ -536,7 +543,7 @@ export function createFootballBoard({
   name = "Football Board",
   objects = { byId: {}, order: [] },
   style = {},
-  surface,
+  frame,
 }: CreateFootballBoardOptions = {}): Board {
   return createBoard({
     id,
@@ -545,9 +552,9 @@ export function createFootballBoard({
       name,
       ...metadata,
     },
-    surface: {
-      ...createFootballPitchSurface(),
-      ...surface,
+    frame: {
+      ...createFootballPitch(),
+      ...frame,
     },
     objects,
     style,

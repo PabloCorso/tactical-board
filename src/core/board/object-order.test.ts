@@ -56,7 +56,7 @@ describe("getOrderedBoardObjectIds", () => {
       id: "board-1",
       version: 1,
       metadata: {},
-      surface: {
+      frame: {
         width: 100,
         height: 50,
       },

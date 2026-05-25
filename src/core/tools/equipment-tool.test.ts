@@ -5,7 +5,7 @@ import { hitTestEquipment } from "./equipment-tool";
 
 describe("hitTestEquipment", () => {
   const projection = createBoardSpaceProjection({
-    surface: {
+    frame: {
       width: 100,
       height: 50,
     },
@@ -40,7 +40,7 @@ describe("hitTestEquipment", () => {
           x: projection.boardToCanvas(equipment.position).x + 12,
           y: projection.boardToCanvas(equipment.position).y,
         },
-        surfaceTransform: projection,
+        frameTransform: projection,
         minimumHitRadiusPx: 24,
       }),
     ).toBe(false);
@@ -68,7 +68,7 @@ describe("hitTestEquipment", () => {
           x: projection.boardToCanvas(equipment.position).x + 9,
           y: projection.boardToCanvas(equipment.position).y + 9,
         },
-        surfaceTransform: projection,
+        frameTransform: projection,
         minimumHitRadiusPx: 24,
       }),
     ).toBe(false);

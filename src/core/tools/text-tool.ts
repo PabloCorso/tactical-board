@@ -144,11 +144,11 @@ export function renderText({
   context,
   object,
   appearance,
-  surfaceTransform,
+  frameTransform,
 }: CanvasObjectRenderInput) {
   const textObject = object as TextObject;
-  const bounds = surfaceTransform.getObjectCanvasBounds(textObject);
-  const scale = surfaceTransform.scale;
+  const bounds = frameTransform.getObjectCanvasBounds(textObject);
+  const scale = frameTransform.scale;
   const canvasFontSize = textObject.props.fontSize * scale;
   const canvasWrapWidth =
     typeof textObject.props.wrapWidth === "number"
@@ -189,12 +189,12 @@ export function renderText({
 export function hitTestText({
   object,
   canvasPoint,
-  surfaceTransform,
+  frameTransform,
   minimumHitRadiusPx,
 }: CanvasObjectHitTestInput) {
   const textObject = object as TextObject;
-  const center = surfaceTransform.boardToCanvas(textObject.position);
-  const bounds = surfaceTransform.getObjectCanvasBounds(textObject);
+  const center = frameTransform.boardToCanvas(textObject.position);
+  const bounds = frameTransform.getObjectCanvasBounds(textObject);
   const localX = canvasPoint.x - center.x;
   const localY = canvasPoint.y - center.y;
   const inverseRotation = -((textObject.rotation ?? 0) * Math.PI) / 180;

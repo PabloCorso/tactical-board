@@ -6,7 +6,7 @@ import { cn } from "../react/components/misc";
 
 const footballBoardPreviewMetrics = {
   aspectRatio:
-    footballShowcaseBoard.surface.width / footballShowcaseBoard.surface.height,
+    footballShowcaseBoard.frame.width / footballShowcaseBoard.frame.height,
 } as const;
 
 export type CardProps = ComponentProps<"div">;

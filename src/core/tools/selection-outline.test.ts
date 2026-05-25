@@ -7,7 +7,7 @@ import { getEquipmentSelectionOutlineCanvasPoints } from "./equipment-geometry";
 import { getPlayerSelectionOutlineCanvasPoints } from "./player-selection";
 
 const projection = createBoardSpaceProjection({
-  surface: {
+  frame: {
     width: 100,
     height: 50,
   },

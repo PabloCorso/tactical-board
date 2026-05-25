@@ -9,17 +9,15 @@ import {
   type TextObject,
 } from "../objects/text-object";
 
-const SURFACE_INSET = 14;
-
 export function createTextToolProjection(
   state: Pick<BoardEditorState, "board" | "ui">,
   canvasRect: { width: number; height: number },
 ) {
   return createBoardSpaceProjection({
-    surface: state.board.surface,
+    frame: state.board.frame,
     viewport: state.ui.viewport,
     canvasRect,
-    surfaceInset: SURFACE_INSET,
+    fitPadding: state.ui.fitPadding,
   });
 }
 

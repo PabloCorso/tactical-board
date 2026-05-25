@@ -3,7 +3,7 @@ import type { Board } from "../../board/types";
 import { createCanvasRenderer } from "./create-canvas-renderer";
 
 type DrawOperation =
-  | { kind: "surface-fill"; fillStyle: string }
+  | { kind: "frame-fill"; fillStyle: string }
   | {
       kind: "fill-rect";
       fillStyle: string;
@@ -33,7 +33,7 @@ function createFakeCanvas() {
     closePath: () => {},
     fill() {
       operations.push({
-        kind: "surface-fill",
+        kind: "frame-fill",
         fillStyle: String(this.fillStyle),
       });
     },
@@ -72,12 +72,12 @@ function createFakeCanvas() {
   return { canvas, operations };
 }
 
-function createEmptyBoard(surface: Board["surface"]): Board {
+function createEmptyBoard(frame: Board["frame"]): Board {
   return {
     id: "board-1",
     version: 1,
     metadata: {},
-    surface,
+    frame,
     objects: {
       byId: {},
       order: [],
@@ -104,12 +104,12 @@ describe("createCanvasRenderer", () => {
     });
 
     expect(operations.at(0)).toEqual({
-      kind: "surface-fill",
+      kind: "frame-fill",
       fillStyle: "#f8fafc",
     });
   });
 
-  it("keeps board surface preset background and markings renderable", () => {
+  it("keeps board frame preset background and markings renderable", () => {
     const { canvas, operations } = createFakeCanvas();
 
     createCanvasRenderer().render({
@@ -140,7 +140,7 @@ describe("createCanvasRenderer", () => {
     });
 
     expect(operations.at(0)).toEqual({
-      kind: "surface-fill",
+      kind: "frame-fill",
       fillStyle: "#177238",
     });
     expect(operations).toContainEqual({
@@ -176,7 +176,7 @@ describe("createCanvasRenderer", () => {
       height: 200,
     });
     expect(operations.at(1)).toEqual({
-      kind: "surface-fill",
+      kind: "frame-fill",
       fillStyle: "#177238",
     });
   });

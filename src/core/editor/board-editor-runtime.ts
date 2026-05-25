@@ -4,7 +4,7 @@ import { createToolApi } from "./create-tool-api";
 import { createBoardEditorController } from "./board-editor-controller";
 import type { BoardEditorStore } from "../store/board-editor-store";
 import type { ToolDefinition } from "../tools/types";
-import { DEFAULT_VIEWPORT, getViewportToFitSurface } from "./viewport-utils";
+import { DEFAULT_VIEWPORT, getViewportToFitFrame } from "./viewport-utils";
 
 export interface BoardEditorRuntime {
   mount: (canvas: HTMLCanvasElement) => void;
@@ -72,6 +72,7 @@ export function createBoardEditorRuntime({
       canvas,
       board: state.board,
       viewport: state.ui.viewport,
+      fitPadding: state.ui.fitPadding,
       requestRender,
       previewObjects: state.rendering.previewObjects,
       overlayItems,
@@ -103,9 +104,10 @@ export function createBoardEditorRuntime({
     }
 
     state.actions.setViewport(
-      getViewportToFitSurface({
-        surface: state.board.surface,
+      getViewportToFitFrame({
+        frame: state.board.frame,
         canvasRect,
+        fitPadding: state.ui.fitPadding,
       }),
     );
     hasAppliedInitialViewportFit = true;

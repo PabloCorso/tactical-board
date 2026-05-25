@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
-import type { Board, BoardSurfaceConfig } from "../board/types";
+import type { Board, BoardFrameConfig } from "../board/types";
 import {
   getBoardViewerViewport,
   getBoardViewerViewportFromPan,
   getBoardViewerViewportFromWheel,
 } from "./board-viewer-viewport";
 
-const surface: BoardSurfaceConfig = {
+const frame: BoardFrameConfig = {
   width: 100,
   height: 50,
 };
@@ -15,7 +15,7 @@ const board: Board = {
   id: "viewer-board",
   version: 1,
   metadata: {},
-  surface,
+  frame,
   objects: {
     byId: {},
     order: [],
@@ -28,7 +28,7 @@ describe("board viewer viewport", () => {
     expect(
       getBoardViewerViewport({
         mode: "fit",
-        surface,
+        frame,
         canvasRect: {
           width: 228,
           height: 128,
@@ -39,7 +39,7 @@ describe("board viewer viewport", () => {
         x: 0,
         y: 0,
       },
-      zoom: 2,
+      zoom: 2.28,
     });
   });
 
@@ -47,7 +47,7 @@ describe("board viewer viewport", () => {
     expect(
       getBoardViewerViewport({
         mode: "fit",
-        surface,
+        frame,
         canvasRect: {
           width: 68,
           height: 48,
@@ -58,14 +58,14 @@ describe("board viewer viewport", () => {
         x: 0,
         y: 0,
       },
-      zoom: 0.4,
+      zoom: 0.68,
     });
   });
 
   it("keeps fit zoom positive before the canvas has a measured size", () => {
     const viewport = getBoardViewerViewport({
       mode: "fit",
-      surface,
+      frame,
       canvasRect: {
         width: 1,
         height: 1,
@@ -79,19 +79,19 @@ describe("board viewer viewport", () => {
     expect(
       getBoardViewerViewport({
         mode: "fit",
-        surface,
+        frame,
         canvasRect: {
           width: 200,
           height: 100,
         },
-        fitPadding: 0,
+        fitPadding: 14,
       }),
     ).toEqual({
       pan: {
         x: 0,
         y: 0,
       },
-      zoom: 2,
+      zoom: 1.44,
     });
   });
 
@@ -120,14 +120,14 @@ describe("board viewer viewport", () => {
     const viewport = getBoardViewerViewport({
       board: contentBoard,
       mode: "fit-content",
-      surface,
+      frame,
       canvasRect: {
         width: 228,
         height: 128,
       },
     });
 
-    expect(viewport.zoom).toBeCloseTo(200 / 130);
+    expect(viewport.zoom).toBeCloseTo(228 / 130);
     expect(viewport.pan.x).toBeCloseTo(-((130 / 2 - 50) * viewport.zoom));
     expect(viewport.pan.y).toBe(0);
   });
@@ -144,7 +144,7 @@ describe("board viewer viewport", () => {
     expect(
       getBoardViewerViewport({
         mode: "fixed",
-        surface,
+        frame,
         canvasRect: {
           width: 228,
           height: 128,
@@ -182,7 +182,7 @@ describe("board viewer viewport", () => {
 
   it("zooms around the viewer pointer", () => {
     const viewport = getBoardViewerViewportFromWheel({
-      surface,
+      frame,
       viewport: {
         pan: {
           x: 0,

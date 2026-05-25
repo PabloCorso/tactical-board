@@ -3,7 +3,7 @@ import { createBoardSpaceProjection } from "./board-space-projection";
 
 describe("createBoardSpaceProjection", () => {
   const projection = createBoardSpaceProjection({
-    surface: {
+    frame: {
       width: 100,
       height: 50,
     },
@@ -59,7 +59,7 @@ describe("createBoardSpaceProjection", () => {
 
   it("scales the projection by viewport zoom", () => {
     const zoomedProjection = createBoardSpaceProjection({
-      surface: {
+      frame: {
         width: 100,
         height: 50,
       },

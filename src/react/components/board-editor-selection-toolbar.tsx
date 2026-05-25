@@ -39,7 +39,6 @@ import type { BoardEditorSelectionToolbarRenderer } from "./board-editor-selecti
 import { BoardEditorSelectionToolbarPositioner } from "./board-editor-selection-toolbar-positioner";
 import { BoardEditorToolbar } from "./board-editor-toolbar";
 
-const SURFACE_INSET = 14;
 const DEFAULT_SELECTION_TOOLBAR_RENDERERS: Record<
   string,
   BoardEditorSelectionToolbarRenderer
@@ -178,10 +177,10 @@ export function BoardEditorSelectionToolbar({
   }
 
   const projection = createBoardSpaceProjection({
-    surface: state.board.surface,
+    frame: state.board.frame,
     viewport: state.ui.viewport,
     canvasRect: state.ui.canvasRect,
-    surfaceInset: SURFACE_INSET,
+    fitPadding: state.ui.fitPadding,
   });
 
   if (selectedObjects.length > 1) {

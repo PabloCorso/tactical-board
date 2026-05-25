@@ -3,7 +3,7 @@ import { createBoardEditorRuntime } from "./board-editor-runtime";
 import { createBoardEditorStore } from "../store/board-editor-store";
 import { getSelectToolState, SELECT_TOOL_ID } from "../tools/select-tool-state";
 import * as canvasRendererModule from "../rendering/canvas/create-canvas-renderer";
-import { getViewportToFitSurface } from "./viewport-utils";
+import { getViewportToFitFrame } from "./viewport-utils";
 import { createToolApi } from "./create-tool-api";
 import { setSelectedObjectIds } from "../tools/select-tool-actions";
 import { ArrowTool } from "../tools/arrow-tool";
@@ -48,7 +48,7 @@ describe("createBoardEditorRuntime", () => {
         id: "board-1",
         version: 1,
         metadata: {},
-        surface: {
+        frame: {
           width: 100,
           height: 50,
         },
@@ -78,8 +78,8 @@ describe("createBoardEditorRuntime", () => {
     runtime.mount(canvas);
 
     expect(store.getState().ui.viewport).toEqual(
-      getViewportToFitSurface({
-        surface: store.getState().board.surface,
+      getViewportToFitFrame({
+        frame: store.getState().board.frame,
         canvasRect: {
           width: canvas.clientWidth,
           height: canvas.clientHeight,
@@ -111,7 +111,7 @@ describe("createBoardEditorRuntime", () => {
         id: "board-1",
         version: 1,
         metadata: {},
-        surface: {
+        frame: {
           width: 100,
           height: 50,
         },
@@ -163,7 +163,7 @@ describe("createBoardEditorRuntime", () => {
         id: "board-1",
         version: 1,
         metadata: {},
-        surface: {
+        frame: {
           width: 100,
           height: 50,
         },
@@ -237,7 +237,7 @@ describe("createBoardEditorRuntime", () => {
         id: "board-1",
         version: 1,
         metadata: {},
-        surface: {
+        frame: {
           width: 100,
           height: 50,
         },
@@ -300,7 +300,7 @@ describe("createBoardEditorRuntime", () => {
         id: "board-1",
         version: 1,
         metadata: {},
-        surface: {
+        frame: {
           width: 100,
           height: 50,
         },
@@ -365,7 +365,7 @@ describe("createBoardEditorRuntime", () => {
         id: "board-1",
         version: 1,
         metadata: {},
-        surface: {
+        frame: {
           width: 100,
           height: 50,
         },
@@ -433,7 +433,7 @@ describe("createBoardEditorRuntime", () => {
         id: "board-1",
         version: 1,
         metadata: {},
-        surface: {
+        frame: {
           width: 100,
           height: 50,
         },
@@ -507,7 +507,7 @@ describe("createBoardEditorRuntime", () => {
         id: "board-1",
         version: 1,
         metadata: {},
-        surface: {
+        frame: {
           width: 100,
           height: 50,
         },
@@ -598,7 +598,7 @@ describe("createBoardEditorRuntime", () => {
         id: "board-1",
         version: 1,
         metadata: {},
-        surface: {
+        frame: {
           width: 100,
           height: 50,
         },
@@ -672,7 +672,7 @@ describe("createBoardEditorRuntime", () => {
         id: "board-1",
         version: 1,
         metadata: {},
-        surface: {
+        frame: {
           width: 100,
           height: 50,
         },
@@ -764,7 +764,7 @@ describe("createBoardEditorRuntime", () => {
         id: "board-1",
         version: 1,
         metadata: {},
-        surface: {
+        frame: {
           width: 100,
           height: 50,
         },
@@ -855,7 +855,7 @@ describe("createBoardEditorRuntime", () => {
         id: "board-1",
         version: 1,
         metadata: {},
-        surface: {
+        frame: {
           width: 100,
           height: 50,
         },
@@ -928,7 +928,7 @@ describe("createBoardEditorRuntime", () => {
         id: "board-1",
         version: 1,
         metadata: {},
-        surface: {
+        frame: {
           width: 100,
           height: 50,
         },
@@ -1003,7 +1003,7 @@ describe("createBoardEditorRuntime", () => {
         id: "board-1",
         version: 1,
         metadata: {},
-        surface: {
+        frame: {
           width: 100,
           height: 50,
         },
@@ -1072,7 +1072,7 @@ describe("createBoardEditorRuntime", () => {
         id: "board-1",
         version: 1,
         metadata: {},
-        surface: {
+        frame: {
           width: 100,
           height: 50,
         },
@@ -1149,7 +1149,7 @@ describe("createBoardEditorRuntime", () => {
         id: "board-1",
         version: 1,
         metadata: {},
-        surface: {
+        frame: {
           width: 100,
           height: 50,
         },
@@ -1218,7 +1218,7 @@ describe("createBoardEditorRuntime", () => {
           id: "board-1",
           version: 1,
           metadata: {},
-          surface: {
+          frame: {
             width: 100,
             height: 50,
           },

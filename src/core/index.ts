@@ -8,10 +8,10 @@ export type * from "./editor/types";
 export * from "./editor/viewport-utils";
 export * from "./geometry/board-space-projection";
 export {
-  createBoardSurfaceTransform,
-  type BoardSurfaceTransform,
-} from "./geometry/create-board-surface-transform";
-export * from "./geometry/surface-scale";
+  createBoardFrameTransform,
+  type BoardFrameTransform,
+} from "./geometry/create-board-frame-transform";
+export * from "./geometry/frame-scale";
 export type * from "./geometry/types";
 export * from "./objects/arrow-object";
 export * from "./objects/equipment-object";

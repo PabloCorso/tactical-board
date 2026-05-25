@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type {
   Board,
   BoardObject,
-  BoardSurfacePreset,
+  BoardFramePreset,
   Document,
   DocumentBackgroundConfig,
   Shape,
@@ -30,7 +30,7 @@ describe("Document and Shape compatibility vocabulary", () => {
     id: "document-1",
     version: 1,
     metadata: {},
-    surface: {
+    frame: {
       width: 100,
       height: 50,
     },
@@ -103,13 +103,13 @@ describe("Document and Shape compatibility vocabulary", () => {
     );
   });
 
-  it("keeps generic Document background separate from board surface presets", () => {
+  it("keeps generic Document background separate from board frame presets", () => {
     const background: DocumentBackgroundConfig = {
       width: 320,
       height: 180,
       fill: "#f8fafc",
     };
-    const surfacePreset: BoardSurfacePreset = {
+    const framePreset: BoardFramePreset = {
       width: 320,
       height: 180,
       background: "#177238",
@@ -131,6 +131,6 @@ describe("Document and Shape compatibility vocabulary", () => {
 
     expect("markings" in background).toBe(false);
     expect(background.fill).toBe("#f8fafc");
-    expect(surfacePreset.markings).toHaveLength(1);
+    expect(framePreset.markings).toHaveLength(1);
   });
 });

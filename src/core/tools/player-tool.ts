@@ -226,10 +226,10 @@ export function renderPlayer({
   context,
   object,
   appearance,
-  surfaceTransform,
+  frameTransform,
 }: CanvasObjectRenderInput) {
   const player = object as PlayerObject;
-  const bounds = surfaceTransform.getObjectCanvasBounds(player);
+  const bounds = frameTransform.getObjectCanvasBounds(player);
   const width = getAbsoluteCanvasExtent(bounds.width);
   const height = getAbsoluteCanvasExtent(bounds.height);
   const radius = Math.min(width, height) / 2;
@@ -252,7 +252,7 @@ export function renderPlayer({
   if (player.props.label) {
     const canvasFontSize =
       (player.props.fontSize ?? DEFAULT_PLAYER_FONT_SIZE) *
-      surfaceTransform.scale;
+      frameTransform.scale;
 
     context.fillStyle = textColor;
     context.font = `700 ${canvasFontSize}px "ui-rounded", "SF Pro Display", sans-serif`;
@@ -267,12 +267,12 @@ export function renderPlayer({
 function hitTestPlayer({
   object,
   canvasPoint,
-  surfaceTransform,
+  frameTransform,
   minimumHitRadiusPx,
 }: CanvasObjectHitTestInput) {
   const player = object as PlayerObject;
-  const center = surfaceTransform.boardToCanvas(player.position);
-  const bounds = surfaceTransform.getObjectCanvasBounds(player);
+  const center = frameTransform.boardToCanvas(player.position);
+  const bounds = frameTransform.getObjectCanvasBounds(player);
   const radius = Math.max(
     Math.min(bounds.width, bounds.height) / 2,
     minimumHitRadiusPx,

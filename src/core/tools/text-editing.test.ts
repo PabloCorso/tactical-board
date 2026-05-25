@@ -27,7 +27,7 @@ describe("text-editing", () => {
         id: "board-1",
         version: 1,
         metadata: {},
-        surface: {
+        frame: {
           width: 100,
           height: 50,
         },
@@ -74,7 +74,7 @@ describe("text-editing", () => {
         id: "board-1",
         version: 1,
         metadata: {},
-        surface: {
+        frame: {
           width: 100,
           height: 50,
         },
@@ -134,7 +134,7 @@ describe("text-editing", () => {
         id: "board-1",
         version: 1,
         metadata: {},
-        surface: {
+        frame: {
           width: 100,
           height: 50,
         },

@@ -27,7 +27,7 @@ export interface CanvasObjectRenderInput {
   object: BoardObject;
   appearance: "default" | "preview";
   requestRender: () => void;
-  surfaceTransform: BoardSpaceProjection;
+  frameTransform: BoardSpaceProjection;
 }
 
 export type CanvasObjectRenderer = (input: CanvasObjectRenderInput) => void;
@@ -37,7 +37,7 @@ export type CanvasObjectRendererRegistry = Record<string, CanvasObjectRenderer>;
 export interface CanvasObjectHitTestInput {
   object: BoardObject;
   canvasPoint: { x: number; y: number };
-  surfaceTransform: BoardSpaceProjection;
+  frameTransform: BoardSpaceProjection;
   minimumHitRadiusPx: number;
 }
 
@@ -53,7 +53,7 @@ export type CanvasObjectHitTesterRegistry = Record<
 export interface CanvasOverlayRenderInput {
   context: CanvasRenderingContext2D;
   overlay: CanvasOverlayItem;
-  surfaceTransform: BoardSpaceProjection;
+  frameTransform: BoardSpaceProjection;
 }
 
 export type CanvasOverlayRenderer = (input: CanvasOverlayRenderInput) => void;
@@ -68,7 +68,7 @@ export interface CanvasRenderRequest {
   board: Board;
   viewport: Viewport;
   extendBackground?: boolean;
-  surfaceInset?: number;
+  fitPadding?: number;
   requestRender?: () => void;
   previewObjects?: BoardObject[];
   overlayItems?: CanvasOverlayItem[];

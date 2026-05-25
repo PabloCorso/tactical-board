@@ -1,9 +1,4 @@
-import type {
-  BoardSurfaceConfig,
-  ObjectId,
-  Point,
-  ToolId,
-} from "../board/types";
+import type { BoardFrameConfig, ObjectId, Point, ToolId } from "../board/types";
 import type { BoardEditorState } from "../editor/types";
 import type { CanvasRect } from "../editor/board-editor-controller";
 import type {
@@ -63,7 +58,7 @@ export interface ToolApi {
   duplicateObjects: (ids: ObjectId[]) => ObjectId[];
   deleteObjects: (ids: ObjectId[]) => void;
   sendObjectsToBack: (ids: ObjectId[]) => void;
-  setSurface: (surface: BoardSurfaceConfig) => void;
+  setFrame: (frame: BoardFrameConfig) => void;
   updateObjects: (
     ids: ObjectId[],
     updater: (

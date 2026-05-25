@@ -205,11 +205,11 @@ export function createEquipmentRenderer(
     object,
     appearance,
     requestRender,
-    surfaceTransform,
+    frameTransform,
   }: CanvasObjectRenderInput) => {
     const equipment = object as EquipmentObject;
     const definition = getEquipmentDefinition(equipment);
-    const bounds = surfaceTransform.getObjectCanvasBounds(equipment);
+    const bounds = frameTransform.getObjectCanvasBounds(equipment);
     const width = getAbsoluteCanvasExtent(bounds.width);
     const height = getAbsoluteCanvasExtent(bounds.height);
     const color = equipment.props.color ?? definition?.color ?? "#000000";
@@ -252,13 +252,13 @@ export function createEquipmentRenderer(
 export function hitTestEquipment({
   object,
   canvasPoint,
-  surfaceTransform,
+  frameTransform,
   minimumHitRadiusPx,
 }: CanvasObjectHitTestInput) {
   const equipment = object as EquipmentObject;
   const definition = getEquipmentDefinition(equipment);
-  const center = surfaceTransform.boardToCanvas(equipment.position);
-  const bounds = surfaceTransform.getObjectCanvasBounds(equipment);
+  const center = frameTransform.boardToCanvas(equipment.position);
+  const bounds = frameTransform.getObjectCanvasBounds(equipment);
   const effectiveMinimumHitRadiusPx = Math.max(
     definition?.minimumHitRadiusPx ?? minimumHitRadiusPx,
     0,

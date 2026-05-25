@@ -1,4 +1,4 @@
-import type { BoardSurfaceMarking } from "../../board/types";
+import type { BoardFrameMarking } from "../../board/types";
 import { createBoardSpaceProjection } from "../../geometry/board-space-projection";
 import { getOrderedBoardObjectIds } from "../../board/object-order";
 import type {
@@ -8,16 +8,14 @@ import type {
   CanvasRenderer,
 } from "./types";
 
-const SURFACE_INSET = 14;
-const SURFACE_RADIUS = 10;
-const DEFAULT_SURFACE_BACKGROUND = "rgba(255,255,255,0.03)";
+const DEFAULT_FIT_PADDING = 0;
+const FRAME_RADIUS = 10;
+const DEFAULT_FRAME_BACKGROUND = "rgba(255,255,255,0.03)";
 
-function getSurfaceBackground(board: {
-  surface: { background?: string; fill?: string };
+function getFrameBackground(board: {
+  frame: { background?: string; fill?: string };
 }) {
-  return (
-    board.surface.background ?? board.surface.fill ?? DEFAULT_SURFACE_BACKGROUND
-  );
+  return board.frame.background ?? board.frame.fill ?? DEFAULT_FRAME_BACKGROUND;
 }
 
 function syncCanvasSize(canvas: HTMLCanvasElement) {
@@ -59,7 +57,7 @@ function toRadians(angle: number) {
 
 function applyMarkingStyle(
   context: CanvasRenderingContext2D,
-  marking: BoardSurfaceMarking,
+  marking: BoardFrameMarking,
   scale: number,
 ) {
   context.globalAlpha = marking.opacity ?? 1;
@@ -68,9 +66,9 @@ function applyMarkingStyle(
   context.lineWidth = (marking.strokeWidth ?? 0) * scale;
 }
 
-function drawSurfaceMarking(
+function drawFrameMarking(
   context: CanvasRenderingContext2D,
-  marking: BoardSurfaceMarking,
+  marking: BoardFrameMarking,
   boardToCanvas: (point: { x: number; y: number }) => { x: number; y: number },
   scale: number,
 ) {
@@ -129,22 +127,22 @@ function drawSurfaceMarking(
 function drawRectOverlay({
   context,
   overlay,
-  surfaceTransform,
+  frameTransform,
 }: CanvasOverlayRenderInput & {
   overlay: CanvasRectOverlayItem;
 }) {
   const origin =
     overlay.coordinateSpace === "canvas"
       ? { x: overlay.x, y: overlay.y }
-      : surfaceTransform.boardToCanvas({ x: overlay.x, y: overlay.y });
+      : frameTransform.boardToCanvas({ x: overlay.x, y: overlay.y });
   const width =
     overlay.coordinateSpace === "canvas"
       ? overlay.width
-      : overlay.width * surfaceTransform.scale;
+      : overlay.width * frameTransform.scale;
   const height =
     overlay.coordinateSpace === "canvas"
       ? overlay.height
-      : overlay.height * surfaceTransform.scale;
+      : overlay.height * frameTransform.scale;
 
   context.save();
   context.fillStyle = overlay.fill ?? "transparent";
@@ -180,7 +178,7 @@ export function createCanvasRenderer(): CanvasRenderer {
       board,
       viewport,
       extendBackground = false,
-      surfaceInset = SURFACE_INSET,
+      fitPadding = DEFAULT_FIT_PADDING,
       requestRender = () => {},
       previewObjects = [],
       overlayItems = [],
@@ -197,18 +195,18 @@ export function createCanvasRenderer(): CanvasRenderer {
       context.clearRect(0, 0, width, height);
 
       if (extendBackground) {
-        context.fillStyle = getSurfaceBackground(board);
+        context.fillStyle = getFrameBackground(board);
         context.fillRect(0, 0, width, height);
       }
 
       const projection = createBoardSpaceProjection({
-        surface: board.surface,
+        frame: board.frame,
         viewport,
         canvasRect: {
           width,
           height,
         },
-        surfaceInset,
+        fitPadding,
       });
 
       drawRoundedRect(
@@ -217,13 +215,13 @@ export function createCanvasRenderer(): CanvasRenderer {
         projection.frame.y,
         projection.frame.width,
         projection.frame.height,
-        SURFACE_RADIUS,
+        FRAME_RADIUS,
       );
-      context.fillStyle = getSurfaceBackground(board);
+      context.fillStyle = getFrameBackground(board);
       context.fill();
 
-      for (const marking of board.surface.markings ?? []) {
-        drawSurfaceMarking(
+      for (const marking of board.frame.markings ?? []) {
+        drawFrameMarking(
           context,
           marking,
           projection.boardToCanvas,
@@ -243,7 +241,7 @@ export function createCanvasRenderer(): CanvasRenderer {
           object,
           appearance: "default",
           requestRender,
-          surfaceTransform: projection,
+          frameTransform: projection,
         });
       }
 
@@ -254,7 +252,7 @@ export function createCanvasRenderer(): CanvasRenderer {
           object: previewObject,
           appearance: "preview",
           requestRender,
-          surfaceTransform: projection,
+          frameTransform: projection,
         });
       }
 
@@ -265,7 +263,7 @@ export function createCanvasRenderer(): CanvasRenderer {
         renderer?.({
           context,
           overlay: overlayItem,
-          surfaceTransform: projection,
+          frameTransform: projection,
         });
       }
 

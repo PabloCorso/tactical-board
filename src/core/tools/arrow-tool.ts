@@ -322,12 +322,12 @@ export function renderArrow({
   context,
   object,
   appearance,
-  surfaceTransform,
+  frameTransform,
 }: CanvasObjectRenderInput) {
   const arrow = object as unknown as ArrowObject;
   const strokeWidth = getScaledCanvasStrokeWidth(
     arrow.props.strokeWidth,
-    surfaceTransform.scale,
+    frameTransform.scale,
   );
   const bodyStrokeWidth = getArrowBodyStrokeWidth(
     strokeWidth,
@@ -342,19 +342,19 @@ export function renderArrow({
   context.lineJoin = "round";
   context.setLineDash(
     arrow.props.lineStyle === "dashed"
-      ? scaleCanvasDashStyle(arrow.props.dashStyle, surfaceTransform.zoom)
+      ? scaleCanvasDashStyle(arrow.props.dashStyle, frameTransform.zoom)
       : [],
   );
 
-  const start = surfaceTransform.boardToCanvas(arrow.props.start);
-  const end = surfaceTransform.boardToCanvas(arrow.props.end);
+  const start = frameTransform.boardToCanvas(arrow.props.start);
+  const end = frameTransform.boardToCanvas(arrow.props.end);
   const { controlPoint, pathStart, pathEnd, startTangent, endTangent } =
     getArrowGeometry(
       start,
       end,
       arrow.props.kind,
       arrow.props.curveOffset !== undefined
-        ? surfaceTransform.boardToCanvas(
+        ? frameTransform.boardToCanvas(
             getArrowControlPoint(
               arrow.props.start,
               arrow.props.end,
@@ -373,7 +373,7 @@ export function renderArrow({
     end: pathEnd,
     controlPoint: arrow.props.kind === "curved" ? controlPoint : undefined,
     kind: arrow.props.kind,
-    styleScale: surfaceTransform.zoom,
+    styleScale: frameTransform.zoom,
   })) {
     drawArrowPath(context, polyline);
     context.stroke();
@@ -425,11 +425,11 @@ function distanceToSegment(point: Point, start: Point, end: Point) {
 function hitTestArrow({
   object,
   canvasPoint,
-  surfaceTransform,
+  frameTransform,
   minimumHitRadiusPx,
 }: CanvasObjectHitTestInput) {
   const arrow = object as unknown as ArrowObject;
-  const strokeWidth = arrow.props.strokeWidth * surfaceTransform.scale;
+  const strokeWidth = arrow.props.strokeWidth * frameTransform.scale;
   const threshold = Math.max(
     MIN_HIT_DISTANCE_PX,
     minimumHitRadiusPx / 2,
@@ -438,7 +438,7 @@ function hitTestArrow({
 
   const controlPoint =
     arrow.props.kind === "curved"
-      ? surfaceTransform.boardToCanvas(
+      ? frameTransform.boardToCanvas(
           getArrowControlPoint(
             arrow.props.start,
             arrow.props.end,
@@ -446,8 +446,8 @@ function hitTestArrow({
           ),
         )
       : undefined;
-  const start = surfaceTransform.boardToCanvas(arrow.props.start);
-  const end = surfaceTransform.boardToCanvas(arrow.props.end);
+  const start = frameTransform.boardToCanvas(arrow.props.start);
+  const end = frameTransform.boardToCanvas(arrow.props.end);
   const { pathStart, pathEnd } = getArrowGeometry(
     start,
     end,
@@ -463,7 +463,7 @@ function hitTestArrow({
     end: pathEnd,
     controlPoint: arrow.props.kind === "curved" ? controlPoint : undefined,
     kind: arrow.props.kind,
-    styleScale: surfaceTransform.zoom,
+    styleScale: frameTransform.zoom,
   })) {
     for (let index = 1; index < polyline.length; index += 1) {
       if (

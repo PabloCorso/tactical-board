@@ -51,7 +51,7 @@ Owns:
 
 - canvas draw loop
 - viewport-to-pixel mapping
-- document background and surface drawing
+- document background and frame drawing
 - shape render hooks
 - transient overlays
 
@@ -94,7 +94,7 @@ Does not own:
 
 Own:
 
-- board-specific Document Backgrounds and Surface Presets
+- board-specific Frames
 - board-specific Shapes such as Player Tokens and equipment
 - board or sport-specific presets, dimensions, and coach-facing UI
 - Football as the first consumer-ready React board package
@@ -110,7 +110,7 @@ The current `src/core/board` directory is a compatibility namespace for Board-fa
 Persist only Document data:
 
 - document id and metadata
-- document background or board surface config
+- document background or board frame config
 - shapes
 - explicit ordering
 - document-level style/theme references
@@ -172,9 +172,9 @@ Reusable tools such as Select, Hand, Shape, Arrow, and Text live in a standard t
 
 Selection is generic editor-session state, not Select tool state. Tools may change selection or decide whether to show selection chrome, but keyboard shortcuts, history, and editor operations should not depend on importing a specific Select tool.
 
-### Backgrounds and Surfaces
+### Backgrounds and Frames
 
-The generic core has a Document Background for base visuals and coordinate setup. Board layers define Surface Presets with sport-oriented markings such as fields and courts. Football is the first pressure-test surface, not the architecture.
+The generic core has a Document Background for base visuals and coordinate setup. Board layers define Frames with sport-oriented markings such as fields and courts. Football is the first pressure-test frame, not the architecture.
 
 ### Units
 

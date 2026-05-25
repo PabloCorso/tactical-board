@@ -23,9 +23,9 @@ import { PLAYER_OBJECT_TYPE } from "../core/objects/player-object";
 import { SHAPE_OBJECT_TYPE } from "../core/objects/shape-object";
 import { TEXT_OBJECT_TYPE } from "../core/objects/text-object";
 
-describe("React public surface", () => {
+describe("React public frame", () => {
   it("exports the simple and composable football modules", () => {
-    const board = createFootballBoard({ id: "public-surface-board" });
+    const board = createFootballBoard({ id: "public-frame-board" });
     const store = createFootballBoardEditorStore(board);
 
     expect(() =>

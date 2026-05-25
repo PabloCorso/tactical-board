@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { PLAYER_OBJECT_TYPE } from "../../core/objects/player-object";
 import { createToolApi } from "../../core/editor/create-tool-api";
 import type { BoardEditorState } from "../../core/editor/types";
-import { getViewportToFitSurface } from "../../core/editor/viewport-utils";
+import { getViewportToFitFrame } from "../../core/editor/viewport-utils";
 import { useBoardEditorContext } from "../components/board-editor-context";
 import {
   BoardEditorToolbar,
@@ -34,13 +34,13 @@ import {
   FOOTBALL_PLAYER_PRESETS,
   FOOTBALL_SHAPE_PRESETS,
 } from "./football-catalog";
-import { createFootballPitchSurface } from "./football-board";
+import { createFootballPitch } from "./football-board";
 import {
-  FOOTBALL_PITCH_SURFACE_OPTIONS,
+  FOOTBALL_PITCH_OPTIONS,
   FOOTBALL_PITCH_TOOL_ID,
-  FootballPitchSurfacePreview,
-  getFootballPitchSurfaceVariant,
-} from "./football-pitch-surface-icons";
+  FootballPitchPreview,
+  getFootballPitchVariant,
+} from "./football-pitch-icons";
 import {
   FootballArrowPresetIcon,
   FootballEquipmentDefinitionIcon,
@@ -110,26 +110,24 @@ export function FootballSecondaryToolbar({
   const activeToolId = state.ui.activeToolId;
 
   if (activeToolId === FOOTBALL_PITCH_TOOL_ID) {
-    const variant = getFootballPitchSurfaceVariant(
-      state.board.surface.markup?.variant,
-    );
+    const variant = getFootballPitchVariant(state.board.frame.markup?.variant);
 
     return (
       <BoardEditorToolbar {...toolbarProps} orientation={orientation}>
-        {FOOTBALL_PITCH_SURFACE_OPTIONS.map((option) => (
+        {FOOTBALL_PITCH_OPTIONS.map((option) => (
           <BoardEditorToolbarButton
             active={variant === option.value}
             aria-label={option.label}
             className="h-auto w-auto p-1.5"
             key={option.value}
             onClick={() => {
-              const surface = createFootballPitchSurface(option.value);
-              toolApi.setSurface(surface);
+              const frame = createFootballPitch(option.value);
+              toolApi.setFrame(frame);
 
               if (state.ui.canvasRect) {
                 state.actions.setViewport(
-                  getViewportToFitSurface({
-                    surface,
+                  getViewportToFitFrame({
+                    frame,
                     canvasRect: state.ui.canvasRect,
                   }),
                 );
@@ -137,7 +135,7 @@ export function FootballSecondaryToolbar({
             }}
             tooltip={option.label}
           >
-            <FootballPitchSurfacePreview
+            <FootballPitchPreview
               className="rounded-md"
               variant={option.value}
               width={104}

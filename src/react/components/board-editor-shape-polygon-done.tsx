@@ -30,10 +30,10 @@ export function BoardEditorShapePolygonDone() {
   const canClose = shapeState.pendingPoints.length >= 3;
 
   const projection = createBoardSpaceProjection({
-    surface: state.board.surface,
+    frame: state.board.frame,
     viewport: state.ui.viewport,
     canvasRect: state.ui.canvasRect,
-    surfaceInset: 14,
+    fitPadding: state.ui.fitPadding,
   });
   const firstPoint = projection.boardToCanvas(shapeState.pendingPoints[0]);
 

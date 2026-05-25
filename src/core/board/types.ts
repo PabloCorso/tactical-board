@@ -54,20 +54,20 @@ export interface DocumentBackgroundConfig {
   fill?: string;
 }
 
-export interface BoardSurfacePreset extends DocumentBackgroundConfig {
+export interface BoardFramePreset extends DocumentBackgroundConfig {
   background?: string;
-  markings?: BoardSurfaceMarking[];
+  markings?: BoardFrameMarking[];
   markup?: Record<string, unknown>;
 }
 
-export interface SurfaceMarkingStyle {
+export interface FrameMarkingStyle {
   fill?: string;
   stroke?: string;
   strokeWidth?: number;
   opacity?: number;
 }
 
-export interface SurfaceRectMarking extends SurfaceMarkingStyle {
+export interface FrameRectMarking extends FrameMarkingStyle {
   kind: "rect";
   x: number;
   y: number;
@@ -75,7 +75,7 @@ export interface SurfaceRectMarking extends SurfaceMarkingStyle {
   height: number;
 }
 
-export interface SurfaceLineMarking extends SurfaceMarkingStyle {
+export interface FrameLineMarking extends FrameMarkingStyle {
   kind: "line";
   x1: number;
   y1: number;
@@ -83,14 +83,14 @@ export interface SurfaceLineMarking extends SurfaceMarkingStyle {
   y2: number;
 }
 
-export interface SurfaceCircleMarking extends SurfaceMarkingStyle {
+export interface FrameCircleMarking extends FrameMarkingStyle {
   kind: "circle";
   cx: number;
   cy: number;
   r: number;
 }
 
-export interface SurfaceArcMarking extends SurfaceMarkingStyle {
+export interface FrameArcMarking extends FrameMarkingStyle {
   kind: "arc";
   cx: number;
   cy: number;
@@ -99,17 +99,17 @@ export interface SurfaceArcMarking extends SurfaceMarkingStyle {
   endAngle: number;
 }
 
-export type BoardSurfaceMarking =
-  | SurfaceRectMarking
-  | SurfaceLineMarking
-  | SurfaceCircleMarking
-  | SurfaceArcMarking;
+export type BoardFrameMarking =
+  | FrameRectMarking
+  | FrameLineMarking
+  | FrameCircleMarking
+  | FrameArcMarking;
 
 export interface Document {
   id: DocumentId;
   version: number;
   metadata: DocumentMetadata;
-  surface: DocumentBackgroundConfig;
+  frame: DocumentBackgroundConfig;
   objects: ShapeIndex;
   style: DocumentStyleRef;
 }
@@ -120,8 +120,8 @@ export type BoardMetadata = DocumentMetadata;
 export type BoardStyleRef = DocumentStyleRef;
 export type BoardObject = Shape;
 export type ObjectIndex = ShapeIndex;
-export type BoardSurfaceConfig = BoardSurfacePreset;
+export type BoardFrameConfig = BoardFramePreset;
 
-export interface Board extends Omit<Document, "surface"> {
-  surface: BoardSurfacePreset;
+export interface Board extends Omit<Document, "frame"> {
+  frame: BoardFramePreset;
 }

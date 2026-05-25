@@ -18,7 +18,7 @@ const state: Pick<BoardEditorState, "board" | "ui"> = {
     id: "board-1",
     version: 1,
     metadata: {},
-    surface: {
+    frame: {
       width: 100,
       height: 50,
     },
@@ -35,6 +35,8 @@ const state: Pick<BoardEditorState, "board" | "ui"> = {
       pan: { x: 0, y: 0 },
       zoom: 1,
     },
+    fitPadding: 0,
+    navigationMode: "free",
   },
 };
 

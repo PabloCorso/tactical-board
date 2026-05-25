@@ -20,7 +20,7 @@ import {
   FOOTBALL_PLAYER_PRESETS,
   FOOTBALL_SHAPE_PRESETS,
 } from "./football-catalog";
-import { FOOTBALL_PITCH_TOOL_ID } from "./football-pitch-surface-icons";
+import { FOOTBALL_PITCH_TOOL_ID } from "./football-pitch-icons";
 
 type PlayerImageCacheEntry = {
   image: HTMLImageElement;
@@ -68,7 +68,7 @@ export function renderFootballPlayer(input: CanvasObjectRenderInput) {
     return;
   }
 
-  const bounds = input.surfaceTransform.getObjectCanvasBounds(player);
+  const bounds = input.frameTransform.getObjectCanvasBounds(player);
   const width = Math.abs(bounds.width);
   const height = Math.abs(bounds.height);
   const radius = Math.min(width, height) / 2;
@@ -89,7 +89,7 @@ export function renderFootballPlayer(input: CanvasObjectRenderInput) {
   if (player.props.label) {
     const fontSize =
       (player.props.fontSize ?? DEFAULT_PLAYER_FONT_SIZE) *
-      input.surfaceTransform.scale;
+      input.frameTransform.scale;
 
     input.context.save();
     input.context.translate(

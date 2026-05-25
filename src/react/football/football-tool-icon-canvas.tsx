@@ -63,7 +63,7 @@ export function FootballToolIconCanvas<TObject extends BoardObject>({
             draw();
           });
         },
-        surfaceTransform: createProjection(object, width, height),
+        frameTransform: createProjection(object, width, height),
       });
     };
 

@@ -14,9 +14,9 @@ import {
 } from "./football-tool-icons";
 import {
   FOOTBALL_PITCH_TOOL_ID,
-  FootballPitchSurfacePreview,
-  getFootballPitchSurfaceVariant,
-} from "./football-pitch-surface-icons";
+  FootballPitchPreview,
+  getFootballPitchVariant,
+} from "./football-pitch-icons";
 
 export type FootballPrimaryToolbarProps = Omit<
   BoardEditorToolbarProps,
@@ -51,14 +51,14 @@ export function FootballPrimaryToolbar({
 function FootballPitchToolControl() {
   const store = useBoardEditorContext();
   const variant = useBoardEditorStore(store, (state) =>
-    getFootballPitchSurfaceVariant(state.board.surface.markup?.variant),
+    getFootballPitchVariant(state.board.frame.markup?.variant),
   );
 
   return (
     <BoardEditorToolControl
       toolId={FOOTBALL_PITCH_TOOL_ID}
       icon={
-        <FootballPitchSurfacePreview
+        <FootballPitchPreview
           className="rounded-sm"
           variant={variant}
           width={24}

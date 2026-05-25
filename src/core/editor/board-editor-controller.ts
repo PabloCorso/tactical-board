@@ -10,7 +10,6 @@ import {
   VIEWPORT_WHEEL_ZOOM_SENSITIVITY,
 } from "./viewport-utils";
 
-const SURFACE_INSET = 14;
 const POINTER_DRAG_THRESHOLD_PX = 4;
 
 export interface CanvasRect {
@@ -57,10 +56,10 @@ function getBoardPoint(
   clientPoint: Point,
 ): Point {
   const projection = createBoardSpaceProjection({
-    surface: state.board.surface,
+    frame: state.board.frame,
     viewport: state.ui.viewport,
     canvasRect,
-    surfaceInset: SURFACE_INSET,
+    fitPadding: state.ui.fitPadding,
   });
 
   return projection.canvasToBoard({
@@ -75,10 +74,10 @@ function getTargetObjectId(
   clientPoint: Point,
 ): ObjectId | undefined {
   const projection = createBoardSpaceProjection({
-    surface: state.board.surface,
+    frame: state.board.frame,
     viewport: state.ui.viewport,
     canvasRect,
-    surfaceInset: SURFACE_INSET,
+    fitPadding: state.ui.fitPadding,
   });
   const canvasPoint = {
     x: clientPoint.x - canvasRect.left,
@@ -100,7 +99,7 @@ function getTargetObjectId(
       hitTester?.({
         object,
         canvasPoint,
-        surfaceTransform: projection,
+        frameTransform: projection,
         minimumHitRadiusPx: 24,
       }) ??
       projection.hitTestObject(object, canvasPoint)
@@ -136,7 +135,7 @@ export function createBoardEditorController(
   const zoomViewportFromWheel = (input: BoardEditorWheelInput) => {
     const state = store.getState();
     const nextViewport = getViewportForZoomAtCanvasPoint({
-      surface: state.board.surface,
+      frame: state.board.frame,
       viewport: state.ui.viewport,
       canvasRect: input.canvasRect,
       anchorCanvasPoint: {
@@ -146,6 +145,7 @@ export function createBoardEditorController(
       zoom:
         state.ui.viewport.zoom *
         Math.exp(-input.deltaY * VIEWPORT_WHEEL_ZOOM_SENSITIVITY),
+      fitPadding: state.ui.fitPadding,
     });
 
     state.actions.setViewport(nextViewport);

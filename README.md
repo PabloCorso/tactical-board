@@ -6,7 +6,7 @@ Reusable tactical board/editor library scaffolded around a simple layered archit
 - `src/rendering/canvas`: the Canvas Renderer. It paints Document or Board state and transient overlays to HTML canvas.
 - `src/react`: the React Adapter and Board Editor UI shell. It wires DOM input and subscriptions without owning canonical Document state.
 - `src/tools`: reusable Standard Tools such as Select, Hand, Shape, Arrow, Text, Player, and Equipment.
-- `src/react/football`: the first consumer-ready Football Board package. It owns football-specific surfaces, dimensions, object presets, skins, and the composed React editor while still exporting the parts for custom editors.
+- `src/react/football`: the first consumer-ready Football Board package. It owns football-specific frames, dimensions, object presets, skins, and the composed React editor while still exporting the parts for custom editors.
 
 The shared Board Library boundary is still emerging. Do not extract a broad `src/board` or `src/presets` layer until a concrete boundary is proven by more than the football package.
 
@@ -39,7 +39,7 @@ const board = createBoard({
   id: "training-board",
   version: 1,
   metadata: { name: "Training board" },
-  surface: {
+  frame: {
     width: 1200,
     height: 800,
     fill: "#f8fafc",
@@ -95,7 +95,7 @@ import {
 } from "@pablocorso/tactical-board/react";
 ```
 
-`FootballBoardEditor` accepts a caller-owned store or initial board. Without either, it creates an empty full-pitch football document via `createFootballBoard()`. Local showcase data lives under `src/examples` for Storybook and visual smoke testing rather than the public football surface.
+`FootballBoardEditor` accepts a caller-owned store or initial board. Without either, it creates an empty full-pitch football document via `createFootballBoard()`. Local showcase data lives under `src/examples` for Storybook and visual smoke testing rather than the public football API.
 
 Football UI is also composable. Use `createFootballBoardEditorStore()` for the football tool setup, then arrange the generic React adapter pieces and football toolbar pieces in your own shell:
 

@@ -1,6 +1,6 @@
 import type {
   Board,
-  BoardSurfaceConfig,
+  BoardFrameConfig,
   BoardObject,
   Document,
   ObjectId,
@@ -29,6 +29,8 @@ export interface BoardViewport {
   zoom: number;
 }
 
+export type BoardEditorNavigationMode = "free" | "contained";
+
 export interface BoardEditorUiState {
   activeToolId: ToolId;
   defaultToolId: ToolId;
@@ -38,6 +40,8 @@ export interface BoardEditorUiState {
     height: number;
   };
   viewport: BoardViewport;
+  fitPadding: number;
+  navigationMode: BoardEditorNavigationMode;
 }
 
 export interface BoardEditorRenderingState {
@@ -71,7 +75,7 @@ export interface BoardEditorActions {
   endHistoryBatch: () => void;
   undo: () => void;
   redo: () => void;
-  setSurface: (surface: BoardSurfaceConfig) => void;
+  setFrame: (frame: BoardFrameConfig) => void;
   addObjects: (objects: BoardObject[]) => void;
   bringObjectsToFront: (objectIds: ObjectId[]) => void;
   duplicateObjects: (objectIds: ObjectId[]) => ObjectId[];

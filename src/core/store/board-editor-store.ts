@@ -8,6 +8,10 @@ import type {
   ToolId,
 } from "../board/types";
 import type { BoardEditorState } from "../editor/types";
+import {
+  constrainViewportToFrame,
+  DEFAULT_FIT_PADDING,
+} from "../editor/viewport-utils";
 import { moveObjectIdsToLayerBoundary } from "../board/object-order";
 import { moveBoardObject } from "../objects/object-behaviors";
 import type { ShapeDefinition, ShapeRegistry } from "../objects/types";
@@ -29,6 +33,8 @@ const MAX_HISTORY_ENTRIES = 100;
 type CreateEditorStoreBaseOptions = {
   tools?: ToolRegistration[];
   initialToolId?: ToolId;
+  fitPadding?: number;
+  navigationMode?: BoardEditorState["ui"]["navigationMode"];
   objectRenderers?: CanvasObjectRendererRegistry;
   objectHitTesters?: CanvasObjectHitTesterRegistry;
   overlayRenderers?: CanvasOverlayRendererRegistry;
@@ -169,6 +175,8 @@ export function createEditorStore({
   initialDocument,
   tools = [],
   initialToolId,
+  fitPadding = DEFAULT_FIT_PADDING,
+  navigationMode = "free",
   objectRenderers = {},
   objectHitTesters = {},
   overlayRenderers = {},
@@ -202,6 +210,21 @@ export function createEditorStore({
     initialToolId && toolRegistry.definitions[initialToolId]
       ? initialToolId
       : (registeredTools[0]?.id ?? initialToolId ?? "");
+  const constrainViewport = (
+    state: BoardEditorState,
+    viewport: BoardEditorState["ui"]["viewport"],
+  ) => {
+    if (state.ui.navigationMode !== "contained" || !state.ui.canvasRect) {
+      return viewport;
+    }
+
+    return constrainViewportToFrame({
+      frame: state.board.frame,
+      canvasRect: state.ui.canvasRect,
+      viewport,
+      fitPadding: state.ui.fitPadding,
+    });
+  };
 
   const store = createStore<BoardEditorState>((set, get) => ({
     board: initialDocument,
@@ -217,6 +240,8 @@ export function createEditorStore({
         pan: { x: 0, y: 0 },
         zoom: 1,
       },
+      fitPadding,
+      navigationMode,
     },
     selection: {
       selectedObjectIds: [],
@@ -302,7 +327,7 @@ export function createEditorStore({
             duplicateObjects: actions.duplicateObjects,
             deleteObjects: actions.deleteObjects,
             sendObjectsToBack: actions.sendObjectsToBack,
-            setSurface: actions.setSurface,
+            setFrame: actions.setFrame,
             updateObjects: actions.updateObjects,
             setPreviewObjects: actions.setPreviewObjects,
             clearPreviewObjects: actions.clearPreviewObjects,
@@ -352,16 +377,28 @@ export function createEditorStore({
             ui: {
               ...state.ui,
               canvasRect: rect,
+              viewport: constrainViewport(
+                {
+                  ...state,
+                  ui: {
+                    ...state.ui,
+                    canvasRect: rect,
+                  },
+                },
+                state.ui.viewport,
+              ),
             },
           };
         });
       },
       setViewport: (viewport) => {
         set((state) => {
+          const nextViewport = constrainViewport(state, viewport);
+
           if (
-            state.ui.viewport.zoom === viewport.zoom &&
-            state.ui.viewport.pan.x === viewport.pan.x &&
-            state.ui.viewport.pan.y === viewport.pan.y
+            state.ui.viewport.zoom === nextViewport.zoom &&
+            state.ui.viewport.pan.x === nextViewport.pan.x &&
+            state.ui.viewport.pan.y === nextViewport.pan.y
           ) {
             return state;
           }
@@ -369,7 +406,7 @@ export function createEditorStore({
           return {
             ui: {
               ...state.ui,
-              viewport,
+              viewport: nextViewport,
             },
           };
         });
@@ -560,15 +597,15 @@ export function createEditorStore({
           };
         });
       },
-      setSurface: (surface) => {
+      setFrame: (frame) => {
         set((state) => {
-          if (state.board.surface === surface) {
+          if (state.board.frame === frame) {
             return state;
           }
 
           const nextBoard = {
             ...state.board,
-            surface,
+            frame,
           };
 
           return {
@@ -635,13 +672,13 @@ export function createEditorStore({
         set((state) => ({
           ui: {
             ...state.ui,
-            viewport: {
+            viewport: constrainViewport(state, {
               ...state.ui.viewport,
               pan: {
                 x: state.ui.viewport.pan.x + delta.x,
                 y: state.ui.viewport.pan.y + delta.y,
               },
-            },
+            }),
           },
         }));
       },

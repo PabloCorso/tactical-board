@@ -3,7 +3,7 @@ import type { Board } from "../../core/board/types";
 import type { Viewport } from "../../core/geometry/types";
 import {
   DEFAULT_VIEWPORT,
-  getViewportToFitSurface,
+  getViewportToFitFrame,
 } from "../../core/editor/viewport-utils";
 import {
   DEFAULT_BOARD_VIEWER_FIT_PADDING,
@@ -74,15 +74,16 @@ export function useBoardViewerCanvas({
   const resolveInitialViewport = useCallback(
     (rect: BoardViewerCanvasRect) => {
       if (initialViewport === "fit") {
-        return getViewportToFitSurface({
-          surface: board.surface,
+        return getViewportToFitFrame({
+          frame: board.frame,
           canvasRect: rect,
+          fitPadding,
         });
       }
 
       return initialViewport;
     },
-    [board.surface, initialViewport],
+    [board.frame, fitPadding, initialViewport],
   );
 
   useEffect(function observeCanvasResize() {
@@ -130,7 +131,7 @@ export function useBoardViewerCanvas({
       getBoardViewerViewport({
         board,
         mode,
-        surface: board.surface,
+        frame: board.frame,
         canvasRect: canvasRect ?? { width: 1, height: 1 },
         viewport: mode === "interactive" ? interactiveViewport : viewport,
         fitPadding,
@@ -182,7 +183,7 @@ export function useBoardViewerCanvas({
       board,
       viewport: effectiveViewport,
       extendBackground,
-      surfaceInset: fitPadding,
+      fitPadding: fitPadding,
       requestRender,
       objectRenderers,
       overlayItems,
@@ -282,7 +283,7 @@ export function useBoardViewerCanvas({
 
         updateInteractiveViewport(
           getBoardViewerViewportFromWheel({
-            surface: board.surface,
+            frame: board.frame,
             viewport: interactiveViewportRef.current,
             input: {
               canvasRect: nextCanvasRect,
@@ -291,6 +292,7 @@ export function useBoardViewerCanvas({
                 y: event.clientY - rect.top,
               },
               deltaY: event.deltaY,
+              fitPadding,
             },
           }),
         );
@@ -310,7 +312,7 @@ export function useBoardViewerCanvas({
         canvas.removeEventListener("wheel", onWheel);
       };
     },
-    [board.surface, mode, updateInteractiveViewport],
+    [board.frame, fitPadding, mode, updateInteractiveViewport],
   );
 
   return {

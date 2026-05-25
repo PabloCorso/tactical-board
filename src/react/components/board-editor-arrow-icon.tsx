@@ -89,7 +89,7 @@ export function BoardEditorArrowIcon({
             draw();
           });
         },
-        surfaceTransform: createArrowIconProjection(width, height),
+        frameTransform: createArrowIconProjection(width, height),
       });
     };
 

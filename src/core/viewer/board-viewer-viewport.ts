@@ -1,7 +1,7 @@
 import type {
   Board,
   BoardObject,
-  BoardSurfaceConfig,
+  BoardFrameConfig,
   Point,
 } from "../board/types";
 import {
@@ -20,9 +20,9 @@ import {
   getViewportForZoomAtCanvasPoint,
   VIEWPORT_WHEEL_ZOOM_SENSITIVITY,
 } from "../editor/viewport-utils";
-import { getSurfaceFitScale } from "../geometry/surface-scale";
+import { getFrameFitScale } from "../geometry/frame-scale";
 
-export const DEFAULT_BOARD_VIEWER_FIT_PADDING = 14;
+export const DEFAULT_BOARD_VIEWER_FIT_PADDING = 0;
 
 export type BoardViewerViewportMode =
   | "fit"
@@ -39,6 +39,7 @@ export interface BoardViewerWheelInput {
   canvasRect: BoardViewerCanvasRect;
   clientPoint: Point;
   deltaY: number;
+  fitPadding?: number;
 }
 
 export interface BoardViewerPanInput {
@@ -107,8 +108,8 @@ export function getBoardContentBounds(board: Board): BoardContentBounds {
   const bounds = {
     minX: 0,
     minY: 0,
-    maxX: board.surface.width,
-    maxY: board.surface.height,
+    maxX: board.frame.width,
+    maxY: board.frame.height,
   };
 
   for (const objectId of board.objects.order) {
@@ -138,63 +139,63 @@ function getViewportToFitContent({
     width: Math.max(1, canvasRect.width - fitPadding * 2),
     height: Math.max(1, canvasRect.height - fitPadding * 2),
   };
-  const zoom = getSurfaceFitScale({ width, height }, frame);
+  const zoom = getFrameFitScale({ width, height }, frame);
   const boundsCenter = {
     x: bounds.minX + width / 2,
     y: bounds.minY + height / 2,
   };
-  const surfaceCenter = {
-    x: board.surface.width / 2,
-    y: board.surface.height / 2,
+  const frameCenter = {
+    x: board.frame.width / 2,
+    y: board.frame.height / 2,
   };
 
   return {
     pan: {
-      x: normalizeZero(-(boundsCenter.x - surfaceCenter.x) * zoom),
-      y: normalizeZero(-(boundsCenter.y - surfaceCenter.y) * zoom),
+      x: normalizeZero(-(boundsCenter.x - frameCenter.x) * zoom),
+      y: normalizeZero(-(boundsCenter.y - frameCenter.y) * zoom),
     },
     zoom,
   };
 }
 
-function getViewerViewportToFitSurface({
-  surface,
+function getViewerViewportToFitFrame({
+  frame,
   canvasRect,
   fitPadding,
 }: {
-  surface: BoardSurfaceConfig;
+  frame: BoardFrameConfig;
   canvasRect: BoardViewerCanvasRect;
   fitPadding: number;
 }): Viewport {
-  const frame = {
+  const viewportFrame = {
     width: Math.max(1, canvasRect.width - fitPadding * 2),
     height: Math.max(1, canvasRect.height - fitPadding * 2),
   };
 
   return {
     pan: { x: 0, y: 0 },
-    zoom: getSurfaceFitScale(surface, frame),
+    zoom: getFrameFitScale(frame, viewportFrame),
   };
 }
 
 export function getBoardViewerViewport({
   board,
   mode,
-  surface,
+  frame,
   canvasRect,
   viewport,
   fitPadding = DEFAULT_BOARD_VIEWER_FIT_PADDING,
 }: {
   board?: Board;
   mode: BoardViewerViewportMode;
-  surface: BoardSurfaceConfig;
+  frame: BoardFrameConfig;
   canvasRect: BoardViewerCanvasRect;
   viewport?: Viewport;
   fitPadding?: number;
 }): Viewport {
   if (mode === "fit") {
-    return getViewerViewportToFitSurface({
-      surface,
+    return getViewerViewportToFitFrame({
+      frame,
       canvasRect,
       fitPadding,
     });
@@ -209,8 +210,8 @@ export function getBoardViewerViewport({
   }
 
   if (mode === "fit-content") {
-    return getViewerViewportToFitSurface({
-      surface,
+    return getViewerViewportToFitFrame({
+      frame,
       canvasRect,
       fitPadding,
     });
@@ -220,19 +221,20 @@ export function getBoardViewerViewport({
 }
 
 export function getBoardViewerViewportFromWheel({
-  surface,
+  frame,
   viewport,
   input,
 }: {
-  surface: BoardSurfaceConfig;
+  frame: BoardFrameConfig;
   viewport: Viewport;
   input: BoardViewerWheelInput;
 }): Viewport {
   return getViewportForZoomAtCanvasPoint({
-    surface,
+    frame,
     viewport,
     canvasRect: input.canvasRect,
     anchorCanvasPoint: input.clientPoint,
+    fitPadding: input.fitPadding,
     zoom:
       viewport.zoom * Math.exp(-input.deltaY * VIEWPORT_WHEEL_ZOOM_SENSITIVITY),
   });

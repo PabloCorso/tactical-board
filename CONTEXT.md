@@ -4,9 +4,9 @@
 
 - **Document**: The generic persistent editable content managed by the Editor Engine.
 - **Board**: A bounded visual planning canvas built as a specialization of a Document.
-- **Football Board**: A football-specific Board configured with football surfaces, dimensions, objects, and coach-facing workflows.
+- **Football Board**: A football-specific Board configured with football frames, dimensions, objects, and coach-facing workflows.
 - **Timeline**: A generic future Document concept for frame-based or step-based change over time.
-- **Frame**: A generic future point or step in a Timeline.
+- **Timeline Frame**: A generic future point or step in a Timeline.
 - **Board Sequence**: A board-specific presentation of a Timeline for animation or step-based playback across Board states.
 - **Coach Workflow**: The end-user experience of creating, editing, and presenting tactical boards for coaching use cases. This guides sport-specific product layers rather than the core Engine.
 - **Football Example**: The first concrete football editor used to pressure-test the Editor Engine and board-specific layers. It is not disposable demo code.
@@ -23,7 +23,7 @@
 - **React Adapter**: The React integration layer that subscribes to the Editor Store, wires DOM input to Tools, and renders editor UI without owning canonical Document state.
 - **Document Background**: The generic base visual and coordinate setup for a Document.
 - **Document Unit**: The declared measurement unit for a Document coordinate space, such as pixels or meters. The Editor Engine uses it for scale and conversion without assigning domain meaning to the unit.
-- **Surface Preset**: A board-specific Document Background, often with domain markings such as field or court lines.
+- **Board Frame**: The bounded board area that defines coordinate size, base visuals, and optional domain markings such as field or court lines.
 - **Board Library**: The reusable board editor library developed in this repository. It must be embeddable across multiple Host Apps while supporting sport-specific workflows such as tactics, game plans, and practice drills.
 - **Canvas Renderer**: The rendering layer that paints Document or Board state to HTML canvas for editing and read-only display. It consumes Editor Engine data rather than defining editing rules itself.
 - **Tool**: An interaction module that interprets user input and invokes Editor Engine operations. Tools may own temporary interaction state, but persistent Document mutations belong to the Editor Engine rather than the Tool itself.

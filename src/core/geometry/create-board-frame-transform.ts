@@ -7,27 +7,27 @@ export interface Rect {
   height: number;
 }
 
-export interface BoardSurfaceTransform {
+export interface BoardFrameTransform {
   frame: Rect;
   scale: number;
   boardToCanvas: (point: Point) => Point;
   canvasToBoard: (point: Point) => Point;
 }
 
-export function createBoardSurfaceTransform({
-  surface,
-  frame,
+export function createBoardFrameTransform({
+  boardFrame,
+  viewportFrame,
   zoom = 1,
 }: {
-  surface: DocumentBackgroundConfig;
-  frame: Rect;
+  boardFrame: DocumentBackgroundConfig;
+  viewportFrame: Rect;
   zoom?: number;
-}): BoardSurfaceTransform {
+}): BoardFrameTransform {
   const scale = zoom;
-  const renderWidth = surface.width * scale;
-  const renderHeight = surface.height * scale;
-  const offsetX = frame.x + (frame.width - renderWidth) / 2;
-  const offsetY = frame.y + (frame.height - renderHeight) / 2;
+  const renderWidth = boardFrame.width * scale;
+  const renderHeight = boardFrame.height * scale;
+  const offsetX = viewportFrame.x + (viewportFrame.width - renderWidth) / 2;
+  const offsetY = viewportFrame.y + (viewportFrame.height - renderHeight) / 2;
 
   return {
     frame: {
