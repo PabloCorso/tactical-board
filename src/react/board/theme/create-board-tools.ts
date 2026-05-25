@@ -2,7 +2,6 @@ import {
   ArrowTool,
   type ArrowToolDefault,
 } from "../../../core/tools/arrow-tool";
-import { EquipmentTool } from "../../../core/tools/equipment-tool";
 import { HandTool } from "../../../core/tools/hand-tool";
 import {
   PlayerTool,
@@ -15,7 +14,8 @@ import {
 } from "../../../core/tools/shape-tool";
 import { TextTool } from "../../../core/tools/text-tool";
 import type { ToolRegistration } from "../../../core/tools/types";
-import type { BoardTheme } from "./board-theme";
+import type { BoardTheme, BoardThemeAdapters } from "./board-theme";
+import { getThemeObjectDefinitions } from "./board-theme";
 import {
   BOARD_ARROW_DEFAULTS,
   BOARD_PLAYER_DEFAULTS,
@@ -34,26 +34,29 @@ export type BoardToolDefaults = {
 };
 
 export function createBoardTools({
+  adapters,
   theme,
   defaults = {},
 }: {
-  theme?: Pick<BoardTheme, "equipment">;
+  theme?: BoardTheme;
+  adapters?: BoardThemeAdapters;
   defaults?: BoardToolDefaults;
 } = {}): ToolRegistration[] {
+  const objectAdapterTools = (adapters?.objectAdapters ?? []).flatMap(
+    (adapter) =>
+      adapter.createTools?.({
+        definitions: getThemeObjectDefinitions(theme, adapter.type),
+        theme,
+      }) ?? [],
+  );
+
   return [
     new SelectTool(),
     new HandTool(),
     new PlayerTool({
       defaults: defaults.players ?? BOARD_PLAYER_DEFAULTS,
     }),
-    ...(theme?.equipment
-      ? [
-          new EquipmentTool({
-            definitions: theme.equipment.definitions,
-            renderersByKind: theme.equipment.renderersByKind,
-          }),
-        ]
-      : []),
+    ...objectAdapterTools,
     new TextTool(),
     new ArrowTool({
       defaults: defaults.arrows ?? BOARD_ARROW_DEFAULTS,

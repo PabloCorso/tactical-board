@@ -8,7 +8,7 @@ import {
   FootballPitchPreview,
   getFootballPitchVariant,
 } from "../theme/football-pitch-icons";
-import { footballTheme } from "../theme/football-theme";
+import { footballTheme, footballThemeAdapters } from "../theme/football-theme";
 
 export type FootballPrimaryToolbarProps = Omit<
   BoardEditorToolbarProps,
@@ -22,6 +22,7 @@ export function FootballPrimaryToolbar({
   return (
     <BoardPrimaryToolbar
       {...toolbarProps}
+      adapters={footballThemeAdapters}
       orientation={orientation}
       showEquipment
       theme={footballTheme}

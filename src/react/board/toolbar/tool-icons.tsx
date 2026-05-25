@@ -5,6 +5,7 @@ import {
   createEquipmentObject,
   type EquipmentDefinition,
 } from "../../../core/objects/equipment-object";
+import type { CanvasObjectRenderer } from "../../../core/rendering/canvas/types";
 import {
   createPlayerObject,
   PLAYER_OBJECT_TYPE,
@@ -17,10 +18,6 @@ import { BoardEditorArrowIcon } from "../editor/arrow-icon";
 import { useBoardEditorContext } from "../../adapter/editor/board-editor-context";
 import { cn } from "../../ui/misc";
 import { useBoardEditorStore } from "../../adapter/editor/use-board-editor-store";
-import {
-  createEquipmentRenderer,
-  type EquipmentCanvasRendererRegistry,
-} from "../../../core/tools/equipment-tool";
 import { renderPlayer } from "../../../core/tools/player-tool";
 import {
   getArrowToolState,
@@ -249,19 +246,15 @@ export function BoardShapeToolIcon() {
 
 export function BoardEquipmentDefinitionIcon({
   definition,
-  renderersByKind,
+  renderer,
   className,
   size = 24,
 }: {
   definition: EquipmentDefinition;
-  renderersByKind?: EquipmentCanvasRendererRegistry;
+  renderer: CanvasObjectRenderer;
   className?: string;
   size?: number;
 }) {
-  const renderEquipment = useMemo(
-    () => createEquipmentRenderer(renderersByKind),
-    [renderersByKind],
-  );
   const equipment = useMemo(
     () =>
       createEquipmentObject({
@@ -282,7 +275,7 @@ export function BoardEquipmentDefinitionIcon({
   return (
     <BoardToolIconCanvas
       object={equipment}
-      renderer={renderEquipment}
+      renderer={renderer}
       className={cn("h-5 w-5", className)}
       width={size}
       height={size}
@@ -292,10 +285,10 @@ export function BoardEquipmentDefinitionIcon({
 
 export function BoardEquipmentToolIcon({
   definitions,
-  renderersByKind,
+  renderer,
 }: {
   definitions: EquipmentDefinition[];
-  renderersByKind?: EquipmentCanvasRendererRegistry;
+  renderer: CanvasObjectRenderer;
 }) {
   const store = useBoardEditorContext();
   const kind = useBoardEditorStore(
@@ -317,7 +310,7 @@ export function BoardEquipmentToolIcon({
   return (
     <BoardEquipmentDefinitionIcon
       definition={definition}
-      renderersByKind={renderersByKind}
+      renderer={renderer}
     />
   );
 }

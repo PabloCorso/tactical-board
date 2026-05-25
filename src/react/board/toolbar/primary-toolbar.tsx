@@ -1,11 +1,17 @@
-import type { ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
+import { EQUIPMENT_OBJECT_TYPE } from "../../../core/objects/equipment-object";
 import { BoardEditorToolControl } from "../editor/toolbar/tool-control";
 import {
   BoardEditorToolbar,
   BoardEditorToolbarSeparator,
   type BoardEditorToolbarProps,
 } from "../editor/toolbar/editor-toolbar";
-import type { BoardTheme } from "../theme/board-theme";
+import {
+  createThemeObjectRenderer,
+  type BoardThemeAdapters,
+  type BoardTheme,
+} from "../theme/board-theme";
+import { getThemeEquipmentDefinitions } from "../theme/equipment-object-adapter";
 import {
   BoardArrowToolIcon,
   BoardEquipmentToolIcon,
@@ -17,7 +23,8 @@ export type BoardPrimaryToolbarProps = Omit<
   BoardEditorToolbarProps,
   "children"
 > & {
-  theme?: Pick<BoardTheme, "equipment">;
+  theme?: Pick<BoardTheme, "objects">;
+  adapters?: BoardThemeAdapters;
   showEquipment?: boolean;
   children?: ReactNode;
 };
@@ -26,10 +33,20 @@ export function BoardPrimaryToolbar({
   children,
   orientation = "vertical",
   showEquipment = false,
+  adapters,
   theme,
   ...toolbarProps
 }: BoardPrimaryToolbarProps) {
-  const equipmentDefinitions = theme?.equipment?.definitions ?? [];
+  const equipmentDefinitions = getThemeEquipmentDefinitions(theme);
+  const equipmentRenderer = useMemo(
+    () =>
+      createThemeObjectRenderer({
+        adapters,
+        theme,
+        type: EQUIPMENT_OBJECT_TYPE,
+      }),
+    [adapters, theme],
+  );
 
   return (
     <BoardEditorToolbar {...toolbarProps} orientation={orientation}>
@@ -40,10 +57,12 @@ export function BoardPrimaryToolbar({
         <BoardEditorToolControl
           toolId="equipment"
           icon={
-            <BoardEquipmentToolIcon
-              definitions={equipmentDefinitions}
-              renderersByKind={theme?.equipment?.renderersByKind}
-            />
+            equipmentRenderer ? (
+              <BoardEquipmentToolIcon
+                definitions={equipmentDefinitions}
+                renderer={equipmentRenderer}
+              />
+            ) : undefined
           }
         />
       ) : null}

@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { EQUIPMENT_OBJECT_TYPE } from "../../../core/objects/equipment-object";
 import { PLAYER_OBJECT_TYPE } from "../../../core/objects/player-object";
 import { createToolApi } from "../../../core/editor/create-tool-api";
 import type { BoardEditorState } from "../../../core/editor/types";
@@ -30,7 +31,12 @@ import {
   type BoardEditorToolbarProps,
 } from "../editor/toolbar/editor-toolbar";
 import { useBoardEditorStore } from "../../adapter/editor/use-board-editor-store";
-import type { BoardTheme } from "../theme/board-theme";
+import {
+  createThemeObjectRenderer,
+  type BoardThemeAdapters,
+  type BoardTheme,
+} from "../theme/board-theme";
+import { getThemeEquipmentDefinitions } from "../theme/equipment-object-adapter";
 import {
   BoardArrowDefaultIcon,
   BoardEquipmentDefinitionIcon,
@@ -94,7 +100,8 @@ export type BoardSecondaryToolbarProps = Omit<
   arrowDefaults?: ArrowToolDefault[];
   playerDefaults?: PlayerToolDefault[];
   shapeDefaults?: ShapeToolDefault[];
-  theme?: Pick<BoardTheme, "equipment">;
+  theme?: Pick<BoardTheme, "objects">;
+  adapters?: BoardThemeAdapters;
 };
 
 export function BoardSecondaryToolbar({
@@ -102,6 +109,7 @@ export function BoardSecondaryToolbar({
   orientation = "vertical",
   playerDefaults = BOARD_PLAYER_DEFAULTS,
   shapeDefaults = BOARD_SHAPE_DEFAULTS,
+  adapters,
   theme,
   ...toolbarProps
 }: BoardSecondaryToolbarProps) {
@@ -112,7 +120,16 @@ export function BoardSecondaryToolbar({
     (currentState) => currentState,
   );
   const activeToolId = state.ui.activeToolId;
-  const equipmentDefinitions = theme?.equipment?.definitions ?? [];
+  const equipmentDefinitions = getThemeEquipmentDefinitions(theme);
+  const equipmentRenderer = useMemo(
+    () =>
+      createThemeObjectRenderer({
+        adapters,
+        theme,
+        type: EQUIPMENT_OBJECT_TYPE,
+      }),
+    [adapters, theme],
+  );
 
   if (activeToolId === PLAYER_TOOL_ID && playerDefaults.length > 0) {
     const playerState = getPlayerToolState(state.toolState);
@@ -168,7 +185,11 @@ export function BoardSecondaryToolbar({
     );
   }
 
-  if (activeToolId === EQUIPMENT_TOOL_ID && equipmentDefinitions.length > 0) {
+  if (
+    activeToolId === EQUIPMENT_TOOL_ID &&
+    equipmentDefinitions.length > 0 &&
+    equipmentRenderer
+  ) {
     const equipmentState = getEquipmentToolState(state.toolState);
 
     return (
@@ -181,7 +202,7 @@ export function BoardSecondaryToolbar({
             iconBefore={
               <BoardEquipmentDefinitionIcon
                 definition={definition}
-                renderersByKind={theme?.equipment?.renderersByKind}
+                renderer={equipmentRenderer}
                 size={20}
               />
             }

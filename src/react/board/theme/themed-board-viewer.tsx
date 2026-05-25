@@ -3,10 +3,10 @@ import {
   BoardViewerCanvas,
   type BoardViewerCanvasProps,
 } from "../../adapter/viewer/board-viewer";
-import type { BoardTheme } from "./board-theme";
+import type { ResolvedBoardTheme } from "./board-theme";
 
 export type ThemedBoardViewerCanvasProps = BoardViewerCanvasProps & {
-  theme: BoardTheme;
+  theme: ResolvedBoardTheme;
 };
 
 export function ThemedBoardViewerCanvas({
