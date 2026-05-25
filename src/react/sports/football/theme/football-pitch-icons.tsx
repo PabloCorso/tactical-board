@@ -7,6 +7,7 @@ import {
   createFootballPitch,
   type FootballPitchVariant,
 } from "../board/football-board";
+import { cn } from "../../../ui/misc";
 
 export const FOOTBALL_PITCH_TOOL_ID = "pitch";
 
@@ -59,7 +60,7 @@ export function FootballPitchPreview({
   return (
     <canvas
       aria-hidden="true"
-      className={["block", className].filter(Boolean).join(" ")}
+      className={cn("block", className)}
       ref={canvasRef}
       style={{ width, height }}
     />
