@@ -308,10 +308,7 @@ export function BoardEquipmentToolIcon({
   }
 
   return (
-    <BoardEquipmentDefinitionIcon
-      definition={definition}
-      renderer={renderer}
-    />
+    <BoardEquipmentDefinitionIcon definition={definition} renderer={renderer} />
   );
 }
 

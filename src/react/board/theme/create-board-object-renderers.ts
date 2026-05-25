@@ -21,7 +21,10 @@ export function createBoardObjectRenderers(
 ): CanvasObjectRendererRegistry {
   const themeObjectRenderers = Object.fromEntries(
     (options.adapters?.objectAdapters ?? []).flatMap((adapter) => {
-      const definitions = getThemeObjectDefinitions(options.theme, adapter.type);
+      const definitions = getThemeObjectDefinitions(
+        options.theme,
+        adapter.type,
+      );
       const renderer = createThemeObjectRenderer({
         adapters: options.adapters,
         theme: options.theme,

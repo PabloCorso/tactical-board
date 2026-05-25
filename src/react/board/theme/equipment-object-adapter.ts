@@ -19,7 +19,9 @@ export function getThemeEquipmentDefinitions(
 ): EquipmentDefinition[] {
   return getThemeObjectDefinitions(theme, EQUIPMENT_OBJECT_TYPE)
     .filter(
-      (definition): definition is BoardThemeObjectDefinition & {
+      (
+        definition,
+      ): definition is BoardThemeObjectDefinition & {
         defaultSize: EquipmentDefinition["defaultSize"];
       } => Boolean(definition.defaultSize),
     )
