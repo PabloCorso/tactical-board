@@ -26,7 +26,7 @@
     "access": "restricted"
   },
   "scripts": {
-    "dev": "vite --host",
+    "dev": "storybook dev -p 6006",
     "build": "vite build --emptyOutDir && npm run build:types",
     "build:types": "tsc --project tsconfig.build.json",
     "lint": "eslint .",
@@ -40,7 +40,6 @@
     "release": "npm run release:patch",
     "release:validate": "npm run validate && npm run build && npm pack --dry-run",
     "release:patch": "npm run release:validate && npm version patch && git push --follow-tags",
-    "preview": "vite preview",
     "prepublishOnly": "npm run build",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
