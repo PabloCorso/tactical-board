@@ -1,4 +1,5 @@
 import type {
+  Asset,
   BoardFrameConfig,
   BoardObjectSize,
   ObjectType,
@@ -12,6 +13,7 @@ export type BoardThemeObjectDefinition = {
   kind: string;
   label: string;
   defaultSize?: BoardObjectSize;
+  asset?: Asset;
   defaultProps?: Record<string, unknown>;
   capabilities?: object;
   transformCapabilities?: object;
