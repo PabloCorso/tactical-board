@@ -817,7 +817,7 @@ describe("createBoardEditorRuntime", () => {
 
   it("completes an unfinished polygon when Enter is pressed on the focused canvas", () => {
     const shapeTool = new ShapeTool({
-      presets: [
+      defaults: [
         {
           id: "polygon",
           label: "Polygon",

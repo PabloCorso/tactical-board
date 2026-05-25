@@ -1,4 +1,4 @@
-import { DEFAULT_PRESET_COLOR } from "../../core/colors/preset-colors";
+import { DEFAULT_BOARD_COLOR } from "../../core/colors/default-colors";
 import { createArrowObject } from "../../core/objects/arrow-object";
 import { createEquipmentObject } from "../../core/objects/equipment-object";
 import { createPlayerObject } from "../../core/objects/player-object";
@@ -9,13 +9,13 @@ import {
   type ShapeLineStyle,
 } from "../../core/objects/shape-object";
 import { createTextObject } from "../../core/objects/text-object";
-import { FOOTBALL_EQUIPMENT_DEFINITIONS } from "../../react/football/equipment";
+import { FOOTBALL_EQUIPMENT_DEFINITIONS } from "../../react/sports/football/equipment";
 import {
   createFootballBoard,
   FOOTBALL_FULL_PITCH_METRICS,
-} from "../../react/football/football-board";
-import { FOOTBALL_PLAYER_PRESET_COLORS } from "../../react/football/football-catalog";
-import { pointMetersToPixels } from "../../react/football/football-units";
+} from "../../react/sports/football/board/football-board";
+import { BOARD_PLAYER_DEFAULT_COLORS } from "../../react/board/theme/board-tool-defaults";
+import { pointMetersToPixels } from "../../react/sports/football/board/football-units";
 import playerOneImage from "../../assets/player-1.png";
 
 const fieldStartX = FOOTBALL_FULL_PITCH_METRICS.perimeter.touchline;
@@ -69,7 +69,7 @@ const arrowShowcaseEntries = arrowBodyStyles.flatMap((kind, bodyIndex) =>
             id,
             start: pointMetersToPixels({ x: startX, y: startY }),
             end: pointMetersToPixels({ x: startX + 6.5, y: startY }),
-            color: DEFAULT_PRESET_COLOR.black,
+            color: DEFAULT_BOARD_COLOR.black,
             lineStyle,
             kind,
             startHead,
@@ -109,7 +109,7 @@ const shapeShowcaseEntries = shapeKinds.flatMap((kind, row) =>
           createShapeObject({
             id,
             kind,
-            color: DEFAULT_PRESET_COLOR.black,
+            color: DEFAULT_BOARD_COLOR.black,
             lineStyle,
             fillStyle,
             bordered,
@@ -137,7 +137,7 @@ const shapeShowcaseEntries = shapeKinds.flatMap((kind, row) =>
 const shapeShowcaseObjects = Object.fromEntries(shapeShowcaseEntries);
 const shapeShowcaseOrder = shapeShowcaseEntries.map(([id]) => id);
 
-const playerShowcaseEntries = FOOTBALL_PLAYER_PRESET_COLORS.map(
+const playerShowcaseEntries = BOARD_PLAYER_DEFAULT_COLORS.map(
   (color, index) => {
     const column = index % 4;
     const row = Math.floor(index / 4);
@@ -153,7 +153,7 @@ const playerShowcaseEntries = FOOTBALL_PLAYER_PRESET_COLORS.map(
         }),
         size: index === 0 ? { width: 40, height: 40 } : undefined,
         color,
-        meta: index === 0 ? { imageSrc: playerOneImage } : undefined,
+        asset: index === 0 ? { src: playerOneImage } : undefined,
         label: "1",
       }),
     ] as const;
@@ -203,7 +203,7 @@ const textShowcaseEntries = [
         y: fieldStartY + 40,
       }),
       text: "Press",
-      color: DEFAULT_PRESET_COLOR.black,
+      color: DEFAULT_BOARD_COLOR.black,
       fontSize: 14,
     }),
   ] as const,

@@ -1,9 +1,9 @@
 import type { BoardObject, Point } from "../board/types";
-import { DEFAULT_PRESET_COLOR } from "../colors/preset-colors";
+import { DEFAULT_BOARD_COLOR } from "../colors/default-colors";
 
 export const TEXT_OBJECT_TYPE = "text";
 export const DEFAULT_TEXT_VALUE = "Text";
-export const DEFAULT_TEXT_COLOR = DEFAULT_PRESET_COLOR.black;
+export const DEFAULT_TEXT_COLOR = DEFAULT_BOARD_COLOR.black;
 export const DEFAULT_TEXT_FONT_SIZE = 14;
 export const TEXT_FONT_FAMILY =
   '"Noto Sans", Helvetica, OpenSans, Arial, sans-serif';

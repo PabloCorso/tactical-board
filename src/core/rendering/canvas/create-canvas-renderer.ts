@@ -184,6 +184,7 @@ export function createCanvasRenderer(): CanvasRenderer {
       overlayItems = [],
       objectRenderers = {},
       overlayRenderers = {},
+      assetResolver,
     }) => {
       const context = canvas.getContext("2d");
       if (!context) {
@@ -242,6 +243,7 @@ export function createCanvasRenderer(): CanvasRenderer {
           appearance: "default",
           requestRender,
           frameTransform: projection,
+          assetResolver,
         });
       }
 
@@ -253,6 +255,7 @@ export function createCanvasRenderer(): CanvasRenderer {
           appearance: "preview",
           requestRender,
           frameTransform: projection,
+          assetResolver,
         });
       }
 

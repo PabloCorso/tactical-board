@@ -28,7 +28,7 @@ import {
 
 type PlayerToolLabelStrategy = "numeric-by-color" | "none";
 
-export type PlayerToolPreset = {
+export type PlayerToolDefault = {
   id: string;
   label: string;
   tooltip?: string;
@@ -36,9 +36,14 @@ export type PlayerToolPreset = {
 };
 
 type CreatePlayerToolOptions = {
-  presets?: PlayerToolPreset[];
+  defaults?: PlayerToolDefault[];
   labelStrategy?: PlayerToolLabelStrategy;
   renderer?: CanvasObjectRenderer;
+};
+
+type PlayerAssetImageCacheEntry = {
+  image: HTMLImageElement;
+  loaded: boolean;
 };
 
 const playerObjectDefinition = defineObjectDefinition({
@@ -48,19 +53,20 @@ const playerObjectDefinition = defineObjectDefinition({
 
 const PREVIEW_OPACITY = 0.55;
 const DEFAULT_PLAYER_BORDER_COLOR = "#000000";
+const playerAssetImageCache = new Map<string, PlayerAssetImageCacheEntry>();
 
 export class PlayerTool extends BoardEditorTool implements ToolDefinition {
   readonly id = PLAYER_TOOL_ID;
   readonly label = "Player";
 
   private readonly labelStrategy: PlayerToolLabelStrategy;
-  private readonly presets: PlayerToolPreset[];
+  private readonly defaults: PlayerToolDefault[];
   private readonly renderer: CanvasObjectRenderer;
 
   constructor(options: CreatePlayerToolOptions = {}) {
     super();
     this.labelStrategy = options.labelStrategy ?? "numeric-by-color";
-    this.presets = options.presets ?? [];
+    this.defaults = options.defaults ?? [];
     this.renderer = options.renderer ?? renderPlayer;
   }
 
@@ -71,8 +77,8 @@ export class PlayerTool extends BoardEditorTool implements ToolDefinition {
       ...currentState.draftStyle,
     };
 
-    if (this.presets.length > 0) {
-      Object.assign(nextDraftStyle, this.presets[0].draftStyle);
+    if (this.defaults.length > 0) {
+      Object.assign(nextDraftStyle, this.defaults[0].draftStyle);
     }
 
     api.setToolState(PLAYER_TOOL_ID, {
@@ -222,13 +228,92 @@ function createPlayerId(existingIds: Record<string, unknown>) {
   return `player-${index}`;
 }
 
-export function renderPlayer({
-  context,
-  object,
-  appearance,
-  frameTransform,
-}: CanvasObjectRenderInput) {
+function getPlayerAssetImage(src: string, requestRender: () => void) {
+  const cached = playerAssetImageCache.get(src);
+
+  if (cached) {
+    return cached;
+  }
+
+  const image = new Image();
+  const entry = {
+    image,
+    loaded: false,
+  };
+
+  image.onload = () => {
+    entry.loaded = true;
+    requestRender();
+  };
+  image.src = src;
+  playerAssetImageCache.set(src, entry);
+
+  return entry;
+}
+
+function renderPlayerAsset(
+  input: CanvasObjectRenderInput,
+  player: PlayerObject,
+) {
+  const asset = player.props.asset;
+
+  if (!asset) {
+    return false;
+  }
+
+  if (typeof Image === "undefined") {
+    return true;
+  }
+
+  const { context, object, appearance, frameTransform, requestRender } = input;
+  const src = input.assetResolver?.getAssetSrc?.(asset, object) ?? asset.src;
+  const entry = getPlayerAssetImage(src, requestRender);
+
+  if (!entry.loaded) {
+    return true;
+  }
+
+  const bounds = frameTransform.getObjectCanvasBounds(player);
+  const width = getAbsoluteCanvasExtent(bounds.width);
+  const height = getAbsoluteCanvasExtent(bounds.height);
+  const radius = Math.min(width, height) / 2;
+
+  context.save();
+  context.globalAlpha = appearance === "preview" ? PREVIEW_OPACITY : 1;
+  context.translate(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+  context.rotate(((player.rotation ?? 0) * Math.PI) / 180);
+  context.beginPath();
+  context.arc(0, 0, radius, 0, Math.PI * 2);
+  context.clip();
+  context.drawImage(entry.image, -width / 2, -height / 2, width, height);
+
+  if (player.props.label) {
+    const canvasFontSize =
+      (player.props.fontSize ?? DEFAULT_PLAYER_FONT_SIZE) *
+      frameTransform.scale;
+
+    context.fillStyle = "#ffffff";
+    context.font = `700 ${canvasFontSize}px "ui-rounded", "SF Pro Display", sans-serif`;
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    context.shadowColor = "rgba(0, 0, 0, 0.55)";
+    context.shadowBlur = 3;
+    context.fillText(String(player.props.label), 0, 1);
+  }
+
+  context.restore();
+
+  return true;
+}
+
+export function renderPlayer(input: CanvasObjectRenderInput) {
+  const { context, object, appearance, frameTransform } = input;
   const player = object as PlayerObject;
+
+  if (renderPlayerAsset(input, player)) {
+    return;
+  }
+
   const bounds = frameTransform.getObjectCanvasBounds(player);
   const width = getAbsoluteCanvasExtent(bounds.width);
   const height = getAbsoluteCanvasExtent(bounds.height);

@@ -1,10 +1,15 @@
-import type { BoardObject, BoardObjectSize, Point } from "../board/types";
-import { DEFAULT_PRESET_COLOR } from "../colors/preset-colors";
+import type {
+  Asset,
+  BoardObject,
+  BoardObjectSize,
+  Point,
+} from "../board/types";
+import { DEFAULT_BOARD_COLOR } from "../colors/default-colors";
 
 export const PLAYER_OBJECT_TYPE = "player";
 export const DEFAULT_PLAYER_SIZE = 20;
 export const DEFAULT_PLAYER_FONT_SIZE = 9.5;
-export const DEFAULT_PLAYER_COLOR = DEFAULT_PRESET_COLOR.black;
+export const DEFAULT_PLAYER_COLOR = DEFAULT_BOARD_COLOR.black;
 export const DEFAULT_PLAYER_TRANSFORM_CAPABILITIES = {
   move: true,
   resize: false,
@@ -21,6 +26,7 @@ export interface PlayerObjectProps extends Record<string, unknown> {
   label?: string;
   color: string;
   fontSize: number;
+  asset?: Asset;
   meta?: Record<string, unknown>;
   transformCapabilities: PlayerTransformCapabilities;
 }
@@ -37,6 +43,7 @@ type PlayerCoreInput = {
   label?: string;
   color?: string;
   fontSize?: number;
+  asset?: Asset;
   meta?: Record<string, unknown>;
 };
 
@@ -67,6 +74,7 @@ function getCanonicalPlayerProps(input: PlayerCoreInput): PlayerObjectProps {
     label: input.label,
     color: input.color ?? DEFAULT_PLAYER_COLOR,
     fontSize: input.fontSize ?? DEFAULT_PLAYER_FONT_SIZE,
+    asset: input.asset ? { ...input.asset } : undefined,
     meta: input.meta ? { ...input.meta } : undefined,
     transformCapabilities: {
       ...DEFAULT_PLAYER_TRANSFORM_CAPABILITIES,
@@ -117,6 +125,7 @@ export function updatePlayerObject(
       label: input.label ?? object.props.label,
       color: input.color ?? object.props.color,
       fontSize: input.fontSize ?? object.props.fontSize,
+      asset: input.asset ?? object.props.asset,
       meta: input.meta ?? object.props.meta,
     },
   );

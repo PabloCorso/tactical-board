@@ -1,7 +1,7 @@
 export * from "./board/create-board";
 export * from "./board/object-order";
 export type * from "./board/types";
-export * from "./colors/preset-colors";
+export * from "./colors/default-colors";
 export * from "./editor/board-editor-runtime";
 export * from "./editor/create-tool-api";
 export type * from "./editor/types";

@@ -10,7 +10,7 @@ import {
   DEFAULT_SHAPE_DASH_STYLE,
   DEFAULT_SHAPE_STROKE_WIDTH,
 } from "../objects/shape-object";
-import { DEFAULT_PRESET_COLOR } from "../colors/preset-colors";
+import { DEFAULT_BOARD_COLOR } from "../colors/default-colors";
 
 export const SHAPE_TOOL_ID = "shape";
 
@@ -33,7 +33,7 @@ export type ShapeToolState = {
 export const DEFAULT_SHAPE_TOOL_STATE: ShapeToolState = {
   draftStyle: {
     kind: "rectangle",
-    color: DEFAULT_PRESET_COLOR.black,
+    color: DEFAULT_BOARD_COLOR.black,
     strokeWidth: DEFAULT_SHAPE_STROKE_WIDTH,
     lineStyle: "solid",
     dashStyle: [...DEFAULT_SHAPE_DASH_STYLE],

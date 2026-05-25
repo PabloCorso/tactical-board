@@ -35,7 +35,7 @@ import { arrowSelectionAdapter } from "./arrow-selection";
 const PREVIEW_OPACITY = 0.55;
 const MIN_HIT_DISTANCE_PX = 10;
 
-export type ArrowToolPreset = {
+export type ArrowToolDefault = {
   id: string;
   label: string;
   tooltip?: string;
@@ -43,7 +43,7 @@ export type ArrowToolPreset = {
 };
 
 export type CreateArrowToolOptions = {
-  presets?: ArrowToolPreset[];
+  defaults?: ArrowToolDefault[];
 };
 
 const arrowObjectDefinition = defineObjectDefinition({
@@ -63,16 +63,16 @@ export class ArrowTool extends BoardEditorTool implements ToolDefinition {
   readonly id = ARROW_TOOL_ID;
   readonly label = "Arrow";
 
-  private readonly presets: ArrowToolPreset[];
+  private readonly defaults: ArrowToolDefault[];
 
   constructor(options: CreateArrowToolOptions = {}) {
     super();
-    this.presets = options.presets ?? [];
+    this.defaults = options.defaults ?? [];
   }
 
   onActivate(api: ToolApi) {
-    if (this.presets.length > 0) {
-      applyArrowPreset(api, this.presets[0]);
+    if (this.defaults.length > 0) {
+      applyArrowDefault(api, this.defaults[0]);
     }
   }
 
@@ -181,9 +181,9 @@ function createArrowId(existingIds: Record<string, unknown>) {
   return `arrow-${index}`;
 }
 
-function applyArrowPreset(
+function applyArrowDefault(
   api: ToolApi,
-  preset: Pick<ArrowToolPreset, "draftStyle">,
+  toolDefault: Pick<ArrowToolDefault, "draftStyle">,
 ) {
   const arrowState = getArrowToolState(api.getState().toolState);
 
@@ -191,7 +191,7 @@ function applyArrowPreset(
     ...arrowState,
     draftStyle: {
       ...arrowState.draftStyle,
-      ...preset.draftStyle,
+      ...toolDefault.draftStyle,
     },
   });
 }

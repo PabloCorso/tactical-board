@@ -4,11 +4,12 @@ Reusable tactical board/editor library scaffolded around a simple layered archit
 
 - `src/core`: the framework-independent Editor Engine. It owns Document/Shape state, editor operations, tool contracts, geometry contracts, selection, history, and serialization entrypoints.
 - `src/rendering/canvas`: the Canvas Renderer. It paints Document or Board state and transient overlays to HTML canvas.
-- `src/react`: the React Adapter and Board Editor UI shell. It wires DOM input and subscriptions without owning canonical Document state.
+- `src/react/adapter`: the React Adapter. It wires DOM input and subscriptions without owning canonical Document state.
+- `src/react/board`: shared Board Editor UI, Theme composition, toolbar, renderer, and Tool registration modules.
+- `src/react/sports`: sport adapters such as football and basketball. They own sport-specific frames, dimensions, object presets, skins, and composed React editors.
 - `src/tools`: reusable Standard Tools such as Select, Hand, Shape, Arrow, Text, Player, and Equipment.
-- `src/react/football`: the first consumer-ready Football Board package. It owns football-specific frames, dimensions, object presets, skins, and the composed React editor while still exporting the parts for custom editors.
 
-The shared Board Library boundary is still emerging. Do not extract a broad `src/board` or `src/presets` layer until a concrete boundary is proven by more than the football package.
+The shared Board Library seam is now expressed inside `src/react/board` for React-facing Board modules. Framework-independent Board concepts still live in `src/core` until a concrete non-React seam is proven.
 
 See [architecture.md](./architecture.md), [CONTEXT.md](./CONTEXT.md), and [docs/adr](./docs/adr) for the agreed glossary, boundaries, and architectural decisions.
 

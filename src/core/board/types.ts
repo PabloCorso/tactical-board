@@ -22,6 +22,10 @@ export interface Size {
 
 export type ShapeSize = Size;
 
+export interface Asset {
+  src: string;
+}
+
 export interface DocumentMetadata {
   name?: string;
   description?: string;
@@ -54,7 +58,7 @@ export interface DocumentBackgroundConfig {
   fill?: string;
 }
 
-export interface BoardFramePreset extends DocumentBackgroundConfig {
+export interface BoardFrameDefault extends DocumentBackgroundConfig {
   background?: string;
   markings?: BoardFrameMarking[];
   markup?: Record<string, unknown>;
@@ -120,8 +124,8 @@ export type BoardMetadata = DocumentMetadata;
 export type BoardStyleRef = DocumentStyleRef;
 export type BoardObject = Shape;
 export type ObjectIndex = ShapeIndex;
-export type BoardFrameConfig = BoardFramePreset;
+export type BoardFrameConfig = BoardFrameDefault;
 
 export interface Board extends Omit<Document, "frame"> {
-  frame: BoardFramePreset;
+  frame: BoardFrameDefault;
 }

@@ -30,7 +30,7 @@ import { getPlayerToolState, PLAYER_TOOL_ID } from "../tools/player-tool-state";
 import { SELECT_TOOL_ID } from "../tools/select-tool-state";
 import { getShapeToolState } from "../tools/shape-tool-state";
 import { getTextToolState, TEXT_TOOL_ID } from "../tools/text-tool-state";
-import { FOOTBALL_PLAYER_PRESET_COLORS } from "../../react/football/football-catalog";
+import { BOARD_PLAYER_DEFAULT_COLORS } from "../../react/board/theme/board-tool-defaults";
 import { MAX_VIEWPORT_ZOOM, MIN_VIEWPORT_ZOOM } from "./viewport-utils";
 import {
   getCornerHandleCanvasPoint,
@@ -979,15 +979,13 @@ describe("createBoardEditorController", () => {
 
   it("places the next per-color player number after existing players", () => {
     const playerTool = new PlayerTool({
-      presets: FOOTBALL_PLAYER_PRESET_COLORS.slice(0, 6).map(
-        (color, index) => ({
-          id: `team-color-${index + 1}`,
-          label: String(index + 1),
-          draftStyle: { color },
-        }),
-      ),
+      defaults: BOARD_PLAYER_DEFAULT_COLORS.slice(0, 6).map((color, index) => ({
+        id: `team-color-${index + 1}`,
+        label: String(index + 1),
+        draftStyle: { color },
+      })),
     });
-    const existingPlayers = FOOTBALL_PLAYER_PRESET_COLORS.slice(0, 6).map(
+    const existingPlayers = BOARD_PLAYER_DEFAULT_COLORS.slice(0, 6).map(
       (color, index) =>
         createPlayerObject({
           id: `player-${index + 1}`,
@@ -3083,7 +3081,7 @@ describe("createBoardEditorController", () => {
 
   it("creates a polygon shape when clicking back near the first vertex", () => {
     const shapeTool = new ShapeTool({
-      presets: [
+      defaults: [
         {
           id: "polygon",
           label: "Polygon",
@@ -3202,7 +3200,7 @@ describe("createBoardEditorController", () => {
 
   it("creates a polygon shape when right-clicking to finish", () => {
     const shapeTool = new ShapeTool({
-      presets: [
+      defaults: [
         {
           id: "polygon",
           label: "Polygon",

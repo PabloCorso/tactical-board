@@ -109,7 +109,7 @@ describe("createCanvasRenderer", () => {
     });
   });
 
-  it("keeps board frame preset background and markings renderable", () => {
+  it("keeps board frame default background and markings renderable", () => {
     const { canvas, operations } = createFakeCanvas();
 
     createCanvasRenderer().render({

@@ -39,7 +39,7 @@ const DEFAULT_SHAPE_PREVIEW_SIZE = {
   height: 12,
 } as const;
 
-export type ShapeToolPreset = {
+export type ShapeToolDefault = {
   id: string;
   label: string;
   tooltip?: string;
@@ -47,7 +47,7 @@ export type ShapeToolPreset = {
 };
 
 type CreateShapeToolOptions = {
-  presets?: ShapeToolPreset[];
+  defaults?: ShapeToolDefault[];
   defaultPreviewSize?: {
     width: number;
     height: number;
@@ -82,19 +82,19 @@ export class ShapeTool extends BoardEditorTool implements ToolDefinition {
   readonly id = SHAPE_TOOL_ID;
   readonly label = "Shape";
 
-  private readonly presets: ShapeToolPreset[];
+  private readonly defaults: ShapeToolDefault[];
   private readonly defaultPreviewSize;
 
   constructor(options: CreateShapeToolOptions = {}) {
     super();
-    this.presets = options.presets ?? [];
+    this.defaults = options.defaults ?? [];
     this.defaultPreviewSize =
       options.defaultPreviewSize ?? DEFAULT_SHAPE_PREVIEW_SIZE;
   }
 
   onActivate(api: ToolApi) {
-    if (this.presets.length > 0) {
-      applyShapePreset(api, this.presets[0]);
+    if (this.defaults.length > 0) {
+      applyShapeDefault(api, this.defaults[0]);
     }
   }
 
@@ -250,9 +250,9 @@ function createShapeId(existingIds: Record<string, unknown>) {
   return `shape-${index}`;
 }
 
-function applyShapePreset(
+function applyShapeDefault(
   api: ToolApi,
-  preset: Pick<ShapeToolPreset, "draftStyle">,
+  toolDefault: Pick<ShapeToolDefault, "draftStyle">,
 ) {
   const shapeState = getShapeToolState(api.getState().toolState);
 
@@ -260,7 +260,7 @@ function applyShapePreset(
     ...shapeState,
     draftStyle: {
       ...shapeState.draftStyle,
-      ...preset.draftStyle,
+      ...toolDefault.draftStyle,
     },
   });
 }

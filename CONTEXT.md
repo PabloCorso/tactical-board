@@ -11,6 +11,12 @@
 - **Coach Workflow**: The end-user experience of creating, editing, and presenting tactical boards for coaching use cases. This guides sport-specific product layers rather than the core Engine.
 - **Football Example**: The first concrete football editor used to pressure-test the Editor Engine and board-specific layers. It is not disposable demo code.
 - **Host App**: An application that embeds the Tactical Board library and configures it for a specific use case, sport, or product experience.
+- **Theme**: A Board configuration package that turns generic board state into a concrete board experience by providing frames, object catalogs, renderers, visual skins, and defaults.
+- **Theme Data**: The serializable portion of a Theme that can be saved, loaded, shared, or customized without embedding runtime functions.
+- **Asset**: A serializable reference to visual media used by a Board Object or Theme Definition, resolved by the Host App or runtime before rendering.
+- **Catalog**: A Theme-provided collection of available board definitions that editor UI may expose to users.
+- **Definition**: A Theme-provided description of an available board thing such as a frame, equipment item, object kind, or visual skin.
+- **Preset**: A reusable shortcut that creates or applies a preconfigured Board state, object, or style from one or more Definitions.
 - **Document Schema**: The explicit serialized JSON shape for a Document. The Editor Engine may offer validation helpers, while migration policy and persistence handling remain Host App responsibilities.
 - **Board Schema**: A board-specific profile of the Document Schema for tactical-board content.
 - **Board Editor**: A board-specific editor layer built on top of the generic Editor Engine.
@@ -31,5 +37,6 @@
 - **Default Tool**: The configured fallback Tool for an editor instance. The Editor Engine stores the default tool id but does not know which Tool, such as Select, fills that role.
 - **Selection**: The editor-session set of Shapes currently targeted for editing. Tools may change Selection or decide how to present it, but Selection is not owned by any specific Tool.
 - **Shape Skin**: A visual representation of a Shape that can change without changing the shape's meaning or serialized identity.
-- **Player Token**: A Board Object representing a player or participant on a Board. In the board layer, a Player Token is an object kind rather than a separate domain aggregate.
+- **Player**: A Board Object representing a player or participant on a Board; in the board layer, a Player is an object kind rather than a separate domain aggregate.
+- **Equipment Object**: A Board Object representing placeable training or game equipment whose name and visual appearance may be extended by a Theme or Host App.
 - **Shape Index**: The canonical internal storage shape for Shapes inside the Editor Engine: a map keyed by shape id plus a separate ordering list.

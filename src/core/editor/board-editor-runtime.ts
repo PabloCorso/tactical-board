@@ -1,5 +1,5 @@
 import { createCanvasRenderer } from "../rendering/canvas/create-canvas-renderer";
-import type { CanvasRenderer } from "../rendering/canvas/types";
+import type { AssetResolver, CanvasRenderer } from "../rendering/canvas/types";
 import { createToolApi } from "./create-tool-api";
 import { createBoardEditorController } from "./board-editor-controller";
 import type { BoardEditorStore } from "../store/board-editor-store";
@@ -12,11 +12,13 @@ export interface BoardEditorRuntime {
 }
 
 export interface CreateBoardEditorRuntimeOptions {
+  assetResolver?: AssetResolver;
   extendBackground?: boolean;
   store: BoardEditorStore;
 }
 
 export function createBoardEditorRuntime({
+  assetResolver,
   extendBackground = true,
   store,
 }: CreateBoardEditorRuntimeOptions): BoardEditorRuntime {
@@ -81,6 +83,7 @@ export function createBoardEditorRuntime({
       overlayItems,
       objectRenderers: state.rendering.objectRenderers,
       overlayRenderers: state.rendering.overlayRenderers,
+      assetResolver,
     });
   };
 

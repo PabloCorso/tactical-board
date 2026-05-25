@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { footballShowcaseBoard } from "../examples/football/football-showcase-board";
 import { FootballBoardEditor } from "../react";
-import { createFootballPitch } from "../react/football/football-board";
-import { FootballPitchPreview } from "../react/football/football-pitch-icons";
+import { createFootballPitch } from "../react/sports/football/board/football-board";
+import { FootballPitchPreview } from "../react/sports/football/theme/football-pitch-icons";
 
 const meta = {
   title: "React/Board Editor/Football",
@@ -12,7 +12,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "Interactive reference for composing the React board editor with a football-specific board document, tools, presets, toolbar workflow, icons, and canvas renderers.",
+          "Interactive reference for composing the React board editor with a football-specific board document, tools, defaults, toolbar workflow, icons, and canvas renderers.",
       },
     },
   },

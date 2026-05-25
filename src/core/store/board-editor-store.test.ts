@@ -364,9 +364,9 @@ describe("createBoardEditorStore", () => {
     expect(store.getState().ui.defaultToolId).toBe("draw");
   });
 
-  it("applies the first arrow preset when activating the arrow tool", () => {
+  it("applies the first arrow default when activating the arrow tool", () => {
     const arrowTool = new ArrowTool({
-      presets: [
+      defaults: [
         {
           id: "run",
           label: "Run",
@@ -418,9 +418,9 @@ describe("createBoardEditorStore", () => {
     });
   });
 
-  it("applies the first player preset when activating the player tool", () => {
+  it("applies the first player default when activating the player tool", () => {
     const playerTool = new PlayerTool({
-      presets: [
+      defaults: [
         {
           id: "home",
           label: "Home",

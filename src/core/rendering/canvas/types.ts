@@ -1,4 +1,4 @@
-import type { Board, BoardObject } from "../../board/types";
+import type { Asset, Board, BoardObject } from "../../board/types";
 import type { BoardSpaceProjection } from "../../geometry/board-space-projection";
 import type { Viewport } from "../../geometry/types";
 
@@ -28,6 +28,7 @@ export interface CanvasObjectRenderInput {
   appearance: "default" | "preview";
   requestRender: () => void;
   frameTransform: BoardSpaceProjection;
+  assetResolver?: AssetResolver;
 }
 
 export type CanvasObjectRenderer = (input: CanvasObjectRenderInput) => void;
@@ -63,6 +64,10 @@ export type CanvasOverlayRendererRegistry = Record<
   CanvasOverlayRenderer
 >;
 
+export interface AssetResolver {
+  getAssetSrc?: (asset: Asset, object: BoardObject) => string;
+}
+
 export interface CanvasRenderRequest {
   canvas: HTMLCanvasElement;
   board: Board;
@@ -74,6 +79,7 @@ export interface CanvasRenderRequest {
   overlayItems?: CanvasOverlayItem[];
   objectRenderers?: CanvasObjectRendererRegistry;
   overlayRenderers?: CanvasOverlayRendererRegistry;
+  assetResolver?: AssetResolver;
 }
 
 export interface CanvasRenderer {

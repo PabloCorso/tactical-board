@@ -99,7 +99,7 @@ Own:
 - board or sport-specific presets, dimensions, and coach-facing UI
 - Football as the first consumer-ready React board package
 
-The football editor lives under `src/react/football`. It is not disposable demo code: it is the first React consumer package for football-specific board creation, tools, equipment, icons, and editor composition. Shared board abstractions should be extracted only when multiple sports or concrete planning use cases prove the boundary.
+React-facing Board modules live under `src/react/board`. The sport adapters live under `src/react/sports`: football and basketball own sport-specific board creation, tools, equipment, icons, and editor composition. The football adapter is not disposable demo code; it remains the first consumer package that pressure-tests the shared Board Editor modules.
 
 The current `src/core/board` directory is a compatibility namespace for Board-facing types and helpers during the incremental migration from Board/Object vocabulary to Document/Shape vocabulary. It is not a fully extracted shared Board Library layer. New shared Board Library code should appear only when a concrete boundary exists outside the football package.
 

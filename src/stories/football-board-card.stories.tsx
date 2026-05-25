@@ -2,7 +2,7 @@ import type { ComponentProps } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { footballShowcaseBoard } from "../examples/football/football-showcase-board";
 import { FootballBoardViewerCanvas } from "../react";
-import { cn } from "../react/components/misc";
+import { cn } from "../react/ui/misc";
 
 const footballBoardPreviewMetrics = {
   aspectRatio:
