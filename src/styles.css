@@ -1,3 +1,5 @@
+@source "../dist/**/*.{js,cjs}";
+
 @theme inline {
   --color-tb-background-screen: var(--tb-background-screen);
   --color-tb-background-surface: var(--tb-background-surface);
