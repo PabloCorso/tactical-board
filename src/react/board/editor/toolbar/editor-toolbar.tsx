@@ -122,6 +122,7 @@ export function BoardEditorToolbarButton({
         <Button
           variant={active ? "outline" : "ghost"}
           iconSize={iconSize}
+          aria-label={ariaLabel}
           onClick={(event) => {
             onClick?.(event);
             focusEditorCanvasFromElement(event.currentTarget);
@@ -180,20 +181,28 @@ export function BoardEditorToolbarPopoverButton({
 }: BoardEditorToolbarPopoverButtonProps) {
   return (
     <Popover>
-      <PopoverTrigger>
-        <BoardEditorToolbarButton
-          aria-label={ariaLabel}
-          iconBefore={icon}
-          iconAfter={
-            showCaret ? (
-              <CaretDownIcon aria-hidden="true" className="text-secondary" />
-            ) : undefined
-          }
-          iconSize="xl"
-          iconAfterSize="sm"
-          tooltip={tooltip}
-        />
-      </PopoverTrigger>
+      <Tooltip>
+        <TooltipTrigger>
+          <PopoverTrigger>
+            <Button
+              variant="ghost"
+              aria-label={ariaLabel}
+              iconBefore={icon}
+              iconAfter={
+                showCaret ? (
+                  <CaretDownIcon
+                    aria-hidden="true"
+                    className="text-secondary"
+                  />
+                ) : undefined
+              }
+              iconSize="xl"
+              iconAfterSize="sm"
+            />
+          </PopoverTrigger>
+        </TooltipTrigger>
+        <TooltipContent>{tooltip || ariaLabel}</TooltipContent>
+      </Tooltip>
       <PopoverContent
         align="center"
         sideOffset={8}

@@ -105,7 +105,7 @@ export const BOARD_PLAYER_DEFAULTS: PlayerToolDefault[] =
   BOARD_PLAYER_DEFAULT_COLORS.map((color, index) => ({
     id: `team-color-${index + 1}`,
     label: String(index + 1),
-    tooltip: `Player color ${color}`,
+    tooltip: "Player color",
     draftStyle: {
       color,
     },

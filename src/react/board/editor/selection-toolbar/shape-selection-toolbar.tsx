@@ -266,7 +266,7 @@ export function BoardEditorShapeSelectionToolbar({
       <BoardEditorToolbar className={className}>
         <BoardEditorToolbarPopoverButton
           ariaLabel="Shape color"
-          tooltip={`Color: ${selectedObject.props.color}`}
+          tooltip="Color"
           content={
             <ColorPicker
               value={selectedObject.props.color}

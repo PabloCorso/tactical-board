@@ -293,7 +293,7 @@ export function BoardEditorArrowSelectionToolbar({
       <BoardEditorToolbar className={className}>
         <BoardEditorToolbarPopoverButton
           ariaLabel="Arrow color"
-          tooltip={`Color: ${selectedObject.props.color}`}
+          tooltip="Color"
           content={
             <ArrowColorPopoverContent
               color={selectedObject.props.color}

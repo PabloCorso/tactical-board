@@ -54,7 +54,7 @@ export function BoardEditorEquipmentSelectionToolbar({
         {capabilities.color ? (
           <BoardEditorToolbarPopoverButton
             ariaLabel="Equipment color"
-            tooltip={`Color: ${color}`}
+            tooltip="Color"
             content={
               <ColorPicker
                 value={color}
