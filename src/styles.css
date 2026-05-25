@@ -1,0 +1,154 @@
+@theme inline {
+  --color-tb-background-screen: var(--tb-background-screen);
+  --color-tb-background-surface: var(--tb-background-surface);
+  --color-tb-background-item-hover: var(--tb-background-item-hover);
+
+  --color-tb-text-primary: var(--tb-text-primary);
+  --color-tb-text-secondary: var(--tb-text-secondary);
+  --color-tb-text-tertiary: var(--tb-text-tertiary);
+  --color-tb-text-on-accent: var(--tb-text-on-accent);
+  --color-tb-text-on-color: var(--tb-text-on-color);
+  --color-tb-text-on-neutral: var(--tb-text-on-neutral);
+  --color-tb-text-danger-on-ghost: var(--tb-text-danger-on-ghost);
+
+  --color-tb-border-default: var(--tb-border-default);
+  --color-tb-accent: var(--tb-accent);
+  --color-tb-accent-hover: var(--tb-accent-hover);
+  --color-tb-accent-active: var(--tb-accent-active);
+  --color-tb-neutral: var(--tb-neutral);
+  --color-tb-neutral-soft: var(--tb-neutral-soft);
+  --color-tb-neutral-soft-hover: var(--tb-neutral-soft-hover);
+  --color-tb-neutral-soft-active: var(--tb-neutral-soft-active);
+  --color-tb-danger: var(--tb-danger);
+  --color-tb-danger-hover: var(--tb-danger-hover);
+  --color-tb-danger-active: var(--tb-danger-active);
+  --color-tb-danger-soft: var(--tb-danger-soft);
+  --color-tb-danger-soft-hover: var(--tb-danger-soft-hover);
+}
+
+[data-tactical-board] {
+  color-scheme: light;
+
+  --tb-background-screen: var(
+    --background-screen,
+    color-mix(in oklab, #ffffff 96%, oklch(96.7% 0.001 286.375))
+  );
+  --tb-background-surface: var(--background-surface, #ffffff);
+  --tb-background-item-hover: var(
+    --background-item-hover,
+    oklch(96.7% 0.001 286.375)
+  );
+
+  --tb-text-primary: var(--text-primary, oklch(21% 0.006 285.885));
+  --tb-text-secondary: var(--text-secondary, oklch(44.2% 0.017 285.786));
+  --tb-text-tertiary: var(--text-tertiary, oklch(55.2% 0.016 285.938));
+
+  --tb-border-default: var(
+    --border-default,
+    color-mix(in oklab, oklch(92% 0.004 286.32) 84%, #ffffff)
+  );
+  --tb-focus-ring: var(--focus-ring, var(--tb-accent));
+  --tb-focus-ring-offset: var(--focus-ring-offset, var(--tb-background-screen));
+
+  --tb-accent: var(--accent, oklch(54.6% 0.245 262.881));
+  --tb-accent-hover: var(--accent-hover, oklch(48.8% 0.243 264.376));
+  --tb-accent-active: var(--accent-active, oklch(42.4% 0.199 265.638));
+  --tb-text-on-accent: var(--text-on-accent, oklch(96.7% 0.001 286.375));
+
+  --tb-neutral-soft: var(--neutral-soft, oklch(96.7% 0.001 286.375));
+  --tb-neutral-soft-hover: var(--neutral-soft-hover, oklch(92% 0.004 286.32));
+  --tb-neutral-soft-active: var(
+    --neutral-soft-active,
+    oklch(87.1% 0.006 286.286)
+  );
+
+  --tb-danger: var(--danger, oklch(57.7% 0.245 27.325));
+  --tb-danger-hover: var(--danger-hover, oklch(50.5% 0.213 27.518));
+  --tb-danger-active: var(--danger-active, oklch(44.4% 0.177 26.899));
+  --tb-danger-soft: var(--danger-soft, oklch(93.6% 0.032 17.717));
+  --tb-danger-soft-hover: var(--danger-soft-hover, oklch(88.5% 0.062 18.334));
+  --tb-text-danger-on-ghost: var(
+    --text-danger-on-ghost,
+    oklch(50.5% 0.213 27.518)
+  );
+  --tb-text-on-color: var(--text-on-color, oklch(96.7% 0.001 286.375));
+
+  --tb-neutral: var(--neutral, oklch(44.2% 0.017 285.786));
+  --tb-text-on-neutral: var(--text-on-neutral, oklch(96.7% 0.001 286.375));
+}
+
+.dark [data-tactical-board],
+[data-tactical-board].dark {
+  color-scheme: dark;
+
+  --tb-background-screen: var(
+    --background-screen,
+    color-mix(in oklab, oklch(14.1% 0.005 285.823) 94%, #000000)
+  );
+  --tb-background-surface: var(
+    --background-surface,
+    color-mix(
+      in oklab,
+      var(--tb-background-screen) 82%,
+      oklch(21% 0.006 285.885)
+    )
+  );
+  --tb-background-item-hover: var(
+    --background-item-hover,
+    oklch(27.4% 0.006 286.033)
+  );
+
+  --tb-text-primary: var(--text-primary, oklch(96.7% 0.001 286.375));
+  --tb-text-secondary: var(--text-secondary, oklch(70.5% 0.015 286.067));
+  --tb-text-tertiary: var(--text-tertiary, oklch(55.2% 0.016 285.938));
+
+  --tb-border-default: var(
+    --border-default,
+    color-mix(
+      in oklab,
+      oklch(27.4% 0.006 286.033) 82%,
+      var(--tb-background-screen)
+    )
+  );
+
+  --tb-neutral-soft: var(--neutral-soft, oklch(27.4% 0.006 286.033));
+  --tb-neutral-soft-hover: var(--neutral-soft-hover, oklch(37% 0.013 285.805));
+  --tb-neutral-soft-active: var(
+    --neutral-soft-active,
+    oklch(44.2% 0.017 285.786)
+  );
+
+  --tb-danger-soft: var(--danger-soft, oklch(25.8% 0.092 26.042));
+  --tb-danger-soft-hover: var(--danger-soft-hover, oklch(39.6% 0.141 25.723));
+  --tb-text-danger-on-ghost: var(
+    --text-danger-on-ghost,
+    oklch(88.5% 0.062 18.334)
+  );
+
+  --tb-neutral: var(--neutral, oklch(96.7% 0.001 286.375));
+  --tb-text-on-neutral: var(--text-on-neutral, oklch(14.1% 0.005 285.823));
+}
+
+@utility focus-ring {
+  @apply ring-2 ring-offset-0 outline-none;
+
+  --tw-ring-color: var(--tb-focus-ring);
+  --tw-ring-offset-color: var(--tb-focus-ring-offset);
+}
+
+@utility focus-ring-within {
+  @apply has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-offset-0 has-[:focus-visible]:outline-none;
+
+  &:has(:focus-visible) {
+    --tw-ring-color: var(--tb-focus-ring);
+    --tw-ring-offset-color: var(--tb-focus-ring-offset);
+  }
+}
+
+@utility transition-interactive {
+  transition-property:
+    color, background-color, border-color, text-decoration-color, fill, stroke,
+    box-shadow;
+  transition-timing-function: var(--default-transition-timing-function);
+  transition-duration: var(--default-transition-duration);
+}
