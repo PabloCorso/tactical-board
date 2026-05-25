@@ -35,7 +35,7 @@ export function ColorPicker({
   return (
     <div className={cn("flex min-w-52 flex-col gap-3", className)}>
       {label ? (
-        <div className="text-secondary text-xs font-medium tracking-[0.16em] uppercase">
+        <div className="text-tb-text-secondary text-xs font-medium tracking-[0.16em] uppercase">
           {label}
         </div>
       ) : null}
@@ -51,9 +51,9 @@ export function ColorPicker({
               aria-label={`Select color ${color}`}
               aria-pressed={isActive}
               className={cn(
-                "border-default focus-visible:focus-ring relative h-8 w-8 cursor-pointer rounded-full border transition-transform",
+                "focus-visible:focus-ring border-tb-border-default relative h-8 w-8 cursor-pointer rounded-full border transition-transform",
                 isActive &&
-                  "ring-accent ring-offset-surface ring-2 ring-offset-2",
+                  "ring-tb-accent ring-offset-tb-background-surface ring-2 ring-offset-2",
               )}
               style={{ backgroundColor: color }}
               onClick={() => onChange(color)}
@@ -66,13 +66,14 @@ export function ColorPicker({
         <label
           className={cn(
             "focus-within:focus-ring relative flex h-8 w-8 cursor-pointer items-center justify-center rounded-full transition-transform",
-            !isDefaultColor && "ring-offset-surface ring-2 ring-offset-2",
+            !isDefaultColor &&
+              "ring-tb-accent ring-offset-tb-background-surface ring-2 ring-offset-2",
           )}
           aria-label="Choose custom color"
         >
           <span
             className={cn(
-              "border-default pointer-events-none h-full w-full rounded-full border",
+              "border-tb-border-default pointer-events-none h-full w-full rounded-full border",
               !isDefaultColor && "border-transparent",
             )}
             style={{

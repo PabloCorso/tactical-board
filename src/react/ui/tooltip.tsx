@@ -53,8 +53,9 @@ export function TooltipContent({
         className="isolate z-50"
       >
         <TooltipPrimitive.Popup
+          data-tactical-board
           className={cn(
-            "bg-neutral text-on-neutral data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-[side=bottom]:slide-in-from-top-1 data-[side=inline-end]:slide-in-from-left-1 data-[side=inline-start]:slide-in-from-right-1 data-[side=left]:slide-in-from-right-1 data-[side=right]:slide-in-from-left-1 data-[side=top]:slide-in-from-bottom-1 z-50 max-w-72 origin-(--transform-origin) rounded-md px-2 py-1 text-xs font-medium shadow-md outline-hidden duration-100",
+            "data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-[side=bottom]:slide-in-from-top-1 data-[side=inline-end]:slide-in-from-left-1 data-[side=inline-start]:slide-in-from-right-1 data-[side=left]:slide-in-from-right-1 data-[side=right]:slide-in-from-left-1 data-[side=top]:slide-in-from-bottom-1 bg-tb-neutral text-tb-text-on-neutral z-50 max-w-72 origin-(--transform-origin) rounded-md px-2 py-1 text-xs font-medium shadow-md outline-hidden duration-100",
             className,
           )}
           {...props}
@@ -69,7 +70,7 @@ export type TooltipArrowProps = TooltipPrimitive.Arrow.Props;
 export function TooltipArrow({ className, ...props }: TooltipArrowProps) {
   return (
     <TooltipPrimitive.Arrow
-      className={cn("bg-neutral h-2 w-2 rotate-45 rounded-[1px]", className)}
+      className={cn("bg-tb-neutral h-2 w-2 rotate-45 rounded-[1px]", className)}
       {...props}
     />
   );

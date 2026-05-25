@@ -62,6 +62,7 @@ export function BoardEditor({ children, className }: BoardEditorProps) {
   return (
     <div
       data-board-editor-root
+      data-tactical-board
       className={cn(
         "flex min-h-full w-full min-w-0 flex-1 flex-col",
         className,

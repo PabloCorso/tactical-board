@@ -41,11 +41,11 @@ export function BoardEditorPlayerSelectionToolbar({
       viewportHeight={viewportHeight}
     >
       <BoardEditorToolbar className={className}>
-        <label className="focus-within:focus-ring border-default bg-screen flex h-10 items-center rounded-lg border px-2">
+        <label className="focus-within:focus-ring border-tb-border-default bg-tb-background-screen flex h-10 items-center rounded-lg border px-2">
           <span className="sr-only">Player label</span>
           <input
             aria-label="Player label"
-            className="text-primary w-14 bg-transparent text-center text-sm font-medium outline-none"
+            className="text-tb-text-primary w-14 bg-transparent text-center text-sm font-medium outline-none"
             onChange={(event) => updatePlayer({ label: event.target.value })}
             value={selectedObject.props.label ?? ""}
           />
@@ -63,7 +63,7 @@ export function BoardEditorPlayerSelectionToolbar({
           }
           icon={
             <span
-              className="border-default inline-flex h-5 w-5 rounded-full border"
+              className="border-tb-border-default inline-flex h-5 w-5 rounded-full border"
               style={{ backgroundColor: selectedObject.props.color }}
             >
               <span className="sr-only">{selectedObject.props.color}</span>

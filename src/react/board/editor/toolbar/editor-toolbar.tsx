@@ -49,7 +49,7 @@ export function BoardEditorToolbar({
         role="toolbar"
         aria-orientation={orientation}
         className={cn(
-          "bg-surface mx-auto inline-flex w-max flex-nowrap items-center justify-center gap-0.5 rounded-xl border p-1 shadow-lg",
+          "border-tb-border-default bg-tb-background-surface mx-auto inline-flex w-max flex-nowrap items-center justify-center gap-0.5 rounded-xl border p-1 shadow-lg",
           orientation === "vertical" && "flex-col",
           className,
         )}
@@ -158,7 +158,7 @@ export function BoardEditorToolbarSeparator({
       role="separator"
       aria-orientation={orientation}
       className={cn(
-        "shrink-0 bg-(--border-default)",
+        "bg-tb-border-default shrink-0",
         orientation === "horizontal" && "mx-0.5 w-px self-stretch",
         orientation === "vertical" && "my-0.5 h-px self-stretch",
         className,
@@ -196,7 +196,7 @@ export function BoardEditorToolbarPopoverButton({
                 showCaret ? (
                   <CaretDownIcon
                     aria-hidden="true"
-                    className="text-secondary"
+                    className="text-tb-text-secondary"
                   />
                 ) : undefined
               }

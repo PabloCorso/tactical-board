@@ -47,8 +47,9 @@ export function DropdownMenuContent({
         sideOffset={sideOffset}
       >
         <MenuPrimitive.Popup
+          data-tactical-board
           className={cn(
-            "border-default bg-surface text-primary data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=inline-end]:slide-in-from-left-2 data-[side=inline-start]:slide-in-from-right-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 max-h-(--available-height) min-w-36 origin-(--transform-origin) overflow-x-hidden overflow-y-auto rounded-lg border p-1 shadow-lg duration-100 outline-none data-closed:overflow-hidden",
+            "data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=inline-end]:slide-in-from-left-2 data-[side=inline-start]:slide-in-from-right-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 border-tb-border-default bg-tb-background-surface text-tb-text-primary z-50 max-h-(--available-height) min-w-36 origin-(--transform-origin) overflow-x-hidden overflow-y-auto rounded-lg border p-1 shadow-lg duration-100 outline-none data-closed:overflow-hidden",
             className,
           )}
           {...props}
@@ -75,7 +76,7 @@ export function DropdownMenuGroupLabel({
     <MenuPrimitive.GroupLabel
       data-inset={inset}
       className={cn(
-        "text-tertiary px-2 py-1.5 text-xs font-medium data-inset:pl-8",
+        "text-tb-text-tertiary px-2 py-1.5 text-xs font-medium data-inset:pl-8",
         className,
       )}
       {...props}
@@ -92,9 +93,9 @@ export const menuItemVariants = cva(
     variants: {
       color: {
         neutral:
-          "bg-transparent text-primary [--focus-ring:var(--neutral)] hover:bg-item-hover focus:bg-item-hover active:bg-neutral-soft-hover",
+          "bg-transparent text-tb-text-primary [--tb-focus-ring:var(--tb-neutral)] hover:bg-tb-background-item-hover focus:bg-tb-background-item-hover active:bg-tb-neutral-soft-hover",
         danger:
-          "bg-transparent text-danger-on-ghost [--focus-ring:var(--danger)] hover:bg-danger-soft focus:bg-danger-soft active:bg-danger-soft-hover",
+          "bg-transparent text-tb-text-danger-on-ghost [--tb-focus-ring:var(--tb-danger)] hover:bg-tb-danger-soft focus:bg-tb-danger-soft active:bg-tb-danger-soft-hover",
       },
     },
     defaultVariants: {
@@ -129,7 +130,9 @@ export function DropdownMenuItem({
         <Icon
           size={iconSize}
           className={
-            color === "danger" ? "text-danger-on-ghost/80" : "text-tertiary"
+            color === "danger"
+              ? "text-tb-text-danger-on-ghost/80"
+              : "text-tb-text-tertiary"
           }
         >
           {icon}
@@ -160,13 +163,13 @@ export function DropdownMenuSubTrigger({
     <MenuPrimitive.SubmenuTrigger
       data-inset={inset}
       className={cn(
-        "data-open:bg-neutral-soft-hover data-popup-open:bg-neutral-soft-hover",
+        "data-open:bg-tb-neutral-soft-hover data-popup-open:bg-tb-neutral-soft-hover",
         menuItemVariants({ color, className }),
       )}
       {...props}
     >
       {children}
-      <Icon size="sm" className="text-tertiary ml-auto">
+      <Icon size="sm" className="text-tb-text-tertiary ml-auto">
         <CaretRightIcon />
       </Icon>
     </MenuPrimitive.SubmenuTrigger>
@@ -215,7 +218,7 @@ export function DropdownMenuCheckboxItem({
       checked={checked}
       {...props}
     >
-      <MenuPrimitive.CheckboxItemIndicator className="text-secondary pointer-events-none absolute right-2 flex items-center justify-center">
+      <MenuPrimitive.CheckboxItemIndicator className="text-tb-text-secondary pointer-events-none absolute right-2 flex items-center justify-center">
         <Icon size="sm">
           <CheckIcon />
         </Icon>
@@ -249,7 +252,7 @@ export function DropdownMenuRadioItem({
       )}
       {...props}
     >
-      <MenuPrimitive.RadioItemIndicator className="text-secondary pointer-events-none absolute right-2 flex items-center justify-center">
+      <MenuPrimitive.RadioItemIndicator className="text-tb-text-secondary pointer-events-none absolute right-2 flex items-center justify-center">
         <Icon size="sm">
           <CheckIcon />
         </Icon>
@@ -267,7 +270,7 @@ export function DropdownMenuSeparator({
 }: DropdownMenuSeparatorProps) {
   return (
     <MenuPrimitive.Separator
-      className={cn("bg-border -mx-1 my-1 h-px", className)}
+      className={cn("bg-tb-border-default -mx-1 my-1 h-px", className)}
       {...props}
     />
   );

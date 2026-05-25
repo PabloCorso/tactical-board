@@ -14,7 +14,10 @@ export type CardProps = ComponentProps<"div">;
 function Card({ className, ...props }: CardProps) {
   return (
     <div
-      className={cn("bg-surface overflow-clip rounded-xl border", className)}
+      className={cn(
+        "border-tb-border-default bg-tb-background-surface overflow-clip rounded-xl border",
+        className,
+      )}
       {...props}
     />
   );
@@ -34,7 +37,9 @@ function CardTitle({ className, ...props }: CardTitleProps) {
 export type CardDescriptionProps = ComponentProps<"p">;
 
 function CardDescription({ className, ...props }: CardDescriptionProps) {
-  return <p className={cn("text-secondary text-sm", className)} {...props} />;
+  return (
+    <p className={cn("text-tb-text-secondary text-sm", className)} {...props} />
+  );
 }
 
 export type CardContentProps = ComponentProps<"div">;
@@ -75,7 +80,7 @@ function TacticalBoardCardItem({
     <Card className="shadow-sm">
       <CardContent className="gap-0 p-0">
         <div
-          className="relative w-full overflow-hidden rounded-t-xl bg-neutral-950"
+          className="relative w-full overflow-hidden rounded-t-xl bg-zinc-950"
           style={{ aspectRatio: footballBoardPreviewMetrics.aspectRatio }}
         >
           <FootballBoardViewerCanvas
@@ -85,7 +90,7 @@ function TacticalBoardCardItem({
             mode="fit-content"
           />
         </div>
-        <div className="flex flex-col gap-1 border-t px-4 py-3">
+        <div className="border-tb-border-default flex flex-col gap-1 border-t px-4 py-3">
           <CardTitle>{title}</CardTitle>
           <CardDescription>{description}</CardDescription>
         </div>
@@ -96,7 +101,7 @@ function TacticalBoardCardItem({
 
 function TacticalBoardCard() {
   return (
-    <main className="bg-screen min-h-dvh p-6">
+    <main data-tactical-board className="bg-tb-background-screen min-h-dvh p-6">
       <div
         className="grid gap-4"
         style={{

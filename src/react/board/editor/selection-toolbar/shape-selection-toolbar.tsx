@@ -276,7 +276,7 @@ export function BoardEditorShapeSelectionToolbar({
           }
           icon={
             <span
-              className="border-default inline-flex h-5 w-5 rounded-full border"
+              className="border-tb-border-default inline-flex h-5 w-5 rounded-full border"
               style={{ backgroundColor: selectedObject.props.color }}
             >
               <span className="sr-only">{selectedObject.props.color}</span>

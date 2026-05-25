@@ -84,7 +84,7 @@ export function BoardEditorCanvasToolbar({
         />
         <BoardEditorCanvasToolbarButton
           aria-label="Redo"
-          className="rounded-none rounded-r-full border-l"
+          className="border-tb-border-default rounded-none rounded-r-full border-l"
           disabled={!canRedo}
           iconBefore={
             <ArrowClockwiseIcon
@@ -115,7 +115,7 @@ export function BoardEditorCanvasToolbar({
         />
         <BoardEditorCanvasToolbarButton
           aria-label="Zoom in"
-          className="rounded-none rounded-r-full border-l"
+          className="border-tb-border-default rounded-none rounded-r-full border-l"
           iconBefore={
             <PlusIcon aria-hidden="true" className="size-4" weight="bold" />
           }

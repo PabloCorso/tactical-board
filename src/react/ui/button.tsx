@@ -14,17 +14,17 @@ export const buttonVariants = cva(
     variants: {
       variant: {
         primary:
-          "border-accent bg-accent text-on-accent shadow-xs hover:border-accent-hover hover:bg-accent-hover focus-visible:ring-offset-2 active:border-accent-active active:bg-accent-active",
+          "border-tb-accent bg-tb-accent text-tb-text-on-accent shadow-xs hover:border-tb-accent-hover hover:bg-tb-accent-hover focus-visible:ring-offset-2 active:border-tb-accent-active active:bg-tb-accent-active",
         alternative:
-          "border-alternative-soft bg-alternative-soft text-alternative-on-soft [--focus-ring:var(--color-alternative)] hover:border-alternative-soft-hover hover:bg-alternative-soft-hover active:border-alternative-soft-active active:bg-alternative-soft-active",
+          "border-tb-neutral-soft bg-tb-neutral-soft text-tb-text-primary [--tb-focus-ring:var(--tb-accent)] hover:border-tb-neutral-soft-hover hover:bg-tb-neutral-soft-hover active:border-tb-neutral-soft-active active:bg-tb-neutral-soft-active",
         secondary:
-          "border-neutral-soft bg-neutral-soft text-primary hover:border-neutral-soft-hover hover:bg-neutral-soft-hover active:border-neutral-soft-active active:bg-neutral-soft-active",
+          "border-tb-neutral-soft bg-tb-neutral-soft text-tb-text-primary hover:border-tb-neutral-soft-hover hover:bg-tb-neutral-soft-hover active:border-tb-neutral-soft-active active:bg-tb-neutral-soft-active",
         outline:
-          "border-default bg-screen text-primary hover:border-neutral-soft-active hover:bg-neutral-soft active:bg-neutral-soft-hover data-popup-open:border-neutral-soft-active data-popup-open:bg-neutral-soft",
+          "border-tb-border-default bg-tb-background-screen text-tb-text-primary hover:border-tb-neutral-soft-active hover:bg-tb-neutral-soft active:bg-tb-neutral-soft-hover data-popup-open:border-tb-neutral-soft-active data-popup-open:bg-tb-neutral-soft",
         ghost:
-          "bg-transparent text-primary hover:bg-neutral-soft active:bg-neutral-soft-hover data-popup-open:bg-neutral-soft",
+          "bg-transparent text-tb-text-primary hover:bg-tb-neutral-soft active:bg-tb-neutral-soft-hover data-popup-open:bg-tb-neutral-soft",
         danger:
-          "border-danger bg-danger text-on-color shadow-xs [--focus-ring:var(--danger)] hover:border-danger-hover hover:bg-danger-hover focus-visible:ring-offset-2 active:border-danger-active active:bg-danger-active",
+          "border-tb-danger bg-tb-danger text-tb-text-on-color shadow-xs [--tb-focus-ring:var(--tb-danger)] hover:border-tb-danger-hover hover:bg-tb-danger-hover focus-visible:ring-offset-2 active:border-tb-danger-active active:bg-tb-danger-active",
       },
       size: {
         sm: "h-8 gap-1.5 px-2.5 text-xs",
