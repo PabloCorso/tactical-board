@@ -28,8 +28,8 @@
     "./styles.css": "./src/styles.css"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com",
-    "access": "restricted"
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
   },
   "scripts": {
     "dev": "storybook dev -p 6006",
@@ -45,7 +45,8 @@
     "validate": "run-p lint typecheck test",
     "release": "npm run release:patch",
     "release:validate": "npm run validate && npm run build && npm pack --dry-run",
-    "release:patch": "npm run release:validate && npm version patch && git push --follow-tags",
+    "release:publish": "npm publish --access public",
+    "release:patch": "npm run release:validate && npm version patch && npm run release:publish && git push --follow-tags",
     "prepublishOnly": "npm run build",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
