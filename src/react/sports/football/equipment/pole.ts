@@ -4,15 +4,14 @@ import type { FootballEquipmentSpec } from "./types";
 const POLE_COLOR = "#f97316";
 const POLE_MARKER_LINE_RATIO = 5 / 2.4;
 const POLE_MARKER_STROKE_RATIO = 0.35 / 2.4;
-const POLE_DEFAULT_SCALE = 0.75;
 
 export const poleEquipment: FootballEquipmentSpec = {
   definition: {
     kind: "pole",
     label: "Pole",
     defaultSize: {
-      width: 2.4 * POLE_DEFAULT_SCALE,
-      height: 5 * POLE_DEFAULT_SCALE,
+      width: 12,
+      height: 28,
     },
     color: POLE_COLOR,
     capabilities: { color: true },

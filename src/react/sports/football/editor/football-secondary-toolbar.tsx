@@ -13,9 +13,9 @@ import { createFootballPitch } from "../board/football-board";
 import {
   FOOTBALL_PITCH_OPTIONS,
   FOOTBALL_PITCH_TOOL_ID,
-  FootballPitchPreview,
   getFootballPitchVariant,
-} from "../theme/football-pitch-icons";
+} from "../theme/football-pitch-options";
+import { FootballPitchPreview } from "../theme/football-pitch-icons";
 import { footballTheme, footballThemeAdapters } from "../theme/football-theme";
 
 export type FootballSecondaryToolbarProps = Omit<

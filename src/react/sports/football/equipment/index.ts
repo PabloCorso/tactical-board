@@ -9,7 +9,6 @@ import { mannequinEquipment } from "./mannequin";
 import { miniGoalEquipment } from "./mini-goal";
 import { poleEquipment } from "./pole";
 import { soccerBallEquipment } from "./soccer-ball";
-import { equipmentDefinitionMetersToPixels } from "../board/football-units";
 
 const footballEquipment = [
   soccerBallEquipment,
@@ -24,8 +23,11 @@ const footballEquipment = [
   poleEquipment,
 ];
 
+// Equipment default sizes are visual planning-token sizes in board units.
+// They are tuned for readability against the 20-unit player token, not physical
+// real-world dimensions.
 export const FOOTBALL_EQUIPMENT_DEFINITIONS = footballEquipment.map(
-  ({ definition }) => equipmentDefinitionMetersToPixels(definition),
+  ({ definition }) => definition,
 );
 
 export const FOOTBALL_EQUIPMENT_RENDERERS = Object.fromEntries(

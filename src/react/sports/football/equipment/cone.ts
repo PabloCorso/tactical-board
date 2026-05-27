@@ -110,7 +110,7 @@ export const coneEquipment: FootballEquipmentSpec = {
   definition: {
     kind: "cone",
     label: "Cone",
-    defaultSize: { width: 1.8, height: 2.2 },
+    defaultSize: { width: 14, height: 16 },
     color: DEFAULT_BOARD_COLOR.red,
     capabilities: { color: true },
     transformCapabilities: {

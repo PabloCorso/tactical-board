@@ -2,10 +2,7 @@ import { useMemo } from "react";
 import type { Board } from "../../../../core/board/types";
 import type { BoardEditorState } from "../../../../core/editor/types";
 import type { AssetResolver } from "../../../../core/rendering/canvas/types";
-import {
-  createBoardEditorStore,
-  type BoardEditorStore,
-} from "../../../../core/store/board-editor-store";
+import type { BoardEditorStore } from "../../../../core/store/board-editor-store";
 import {
   BoardEditor,
   BoardEditorCanvas,
@@ -16,11 +13,10 @@ import {
 import { BoardEditorSelectionToolbar } from "../../../board/editor/selection-toolbar/selection-toolbar";
 import { BoardEditorToolbarDock } from "../../../board/editor/toolbar/editor-toolbar";
 import { cn } from "../../../ui/misc";
-import { SELECT_TOOL_ID } from "../../../../core/tools/select-tool-state";
 import { createFootballBoard } from "../board/football-board";
+import { createFootballBoardEditorStore } from "./football-board-editor-store";
 import { FootballPrimaryToolbar } from "./football-primary-toolbar";
 import { FootballSecondaryToolbar } from "./football-secondary-toolbar";
-import { createFootballTools } from "../theme/football-tools";
 
 export type FootballBoardEditorProps = {
   assetResolver?: AssetResolver;
@@ -30,22 +26,6 @@ export type FootballBoardEditorProps = {
   store?: BoardEditorStore;
   navigationMode?: BoardEditorState["ui"]["navigationMode"];
 };
-
-export type CreateFootballBoardEditorStoreOptions = {
-  navigationMode?: BoardEditorState["ui"]["navigationMode"];
-};
-
-export function createFootballBoardEditorStore(
-  initialBoard: Board = createFootballBoard(),
-  { navigationMode }: CreateFootballBoardEditorStoreOptions = {},
-) {
-  return createBoardEditorStore({
-    initialBoard,
-    initialToolId: SELECT_TOOL_ID,
-    navigationMode,
-    tools: createFootballTools(),
-  });
-}
 
 export function FootballBoardEditor({
   assetResolver,

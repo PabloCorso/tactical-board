@@ -5,9 +5,9 @@ import { useBoardEditorStore } from "../../../adapter/editor/use-board-editor-st
 import { BoardPrimaryToolbar } from "../../../board/toolbar/primary-toolbar";
 import {
   FOOTBALL_PITCH_TOOL_ID,
-  FootballPitchPreview,
   getFootballPitchVariant,
-} from "../theme/football-pitch-icons";
+} from "../theme/football-pitch-options";
+import { FootballPitchPreview } from "../theme/football-pitch-icons";
 import { footballTheme, footballThemeAdapters } from "../theme/football-theme";
 
 export type FootballPrimaryToolbarProps = Omit<

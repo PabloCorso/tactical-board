@@ -2,8 +2,8 @@ import type { FootballEquipmentSpec } from "./types";
 import { DEFAULT_BOARD_COLOR } from "../../../../core/colors/default-colors";
 
 const GOAL_METRICS = {
-  width: 7.32,
-  height: (7.32 * 422) / 895,
+  width: 58.5,
+  height: 22,
 } as const;
 
 const GOAL_VIEW_BOX = {

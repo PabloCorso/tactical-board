@@ -2,14 +2,13 @@ import type { FootballEquipmentSpec } from "./types";
 import { DEFAULT_BOARD_COLOR } from "../../../../core/colors/default-colors";
 
 const HURDLE_METRICS = {
-  width: 6,
-  height: 3.4,
-  legInset: 0.9,
-  legBackOffset: 1.35,
+  width: 20,
+  height: 11,
+  legInset: 3,
+  legBackOffset: 4.5,
   shoulderRatio: 0.36,
-  strokeWidth: 0.4,
+  strokeWidth: 1.4,
 } as const;
-const HURDLE_DEFAULT_SCALE = 0.6;
 
 function renderHurdlePath(
   context: CanvasRenderingContext2D,
@@ -62,8 +61,8 @@ export const hurdleEquipment: FootballEquipmentSpec = {
     kind: "hurdle",
     label: "Hurdle",
     defaultSize: {
-      width: HURDLE_METRICS.width * HURDLE_DEFAULT_SCALE,
-      height: HURDLE_METRICS.height * HURDLE_DEFAULT_SCALE,
+      width: HURDLE_METRICS.width,
+      height: HURDLE_METRICS.height,
     },
     color: DEFAULT_BOARD_COLOR.orange,
     capabilities: { color: true },

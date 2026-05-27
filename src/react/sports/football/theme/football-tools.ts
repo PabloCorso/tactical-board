@@ -1,6 +1,6 @@
 import type { ToolRegistration } from "../../../../core/tools/types";
 import { createBoardTools } from "../../../board/theme/create-board-tools";
-import { FOOTBALL_PITCH_TOOL_ID } from "./football-pitch-icons";
+import { FOOTBALL_PITCH_TOOL_ID } from "./football-pitch-options";
 import { footballTheme, footballThemeAdapters } from "./football-theme";
 
 export function createFootballTools(): ToolRegistration[] {

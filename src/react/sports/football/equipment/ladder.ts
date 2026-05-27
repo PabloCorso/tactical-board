@@ -2,21 +2,20 @@ import type { FootballEquipmentSpec } from "./types";
 import { DEFAULT_BOARD_COLOR } from "../../../../core/colors/default-colors";
 
 const LADDER_METRICS = {
-  width: 3.8,
-  height: 14,
-  railStrokeWidth: 0.4,
-  rungStrokeWidth: 0.4,
+  width: 18,
+  height: 64,
+  railStrokeWidth: 2,
+  rungStrokeWidth: 2,
   rungCount: 6,
 } as const;
-const LADDER_DEFAULT_SCALE = 0.9;
 
 export const ladderEquipment: FootballEquipmentSpec = {
   definition: {
     kind: "ladder",
     label: "Ladder",
     defaultSize: {
-      width: LADDER_METRICS.width * LADDER_DEFAULT_SCALE,
-      height: LADDER_METRICS.height * LADDER_DEFAULT_SCALE,
+      width: LADDER_METRICS.width,
+      height: LADDER_METRICS.height,
     },
     color: DEFAULT_BOARD_COLOR.black,
     capabilities: { color: true },
