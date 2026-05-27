@@ -19,6 +19,7 @@ export const FOOTBALL_FULL_PITCH_METRICS = {
   perimeter: { touchline: 5, goalLine: 3 },
   goal: {
     postsWidth: 7.32,
+    frameDepth: 2.44,
     areaDepth: 5.5,
   },
   penalty: {
@@ -177,6 +178,9 @@ export function createFootballPitchMarkings({
     FOOTBALL_FULL_PITCH_METRICS.goal.areaDepth * 2 +
     FOOTBALL_FULL_PITCH_METRICS.goal.postsWidth;
   const goalDepth = FOOTBALL_FULL_PITCH_METRICS.goal.areaDepth;
+  const goalFrameDepth = FOOTBALL_FULL_PITCH_METRICS.goal.frameDepth;
+  const goalPostsWidth = FOOTBALL_FULL_PITCH_METRICS.goal.postsWidth;
+  const goalFrameLineOverlap = FOOTBALL_FULL_PITCH_METRICS.lineWidth / 2;
   const penaltyWidth =
     FOOTBALL_FULL_PITCH_METRICS.penalty.areaDepth * 2 +
     FOOTBALL_FULL_PITCH_METRICS.goal.postsWidth;
@@ -263,6 +267,60 @@ export function createFootballPitchMarkings({
       y: centerY - goalWidth / 2,
       width: goalDepth,
       height: goalWidth,
+      stroke: FOOTBALL_PITCH_COLORS.line,
+      strokeWidth: FOOTBALL_FULL_PITCH_METRICS.lineWidth,
+    },
+    {
+      kind: "line",
+      x1: outerMarginX + goalFrameLineOverlap,
+      y1: centerY - goalPostsWidth / 2,
+      x2: outerMarginX - goalFrameDepth - goalFrameLineOverlap,
+      y2: centerY - goalPostsWidth / 2,
+      stroke: FOOTBALL_PITCH_COLORS.line,
+      strokeWidth: FOOTBALL_FULL_PITCH_METRICS.lineWidth,
+    },
+    {
+      kind: "line",
+      x1: outerMarginX - goalFrameDepth,
+      y1: centerY - goalPostsWidth / 2 - goalFrameLineOverlap,
+      x2: outerMarginX - goalFrameDepth,
+      y2: centerY + goalPostsWidth / 2 + goalFrameLineOverlap,
+      stroke: FOOTBALL_PITCH_COLORS.line,
+      strokeWidth: FOOTBALL_FULL_PITCH_METRICS.lineWidth,
+    },
+    {
+      kind: "line",
+      x1: outerMarginX - goalFrameDepth - goalFrameLineOverlap,
+      y1: centerY + goalPostsWidth / 2,
+      x2: outerMarginX + goalFrameLineOverlap,
+      y2: centerY + goalPostsWidth / 2,
+      stroke: FOOTBALL_PITCH_COLORS.line,
+      strokeWidth: FOOTBALL_FULL_PITCH_METRICS.lineWidth,
+    },
+    {
+      kind: "line",
+      x1: outerMarginX + width - goalFrameLineOverlap,
+      y1: centerY - goalPostsWidth / 2,
+      x2: outerMarginX + width + goalFrameDepth + goalFrameLineOverlap,
+      y2: centerY - goalPostsWidth / 2,
+      stroke: FOOTBALL_PITCH_COLORS.line,
+      strokeWidth: FOOTBALL_FULL_PITCH_METRICS.lineWidth,
+    },
+    {
+      kind: "line",
+      x1: outerMarginX + width + goalFrameDepth,
+      y1: centerY - goalPostsWidth / 2 - goalFrameLineOverlap,
+      x2: outerMarginX + width + goalFrameDepth,
+      y2: centerY + goalPostsWidth / 2 + goalFrameLineOverlap,
+      stroke: FOOTBALL_PITCH_COLORS.line,
+      strokeWidth: FOOTBALL_FULL_PITCH_METRICS.lineWidth,
+    },
+    {
+      kind: "line",
+      x1: outerMarginX + width + goalFrameDepth + goalFrameLineOverlap,
+      y1: centerY + goalPostsWidth / 2,
+      x2: outerMarginX + width - goalFrameLineOverlap,
+      y2: centerY + goalPostsWidth / 2,
       stroke: FOOTBALL_PITCH_COLORS.line,
       strokeWidth: FOOTBALL_FULL_PITCH_METRICS.lineWidth,
     },
@@ -358,6 +416,9 @@ function createFootballHalfPitchMarkings(): BoardFrameMarking[] {
     FOOTBALL_FULL_PITCH_METRICS.goal.areaDepth * 2 +
     FOOTBALL_FULL_PITCH_METRICS.goal.postsWidth;
   const goalDepth = FOOTBALL_FULL_PITCH_METRICS.goal.areaDepth;
+  const goalFrameDepth = FOOTBALL_FULL_PITCH_METRICS.goal.frameDepth;
+  const goalPostsWidth = FOOTBALL_FULL_PITCH_METRICS.goal.postsWidth;
+  const goalFrameLineOverlap = FOOTBALL_FULL_PITCH_METRICS.lineWidth / 2;
   const penaltyWidth =
     FOOTBALL_FULL_PITCH_METRICS.penalty.areaDepth * 2 +
     FOOTBALL_FULL_PITCH_METRICS.goal.postsWidth;
@@ -434,6 +495,33 @@ function createFootballHalfPitchMarkings(): BoardFrameMarking[] {
       y: centerY - goalWidth / 2,
       width: goalDepth,
       height: goalWidth,
+      stroke: FOOTBALL_PITCH_COLORS.line,
+      strokeWidth: FOOTBALL_FULL_PITCH_METRICS.lineWidth,
+    },
+    {
+      kind: "line",
+      x1: goalLineX - goalFrameLineOverlap,
+      y1: centerY - goalPostsWidth / 2,
+      x2: goalLineX + goalFrameDepth + goalFrameLineOverlap,
+      y2: centerY - goalPostsWidth / 2,
+      stroke: FOOTBALL_PITCH_COLORS.line,
+      strokeWidth: FOOTBALL_FULL_PITCH_METRICS.lineWidth,
+    },
+    {
+      kind: "line",
+      x1: goalLineX + goalFrameDepth,
+      y1: centerY - goalPostsWidth / 2 - goalFrameLineOverlap,
+      x2: goalLineX + goalFrameDepth,
+      y2: centerY + goalPostsWidth / 2 + goalFrameLineOverlap,
+      stroke: FOOTBALL_PITCH_COLORS.line,
+      strokeWidth: FOOTBALL_FULL_PITCH_METRICS.lineWidth,
+    },
+    {
+      kind: "line",
+      x1: goalLineX + goalFrameDepth + goalFrameLineOverlap,
+      y1: centerY + goalPostsWidth / 2,
+      x2: goalLineX - goalFrameLineOverlap,
+      y2: centerY + goalPostsWidth / 2,
       stroke: FOOTBALL_PITCH_COLORS.line,
       strokeWidth: FOOTBALL_FULL_PITCH_METRICS.lineWidth,
     },

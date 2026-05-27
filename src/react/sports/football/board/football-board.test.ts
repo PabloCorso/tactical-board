@@ -63,6 +63,27 @@ function expectCircleMarking(
   );
 }
 
+function expectLineMarking(
+  markings: Marking[] | undefined,
+  expected: {
+    stroke: string;
+    strokeWidth: number;
+    x1: unknown;
+    x2: unknown;
+    y1: unknown;
+    y2: unknown;
+  },
+) {
+  expect(markings).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        kind: "line",
+        ...expected,
+      }),
+    ]),
+  );
+}
+
 function expectArcMarking(
   markings: Marking[] | undefined,
   expected: {
@@ -152,6 +173,77 @@ describe("football board frames", () => {
     expect(reducedSpace.background).toBe(FOOTBALL_PITCH_COLORS.outer);
   });
 
+  it("draws full-pitch goals as three-line frames centered on each goal line", () => {
+    const fullPitch = createFootballPitch("full-pitch");
+    const touchlineMargin = FOOTBALL_FULL_PITCH_METRICS.perimeter.touchline;
+    const goalLineMargin = FOOTBALL_FULL_PITCH_METRICS.perimeter.goalLine;
+    const fieldLength = FOOTBALL_FULL_PITCH_METRICS.field.length;
+    const fieldWidth = FOOTBALL_FULL_PITCH_METRICS.field.width;
+    const lineWidth = metersToPixels(FOOTBALL_FULL_PITCH_METRICS.lineWidth);
+    const centerY = goalLineMargin + fieldWidth / 2;
+    const postsTop = centerY - FOOTBALL_FULL_PITCH_METRICS.goal.postsWidth / 2;
+    const postsBottom =
+      centerY + FOOTBALL_FULL_PITCH_METRICS.goal.postsWidth / 2;
+    const frameDepth = FOOTBALL_FULL_PITCH_METRICS.goal.frameDepth;
+    const frameLineOverlap = FOOTBALL_FULL_PITCH_METRICS.lineWidth / 2;
+    const leftGoalLine = touchlineMargin;
+    const rightGoalLine = touchlineMargin + fieldLength;
+
+    expectLineMarking(fullPitch.markings, {
+      x1: metersToPixels(leftGoalLine + frameLineOverlap),
+      y1: metersToPixels(postsTop),
+      x2: metersToPixels(leftGoalLine - frameDepth - frameLineOverlap),
+      y2: metersToPixels(postsTop),
+      stroke: FOOTBALL_PITCH_COLORS.line,
+      strokeWidth: lineWidth,
+    });
+
+    expectLineMarking(fullPitch.markings, {
+      x1: metersToPixels(leftGoalLine - frameDepth),
+      y1: metersToPixels(postsTop - frameLineOverlap),
+      x2: metersToPixels(leftGoalLine - frameDepth),
+      y2: metersToPixels(postsBottom + frameLineOverlap),
+      stroke: FOOTBALL_PITCH_COLORS.line,
+      strokeWidth: lineWidth,
+    });
+
+    expectLineMarking(fullPitch.markings, {
+      x1: metersToPixels(leftGoalLine - frameDepth - frameLineOverlap),
+      y1: metersToPixels(postsBottom),
+      x2: metersToPixels(leftGoalLine + frameLineOverlap),
+      y2: metersToPixels(postsBottom),
+      stroke: FOOTBALL_PITCH_COLORS.line,
+      strokeWidth: lineWidth,
+    });
+
+    expectLineMarking(fullPitch.markings, {
+      x1: metersToPixels(rightGoalLine - frameLineOverlap),
+      y1: metersToPixels(postsTop),
+      x2: metersToPixels(rightGoalLine + frameDepth + frameLineOverlap),
+      y2: metersToPixels(postsTop),
+      stroke: FOOTBALL_PITCH_COLORS.line,
+      strokeWidth: lineWidth,
+    });
+
+    expectLineMarking(fullPitch.markings, {
+      x1: metersToPixels(rightGoalLine + frameDepth),
+      y1: metersToPixels(postsTop - frameLineOverlap),
+      x2: metersToPixels(rightGoalLine + frameDepth),
+      y2: metersToPixels(postsBottom + frameLineOverlap),
+      stroke: FOOTBALL_PITCH_COLORS.line,
+      strokeWidth: lineWidth,
+    });
+
+    expectLineMarking(fullPitch.markings, {
+      x1: metersToPixels(rightGoalLine + frameDepth + frameLineOverlap),
+      y1: metersToPixels(postsBottom),
+      x2: metersToPixels(rightGoalLine - frameLineOverlap),
+      y2: metersToPixels(postsBottom),
+      stroke: FOOTBALL_PITCH_COLORS.line,
+      strokeWidth: lineWidth,
+    });
+  });
+
   it("keeps the half pitch metrically aligned with one goal-to-midfield half of the full pitch", () => {
     const halfPitch = createFootballPitch("half-pitch");
     const touchlineMargin = FOOTBALL_FULL_PITCH_METRICS.perimeter.touchline;
@@ -164,6 +256,9 @@ describe("football board frames", () => {
     const fieldRight = fieldLeft + fieldWidth;
     const fieldBottom = fieldTop + fieldHalfLength;
     const centerX = fieldLeft + fieldWidth / 2;
+    const goalFrameDepth = FOOTBALL_FULL_PITCH_METRICS.goal.frameDepth;
+    const goalFrameLineOverlap = FOOTBALL_FULL_PITCH_METRICS.lineWidth / 2;
+    const goalPostsWidth = FOOTBALL_FULL_PITCH_METRICS.goal.postsWidth;
     const goalWidth =
       FOOTBALL_FULL_PITCH_METRICS.goal.areaDepth * 2 +
       FOOTBALL_FULL_PITCH_METRICS.goal.postsWidth;
@@ -218,6 +313,41 @@ describe("football board frames", () => {
       y: metersToPixels(fieldTop),
       width: metersToPixels(goalWidth),
       height: metersToPixels(FOOTBALL_FULL_PITCH_METRICS.goal.areaDepth),
+      stroke: FOOTBALL_PITCH_COLORS.line,
+      strokeWidth: lineWidth,
+    });
+
+    expectLineMarking(halfPitch.markings, {
+      x1: metersToPixels(centerX - goalPostsWidth / 2),
+      y1: expect.closeTo(metersToPixels(fieldTop + goalFrameLineOverlap)),
+      x2: metersToPixels(centerX - goalPostsWidth / 2),
+      y2: expect.closeTo(
+        metersToPixels(fieldTop - goalFrameDepth - goalFrameLineOverlap),
+      ),
+      stroke: FOOTBALL_PITCH_COLORS.line,
+      strokeWidth: lineWidth,
+    });
+
+    expectLineMarking(halfPitch.markings, {
+      x1: expect.closeTo(
+        metersToPixels(centerX - goalPostsWidth / 2 - goalFrameLineOverlap),
+      ),
+      y1: expect.closeTo(metersToPixels(fieldTop - goalFrameDepth)),
+      x2: expect.closeTo(
+        metersToPixels(centerX + goalPostsWidth / 2 + goalFrameLineOverlap),
+      ),
+      y2: expect.closeTo(metersToPixels(fieldTop - goalFrameDepth)),
+      stroke: FOOTBALL_PITCH_COLORS.line,
+      strokeWidth: lineWidth,
+    });
+
+    expectLineMarking(halfPitch.markings, {
+      x1: metersToPixels(centerX + goalPostsWidth / 2),
+      y1: expect.closeTo(
+        metersToPixels(fieldTop - goalFrameDepth - goalFrameLineOverlap),
+      ),
+      x2: metersToPixels(centerX + goalPostsWidth / 2),
+      y2: expect.closeTo(metersToPixels(fieldTop + goalFrameLineOverlap)),
       stroke: FOOTBALL_PITCH_COLORS.line,
       strokeWidth: lineWidth,
     });
