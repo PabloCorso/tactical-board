@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { Board, BoardFrameConfig } from "../board/types";
 import {
   getBoardViewerViewport,
+  getBoardViewerViewportFromPinch,
   getBoardViewerViewportFromPan,
   getBoardViewerViewportFromWheel,
 } from "./board-viewer-viewport";
@@ -204,6 +205,34 @@ describe("board viewer viewport", () => {
     });
 
     expect(viewport.zoom).toBeGreaterThan(1);
+    expect(viewport.pan.x).not.toBe(0);
+    expect(viewport.pan.y).not.toBe(0);
+  });
+
+  it("zooms around the viewer pinch center", () => {
+    const viewport = getBoardViewerViewportFromPinch({
+      frame,
+      viewport: {
+        pan: {
+          x: 0,
+          y: 0,
+        },
+        zoom: 1,
+      },
+      input: {
+        canvasRect: {
+          width: 228,
+          height: 128,
+        },
+        clientPoint: {
+          x: 160,
+          y: 80,
+        },
+        scale: 1.5,
+      },
+    });
+
+    expect(viewport.zoom).toBeCloseTo(1.5);
     expect(viewport.pan.x).not.toBe(0);
     expect(viewport.pan.y).not.toBe(0);
   });

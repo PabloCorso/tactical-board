@@ -41,6 +41,12 @@ export interface BoardEditorWheelInput {
   canvasRect: CanvasRect;
 }
 
+export interface BoardEditorZoomInput {
+  clientPoint: Point;
+  scale: number;
+  canvasRect: CanvasRect;
+}
+
 export interface BoardEditorController {
   createToolPointerEvent: (input: BoardEditorPointerInput) => ToolPointerEvent;
   dispatchPointerEvent: (
@@ -48,6 +54,7 @@ export interface BoardEditorController {
     input: BoardEditorPointerInput,
   ) => void;
   dispatchWheelEvent: (input: BoardEditorWheelInput) => boolean;
+  dispatchZoomEvent: (input: BoardEditorZoomInput) => boolean;
 }
 
 function getBoardPoint(
@@ -133,6 +140,13 @@ export function createBoardEditorController(
     return true;
   };
   const zoomViewportFromWheel = (input: BoardEditorWheelInput) => {
+    return zoomViewportAtClientPoint({
+      clientPoint: input.clientPoint,
+      canvasRect: input.canvasRect,
+      scale: Math.exp(-input.deltaY * VIEWPORT_WHEEL_ZOOM_SENSITIVITY),
+    });
+  };
+  const zoomViewportAtClientPoint = (input: BoardEditorZoomInput) => {
     const state = store.getState();
     const nextViewport = getViewportForZoomAtCanvasPoint({
       frame: state.board.frame,
@@ -142,14 +156,13 @@ export function createBoardEditorController(
         x: input.clientPoint.x - input.canvasRect.left,
         y: input.clientPoint.y - input.canvasRect.top,
       },
-      zoom:
-        state.ui.viewport.zoom *
-        Math.exp(-input.deltaY * VIEWPORT_WHEEL_ZOOM_SENSITIVITY),
+      zoom: state.ui.viewport.zoom * input.scale,
       minZoom: state.ui.navigationMode === "contained" ? 0 : undefined,
       viewportInsets: state.ui.viewportInsets,
     });
 
     state.actions.setViewport(nextViewport);
+    return nextViewport !== state.ui.viewport;
   };
   const getToolWheelEvent = (
     state: BoardEditorState,
@@ -292,5 +305,6 @@ export function createBoardEditorController(
       handler(getToolWheelEvent(state, input), toolApi);
       return true;
     },
+    dispatchZoomEvent: (input) => zoomViewportAtClientPoint(input),
   };
 }

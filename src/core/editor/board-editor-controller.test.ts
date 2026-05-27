@@ -3768,6 +3768,59 @@ describe("createBoardEditorController", () => {
     expect(afterProjection.boardToCanvas(boardPoint).y).toBeCloseTo(200);
   });
 
+  it("zooms around the gesture center", () => {
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        frame: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      initialToolId: SELECT_TOOL_ID,
+      tools: [selectTool],
+    });
+    const controller = createBoardEditorController(store);
+    const canvasRect = {
+      left: 0,
+      top: 0,
+      width: 1000,
+      height: 500,
+    };
+    const beforeProjection = createBoardSpaceProjection({
+      frame: store.getState().board.frame,
+      viewport: store.getState().ui.viewport,
+      canvasRect,
+      viewportInsets: { top: 14, right: 14, bottom: 14, left: 14 },
+    });
+    const boardPoint = beforeProjection.canvasToBoard({ x: 300, y: 200 });
+    const handled = controller.dispatchZoomEvent({
+      clientPoint: { x: 300, y: 200 },
+      scale: 1.5,
+      canvasRect,
+    });
+
+    expect(handled).toBe(true);
+    expect(store.getState().ui.viewport.zoom).toBeCloseTo(1.5);
+
+    const afterProjection = createBoardSpaceProjection({
+      frame: store.getState().board.frame,
+      viewport: store.getState().ui.viewport,
+      canvasRect,
+      viewportInsets: { top: 14, right: 14, bottom: 14, left: 14 },
+    });
+
+    expect(afterProjection.boardToCanvas(boardPoint).x).toBeCloseTo(300);
+    expect(afterProjection.boardToCanvas(boardPoint).y).toBeCloseTo(200);
+  });
+
   it("clamps modifier + wheel zoom", () => {
     const store = createBoardEditorStore({
       initialBoard: {

@@ -31,6 +31,14 @@ export function createBoardEditorRuntime({
   let unsubscribe: (() => void) | null = null;
   let resizeObserver: ResizeObserver | null = null;
   let hasAppliedInitialViewportFit = false;
+  const touchPointers = new Map<
+    number,
+    {
+      clientPoint: { x: number; y: number };
+      startedToolInteraction: boolean;
+    }
+  >();
+  let pinchGesture: { previousDistance: number } | null = null;
 
   const registerToolCapabilities = (tool: ToolDefinition | undefined) => {
     if (!tool || registeredToolRendererIds.has(tool.id)) {
@@ -150,9 +158,121 @@ export function createBoardEditorRuntime({
     };
   };
 
+  const getTouchPointerPair = () => {
+    const pointers = [...touchPointers.entries()];
+
+    if (pointers.length < 2) {
+      return null;
+    }
+
+    return [pointers[0]!, pointers[1]!] as const;
+  };
+
+  const getPinchMetrics = () => {
+    const pair = getTouchPointerPair();
+
+    if (!pair) {
+      return null;
+    }
+
+    const [, first] = pair[0];
+    const [, second] = pair[1];
+
+    return {
+      distance: Math.hypot(
+        second.clientPoint.x - first.clientPoint.x,
+        second.clientPoint.y - first.clientPoint.y,
+      ),
+      center: {
+        x: (first.clientPoint.x + second.clientPoint.x) / 2,
+        y: (first.clientPoint.y + second.clientPoint.y) / 2,
+      },
+    };
+  };
+
+  const finishStartedTouchToolInteractions = () => {
+    if (!canvas) {
+      return;
+    }
+
+    for (const [pointerId, pointer] of touchPointers) {
+      if (!pointer.startedToolInteraction) {
+        continue;
+      }
+
+      controller.dispatchPointerEvent("onPointerUp", {
+        clientPoint: pointer.clientPoint,
+        pointerId,
+        button: 0,
+        ctrlKey: false,
+        shiftKey: false,
+        altKey: false,
+        metaKey: false,
+        canvasRect: canvas.getBoundingClientRect(),
+      });
+      touchPointers.set(pointerId, {
+        ...pointer,
+        startedToolInteraction: false,
+      });
+    }
+  };
+
+  const beginPinchGesture = () => {
+    const metrics = getPinchMetrics();
+
+    if (!metrics) {
+      pinchGesture = null;
+      return;
+    }
+
+    finishStartedTouchToolInteractions();
+    pinchGesture = { previousDistance: metrics.distance };
+  };
+
+  const updatePinchGesture = () => {
+    if (!canvas || !pinchGesture) {
+      return false;
+    }
+
+    const metrics = getPinchMetrics();
+
+    if (
+      !metrics ||
+      metrics.distance <= 0 ||
+      pinchGesture.previousDistance <= 0
+    ) {
+      return false;
+    }
+
+    controller.dispatchZoomEvent({
+      clientPoint: metrics.center,
+      canvasRect: canvas.getBoundingClientRect(),
+      scale: metrics.distance / pinchGesture.previousDistance,
+    });
+    pinchGesture = { previousDistance: metrics.distance };
+    return true;
+  };
+
   const onPointerDown = (event: PointerEvent) => {
     if (!canvas) {
       return;
+    }
+
+    if (event.pointerType === "touch") {
+      touchPointers.set(event.pointerId, {
+        clientPoint: {
+          x: event.clientX,
+          y: event.clientY,
+        },
+        startedToolInteraction: false,
+      });
+      canvas.setPointerCapture(event.pointerId);
+
+      if (touchPointers.size >= 2) {
+        beginPinchGesture();
+        event.preventDefault();
+        return;
+      }
     }
 
     const activeTool = getActiveTool();
@@ -171,9 +291,36 @@ export function createBoardEditorRuntime({
     }
 
     controller.dispatchPointerEvent("onPointerDown", input);
+    if (event.pointerType === "touch") {
+      const pointer = touchPointers.get(event.pointerId);
+      if (pointer) {
+        touchPointers.set(event.pointerId, {
+          ...pointer,
+          startedToolInteraction: true,
+        });
+      }
+    }
   };
 
   const onPointerMove = (event: PointerEvent) => {
+    const touchPointer = touchPointers.get(event.pointerId);
+    if (touchPointer) {
+      touchPointers.set(event.pointerId, {
+        ...touchPointer,
+        clientPoint: {
+          x: event.clientX,
+          y: event.clientY,
+        },
+      });
+
+      if (pinchGesture) {
+        if (updatePinchGesture()) {
+          event.preventDefault();
+        }
+        return;
+      }
+    }
+
     const input = createPointerInput(event);
     if (!input) {
       return;
@@ -208,7 +355,16 @@ export function createBoardEditorRuntime({
       return;
     }
 
-    controller.dispatchPointerEvent("onPointerUp", input);
+    const touchPointer = touchPointers.get(event.pointerId);
+    if (!touchPointer || touchPointer.startedToolInteraction) {
+      controller.dispatchPointerEvent("onPointerUp", input);
+    }
+    touchPointers.delete(event.pointerId);
+    if (touchPointers.size < 2) {
+      pinchGesture = null;
+    } else if (pinchGesture) {
+      beginPinchGesture();
+    }
     if (canvas.hasPointerCapture(event.pointerId)) {
       canvas.releasePointerCapture(event.pointerId);
     }
@@ -476,6 +632,8 @@ export function createBoardEditorRuntime({
       resizeObserver = null;
       unsubscribe?.();
       unsubscribe = null;
+      touchPointers.clear();
+      pinchGesture = null;
 
       if (canvas) {
         canvas.removeEventListener("pointerdown", onPointerDown);

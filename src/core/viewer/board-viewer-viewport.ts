@@ -46,6 +46,13 @@ export interface BoardViewerPanInput {
   delta: Point;
 }
 
+export interface BoardViewerPinchInput {
+  canvasRect: BoardViewerCanvasRect;
+  clientPoint: Point;
+  fitPadding?: number;
+  scale: number;
+}
+
 type BoardContentBounds = {
   minX: number;
   minY: number;
@@ -237,6 +244,25 @@ export function getBoardViewerViewportFromWheel({
     fitPadding: input.fitPadding,
     zoom:
       viewport.zoom * Math.exp(-input.deltaY * VIEWPORT_WHEEL_ZOOM_SENSITIVITY),
+  });
+}
+
+export function getBoardViewerViewportFromPinch({
+  frame,
+  viewport,
+  input,
+}: {
+  frame: BoardFrameConfig;
+  viewport: Viewport;
+  input: BoardViewerPinchInput;
+}): Viewport {
+  return getViewportForZoomAtCanvasPoint({
+    frame,
+    viewport,
+    canvasRect: input.canvasRect,
+    anchorCanvasPoint: input.clientPoint,
+    fitPadding: input.fitPadding,
+    zoom: viewport.zoom * input.scale,
   });
 }
 

@@ -93,6 +93,102 @@ describe("createBoardEditorRuntime", () => {
     globalThis.cancelAnimationFrame = originalCancelAnimationFrame;
   });
 
+  it("zooms the viewport when two touch pointers pinch", () => {
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        frame: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      tools: [
+        {
+          id: SELECT_TOOL_ID,
+          label: "Select",
+        },
+      ],
+    });
+    const runtime = createBoardEditorRuntime({ store });
+    const canvas = createCanvasStub();
+    const originalRequestAnimationFrame = globalThis.requestAnimationFrame;
+    const originalCancelAnimationFrame = globalThis.cancelAnimationFrame;
+    vi.stubGlobal(
+      "requestAnimationFrame",
+      vi.fn(() => 1),
+    );
+    vi.stubGlobal("cancelAnimationFrame", vi.fn());
+
+    runtime.mount(canvas);
+    store.getState().actions.setViewport({
+      pan: { x: 0, y: 0 },
+      zoom: 1,
+    });
+
+    const pointerDownHandler = vi
+      .mocked(canvas.addEventListener)
+      .mock.calls.find(([eventName]) => eventName === "pointerdown")?.[1] as
+      | ((event: PointerEvent) => void)
+      | undefined;
+    const pointerMoveHandler = vi
+      .mocked(canvas.addEventListener)
+      .mock.calls.find(([eventName]) => eventName === "pointermove")?.[1] as
+      | ((event: PointerEvent) => void)
+      | undefined;
+    const beforeZoom = store.getState().ui.viewport.zoom;
+
+    pointerDownHandler?.({
+      pointerId: 1,
+      pointerType: "touch",
+      button: 0,
+      clientX: 100,
+      clientY: 100,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      preventDefault: vi.fn(),
+    } as unknown as PointerEvent);
+    pointerDownHandler?.({
+      pointerId: 2,
+      pointerType: "touch",
+      button: 0,
+      clientX: 200,
+      clientY: 100,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      preventDefault: vi.fn(),
+    } as unknown as PointerEvent);
+    pointerMoveHandler?.({
+      pointerId: 2,
+      pointerType: "touch",
+      button: 0,
+      clientX: 300,
+      clientY: 100,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      preventDefault: vi.fn(),
+    } as unknown as PointerEvent);
+
+    expect(store.getState().ui.viewport.zoom).toBeGreaterThan(beforeZoom);
+
+    runtime.unmount();
+    vi.unstubAllGlobals();
+    globalThis.requestAnimationFrame = originalRequestAnimationFrame;
+    globalThis.cancelAnimationFrame = originalCancelAnimationFrame;
+  });
+
   it("registers tool capabilities once even when registration updates the store", () => {
     const registerCapabilities = vi.fn(
       ({
