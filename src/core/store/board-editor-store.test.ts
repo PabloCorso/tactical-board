@@ -142,6 +142,106 @@ describe("createBoardEditorStore", () => {
     });
   });
 
+  it("refits contained navigation when the canvas size changes", () => {
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        frame: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      tools: [selectTool],
+      navigationMode: "contained",
+    });
+
+    store.getState().actions.setCanvasRect({ width: 228, height: 128 });
+    store.getState().actions.setViewport({
+      pan: { x: 0, y: 0 },
+      zoom: 2.28,
+    });
+
+    store.getState().actions.setCanvasRect({ width: 328, height: 228 });
+
+    expect(store.getState().ui.viewport).toEqual({
+      pan: { x: 0, y: 0 },
+      zoom: 3.28,
+    });
+  });
+
+  it("allows contained navigation to fit below the manual minimum zoom", () => {
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        frame: {
+          width: 1000,
+          height: 600,
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      tools: [selectTool],
+      navigationMode: "contained",
+    });
+
+    store.getState().actions.setCanvasRect({ width: 1000, height: 600 });
+    store.getState().actions.setViewport({
+      pan: { x: 0, y: 0 },
+      zoom: 1,
+    });
+    store.getState().actions.setCanvasRect({ width: 420, height: 280 });
+
+    expect(store.getState().ui.viewport).toEqual({
+      pan: { x: 0, y: 0 },
+      zoom: 0.42,
+    });
+  });
+
+  it("preserves contained navigation zoom ratio when resizing the canvas", () => {
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        frame: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      tools: [selectTool],
+      navigationMode: "contained",
+    });
+
+    store.getState().actions.setCanvasRect({ width: 228, height: 128 });
+    store.getState().actions.setViewport({
+      pan: { x: 40, y: -20 },
+      zoom: 4.56,
+    });
+
+    store.getState().actions.setCanvasRect({ width: 328, height: 228 });
+
+    expect(store.getState().ui.viewport.zoom).toBeCloseTo(6.56);
+    expect(store.getState().ui.viewport.pan.x).toBeCloseTo(57.54385964912281);
+    expect(store.getState().ui.viewport.pan.y).toBeCloseTo(-28.771929824561404);
+  });
+
   it("uses viewport frame padding when constraining navigation", () => {
     const store = createBoardEditorStore({
       initialBoard: {

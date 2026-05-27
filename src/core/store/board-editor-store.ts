@@ -11,6 +11,7 @@ import type { BoardEditorState } from "../editor/types";
 import {
   constrainViewportToFrame,
   DEFAULT_FIT_PADDING,
+  getContainedViewportForCanvasResize,
 } from "../editor/viewport-utils";
 import { moveObjectIdsToLayerBoundary } from "../board/object-order";
 import { moveBoardObject } from "../objects/object-behaviors";
@@ -366,28 +367,31 @@ export function createEditorStore({
       },
       setCanvasRect: (rect) => {
         set((state) => {
+          const previousCanvasRect = state.ui.canvasRect;
+
           if (
-            state.ui.canvasRect?.width === rect.width &&
-            state.ui.canvasRect?.height === rect.height
+            previousCanvasRect?.width === rect.width &&
+            previousCanvasRect?.height === rect.height
           ) {
             return state;
           }
 
+          const nextViewport =
+            state.ui.navigationMode === "contained" && previousCanvasRect
+              ? getContainedViewportForCanvasResize({
+                  frame: state.board.frame,
+                  previousCanvasRect,
+                  nextCanvasRect: rect,
+                  viewport: state.ui.viewport,
+                  fitPadding: state.ui.fitPadding,
+                })
+              : constrainViewport(
+                  { ...state, ui: { ...state.ui, canvasRect: rect } },
+                  state.ui.viewport,
+                );
+
           return {
-            ui: {
-              ...state.ui,
-              canvasRect: rect,
-              viewport: constrainViewport(
-                {
-                  ...state,
-                  ui: {
-                    ...state.ui,
-                    canvasRect: rect,
-                  },
-                },
-                state.ui.viewport,
-              ),
-            },
+            ui: { ...state.ui, canvasRect: rect, viewport: nextViewport },
           };
         });
       },
