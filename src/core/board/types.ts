@@ -58,9 +58,12 @@ export interface DocumentBackgroundConfig {
   fill?: string;
 }
 
+export type BoardFrameOrientation = 0 | 90 | 180 | 270;
+
 export interface BoardFrameDefault extends DocumentBackgroundConfig {
   background?: string;
   markings?: BoardFrameMarking[];
+  orientation?: BoardFrameOrientation;
   markup?: Record<string, unknown>;
 }
 

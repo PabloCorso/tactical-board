@@ -115,6 +115,7 @@ describe("football board frames", () => {
     expect(fullPitch.markup?.variant).toBe("full-pitch");
     expect(halfPitch.markup?.variant).toBe("half-pitch");
     expect(reducedSpace.markup?.variant).toBe("reduced-space");
+    expect(fullPitch).not.toHaveProperty("orientation");
 
     expect(fullPitch.width).toBeGreaterThan(halfPitch.width);
     expect(halfPitch.width).toBeGreaterThan(halfPitch.height);
@@ -171,6 +172,27 @@ describe("football board frames", () => {
 
     expect(reducedSpace.markings).toEqual([]);
     expect(reducedSpace.background).toBe(FOOTBALL_PITCH_COLORS.outer);
+  });
+
+  it("can create an oriented full pitch without changing default pitch options", () => {
+    const horizontalPitch = createFootballPitch("full-pitch");
+    const verticalPitch = createFootballPitch({
+      variant: "full-pitch",
+      orientation: 90,
+    });
+    const halfPitch = createFootballPitch({
+      variant: "half-pitch",
+      orientation: 90,
+    });
+
+    expect(verticalPitch.orientation).toBe(90);
+    expect(verticalPitch.width).toBe(horizontalPitch.height);
+    expect(verticalPitch.height).toBe(horizontalPitch.width);
+    expect(verticalPitch.markup?.variant).toBe("full-pitch");
+    expect(verticalPitch.markings?.length).toBe(
+      horizontalPitch.markings?.length,
+    );
+    expect(halfPitch).not.toHaveProperty("orientation");
   });
 
   it("draws full-pitch goals as three-line frames centered on each goal line", () => {

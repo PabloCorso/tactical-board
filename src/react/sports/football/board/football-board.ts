@@ -4,6 +4,7 @@ import type {
   BoardMetadata,
   BoardFrameConfig,
   BoardFrameMarking,
+  BoardFrameOrientation,
   BoardStyleRef,
   ObjectIndex,
 } from "../../../../core/board/types";
@@ -44,6 +45,11 @@ const STRIPE_COUNT = 19;
 
 type FootballPitchMarkingOptions = {
   variant?: Extract<FootballPitchVariant, "full-pitch" | "half-pitch">;
+};
+
+export type CreateFootballPitchOptions = {
+  orientation?: BoardFrameOrientation;
+  variant?: FootballPitchVariant;
 };
 
 function scaleFootballMarkings(markings: BoardFrameMarking[]) {
@@ -99,29 +105,91 @@ function scaleFootballMarkings(markings: BoardFrameMarking[]) {
   });
 }
 
-function rotateFootballMarkingsMinus90(
+function rotateFootballMarkings(
   markings: BoardFrameMarking[],
-  frameWidth: number,
+  frameSize: { height: number; width: number },
+  orientation: BoardFrameOrientation,
 ): BoardFrameMarking[] {
+  if (orientation === 0) {
+    return markings;
+  }
+
   const rotatePoint = ({ x, y }: { x: number; y: number }) => ({
-    x: y,
-    y: frameWidth - x,
+    x:
+      orientation === 90
+        ? y
+        : orientation === 180
+          ? frameSize.width - x
+          : frameSize.height - y,
+    y:
+      orientation === 90
+        ? frameSize.width - x
+        : orientation === 180
+          ? frameSize.height - y
+          : x,
   });
 
   return markings.map((marking) => {
     switch (marking.kind) {
       case "rect": {
-        const topLeft = rotatePoint({
-          x: marking.x + marking.width,
-          y: marking.y,
-        });
+        if (orientation === 90) {
+          const topLeft = rotatePoint({
+            x: marking.x + marking.width,
+            y: marking.y,
+          });
+
+          return {
+            ...marking,
+            x: topLeft.x,
+            y: topLeft.y,
+            width: marking.height,
+            height: marking.width,
+          };
+        }
+
+        if (orientation === 180) {
+          return {
+            ...marking,
+            x: frameSize.width - marking.x - marking.width,
+            y: frameSize.height - marking.y - marking.height,
+          };
+        }
+
+        if (orientation === 270) {
+          const topLeft = rotatePoint({
+            x: marking.x,
+            y: marking.y + marking.height,
+          });
+
+          return {
+            ...marking,
+            x: topLeft.x,
+            y: topLeft.y,
+            width: marking.height,
+            height: marking.width,
+          };
+        }
+
+        const corners = [
+          rotatePoint({ x: marking.x, y: marking.y }),
+          rotatePoint({ x: marking.x + marking.width, y: marking.y }),
+          rotatePoint({ x: marking.x, y: marking.y + marking.height }),
+          rotatePoint({
+            x: marking.x + marking.width,
+            y: marking.y + marking.height,
+          }),
+        ];
+        const xs = corners.map((corner) => corner.x);
+        const ys = corners.map((corner) => corner.y);
+        const x = Math.min(...xs);
+        const y = Math.min(...ys);
 
         return {
           ...marking,
-          x: topLeft.x,
-          y: topLeft.y,
-          width: marking.height,
-          height: marking.width,
+          x,
+          y,
+          width: Math.max(...xs) - x,
+          height: Math.max(...ys) - y,
         };
       }
       case "line": {
@@ -152,8 +220,8 @@ function rotateFootballMarkingsMinus90(
           ...marking,
           cx: center.x,
           cy: center.y,
-          startAngle: marking.startAngle - 90,
-          endAngle: marking.endAngle - 90,
+          startAngle: marking.startAngle - orientation,
+          endAngle: marking.endAngle - orientation,
         };
       }
     }
@@ -565,7 +633,11 @@ function createFootballHalfPitchMarkings(): BoardFrameMarking[] {
   ];
 
   return scaleFootballMarkings(
-    rotateFootballMarkingsMinus90(markings, halfPitchFrameHeight),
+    rotateFootballMarkings(
+      markings,
+      { width: halfPitchFrameHeight, height: halfPitchFrameWidth },
+      90,
+    ),
   );
 }
 
@@ -583,9 +655,14 @@ const pitchFrameHeight =
   FOOTBALL_FULL_PITCH_METRICS.perimeter.goalLine * 2;
 
 export function createFootballPitch(
-  variant: FootballPitchVariant = "full-pitch",
+  options: FootballPitchVariant | CreateFootballPitchOptions = "full-pitch",
 ): BoardFrameConfig {
-  if (variant === "reduced-space") {
+  const variant = typeof options === "string" ? options : options.variant;
+  const orientation =
+    typeof options === "string" ? undefined : options.orientation;
+  const resolvedVariant = variant ?? "full-pitch";
+
+  if (resolvedVariant === "reduced-space") {
     return {
       width: metersToPixels(halfPitchFrameWidth),
       height: metersToPixels(halfPitchFrameHeight),
@@ -593,25 +670,43 @@ export function createFootballPitch(
       markings: [],
       markup: {
         sport: "football",
-        variant,
+        variant: resolvedVariant,
       },
     };
   }
 
-  const isHalfPitch = variant === "half-pitch";
+  const isHalfPitch = resolvedVariant === "half-pitch";
+  const width = isHalfPitch ? halfPitchFrameWidth : fullPitchFrameWidth;
+  const height = isHalfPitch ? halfPitchFrameHeight : pitchFrameHeight;
+  const appliedOrientation = isHalfPitch ? undefined : orientation;
+  const shouldOrient =
+    appliedOrientation !== undefined && appliedOrientation !== 0;
+  const markings = createFootballPitchMarkings({ variant: resolvedVariant });
 
   return {
     width: metersToPixels(
-      isHalfPitch ? halfPitchFrameWidth : fullPitchFrameWidth,
+      shouldOrient && appliedOrientation !== 180 ? height : width,
     ),
     height: metersToPixels(
-      isHalfPitch ? halfPitchFrameHeight : pitchFrameHeight,
+      shouldOrient && appliedOrientation !== 180 ? width : height,
     ),
     background: FOOTBALL_PITCH_COLORS.outer,
-    markings: createFootballPitchMarkings({ variant }),
+    markings: shouldOrient
+      ? rotateFootballMarkings(
+          markings,
+          {
+            width: metersToPixels(width),
+            height: metersToPixels(height),
+          },
+          appliedOrientation,
+        )
+      : markings,
+    ...(appliedOrientation === undefined
+      ? {}
+      : { orientation: appliedOrientation }),
     markup: {
       sport: "football",
-      variant,
+      variant: resolvedVariant,
     },
   };
 }
