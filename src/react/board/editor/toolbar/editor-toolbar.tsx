@@ -42,6 +42,7 @@ const BoardEditorToolbarContext = createContext<BoardEditorToolbarContextValue>(
 
 export type BoardEditorToolbarProps = PropsWithChildren & {
   className?: string;
+  contentClassName?: string;
   density?: "default" | "compact";
   orientation?: BoardEditorToolbarOrientation;
   tooltipSide?: TooltipContentProps["side"];
@@ -100,6 +101,7 @@ function getViewportInsetsForToolbar({
 export function BoardEditorToolbar({
   children,
   className,
+  contentClassName,
   density = "default",
   orientation = "horizontal",
   tooltipSide = "top",
@@ -121,6 +123,7 @@ export function BoardEditorToolbar({
             density === "compact" ? "p-0.5" : "p-1",
             "max-h-[calc(100dvh-1.5rem)] max-w-[calc(100dvw-1.5rem)]",
             orientation === "vertical" && "flex-col",
+            contentClassName,
           )}
         >
           {children}

@@ -79,7 +79,10 @@ export function BoardEditorCanvasToolbar({
         className,
       )}
     >
-      <BoardEditorToolbar className="pointer-events-auto gap-0 rounded-full p-0">
+      <BoardEditorToolbar
+        className="pointer-events-auto gap-0 rounded-full p-0"
+        contentClassName="gap-0 p-0"
+      >
         <BoardEditorCanvasToolbarButton
           aria-label="Undo"
           className="rounded-none rounded-l-full"
@@ -113,7 +116,10 @@ export function BoardEditorCanvasToolbar({
           tooltip="Redo"
         />
       </BoardEditorToolbar>
-      <BoardEditorToolbar className="pointer-events-auto gap-0 rounded-full p-0">
+      <BoardEditorToolbar
+        className="pointer-events-auto gap-0 rounded-full p-0"
+        contentClassName="gap-0 p-0"
+      >
         <BoardEditorCanvasToolbarButton
           aria-label="Zoom out"
           className="rounded-none rounded-l-full"
@@ -141,7 +147,10 @@ export function BoardEditorCanvasToolbar({
           tooltip="Zoom in"
         />
       </BoardEditorToolbar>
-      <BoardEditorToolbar className="pointer-events-auto gap-0 rounded-full p-0">
+      <BoardEditorToolbar
+        className="pointer-events-auto gap-0 rounded-full p-0"
+        contentClassName="gap-0 p-0"
+      >
         <BoardEditorCanvasToolbarButton
           aria-label="Fit to view"
           className="rounded-full"
@@ -183,7 +192,7 @@ function BoardEditorCanvasToolbarButton({
 }: BoardEditorCanvasToolbarButtonProps) {
   return (
     <BoardEditorToolbarButton
-      className={cn("min-w-8 px-0", className)}
+      className={cn("min-w-8 border-0 px-0", className)}
       variant="ghost"
       {...props}
     />

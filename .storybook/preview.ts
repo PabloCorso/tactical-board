@@ -1,12 +1,14 @@
+/// <reference types="vite/client" />
+
 import addonDocs from "@storybook/addon-docs";
 import addonA11y from "@storybook/addon-a11y";
 import addonThemes, { withThemeByClassName } from "@storybook/addon-themes";
-import { definePreview, type Renderer } from "@storybook/react-vite";
+import { definePreview, type ReactRenderer } from "@storybook/react-vite";
 import "../src/tailwind.css";
 
 export default definePreview({
   decorators: [
-    withThemeByClassName<Renderer>({
+    withThemeByClassName<ReactRenderer>({
       themes: {
         light: "",
         dark: "dark",
@@ -20,6 +22,12 @@ export default definePreview({
       matchers: {
         color: /(background|color)$/i,
         date: /Date$/i,
+      },
+    },
+
+    options: {
+      storySort: {
+        order: ["React", ["Board Editor", ["Football", "Basketball"]]],
       },
     },
 
