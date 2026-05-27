@@ -3,21 +3,64 @@ import type { BoardViewport } from "./types";
 import { createBoardSpaceProjection } from "../geometry/board-space-projection";
 import type { CanvasRect } from "./board-editor-controller";
 import { getFrameFitScale } from "../geometry/frame-scale";
-import {
-  clampViewportZoom,
-  MAX_VIEWPORT_ZOOM,
-  MIN_VIEWPORT_ZOOM,
-} from "./viewport-zoom";
+import type { ViewportInsets } from "../geometry/types";
+import { MAX_VIEWPORT_ZOOM, MIN_VIEWPORT_ZOOM } from "./viewport-zoom";
 
 export const DEFAULT_VIEWPORT: BoardViewport = {
   pan: { x: 0, y: 0 },
   zoom: 1,
 };
 
-export const DEFAULT_FIT_PADDING = 0;
+export const DEFAULT_VIEWPORT_INSETS: ViewportInsets = {
+  top: 0,
+  right: 0,
+  bottom: 0,
+  left: 0,
+};
 export { MAX_VIEWPORT_ZOOM, MIN_VIEWPORT_ZOOM };
 export const VIEWPORT_ZOOM_STEP_FACTOR = 1.2;
 export const VIEWPORT_WHEEL_ZOOM_SENSITIVITY = 0.0015;
+
+function getViewportInsets(
+  viewportInsets: ViewportInsets | undefined,
+  fitPadding: number | undefined,
+) {
+  if (viewportInsets) {
+    return viewportInsets;
+  }
+
+  if (fitPadding === undefined) {
+    return DEFAULT_VIEWPORT_INSETS;
+  }
+
+  return {
+    top: fitPadding,
+    right: fitPadding,
+    bottom: fitPadding,
+    left: fitPadding,
+  };
+}
+
+export function getViewportFrame({
+  canvasRect,
+  viewportInsets = DEFAULT_VIEWPORT_INSETS,
+}: {
+  canvasRect: Pick<CanvasRect, "width" | "height">;
+  viewportInsets?: ViewportInsets;
+}) {
+  return {
+    x: viewportInsets.left,
+    y: viewportInsets.top,
+    width: Math.max(
+      1,
+      canvasRect.width - viewportInsets.left - viewportInsets.right,
+    ),
+    height: Math.max(
+      1,
+      canvasRect.height - viewportInsets.top - viewportInsets.bottom,
+    ),
+  };
+}
 
 export function getViewportForZoomAtCanvasPoint({
   frame,
@@ -25,16 +68,21 @@ export function getViewportForZoomAtCanvasPoint({
   canvasRect,
   anchorCanvasPoint,
   zoom,
-  fitPadding = DEFAULT_FIT_PADDING,
+  minZoom = MIN_VIEWPORT_ZOOM,
+  viewportInsets,
+  fitPadding,
 }: {
   frame: DocumentBackgroundConfig;
   viewport: BoardViewport;
   canvasRect: Pick<CanvasRect, "width" | "height">;
   anchorCanvasPoint: Point;
   zoom: number;
+  minZoom?: number;
+  viewportInsets?: ViewportInsets;
   fitPadding?: number;
 }): BoardViewport {
-  const nextZoom = clampViewportZoom(zoom);
+  const resolvedViewportInsets = getViewportInsets(viewportInsets, fitPadding);
+  const nextZoom = Math.min(MAX_VIEWPORT_ZOOM, Math.max(minZoom, zoom));
 
   if (nextZoom === viewport.zoom) {
     return viewport;
@@ -44,7 +92,7 @@ export function getViewportForZoomAtCanvasPoint({
     frame,
     viewport,
     canvasRect,
-    fitPadding,
+    viewportInsets: resolvedViewportInsets,
   });
   const boardPoint = currentProjection.canvasToBoard(anchorCanvasPoint);
   const nextViewport = {
@@ -55,7 +103,7 @@ export function getViewportForZoomAtCanvasPoint({
     frame,
     viewport: nextViewport,
     canvasRect,
-    fitPadding,
+    viewportInsets: resolvedViewportInsets,
   });
   const nextCanvasPoint = nextProjection.boardToCanvas(boardPoint);
 
@@ -71,16 +119,18 @@ export function getViewportForZoomAtCanvasPoint({
 export function getViewportToFitFrame({
   frame,
   canvasRect,
-  fitPadding = DEFAULT_FIT_PADDING,
+  viewportInsets,
+  fitPadding,
 }: {
   frame: DocumentBackgroundConfig;
   canvasRect: Pick<CanvasRect, "width" | "height">;
+  viewportInsets?: ViewportInsets;
   fitPadding?: number;
 }): BoardViewport {
-  const viewportFrame = {
-    width: canvasRect.width - fitPadding * 2,
-    height: canvasRect.height - fitPadding * 2,
-  };
+  const viewportFrame = getViewportFrame({
+    canvasRect,
+    viewportInsets: getViewportInsets(viewportInsets, fitPadding),
+  });
 
   return {
     pan: { x: 0, y: 0 },
@@ -116,17 +166,14 @@ export function constrainViewportToFrame({
   frame,
   canvasRect,
   viewport,
-  fitPadding = DEFAULT_FIT_PADDING,
+  viewportInsets = DEFAULT_VIEWPORT_INSETS,
 }: {
   frame: DocumentBackgroundConfig;
   canvasRect: Pick<CanvasRect, "width" | "height">;
   viewport: BoardViewport;
-  fitPadding?: number;
+  viewportInsets?: ViewportInsets;
 }): BoardViewport {
-  const viewportFrame = {
-    width: Math.max(1, canvasRect.width - fitPadding * 2),
-    height: Math.max(1, canvasRect.height - fitPadding * 2),
-  };
+  const viewportFrame = getViewportFrame({ canvasRect, viewportInsets });
   const fitZoom = getFrameFitScale(frame, viewportFrame);
   const zoom = Math.max(viewport.zoom, fitZoom);
   const renderWidth = frame.width * zoom;
@@ -149,43 +196,59 @@ export function constrainViewportToFrame({
   };
 }
 
-export function getContainedViewportForCanvasResize({
+export function getViewportForCanvasResize({
   frame,
   previousCanvasRect,
   nextCanvasRect,
+  previousViewportInsets = DEFAULT_VIEWPORT_INSETS,
+  nextViewportInsets = DEFAULT_VIEWPORT_INSETS,
   viewport,
-  fitPadding = DEFAULT_FIT_PADDING,
 }: {
   frame: DocumentBackgroundConfig;
   previousCanvasRect: Pick<CanvasRect, "width" | "height">;
   nextCanvasRect: Pick<CanvasRect, "width" | "height">;
+  previousViewportInsets?: ViewportInsets;
+  nextViewportInsets?: ViewportInsets;
   viewport: BoardViewport;
-  fitPadding?: number;
 }): BoardViewport {
   const previousFitZoom = getViewportToFitFrame({
     frame,
     canvasRect: previousCanvasRect,
-    fitPadding,
+    viewportInsets: previousViewportInsets,
   }).zoom;
   const nextFitZoom = getViewportToFitFrame({
     frame,
     canvasRect: nextCanvasRect,
-    fitPadding,
+    viewportInsets: nextViewportInsets,
   }).zoom;
   const zoomRatio = previousFitZoom > 0 ? viewport.zoom / previousFitZoom : 1;
   const nextZoom = nextFitZoom * zoomRatio;
   const panScale = viewport.zoom > 0 ? nextZoom / viewport.zoom : 1;
 
+  return {
+    zoom: nextZoom,
+    pan: {
+      x: viewport.pan.x * panScale,
+      y: viewport.pan.y * panScale,
+    },
+  };
+}
+
+export function getContainedViewportForCanvasResize({
+  frame,
+  nextCanvasRect,
+  nextViewportInsets = DEFAULT_VIEWPORT_INSETS,
+  ...resizeOptions
+}: Parameters<typeof getViewportForCanvasResize>[0]): BoardViewport {
   return constrainViewportToFrame({
     frame,
     canvasRect: nextCanvasRect,
-    viewport: {
-      zoom: nextZoom,
-      pan: {
-        x: viewport.pan.x * panScale,
-        y: viewport.pan.y * panScale,
-      },
-    },
-    fitPadding,
+    viewport: getViewportForCanvasResize({
+      frame,
+      nextCanvasRect,
+      nextViewportInsets,
+      ...resizeOptions,
+    }),
+    viewportInsets: nextViewportInsets,
   });
 }

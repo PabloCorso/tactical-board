@@ -55,6 +55,7 @@ export type ButtonProps = ButtonPrimitive.Props &
     iconSize?: IconProps["size"];
     iconBeforeSize?: IconProps["size"];
     iconAfterSize?: IconProps["size"];
+    iconClassName?: string;
     ref?: Ref<HTMLButtonElement>;
   };
 
@@ -71,6 +72,7 @@ export function Button({
   iconOnly: iconOnlyProp,
   iconBeforeSize,
   iconAfterSize,
+  iconClassName: iconClassNameProp,
   ...props
 }: ButtonProps) {
   const hasSingleIcon =
@@ -79,7 +81,8 @@ export function Button({
   const isDisabled = disabled || loading;
   const iconBeforeContent = loading ? <Spinner /> : iconBefore;
   const iconAfterContent = iconOnly && loading ? undefined : iconAfter;
-  const iconClassName = iconOnly ? undefined : "text-current/80";
+  const iconClassName =
+    iconClassNameProp ?? (iconOnly ? undefined : "text-current/80");
 
   return (
     <ButtonPrimitive

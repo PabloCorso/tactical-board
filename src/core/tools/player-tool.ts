@@ -1,4 +1,4 @@
-import type { BoardEditorState } from "../editor/types";
+import type { BoardEditorState, BoardEditorToolState } from "../editor/types";
 import type { ToolApi, ToolDefinition } from "./types";
 import { BoardEditorTool } from "./tool";
 import { defineObjectDefinition } from "../objects/types";
@@ -70,8 +70,8 @@ export class PlayerTool extends BoardEditorTool implements ToolDefinition {
     this.renderer = options.renderer ?? renderPlayer;
   }
 
-  onActivate(api: ToolApi) {
-    const currentState = getPlayerToolState(api.getState().toolState);
+  getActivatedDraftStyle(toolState: BoardEditorToolState): PlayerDraftStyle {
+    const currentState = getPlayerToolState(toolState);
     const nextDraftStyle = {
       ...DEFAULT_PLAYER_TOOL_STATE.draftStyle,
       ...currentState.draftStyle,
@@ -81,9 +81,15 @@ export class PlayerTool extends BoardEditorTool implements ToolDefinition {
       Object.assign(nextDraftStyle, this.defaults[0].draftStyle);
     }
 
+    return nextDraftStyle;
+  }
+
+  onActivate(api: ToolApi) {
+    const currentState = getPlayerToolState(api.getState().toolState);
+
     api.setToolState(PLAYER_TOOL_ID, {
       ...currentState,
-      draftStyle: nextDraftStyle,
+      draftStyle: this.getActivatedDraftStyle(api.getState().toolState),
     });
   }
 

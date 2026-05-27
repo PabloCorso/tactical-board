@@ -59,7 +59,7 @@ function getBoardPoint(
     frame: state.board.frame,
     viewport: state.ui.viewport,
     canvasRect,
-    fitPadding: state.ui.fitPadding,
+    viewportInsets: state.ui.viewportInsets,
   });
 
   return projection.canvasToBoard({
@@ -77,7 +77,7 @@ function getTargetObjectId(
     frame: state.board.frame,
     viewport: state.ui.viewport,
     canvasRect,
-    fitPadding: state.ui.fitPadding,
+    viewportInsets: state.ui.viewportInsets,
   });
   const canvasPoint = {
     x: clientPoint.x - canvasRect.left,
@@ -145,7 +145,8 @@ export function createBoardEditorController(
       zoom:
         state.ui.viewport.zoom *
         Math.exp(-input.deltaY * VIEWPORT_WHEEL_ZOOM_SENSITIVITY),
-      fitPadding: state.ui.fitPadding,
+      minZoom: state.ui.navigationMode === "contained" ? 0 : undefined,
+      viewportInsets: state.ui.viewportInsets,
     });
 
     state.actions.setViewport(nextViewport);

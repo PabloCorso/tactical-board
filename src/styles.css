@@ -77,6 +77,10 @@
 
   --tb-neutral: var(--neutral, oklch(44.2% 0.017 285.786));
   --tb-text-on-neutral: var(--text-on-neutral, oklch(96.7% 0.001 286.375));
+  --tb-toolbar-icon-primary: var(
+    --toolbar-icon-primary,
+    var(--tb-text-primary)
+  );
 }
 
 .dark [data-tactical-board],
@@ -100,7 +104,7 @@
     oklch(27.4% 0.006 286.033)
   );
 
-  --tb-text-primary: var(--text-primary, oklch(96.7% 0.001 286.375));
+  --tb-text-primary: var(--text-primary, #ffffff);
   --tb-text-secondary: var(--text-secondary, oklch(70.5% 0.015 286.067));
   --tb-text-tertiary: var(--text-tertiary, oklch(55.2% 0.016 285.938));
 
@@ -127,8 +131,9 @@
     oklch(88.5% 0.062 18.334)
   );
 
-  --tb-neutral: var(--neutral, oklch(96.7% 0.001 286.375));
+  --tb-neutral: var(--neutral, #ffffff);
   --tb-text-on-neutral: var(--text-on-neutral, oklch(14.1% 0.005 285.823));
+  --tb-toolbar-icon-primary: var(--toolbar-icon-primary, #ffffff);
 }
 
 @utility focus-ring {

@@ -12,6 +12,7 @@ import { BoardEditorSelectionToolbarPositioner } from "./selection-toolbar-posit
 import { BoardEditorSelectionActionsMenu } from "./selection-actions-menu";
 import type { BoardEditorSelectionToolbarRendererProps } from "./selection-toolbar-types";
 import { ColorPicker, DEFAULT_BOARD_COLORS } from "../../../ui/color-picker";
+import { Input } from "../../../ui/inputs";
 
 export function BoardEditorTextSelectionToolbar({
   className,
@@ -46,28 +47,26 @@ export function BoardEditorTextSelectionToolbar({
       viewportHeight={viewportHeight}
     >
       <BoardEditorToolbar className={className}>
-        <label className="focus-within:focus-ring border-tb-border-default bg-tb-background-screen flex h-10 items-center rounded-lg border px-2">
-          <span className="sr-only">Text size</span>
-          <input
-            aria-label="Text size"
-            className="text-tb-text-primary w-14 bg-transparent text-center text-sm font-medium outline-none"
-            min={12}
-            max={144}
-            onBlur={() => setFontSizeAnchor(null)}
-            onChange={(event) =>
-              updateText({ fontSize: Number(event.target.value) || 12 })
-            }
-            onFocus={() =>
-              setFontSizeAnchor({
-                left: toolbarLeft,
-                top: toolbarTop,
-                bottom: toolbarBottom,
-              })
-            }
-            type="number"
-            value={selectedObject.props.fontSize}
-          />
-        </label>
+        <Input
+          aria-label="Text size"
+          className="border-tb-border-default bg-tb-background-screen text-tb-text-primary h-10 w-12 px-2 text-center text-sm font-medium md:text-sm"
+          min={12}
+          max={144}
+          onBlur={() => setFontSizeAnchor(null)}
+          onChange={(event) =>
+            updateText({ fontSize: Number(event.target.value) || 12 })
+          }
+          onFocus={() =>
+            setFontSizeAnchor({
+              left: toolbarLeft,
+              top: toolbarTop,
+              bottom: toolbarBottom,
+            })
+          }
+          type="number"
+          value={selectedObject.props.fontSize}
+          wrapperProps={{ className: "w-auto" }}
+        />
 
         <BoardEditorToolbarPopoverButton
           ariaLabel="Text color"
@@ -81,7 +80,7 @@ export function BoardEditorTextSelectionToolbar({
           }
           icon={
             <span
-              className="border-tb-border-default inline-flex h-5 w-5 rounded-full border"
+              className="border-tb-border-default inline-flex h-6 w-6 rounded-full border"
               style={{ backgroundColor: selectedObject.props.color }}
             >
               <span className="sr-only">{selectedObject.props.color}</span>

@@ -3,4 +3,13 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@theme {
+  --font-sans: InterVariable, sans-serif;
+  --font-sans--font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+body {
+  @apply font-sans;
+}
+
 @import "./styles.css";

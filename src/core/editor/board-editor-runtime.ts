@@ -77,7 +77,7 @@ export function createBoardEditorRuntime({
       board: state.board,
       viewport: state.ui.viewport,
       extendBackground,
-      fitPadding: state.ui.fitPadding,
+      viewportInsets: state.ui.viewportInsets,
       requestRender,
       previewObjects: state.rendering.previewObjects,
       overlayItems,
@@ -113,7 +113,7 @@ export function createBoardEditorRuntime({
       getViewportToFitFrame({
         frame: state.board.frame,
         canvasRect,
-        fitPadding: state.ui.fitPadding,
+        viewportInsets: state.ui.viewportInsets,
       }),
     );
     hasAppliedInitialViewportFit = true;

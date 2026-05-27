@@ -9,6 +9,8 @@ import {
   BoardSecondaryToolbar,
   BoardEditorSelectionToolbar,
   BoardEditorShapePolygonDone,
+  BoardEditorToolbar,
+  BoardEditorToolbarButton,
   BoardEditorToolbarDock,
   BasketballBoardEditor,
   BasketballBoardViewerCanvas,
@@ -31,9 +33,32 @@ import { SHAPE_OBJECT_TYPE } from "../core/objects/shape-object";
 import { TEXT_OBJECT_TYPE } from "../core/objects/text-object";
 
 describe("React public frame", () => {
+  it("keeps focus-ring padding inside scrollable toolbar content", () => {
+    const toolbarMarkup = renderToString(
+      createElement(
+        BoardEditorToolbar,
+        { density: "compact" },
+        createElement(BoardEditorToolbarButton, {
+          "aria-label": "Select",
+          tooltip: "Select",
+        }),
+      ),
+    );
+
+    expect(toolbarMarkup).toContain("overflow-auto");
+    expect(toolbarMarkup).toContain("p-0.5");
+  });
+
   it("exports the simple and composable football modules", () => {
     const board = createFootballBoard({ id: "public-frame-board" });
     const store = createFootballBoardEditorStore(board);
+
+    expect(store.getState().ui.navigationMode).toBe("free");
+    expect(
+      createFootballBoardEditorStore(board, {
+        navigationMode: "contained",
+      }).getState().ui.navigationMode,
+    ).toBe("contained");
 
     expect(() =>
       renderToString(createElement(FootballBoardEditor)),
@@ -70,6 +95,13 @@ describe("React public frame", () => {
   it("exports the simple and composable basketball modules", () => {
     const board = createBasketballBoard({ id: "public-basketball-board" });
     const store = createBasketballBoardEditorStore(board);
+
+    expect(store.getState().ui.navigationMode).toBe("free");
+    expect(
+      createBasketballBoardEditorStore(board, {
+        navigationMode: "contained",
+      }).getState().ui.navigationMode,
+    ).toBe("contained");
 
     expect(() =>
       renderToString(createElement(BasketballBoardEditor)),

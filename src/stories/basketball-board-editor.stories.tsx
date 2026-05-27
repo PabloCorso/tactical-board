@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { BasketballBoardEditor, createBasketballBoard } from "../react";
+import { BasketballBoardEditor } from "../react";
 
 const meta = {
   title: "React/Board Editor/Basketball",
@@ -20,10 +20,3 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const EmptyBoard: Story = {};
-
-export const ContainedNavigationWithPadding: Story = {
-  args: {
-    initialBoard: createBasketballBoard(),
-    fitPadding: 24,
-  },
-};

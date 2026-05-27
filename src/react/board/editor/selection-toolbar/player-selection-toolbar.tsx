@@ -13,6 +13,7 @@ import { BoardEditorSelectionToolbarPositioner } from "./selection-toolbar-posit
 import { BoardEditorSelectionActionsMenu } from "./selection-actions-menu";
 import type { BoardEditorSelectionToolbarRendererProps } from "./selection-toolbar-types";
 import { ColorPicker, DEFAULT_BOARD_COLORS } from "../../../ui/color-picker";
+import { Input } from "../../../ui/inputs";
 
 export function BoardEditorPlayerSelectionToolbar({
   className,
@@ -41,15 +42,13 @@ export function BoardEditorPlayerSelectionToolbar({
       viewportHeight={viewportHeight}
     >
       <BoardEditorToolbar className={className}>
-        <label className="focus-within:focus-ring border-tb-border-default bg-tb-background-screen flex h-10 items-center rounded-lg border px-2">
-          <span className="sr-only">Player label</span>
-          <input
-            aria-label="Player label"
-            className="text-tb-text-primary w-14 bg-transparent text-center text-sm font-medium outline-none"
-            onChange={(event) => updatePlayer({ label: event.target.value })}
-            value={selectedObject.props.label ?? ""}
-          />
-        </label>
+        <Input
+          aria-label="Player label"
+          className="border-tb-border-default bg-tb-background-screen text-tb-text-primary h-10 w-12 px-2 text-center text-sm font-medium md:text-sm"
+          onChange={(event) => updatePlayer({ label: event.target.value })}
+          value={selectedObject.props.label ?? ""}
+          wrapperProps={{ className: "w-auto" }}
+        />
 
         <BoardEditorToolbarPopoverButton
           ariaLabel="Player color"
@@ -63,7 +62,7 @@ export function BoardEditorPlayerSelectionToolbar({
           }
           icon={
             <span
-              className="border-tb-border-default inline-flex h-5 w-5 rounded-full border"
+              className="border-tb-border-default inline-flex h-6 w-6 rounded-full border"
               style={{ backgroundColor: selectedObject.props.color }}
             >
               <span className="sr-only">{selectedObject.props.color}</span>

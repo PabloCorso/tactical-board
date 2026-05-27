@@ -104,6 +104,10 @@ export type BoardSecondaryToolbarProps = Omit<
   adapters?: BoardThemeAdapters;
 };
 
+const SECONDARY_TOOLBAR_BUTTON_SIZE = "md";
+const SECONDARY_TOOLBAR_ICON_SIZE = "xl";
+const SECONDARY_TOOLBAR_ICON_BUTTON_CLASS_NAME = "aspect-square px-0";
+
 export function BoardSecondaryToolbar({
   arrowDefaults = BOARD_ARROW_DEFAULTS,
   orientation = "vertical",
@@ -135,7 +139,11 @@ export function BoardSecondaryToolbar({
     const playerState = getPlayerToolState(state.toolState);
 
     return (
-      <BoardEditorToolbar {...toolbarProps} orientation={orientation}>
+      <BoardEditorToolbar
+        {...toolbarProps}
+        orientation={orientation}
+        tooltipSide="right"
+      >
         {playerDefaults.map((toolDefault) => {
           const color = toolDefault.draftStyle.color;
           const label =
@@ -154,14 +162,14 @@ export function BoardSecondaryToolbar({
                 playerState.draftStyle,
                 toolDefault.draftStyle,
               )}
-              className="aspect-square rounded-full px-0"
+              className={SECONDARY_TOOLBAR_ICON_BUTTON_CLASS_NAME}
               iconBefore={
                 <BoardPlayerDefaultIcon
                   draftStyle={draftStyle}
                   label={label}
-                  className="h-7 w-7"
-                  width={28}
-                  height={28}
+                  className="h-6 w-6"
+                  width={24}
+                  height={24}
                 />
               }
               key={toolDefault.id}
@@ -177,6 +185,8 @@ export function BoardSecondaryToolbar({
                   },
                 });
               }}
+              iconSize={SECONDARY_TOOLBAR_ICON_SIZE}
+              size={SECONDARY_TOOLBAR_BUTTON_SIZE}
               tooltip={toolDefault.tooltip ?? toolDefault.label}
             />
           );
@@ -193,17 +203,21 @@ export function BoardSecondaryToolbar({
     const equipmentState = getEquipmentToolState(state.toolState);
 
     return (
-      <BoardEditorToolbar {...toolbarProps} orientation={orientation}>
+      <BoardEditorToolbar
+        {...toolbarProps}
+        orientation={orientation}
+        tooltipSide="right"
+      >
         {equipmentDefinitions.map((definition) => (
           <BoardEditorToolbarButton
             aria-label={definition.label}
             active={equipmentState.draftStyle.kind === definition.kind}
-            className="w-full justify-start"
+            className={SECONDARY_TOOLBAR_ICON_BUTTON_CLASS_NAME}
             iconBefore={
               <BoardEquipmentDefinitionIcon
                 definition={definition}
                 renderer={equipmentRenderer}
-                size={20}
+                size={24}
               />
             }
             key={definition.kind}
@@ -219,10 +233,10 @@ export function BoardSecondaryToolbar({
                 },
               });
             }}
+            iconSize={SECONDARY_TOOLBAR_ICON_SIZE}
+            size={SECONDARY_TOOLBAR_BUTTON_SIZE}
             tooltip={definition.label}
-          >
-            {definition.label}
-          </BoardEditorToolbarButton>
+          />
         ))}
       </BoardEditorToolbar>
     );
@@ -232,7 +246,11 @@ export function BoardSecondaryToolbar({
     const arrowState = getArrowToolState(state.toolState);
 
     return (
-      <BoardEditorToolbar {...toolbarProps} orientation={orientation}>
+      <BoardEditorToolbar
+        {...toolbarProps}
+        orientation={orientation}
+        tooltipSide="right"
+      >
         {arrowDefaults.map((toolDefault) => {
           const draftStyle = {
             ...arrowState.draftStyle,
@@ -246,8 +264,15 @@ export function BoardSecondaryToolbar({
                 arrowState.draftStyle,
                 toolDefault.draftStyle,
               )}
-              className="w-full justify-start"
-              iconBefore={<BoardArrowDefaultIcon draftStyle={draftStyle} />}
+              className={SECONDARY_TOOLBAR_ICON_BUTTON_CLASS_NAME}
+              iconBefore={
+                <BoardArrowDefaultIcon
+                  draftStyle={draftStyle}
+                  className="h-6 w-6 overflow-visible"
+                  width={24}
+                  height={24}
+                />
+              }
               key={toolDefault.id}
               onClick={() => {
                 const currentState = getArrowToolState(
@@ -261,10 +286,10 @@ export function BoardSecondaryToolbar({
                   },
                 });
               }}
+              iconSize={SECONDARY_TOOLBAR_ICON_SIZE}
+              size={SECONDARY_TOOLBAR_BUTTON_SIZE}
               tooltip={toolDefault.tooltip ?? toolDefault.label}
-            >
-              {toolDefault.label}
-            </BoardEditorToolbarButton>
+            />
           );
         })}
       </BoardEditorToolbar>
@@ -275,7 +300,11 @@ export function BoardSecondaryToolbar({
     const shapeState = getShapeToolState(state.toolState);
 
     return (
-      <BoardEditorToolbar {...toolbarProps} orientation={orientation}>
+      <BoardEditorToolbar
+        {...toolbarProps}
+        orientation={orientation}
+        tooltipSide="right"
+      >
         {shapeDefaults.map((toolDefault) => {
           const draftStyle = {
             ...shapeState.draftStyle,
@@ -289,8 +318,15 @@ export function BoardSecondaryToolbar({
                 shapeState.draftStyle,
                 toolDefault.draftStyle,
               )}
-              className="w-full justify-start"
-              iconBefore={<BoardShapeDefaultIcon draftStyle={draftStyle} />}
+              className={SECONDARY_TOOLBAR_ICON_BUTTON_CLASS_NAME}
+              iconBefore={
+                <BoardShapeDefaultIcon
+                  draftStyle={draftStyle}
+                  className="h-6 w-6"
+                  width={24}
+                  height={24}
+                />
+              }
               key={toolDefault.id}
               onClick={() => {
                 const currentState = getShapeToolState(
@@ -304,10 +340,10 @@ export function BoardSecondaryToolbar({
                   },
                 });
               }}
+              iconSize={SECONDARY_TOOLBAR_ICON_SIZE}
+              size={SECONDARY_TOOLBAR_BUTTON_SIZE}
               tooltip={toolDefault.tooltip ?? toolDefault.label}
-            >
-              {toolDefault.label}
-            </BoardEditorToolbarButton>
+            />
           );
         })}
       </BoardEditorToolbar>

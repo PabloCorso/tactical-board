@@ -35,7 +35,7 @@ const state: Pick<BoardEditorState, "board" | "ui"> = {
       pan: { x: 0, y: 0 },
       zoom: 1,
     },
-    fitPadding: 0,
+    viewportInsets: { top: 0, right: 0, bottom: 0, left: 0 },
     navigationMode: "free",
   },
 };

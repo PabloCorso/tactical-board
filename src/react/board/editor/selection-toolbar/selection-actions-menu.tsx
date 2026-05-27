@@ -51,7 +51,6 @@ export function BoardEditorSelectionActionsMenu({
         {(triggerProps) => (
           <BoardEditorToolbarButton
             aria-label="More actions"
-            iconSize="xl"
             iconBefore={<DotsThreeVerticalIcon weight="bold" />}
             tooltip="More actions"
             {...triggerProps}

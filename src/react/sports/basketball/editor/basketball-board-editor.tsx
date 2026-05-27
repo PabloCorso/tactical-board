@@ -28,26 +28,20 @@ export type BasketballBoardEditorProps = {
   extendBackground?: boolean;
   initialBoard?: Board;
   store?: BoardEditorStore;
-  fitPadding?: number;
   navigationMode?: BoardEditorState["ui"]["navigationMode"];
 };
 
 export type CreateBasketballBoardEditorStoreOptions = {
-  fitPadding?: number;
   navigationMode?: BoardEditorState["ui"]["navigationMode"];
 };
 
 export function createBasketballBoardEditorStore(
   initialBoard: Board = createBasketballBoard(),
-  {
-    fitPadding,
-    navigationMode = "contained",
-  }: CreateBasketballBoardEditorStoreOptions = {},
+  { navigationMode }: CreateBasketballBoardEditorStoreOptions = {},
 ) {
   return createBoardEditorStore({
     initialBoard,
     initialToolId: SELECT_TOOL_ID,
-    fitPadding,
     navigationMode,
     tools: createBasketballTools(),
   });
@@ -59,7 +53,6 @@ export function BasketballBoardEditor({
   extendBackground,
   initialBoard,
   store: providedStore,
-  fitPadding,
   navigationMode,
 }: BasketballBoardEditorProps = {}) {
   const store = useMemo(
@@ -68,11 +61,10 @@ export function BasketballBoardEditor({
       createBasketballBoardEditorStore(
         initialBoard ?? createBasketballBoard(),
         {
-          fitPadding,
           navigationMode,
         },
       ),
-    [initialBoard, providedStore, fitPadding, navigationMode],
+    [initialBoard, providedStore, navigationMode],
   );
 
   return (
@@ -87,7 +79,10 @@ export function BasketballBoardEditor({
         <BoardEditorShapePolygonDone />
         <BoardEditorCanvasToolbar />
         <BoardEditorSelectionToolbar />
-        <BoardEditorToolbarDock>
+        <BoardEditorToolbarDock
+          reserveViewportInsets
+          viewportInsetExtraSize={58}
+        >
           <BasketballPrimaryToolbar />
           <BoardSecondaryToolbar />
         </BoardEditorToolbarDock>

@@ -13,6 +13,7 @@ import {
 import { renderArrow } from "../../../core/tools/arrow-tool";
 
 type ArrowIconLayout = "wide" | "compact";
+const COMPACT_WAVY_ICON_STYLE_SCALE = 0.58;
 
 export type BoardEditorArrowIconStyle = {
   kind: ArrowKind;
@@ -47,6 +48,7 @@ export function BoardEditorArrowIcon({
     }
 
     let frameId = 0;
+    let settleFrameId = 0;
 
     const draw = () => {
       const context = canvas.getContext("2d");
@@ -66,7 +68,7 @@ export function BoardEditorArrowIcon({
       const resolvedColor =
         draftStyle.color && draftStyle.color !== "currentColor"
           ? draftStyle.color
-          : window.getComputedStyle(canvas).color;
+          : getCanvasToolbarIconColor(canvas);
       const arrow = createArrowIconPreviewObject(
         draftStyle,
         layout,
@@ -89,16 +91,48 @@ export function BoardEditorArrowIcon({
             draw();
           });
         },
-        frameTransform: createArrowIconProjection(width, height),
+        frameTransform: createArrowIconProjection(
+          width,
+          height,
+          getArrowIconStyleScale(draftStyle, layout),
+        ),
       });
     };
 
     draw();
+    settleFrameId = window.requestAnimationFrame(draw);
+    const themeObserver =
+      typeof MutationObserver === "undefined"
+        ? undefined
+        : new MutationObserver(draw);
+    const tacticalBoardRoot = canvas.closest("[data-tactical-board]");
+
+    if (themeObserver) {
+      themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ["class", "style"],
+      });
+      themeObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ["class", "style"],
+      });
+
+      if (tacticalBoardRoot) {
+        themeObserver.observe(tacticalBoardRoot, {
+          attributes: true,
+          attributeFilter: ["class", "style"],
+        });
+      }
+    }
 
     return () => {
       if (frameId !== 0) {
         window.cancelAnimationFrame(frameId);
       }
+      if (settleFrameId !== 0) {
+        window.cancelAnimationFrame(settleFrameId);
+      }
+      themeObserver?.disconnect();
     };
   }, [draftStyle, height, layout, width]);
 
@@ -107,9 +141,22 @@ export function BoardEditorArrowIcon({
       aria-hidden="true"
       className={className}
       ref={canvasRef}
-      style={{ width, height }}
+      style={{ width, height, color: "var(--tb-toolbar-icon-primary)" }}
     />
   );
+}
+
+function getCanvasToolbarIconColor(canvas: HTMLCanvasElement) {
+  return window.getComputedStyle(canvas).color;
+}
+
+function getArrowIconStyleScale(
+  draftStyle: BoardEditorArrowIconStyle,
+  layout: ArrowIconLayout,
+) {
+  return layout === "compact" && draftStyle.kind === "wavy"
+    ? COMPACT_WAVY_ICON_STYLE_SCALE
+    : 1;
 }
 
 function createArrowIconPreviewObject(
@@ -163,6 +210,7 @@ function getSimplePreviewGeometry(
 function createArrowIconProjection(
   width: number,
   height: number,
+  styleScale: number,
 ): BoardSpaceProjection {
   const boardToCanvas = (point: Point) => ({
     x: point.x,
@@ -171,7 +219,7 @@ function createArrowIconProjection(
 
   return {
     frame: { x: 0, y: 0, width, height },
-    zoom: 1,
+    zoom: styleScale,
     scale: 1,
     boardToCanvas,
     canvasToBoard: (point) => ({

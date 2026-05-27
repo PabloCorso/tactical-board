@@ -38,12 +38,16 @@ export function FootballSecondaryToolbar({
     const variant = getFootballPitchVariant(state.board.frame.markup?.variant);
 
     return (
-      <BoardEditorToolbar {...toolbarProps} orientation={orientation}>
+      <BoardEditorToolbar
+        {...toolbarProps}
+        orientation={orientation}
+        tooltipSide="right"
+      >
         {FOOTBALL_PITCH_OPTIONS.map((option) => (
           <BoardEditorToolbarButton
             active={variant === option.value}
             aria-label={option.label}
-            className="h-auto w-auto p-1.5"
+            className="h-auto w-auto p-1"
             key={option.value}
             onClick={() => {
               const frame = createFootballPitch(option.value);
@@ -54,17 +58,19 @@ export function FootballSecondaryToolbar({
                   getViewportToFitFrame({
                     frame,
                     canvasRect: state.ui.canvasRect,
+                    viewportInsets: state.ui.viewportInsets,
                   }),
                 );
               }
             }}
+            size="md"
             tooltip={option.label}
           >
             <FootballPitchPreview
               className="rounded-md"
               variant={option.value}
-              width={104}
-              height={64}
+              width={78}
+              height={48}
             />
           </BoardEditorToolbarButton>
         ))}

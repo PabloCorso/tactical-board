@@ -23,6 +23,7 @@ import type {
   ShapeDefinition,
   ShapeRegistry,
 } from "../objects/types";
+import type { ViewportInsets } from "../geometry/types";
 
 export interface BoardViewport {
   pan: Point;
@@ -40,7 +41,7 @@ export interface BoardEditorUiState {
     height: number;
   };
   viewport: BoardViewport;
-  fitPadding: number;
+  viewportInsets: ViewportInsets;
   navigationMode: BoardEditorNavigationMode;
 }
 
@@ -70,6 +71,7 @@ export interface BoardEditorSelectionState {
 export interface BoardEditorActions {
   setActiveTool: (toolId: ToolId) => void;
   setCanvasRect: (rect: { width: number; height: number }) => void;
+  setViewportInsets: (viewportInsets: ViewportInsets) => void;
   setViewport: (viewport: BoardViewport) => void;
   beginHistoryBatch: () => void;
   endHistoryBatch: () => void;

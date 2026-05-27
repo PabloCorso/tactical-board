@@ -117,9 +117,11 @@ export function BoardEditorSelectionToolbarPositioner({
     >
       <div
         ref={contentRef}
-        className="pointer-events-auto absolute"
+        className="pointer-events-auto absolute max-h-full max-w-full"
         style={{
           left: position.left,
+          maxHeight: Math.max(1, viewportHeight - VIEWPORT_PADDING_PX * 2),
+          maxWidth: Math.max(1, viewportWidth - VIEWPORT_PADDING_PX * 2),
           top: position.top,
           transform: position.transform,
         }}

@@ -15,6 +15,7 @@ import {
 import { cn } from "../../ui/misc";
 import {
   getViewportForZoomAtCanvasPoint,
+  getViewportFrame,
   getViewportToFitFrame,
   VIEWPORT_ZOOM_STEP_FACTOR,
 } from "../../../core/editor/viewport-utils";
@@ -28,6 +29,14 @@ export function BoardEditorCanvasToolbar({
 }: BoardEditorCanvasToolbarProps) {
   const store = useBoardEditorContext();
   const viewport = useBoardEditorStore(store, (state) => state.ui.viewport);
+  const viewportInsets = useBoardEditorStore(
+    store,
+    (state) => state.ui.viewportInsets,
+  );
+  const navigationMode = useBoardEditorStore(
+    store,
+    (state) => state.ui.navigationMode,
+  );
   const canvasRect = useBoardEditorStore(store, (state) => state.ui.canvasRect);
   const frame = useBoardEditorStore(store, (state) => state.board.frame);
   const history = useBoardEditorStore(store, (state) => state.history);
@@ -45,23 +54,28 @@ export function BoardEditorCanvasToolbar({
     }
 
     actions.setViewport(
-      getViewportForZoomAtCanvasPoint({
-        frame,
-        viewport,
-        canvasRect,
-        anchorCanvasPoint: {
-          x: canvasRect.width / 2,
-          y: canvasRect.height / 2,
-        },
-        zoom: nextZoom,
-      }),
+      (() => {
+        const viewportFrame = getViewportFrame({ canvasRect, viewportInsets });
+        return getViewportForZoomAtCanvasPoint({
+          frame,
+          viewport,
+          canvasRect,
+          anchorCanvasPoint: {
+            x: viewportFrame.x + viewportFrame.width / 2,
+            y: viewportFrame.y + viewportFrame.height / 2,
+          },
+          zoom: nextZoom,
+          minZoom: navigationMode === "contained" ? 0 : undefined,
+          viewportInsets,
+        });
+      })(),
     );
   };
 
   return (
     <div
       className={cn(
-        "pointer-events-none absolute right-4 bottom-4 flex items-center gap-2",
+        "pointer-events-none absolute right-2 bottom-2 flex items-center gap-2",
         className,
       )}
     >
@@ -145,6 +159,7 @@ export function BoardEditorCanvasToolbar({
                 ? getViewportToFitFrame({
                     frame,
                     canvasRect,
+                    viewportInsets,
                   })
                 : { pan: { x: 0, y: 0 }, zoom: 1 },
             )

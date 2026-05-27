@@ -46,7 +46,7 @@ function FootballPitchToolControl() {
           className="rounded-sm"
           variant={variant}
           width={24}
-          height={16}
+          height={24}
         />
       }
     />

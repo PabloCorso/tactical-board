@@ -10,8 +10,10 @@ import type {
 import type { BoardEditorState } from "../editor/types";
 import {
   constrainViewportToFrame,
-  DEFAULT_FIT_PADDING,
+  DEFAULT_VIEWPORT_INSETS,
   getContainedViewportForCanvasResize,
+  getViewportForCanvasResize,
+  getViewportToFitFrame,
 } from "../editor/viewport-utils";
 import { moveObjectIdsToLayerBoundary } from "../board/object-order";
 import { moveBoardObject } from "../objects/object-behaviors";
@@ -28,13 +30,14 @@ import type {
   CanvasObjectRendererRegistry,
   CanvasOverlayRendererRegistry,
 } from "../rendering/canvas/types";
+import type { ViewportInsets } from "../geometry/types";
 
 const MAX_HISTORY_ENTRIES = 100;
 
 type CreateEditorStoreBaseOptions = {
   tools?: ToolRegistration[];
   initialToolId?: ToolId;
-  fitPadding?: number;
+  viewportInsets?: ViewportInsets;
   navigationMode?: BoardEditorState["ui"]["navigationMode"];
   objectRenderers?: CanvasObjectRendererRegistry;
   objectHitTesters?: CanvasObjectHitTesterRegistry;
@@ -176,7 +179,7 @@ export function createEditorStore({
   initialDocument,
   tools = [],
   initialToolId,
-  fitPadding = DEFAULT_FIT_PADDING,
+  viewportInsets = DEFAULT_VIEWPORT_INSETS,
   navigationMode = "free",
   objectRenderers = {},
   objectHitTesters = {},
@@ -223,7 +226,7 @@ export function createEditorStore({
       frame: state.board.frame,
       canvasRect: state.ui.canvasRect,
       viewport,
-      fitPadding: state.ui.fitPadding,
+      viewportInsets: state.ui.viewportInsets,
     });
   };
 
@@ -241,7 +244,7 @@ export function createEditorStore({
         pan: { x: 0, y: 0 },
         zoom: 1,
       },
-      fitPadding,
+      viewportInsets,
       navigationMode,
     },
     selection: {
@@ -376,22 +379,74 @@ export function createEditorStore({
             return state;
           }
 
-          const nextViewport =
-            state.ui.navigationMode === "contained" && previousCanvasRect
+          const nextViewport = !previousCanvasRect
+            ? getViewportToFitFrame({
+                frame: state.board.frame,
+                canvasRect: rect,
+                viewportInsets: state.ui.viewportInsets,
+              })
+            : state.ui.navigationMode === "contained"
               ? getContainedViewportForCanvasResize({
                   frame: state.board.frame,
                   previousCanvasRect,
                   nextCanvasRect: rect,
                   viewport: state.ui.viewport,
-                  fitPadding: state.ui.fitPadding,
+                  previousViewportInsets: state.ui.viewportInsets,
+                  nextViewportInsets: state.ui.viewportInsets,
                 })
-              : constrainViewport(
-                  { ...state, ui: { ...state.ui, canvasRect: rect } },
-                  state.ui.viewport,
-                );
+              : getViewportForCanvasResize({
+                  frame: state.board.frame,
+                  previousCanvasRect,
+                  nextCanvasRect: rect,
+                  viewport: state.ui.viewport,
+                  previousViewportInsets: state.ui.viewportInsets,
+                  nextViewportInsets: state.ui.viewportInsets,
+                });
 
           return {
             ui: { ...state.ui, canvasRect: rect, viewport: nextViewport },
+          };
+        });
+      },
+      setViewportInsets: (nextViewportInsets) => {
+        set((state) => {
+          const previousViewportInsets = state.ui.viewportInsets;
+
+          if (
+            previousViewportInsets.top === nextViewportInsets.top &&
+            previousViewportInsets.right === nextViewportInsets.right &&
+            previousViewportInsets.bottom === nextViewportInsets.bottom &&
+            previousViewportInsets.left === nextViewportInsets.left
+          ) {
+            return state;
+          }
+
+          const nextViewport = state.ui.canvasRect
+            ? state.ui.navigationMode === "contained"
+              ? getContainedViewportForCanvasResize({
+                  frame: state.board.frame,
+                  previousCanvasRect: state.ui.canvasRect,
+                  nextCanvasRect: state.ui.canvasRect,
+                  previousViewportInsets,
+                  nextViewportInsets,
+                  viewport: state.ui.viewport,
+                })
+              : getViewportForCanvasResize({
+                  frame: state.board.frame,
+                  previousCanvasRect: state.ui.canvasRect,
+                  nextCanvasRect: state.ui.canvasRect,
+                  previousViewportInsets,
+                  nextViewportInsets,
+                  viewport: state.ui.viewport,
+                })
+            : state.ui.viewport;
+
+          return {
+            ui: {
+              ...state.ui,
+              viewportInsets: nextViewportInsets,
+              viewport: nextViewport,
+            },
           };
         });
       },

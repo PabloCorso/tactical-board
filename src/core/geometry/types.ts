@@ -7,4 +7,11 @@ export interface Viewport {
   pan: Point;
 }
 
+export interface ViewportInsets {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+}
+
 export type HitTestMode = "normal" | "passthrough" | "bounds-only";

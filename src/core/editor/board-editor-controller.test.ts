@@ -128,7 +128,7 @@ describe("createBoardEditorController", () => {
       frame: store.getState().board.frame,
       viewport: store.getState().ui.viewport,
       canvasRect,
-      fitPadding: 14,
+      viewportInsets: { top: 14, right: 14, bottom: 14, left: 14 },
     });
     const startPoint = projection.boardToCanvas(existingArrow.props.start);
     const endPoint = projection.boardToCanvas({ x: 30, y: 15 });
@@ -220,7 +220,7 @@ describe("createBoardEditorController", () => {
       frame: store.getState().board.frame,
       viewport: store.getState().ui.viewport,
       canvasRect,
-      fitPadding: 14,
+      viewportInsets: { top: 14, right: 14, bottom: 14, left: 14 },
     });
     const previewPoint = projection.boardToCanvas({ x: 25, y: 12 });
 
@@ -277,7 +277,7 @@ describe("createBoardEditorController", () => {
       frame: store.getState().board.frame,
       viewport: store.getState().ui.viewport,
       canvasRect,
-      fitPadding: 14,
+      viewportInsets: { top: 14, right: 14, bottom: 14, left: 14 },
     });
     const previewPoint = projection.boardToCanvas({ x: 25, y: 12 });
 
@@ -332,7 +332,7 @@ describe("createBoardEditorController", () => {
       frame: store.getState().board.frame,
       viewport: store.getState().ui.viewport,
       canvasRect,
-      fitPadding: 14,
+      viewportInsets: { top: 14, right: 14, bottom: 14, left: 14 },
     });
     const placementPoint = projection.boardToCanvas({ x: 30, y: 18 });
 
@@ -413,7 +413,7 @@ describe("createBoardEditorController", () => {
       frame: store.getState().board.frame,
       viewport: store.getState().ui.viewport,
       canvasRect,
-      fitPadding: 14,
+      viewportInsets: { top: 14, right: 14, bottom: 14, left: 14 },
     });
     const targetPoint = projection.boardToCanvas(player.position);
 
@@ -474,7 +474,7 @@ describe("createBoardEditorController", () => {
       frame: store.getState().board.frame,
       viewport: store.getState().ui.viewport,
       canvasRect,
-      fitPadding: 14,
+      viewportInsets: { top: 14, right: 14, bottom: 14, left: 14 },
     });
     const previewPoint = projection.boardToCanvas({ x: 32, y: 18 });
 
@@ -548,7 +548,7 @@ describe("createBoardEditorController", () => {
       frame: store.getState().board.frame,
       viewport: store.getState().ui.viewport,
       canvasRect,
-      fitPadding: 14,
+      viewportInsets: { top: 14, right: 14, bottom: 14, left: 14 },
     });
     const endPoint = projection.boardToCanvas(existingArrow.props.end);
     const middleEndPoint = projection.boardToCanvas({ x: 28, y: 14 });
@@ -661,7 +661,7 @@ describe("createBoardEditorController", () => {
       frame: store.getState().board.frame,
       viewport: store.getState().ui.viewport,
       canvasRect,
-      fitPadding: 14,
+      viewportInsets: { top: 14, right: 14, bottom: 14, left: 14 },
     });
     const rightHandle = projection.boardToCanvas({ x: 20, y: 14 });
     const nextRightHandle = projection.boardToCanvas({ x: 30, y: 14 });
@@ -741,7 +741,7 @@ describe("createBoardEditorController", () => {
       frame: store.getState().board.frame,
       viewport: store.getState().ui.viewport,
       canvasRect,
-      fitPadding: 14,
+      viewportInsets: { top: 14, right: 14, bottom: 14, left: 14 },
     });
     const interiorPoint = projection.boardToCanvas({ x: 15, y: 14 });
     const nextInteriorPoint = projection.boardToCanvas({ x: 25, y: 19 });
@@ -813,7 +813,7 @@ describe("createBoardEditorController", () => {
       frame: store.getState().board.frame,
       viewport: store.getState().ui.viewport,
       canvasRect,
-      fitPadding: 14,
+      viewportInsets: { top: 14, right: 14, bottom: 14, left: 14 },
     });
 
     const firstBlue = projection.boardToCanvas({ x: 10, y: 10 });
@@ -952,7 +952,7 @@ describe("createBoardEditorController", () => {
       frame: store.getState().board.frame,
       viewport: store.getState().ui.viewport,
       canvasRect,
-      fitPadding: 14,
+      viewportInsets: { top: 14, right: 14, bottom: 14, left: 14 },
     });
     const nextBlue = projection.boardToCanvas({ x: 20, y: 10 });
 
@@ -1080,7 +1080,7 @@ describe("createBoardEditorController", () => {
       frame: store.getState().board.frame,
       viewport: store.getState().ui.viewport,
       canvasRect,
-      fitPadding: 14,
+      viewportInsets: { top: 14, right: 14, bottom: 14, left: 14 },
     });
     const point = projection.boardToCanvas({ x: 16, y: 12 });
 
@@ -1149,7 +1149,7 @@ describe("createBoardEditorController", () => {
       frame: store.getState().board.frame,
       viewport: store.getState().ui.viewport,
       canvasRect,
-      fitPadding: 14,
+      viewportInsets: { top: 14, right: 14, bottom: 14, left: 14 },
     });
 
     const bottomRightHandle = projection.boardToCanvas({ x: 11, y: 11 });
@@ -1228,7 +1228,7 @@ describe("createBoardEditorController", () => {
       frame: store.getState().board.frame,
       viewport: store.getState().ui.viewport,
       canvasRect,
-      fitPadding: 14,
+      viewportInsets: { top: 14, right: 14, bottom: 14, left: 14 },
     });
     const rotationHandle = getCornerHandleCanvasPoint(
       getPlayerSelectionOutlineCanvasPoints(projection, existingPlayer),
@@ -1310,7 +1310,7 @@ describe("createBoardEditorController", () => {
       frame: store.getState().board.frame,
       viewport: store.getState().ui.viewport,
       canvasRect,
-      fitPadding: 14,
+      viewportInsets: { top: 14, right: 14, bottom: 14, left: 14 },
     });
     const rotationHandle = getCornerHandleCanvasPoint(
       getPlayerSelectionOutlineCanvasPoints(projection, existingPlayer),
@@ -1414,7 +1414,7 @@ describe("createBoardEditorController", () => {
       frame: store.getState().board.frame,
       viewport: store.getState().ui.viewport,
       canvasRect,
-      fitPadding: 14,
+      viewportInsets: { top: 14, right: 14, bottom: 14, left: 14 },
     });
 
     const bottomRightHandle = projection.boardToCanvas({ x: 13, y: 11 });
@@ -1537,7 +1537,7 @@ describe("createBoardEditorController", () => {
       frame: store.getState().board.frame,
       viewport: store.getState().ui.viewport,
       canvasRect,
-      fitPadding: 14,
+      viewportInsets: { top: 14, right: 14, bottom: 14, left: 14 },
     });
     const bounds = getMultiSelectionCanvasBounds(projection, [
       firstPlayer,
@@ -1666,7 +1666,7 @@ describe("createBoardEditorController", () => {
       frame: store.getState().board.frame,
       viewport: store.getState().ui.viewport,
       canvasRect,
-      fitPadding: 14,
+      viewportInsets: { top: 14, right: 14, bottom: 14, left: 14 },
     });
     const bounds = getMultiSelectionCanvasBounds(projection, [
       firstPlayer,
@@ -1838,7 +1838,7 @@ describe("createBoardEditorController", () => {
       frame: store.getState().board.frame,
       viewport: store.getState().ui.viewport,
       canvasRect,
-      fitPadding: 14,
+      viewportInsets: { top: 14, right: 14, bottom: 14, left: 14 },
     });
     const bounds = getMultiSelectionCanvasBounds(projection, [
       firstPlayer,
@@ -2044,7 +2044,7 @@ describe("createBoardEditorController", () => {
       frame: store.getState().board.frame,
       viewport: store.getState().ui.viewport,
       canvasRect,
-      fitPadding: 14,
+      viewportInsets: { top: 14, right: 14, bottom: 14, left: 14 },
     });
     const bounds = getMultiSelectionCanvasBounds(projection, [
       firstPlayer,
@@ -2148,7 +2148,7 @@ describe("createBoardEditorController", () => {
       frame: store.getState().board.frame,
       viewport: store.getState().ui.viewport,
       canvasRect,
-      fitPadding: 14,
+      viewportInsets: { top: 14, right: 14, bottom: 14, left: 14 },
     });
 
     const cornerPoint = projection.boardToCanvas({ x: 11.9, y: 17 });
@@ -2276,7 +2276,7 @@ describe("createBoardEditorController", () => {
       frame: store.getState().board.frame,
       viewport: store.getState().ui.viewport,
       canvasRect,
-      fitPadding: 14,
+      viewportInsets: { top: 14, right: 14, bottom: 14, left: 14 },
     });
 
     const edgePoint = projection.boardToCanvas({ x: 10.75, y: 10.75 });
@@ -2466,7 +2466,7 @@ describe("createBoardEditorController", () => {
       frame: store.getState().board.frame,
       viewport: store.getState().ui.viewport,
       canvasRect,
-      fitPadding: 14,
+      viewportInsets: { top: 14, right: 14, bottom: 14, left: 14 },
     });
     const bottomRightHandle = projection.boardToCanvas({ x: 20, y: 18 });
     const nextBottomRightHandle = projection.boardToCanvas({ x: 30, y: 24 });
@@ -2548,7 +2548,7 @@ describe("createBoardEditorController", () => {
       frame: store.getState().board.frame,
       viewport: store.getState().ui.viewport,
       canvasRect,
-      fitPadding: 14,
+      viewportInsets: { top: 14, right: 14, bottom: 14, left: 14 },
     });
     const center = { x: 15, y: 14 };
     const centerCanvas = projection.boardToCanvas(center);
@@ -2648,7 +2648,7 @@ describe("createBoardEditorController", () => {
       frame: store.getState().board.frame,
       viewport: store.getState().ui.viewport,
       canvasRect,
-      fitPadding: 14,
+      viewportInsets: { top: 14, right: 14, bottom: 14, left: 14 },
     });
     const initialCorners = getRotatedRectBoardPoints({
       center: existingShape.position,
@@ -2746,7 +2746,7 @@ describe("createBoardEditorController", () => {
       frame: store.getState().board.frame,
       viewport: store.getState().ui.viewport,
       canvasRect,
-      fitPadding: 14,
+      viewportInsets: { top: 14, right: 14, bottom: 14, left: 14 },
     });
     const previewPoint = projection.boardToCanvas({ x: 24, y: 18 });
 
@@ -2807,7 +2807,7 @@ describe("createBoardEditorController", () => {
       frame: store.getState().board.frame,
       viewport: store.getState().ui.viewport,
       canvasRect,
-      fitPadding: 14,
+      viewportInsets: { top: 14, right: 14, bottom: 14, left: 14 },
     });
     const clickPoint = projection.boardToCanvas({ x: 24, y: 18 });
 
@@ -2884,7 +2884,7 @@ describe("createBoardEditorController", () => {
       frame: store.getState().board.frame,
       viewport: store.getState().ui.viewport,
       canvasRect,
-      fitPadding: 14,
+      viewportInsets: { top: 14, right: 14, bottom: 14, left: 14 },
     });
     const clickPoint = projection.boardToCanvas({ x: 80, y: 64 });
 
@@ -2952,7 +2952,7 @@ describe("createBoardEditorController", () => {
       frame: store.getState().board.frame,
       viewport: store.getState().ui.viewport,
       canvasRect,
-      fitPadding: 14,
+      viewportInsets: { top: 14, right: 14, bottom: 14, left: 14 },
     });
     const startPoint = projection.boardToCanvas({ x: 10, y: 10 });
     const endPoint = projection.boardToCanvas({ x: 24, y: 18 });
@@ -3032,7 +3032,7 @@ describe("createBoardEditorController", () => {
       frame: store.getState().board.frame,
       viewport: store.getState().ui.viewport,
       canvasRect,
-      fitPadding: 14,
+      viewportInsets: { top: 14, right: 14, bottom: 14, left: 14 },
     });
     const startPoint = projection.boardToCanvas({ x: 10, y: 10 });
     const endPoint = projection.boardToCanvas({ x: 24, y: 18 });
@@ -3124,7 +3124,7 @@ describe("createBoardEditorController", () => {
       frame: store.getState().board.frame,
       viewport: store.getState().ui.viewport,
       canvasRect,
-      fitPadding: 14,
+      viewportInsets: { top: 14, right: 14, bottom: 14, left: 14 },
     });
     const firstPoint = projection.boardToCanvas({ x: 10, y: 10 });
     const secondPoint = projection.boardToCanvas({ x: 18, y: 16 });
@@ -3243,7 +3243,7 @@ describe("createBoardEditorController", () => {
       frame: store.getState().board.frame,
       viewport: store.getState().ui.viewport,
       canvasRect,
-      fitPadding: 14,
+      viewportInsets: { top: 14, right: 14, bottom: 14, left: 14 },
     });
     const firstPoint = projection.boardToCanvas({ x: 10, y: 10 });
     const secondPoint = projection.boardToCanvas({ x: 18, y: 16 });
@@ -3356,7 +3356,7 @@ describe("createBoardEditorController", () => {
       frame: store.getState().board.frame,
       viewport: store.getState().ui.viewport,
       canvasRect,
-      fitPadding: 14,
+      viewportInsets: { top: 14, right: 14, bottom: 14, left: 14 },
     });
     const bottomRightHandle = projection.boardToCanvas({ x: 20.08, y: 20.08 });
     const nextBottomRightHandle = projection.boardToCanvas({
@@ -3442,7 +3442,7 @@ describe("createBoardEditorController", () => {
       frame: store.getState().board.frame,
       viewport: store.getState().ui.viewport,
       canvasRect,
-      fitPadding: 14,
+      viewportInsets: { top: 14, right: 14, bottom: 14, left: 14 },
     });
     const bodyPoint = projection.boardToCanvas({ x: 25, y: 10 });
     const middleBodyPoint = projection.boardToCanvas({ x: 26, y: 12 });
@@ -3562,7 +3562,7 @@ describe("createBoardEditorController", () => {
       frame: store.getState().board.frame,
       viewport: store.getState().ui.viewport,
       canvasRect,
-      fitPadding: 14,
+      viewportInsets: { top: 14, right: 14, bottom: 14, left: 14 },
     });
     const bodyPoint = projection.boardToCanvas({ x: 15, y: 10 });
     const nextBodyPoint = projection.boardToCanvas({ x: 18, y: 14 });
@@ -3740,7 +3740,7 @@ describe("createBoardEditorController", () => {
       frame: store.getState().board.frame,
       viewport: store.getState().ui.viewport,
       canvasRect,
-      fitPadding: 14,
+      viewportInsets: { top: 14, right: 14, bottom: 14, left: 14 },
     });
     const boardPoint = beforeProjection.canvasToBoard({ x: 300, y: 200 });
     const handled = controller.dispatchWheelEvent({
@@ -3761,7 +3761,7 @@ describe("createBoardEditorController", () => {
       frame: store.getState().board.frame,
       viewport: store.getState().ui.viewport,
       canvasRect,
-      fitPadding: 14,
+      viewportInsets: { top: 14, right: 14, bottom: 14, left: 14 },
     });
 
     expect(afterProjection.boardToCanvas(boardPoint).x).toBeCloseTo(300);
@@ -3820,6 +3820,53 @@ describe("createBoardEditorController", () => {
     expect(store.getState().ui.viewport.zoom).toBe(MAX_VIEWPORT_ZOOM);
   });
 
+  it("allows contained modifier + wheel zoom to reach inset-adjusted fit", () => {
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        frame: {
+          width: 1000,
+          height: 600,
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      initialToolId: SELECT_TOOL_ID,
+      tools: [selectTool],
+      viewportInsets: { top: 0, right: 0, bottom: 0, left: 120 },
+      navigationMode: "contained",
+    });
+    const controller = createBoardEditorController(store);
+    const canvasRect = {
+      left: 0,
+      top: 0,
+      width: 500,
+      height: 400,
+    };
+
+    store.getState().actions.setCanvasRect(canvasRect);
+    controller.dispatchWheelEvent({
+      clientPoint: { x: 310, y: 200 },
+      deltaX: 0,
+      deltaY: 10000,
+      ctrlKey: true,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    expect(store.getState().ui.viewport).toEqual({
+      pan: { x: 0, y: 0 },
+      zoom: 0.38,
+    });
+  });
+
   it("preserves a selected curved arrow's bend when dragging the arrow body", () => {
     const arrowTool = new ArrowTool();
     const existingArrow = createArrowObject({
@@ -3873,7 +3920,7 @@ describe("createBoardEditorController", () => {
       frame: store.getState().board.frame,
       viewport: store.getState().ui.viewport,
       canvasRect,
-      fitPadding: 14,
+      viewportInsets: { top: 14, right: 14, bottom: 14, left: 14 },
     });
     const bodyPoint = projection.boardToCanvas({ x: 20, y: 11 });
     const nextBodyPoint = projection.boardToCanvas({ x: 23, y: 15 });
@@ -3961,7 +4008,7 @@ describe("createBoardEditorController", () => {
       frame: store.getState().board.frame,
       viewport: store.getState().ui.viewport,
       canvasRect,
-      fitPadding: 14,
+      viewportInsets: { top: 14, right: 14, bottom: 14, left: 14 },
     });
     const controlPoint = projection.boardToCanvas(initialHandlePoint);
     const nextControlPoint = projection.boardToCanvas({ x: 15, y: 5 });

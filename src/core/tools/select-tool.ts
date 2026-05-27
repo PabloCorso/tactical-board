@@ -242,7 +242,7 @@ function getMarqueeObjectIds(
     frame: state.board.frame,
     viewport: state.ui.viewport,
     canvasRect,
-    fitPadding: state.ui.fitPadding,
+    viewportInsets: state.ui.viewportInsets,
   });
   const marqueeStart = projection.boardToCanvas(marquee.origin);
   const marqueeEnd = projection.boardToCanvas(marquee.current);
@@ -819,7 +819,7 @@ function beginSelectionInteraction(event: ToolPointerEvent, api: ToolApi) {
     frame: state.board.frame,
     viewport: state.ui.viewport,
     canvasRect: event.canvasRect,
-    fitPadding: state.ui.fitPadding,
+    viewportInsets: state.ui.viewportInsets,
   });
   const groupSelectionSession =
     selectedObjectIds.length > 1

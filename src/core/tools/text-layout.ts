@@ -17,7 +17,7 @@ export function createTextToolProjection(
     frame: state.board.frame,
     viewport: state.ui.viewport,
     canvasRect,
-    fitPadding: state.ui.fitPadding,
+    viewportInsets: state.ui.viewportInsets,
   });
 }
 

@@ -49,7 +49,11 @@ export function BoardPrimaryToolbar({
   );
 
   return (
-    <BoardEditorToolbar {...toolbarProps} orientation={orientation}>
+    <BoardEditorToolbar
+      {...toolbarProps}
+      orientation={orientation}
+      tooltipSide="right"
+    >
       <BoardEditorToolControl toolId="select" />
       <BoardEditorToolControl toolId="hand" />
       <BoardEditorToolControl toolId="player" icon={<BoardPlayerToolIcon />} />

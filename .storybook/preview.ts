@@ -1,9 +1,20 @@
 import addonDocs from "@storybook/addon-docs";
 import addonA11y from "@storybook/addon-a11y";
-import { definePreview } from "@storybook/react-vite";
+import addonThemes, { withThemeByClassName } from "@storybook/addon-themes";
+import { definePreview, type Renderer } from "@storybook/react-vite";
 import "../src/tailwind.css";
 
 export default definePreview({
+  decorators: [
+    withThemeByClassName<Renderer>({
+      themes: {
+        light: "",
+        dark: "dark",
+      },
+      defaultTheme: "light",
+    }),
+  ],
+
   parameters: {
     controls: {
       matchers: {
@@ -20,5 +31,5 @@ export default definePreview({
     },
   },
 
-  addons: [addonA11y(), addonDocs()],
+  addons: [addonA11y(), addonDocs(), addonThemes()],
 });

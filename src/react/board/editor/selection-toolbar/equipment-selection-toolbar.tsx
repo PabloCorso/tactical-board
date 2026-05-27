@@ -64,7 +64,7 @@ export function BoardEditorEquipmentSelectionToolbar({
             }
             icon={
               <span
-                className="border-tb-border-default inline-flex h-5 w-5 rounded-full border"
+                className="border-tb-border-default inline-flex h-6 w-6 rounded-full border"
                 style={{
                   backgroundColor: color,
                 }}

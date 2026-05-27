@@ -8,7 +8,12 @@ import type {
   CanvasRenderer,
 } from "./types";
 
-const DEFAULT_FIT_PADDING = 0;
+const DEFAULT_VIEWPORT_INSETS = {
+  top: 0,
+  right: 0,
+  bottom: 0,
+  left: 0,
+};
 const FRAME_RADIUS = 10;
 const DEFAULT_FRAME_BACKGROUND = "rgba(255,255,255,0.03)";
 
@@ -178,7 +183,15 @@ export function createCanvasRenderer(): CanvasRenderer {
       board,
       viewport,
       extendBackground = false,
-      fitPadding = DEFAULT_FIT_PADDING,
+      fitPadding,
+      viewportInsets = fitPadding === undefined
+        ? DEFAULT_VIEWPORT_INSETS
+        : {
+            top: fitPadding,
+            right: fitPadding,
+            bottom: fitPadding,
+            left: fitPadding,
+          },
       requestRender = () => {},
       previewObjects = [],
       overlayItems = [],
@@ -207,7 +220,7 @@ export function createCanvasRenderer(): CanvasRenderer {
           width,
           height,
         },
-        fitPadding,
+        viewportInsets,
       });
 
       drawRoundedRect(

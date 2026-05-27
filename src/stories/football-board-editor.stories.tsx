@@ -49,21 +49,6 @@ export const ContainedNavigation: Story = {
   },
 };
 
-export const ContainedNavigationWithPadding: Story = {
-  args: {
-    initialBoard: footballShowcaseBoard,
-    fitPadding: 24,
-  },
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "Contained navigation with a 24px viewport frame padding around the pitch.",
-      },
-    },
-  },
-};
-
 export const Pitches: Story = {
   parameters: {
     layout: "centered",

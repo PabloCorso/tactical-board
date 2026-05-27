@@ -28,26 +28,20 @@ export type FootballBoardEditorProps = {
   extendBackground?: boolean;
   initialBoard?: Board;
   store?: BoardEditorStore;
-  fitPadding?: number;
   navigationMode?: BoardEditorState["ui"]["navigationMode"];
 };
 
 export type CreateFootballBoardEditorStoreOptions = {
-  fitPadding?: number;
   navigationMode?: BoardEditorState["ui"]["navigationMode"];
 };
 
 export function createFootballBoardEditorStore(
   initialBoard: Board = createFootballBoard(),
-  {
-    fitPadding,
-    navigationMode = "contained",
-  }: CreateFootballBoardEditorStoreOptions = {},
+  { navigationMode }: CreateFootballBoardEditorStoreOptions = {},
 ) {
   return createBoardEditorStore({
     initialBoard,
     initialToolId: SELECT_TOOL_ID,
-    fitPadding,
     navigationMode,
     tools: createFootballTools(),
   });
@@ -59,17 +53,15 @@ export function FootballBoardEditor({
   extendBackground,
   initialBoard,
   store: providedStore,
-  fitPadding,
   navigationMode,
 }: FootballBoardEditorProps = {}) {
   const store = useMemo(
     () =>
       providedStore ??
       createFootballBoardEditorStore(initialBoard ?? createFootballBoard(), {
-        fitPadding,
         navigationMode,
       }),
-    [initialBoard, providedStore, fitPadding, navigationMode],
+    [initialBoard, providedStore, navigationMode],
   );
 
   return (
@@ -84,7 +76,10 @@ export function FootballBoardEditor({
         <BoardEditorShapePolygonDone />
         <BoardEditorCanvasToolbar />
         <BoardEditorSelectionToolbar />
-        <BoardEditorToolbarDock>
+        <BoardEditorToolbarDock
+          reserveViewportInsets
+          viewportInsetExtraSize={58}
+        >
           <FootballPrimaryToolbar />
           <FootballSecondaryToolbar />
         </BoardEditorToolbarDock>

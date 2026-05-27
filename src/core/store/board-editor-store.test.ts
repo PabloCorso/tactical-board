@@ -82,6 +82,12 @@ describe("createBoardEditorStore", () => {
     const store = createStore();
 
     store.getState().actions.setCanvasRect({ width: 220, height: 120 });
+
+    expect(store.getState().ui.viewport).toEqual({
+      pan: { x: 0, y: 0 },
+      zoom: 2.2,
+    });
+
     store.getState().actions.setViewport({
       pan: { x: 500, y: -300 },
       zoom: 0.1,
@@ -91,6 +97,34 @@ describe("createBoardEditorStore", () => {
       pan: { x: 500, y: -300 },
       zoom: 0.1,
     });
+  });
+
+  it("adjusts free navigation when the canvas size changes", () => {
+    const store = createStore();
+
+    store.getState().actions.setCanvasRect({ width: 228, height: 128 });
+    store.getState().actions.setCanvasRect({ width: 328, height: 228 });
+
+    expect(store.getState().ui.viewport).toEqual({
+      pan: { x: 0, y: 0 },
+      zoom: 3.28,
+    });
+  });
+
+  it("preserves free navigation zoom ratio when resizing without clamping pan", () => {
+    const store = createStore();
+
+    store.getState().actions.setCanvasRect({ width: 228, height: 128 });
+    store.getState().actions.setViewport({
+      pan: { x: 500, y: -300 },
+      zoom: 4.56,
+    });
+
+    store.getState().actions.setCanvasRect({ width: 328, height: 228 });
+
+    expect(store.getState().ui.viewport.zoom).toBeCloseTo(6.56);
+    expect(store.getState().ui.viewport.pan.x).toBeCloseTo(719.2982456140351);
+    expect(store.getState().ui.viewport.pan.y).toBeCloseTo(-431.57894736842104);
   });
 
   it("constrains contained viewport changes to the fit frame", () => {
@@ -242,7 +276,7 @@ describe("createBoardEditorStore", () => {
     expect(store.getState().ui.viewport.pan.y).toBeCloseTo(-28.771929824561404);
   });
 
-  it("uses viewport frame padding when constraining navigation", () => {
+  it("uses viewport insets when constraining navigation", () => {
     const store = createBoardEditorStore({
       initialBoard: {
         id: "board-1",
@@ -259,7 +293,7 @@ describe("createBoardEditorStore", () => {
         style: {},
       },
       tools: [selectTool],
-      fitPadding: 14,
+      viewportInsets: { top: 14, right: 14, bottom: 14, left: 14 },
       navigationMode: "contained",
     });
 
@@ -272,6 +306,44 @@ describe("createBoardEditorStore", () => {
     expect(store.getState().ui.viewport).toEqual({
       pan: { x: 100, y: -50 },
       zoom: 4,
+    });
+  });
+
+  it("refits contained navigation when viewport insets change", () => {
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        frame: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      tools: [selectTool],
+      navigationMode: "contained",
+    });
+
+    store.getState().actions.setCanvasRect({ width: 300, height: 100 });
+    store.getState().actions.setViewport({
+      pan: { x: 0, y: 0 },
+      zoom: 2,
+    });
+    store.getState().actions.setViewportInsets({
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 120,
+    });
+
+    expect(store.getState().ui.viewport).toEqual({
+      pan: { x: 0, y: 0 },
+      zoom: 1.8,
     });
   });
 

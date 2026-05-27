@@ -33,7 +33,7 @@ export function BoardEditorShapePolygonDone() {
     frame: state.board.frame,
     viewport: state.ui.viewport,
     canvasRect: state.ui.canvasRect,
-    fitPadding: state.ui.fitPadding,
+    viewportInsets: state.ui.viewportInsets,
   });
   const firstPoint = projection.boardToCanvas(shapeState.pendingPoints[0]);
 

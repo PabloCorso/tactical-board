@@ -18,7 +18,7 @@ import { BoardEditorArrowIcon } from "../editor/arrow-icon";
 import { useBoardEditorContext } from "../../adapter/editor/board-editor-context";
 import { cn } from "../../ui/misc";
 import { useBoardEditorStore } from "../../adapter/editor/use-board-editor-store";
-import { renderPlayer } from "../../../core/tools/player-tool";
+import { PlayerTool, renderPlayer } from "../../../core/tools/player-tool";
 import {
   getArrowToolState,
   type ArrowDraftStyle,
@@ -35,6 +35,23 @@ import {
   type ShapeDraftStyle,
 } from "../../../core/tools/shape-tool-state";
 import { BoardToolIconCanvas } from "./tool-icon-canvas";
+
+const THEME_AWARE_TOOL_ICON_COLORS = new Set<string>([
+  DEFAULT_BOARD_COLOR.black,
+  DEFAULT_BOARD_COLOR.white,
+  DEFAULT_BOARD_COLOR.mediumGray,
+  DEFAULT_BOARD_COLOR.lightGray,
+]);
+
+export function getThemeAwareToolIconColor(color: string | undefined) {
+  if (!color) {
+    return color;
+  }
+
+  return THEME_AWARE_TOOL_ICON_COLORS.has(color.trim().toLowerCase())
+    ? "currentColor"
+    : color;
+}
 
 function parseNumericLabel(label: unknown) {
   if (typeof label !== "string" || label.trim() === "") {
@@ -78,8 +95,8 @@ export function BoardPlayerDefaultIcon({
   draftStyle,
   label,
   className,
-  width = 20,
-  height = 20,
+  width = 24,
+  height = 24,
 }: {
   draftStyle: PlayerDraftStyle;
   label: string;
@@ -106,11 +123,26 @@ export function BoardPlayerDefaultIcon({
     <BoardToolIconCanvas
       object={player}
       renderer={renderPlayer}
-      className={cn("h-5 w-5", className)}
+      className={cn("h-6 w-6", className)}
       width={width}
       height={height}
     />
   );
+}
+
+export function getPlayerToolIconDraftStyle(
+  state: Pick<BoardEditorState, "toolRegistry" | "toolState">,
+) {
+  const playerTool = state.toolRegistry.definitions[PLAYER_TOOL_ID];
+
+  if (
+    !(PLAYER_TOOL_ID in state.toolState) &&
+    playerTool instanceof PlayerTool
+  ) {
+    return playerTool.getActivatedDraftStyle(state.toolState);
+  }
+
+  return getPlayerToolState(state.toolState).draftStyle;
 }
 
 export function BoardPlayerToolIcon({
@@ -119,20 +151,15 @@ export function BoardPlayerToolIcon({
   fallbackColor?: string;
 } = {}) {
   const store = useBoardEditorContext();
-  const rawPlayerToolState = useBoardEditorStore(
+  const toolRegistry = useBoardEditorStore(
     store,
-    (state) => state.toolState[PLAYER_TOOL_ID],
+    (state) => state.toolRegistry,
   );
+  const toolState = useBoardEditorStore(store, (state) => state.toolState);
   const board = useBoardEditorStore(store, (state) => state.board);
-  const toolState = useMemo(
-    () => ({
-      [PLAYER_TOOL_ID]: rawPlayerToolState,
-    }),
-    [rawPlayerToolState],
-  );
   const draftStyle = useMemo(
-    () => getPlayerToolState(toolState).draftStyle,
-    [toolState],
+    () => getPlayerToolIconDraftStyle({ toolRegistry, toolState }),
+    [toolRegistry, toolState],
   );
   const color = draftStyle.color || fallbackColor;
   const label = useMemo(
@@ -146,8 +173,8 @@ export function BoardPlayerToolIcon({
 export function BoardArrowDefaultIcon({
   draftStyle,
   className,
-  width = 40,
-  height = 20,
+  width = 24,
+  height = 24,
 }: {
   draftStyle: Pick<
     ArrowDraftStyle,
@@ -163,13 +190,18 @@ export function BoardArrowDefaultIcon({
   width?: number;
   height?: number;
 }) {
+  const iconDraftStyle = {
+    ...draftStyle,
+    color: getThemeAwareToolIconColor(draftStyle.color),
+  };
+
   return (
     <BoardEditorArrowIcon
-      draftStyle={draftStyle}
-      className={cn("h-5 w-10", className)}
+      draftStyle={iconDraftStyle}
+      className={cn("h-6 w-6 overflow-visible", className)}
       width={width}
       height={height}
-      layout="wide"
+      layout="compact"
     />
   );
 }
@@ -187,10 +219,13 @@ export function BoardArrowToolIcon() {
 
   return (
     <BoardEditorArrowIcon
-      draftStyle={draftStyle}
-      className="h-5 w-5 overflow-visible"
-      width={20}
-      height={20}
+      draftStyle={{
+        ...draftStyle,
+        color: getThemeAwareToolIconColor(draftStyle.color),
+      }}
+      className="h-6 w-6 overflow-visible"
+      width={24}
+      height={24}
       layout="compact"
     />
   );
@@ -199,8 +234,8 @@ export function BoardArrowToolIcon() {
 export function BoardShapeDefaultIcon({
   draftStyle,
   className,
-  width = 40,
-  height = 20,
+  width = 24,
+  height = 24,
 }: {
   draftStyle: ShapeDraftStyle;
   className?: string;
@@ -216,7 +251,7 @@ export function BoardShapeDefaultIcon({
     <BoardToolIconCanvas
       object={shape}
       renderer={renderShape}
-      className={cn("h-5 w-10", className)}
+      className={cn("h-6 w-6", className)}
       width={width}
       height={height}
     />
@@ -237,9 +272,9 @@ export function BoardShapeToolIcon() {
   return (
     <BoardShapeDefaultIcon
       draftStyle={draftStyle}
-      className="h-5 w-5 overflow-visible"
-      width={20}
-      height={20}
+      className="h-6 w-6 overflow-visible"
+      width={24}
+      height={24}
     />
   );
 }
@@ -255,6 +290,9 @@ export function BoardEquipmentDefinitionIcon({
   className?: string;
   size?: number;
 }) {
+  const iconColor = definition.capabilities?.color
+    ? getThemeAwareToolIconColor(definition.color)
+    : definition.color;
   const equipment = useMemo(
     () =>
       createEquipmentObject({
@@ -266,17 +304,17 @@ export function BoardEquipmentDefinitionIcon({
           height: definition.defaultSize.height,
         },
         kind: definition.kind,
-        color: definition.color,
+        color: iconColor,
         definition,
       }),
-    [definition],
+    [definition, iconColor],
   );
 
   return (
     <BoardToolIconCanvas
       object={equipment}
       renderer={renderer}
-      className={cn("h-5 w-5", className)}
+      className={cn("h-6 w-6", className)}
       width={size}
       height={size}
     />
@@ -327,7 +365,7 @@ function createShapeIconPreviewObject(
   const shapeHeight = bottom - top;
   const base = {
     id: "shape-icon-preview",
-    color: draftStyle.color,
+    color: getThemeAwareToolIconColor(draftStyle.color) ?? draftStyle.color,
     strokeWidth: draftStyle.strokeWidth,
     lineStyle: draftStyle.lineStyle,
     dashStyle: draftStyle.dashStyle,

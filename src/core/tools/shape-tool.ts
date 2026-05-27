@@ -823,7 +823,7 @@ function shouldFinishPolygon(
     frame: state.board.frame,
     viewport: state.ui.viewport,
     canvasRect: event.canvasRect,
-    fitPadding: state.ui.fitPadding,
+    viewportInsets: state.ui.viewportInsets,
   });
   const firstPoint = projection.boardToCanvas(pendingPoints[0]);
   const candidate = projection.boardToCanvas(nextPoint);

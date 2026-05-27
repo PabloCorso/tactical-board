@@ -34,6 +34,7 @@ export function BoardToolIconCanvas<TObject extends BoardObject>({
     }
 
     let frameId = 0;
+    let settleFrameId = 0;
 
     const draw = () => {
       const context = canvas.getContext("2d");
@@ -51,7 +52,10 @@ export function BoardToolIconCanvas<TObject extends BoardObject>({
       context.scale(ratio, ratio);
       renderer({
         context,
-        object,
+        object: resolveCurrentColorObject(
+          object,
+          getCanvasToolbarIconColor(canvas),
+        ),
         appearance: "default",
         requestRender: () => {
           if (frameId !== 0) {
@@ -68,11 +72,39 @@ export function BoardToolIconCanvas<TObject extends BoardObject>({
     };
 
     draw();
+    settleFrameId = window.requestAnimationFrame(draw);
+    const themeObserver =
+      typeof MutationObserver === "undefined"
+        ? undefined
+        : new MutationObserver(draw);
+    const tacticalBoardRoot = canvas.closest("[data-tactical-board]");
+
+    if (themeObserver) {
+      themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ["class", "style"],
+      });
+      themeObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ["class", "style"],
+      });
+
+      if (tacticalBoardRoot) {
+        themeObserver.observe(tacticalBoardRoot, {
+          attributes: true,
+          attributeFilter: ["class", "style"],
+        });
+      }
+    }
 
     return () => {
       if (frameId !== 0) {
         window.cancelAnimationFrame(frameId);
       }
+      if (settleFrameId !== 0) {
+        window.cancelAnimationFrame(settleFrameId);
+      }
+      themeObserver?.disconnect();
     };
   }, [createProjection, height, object, renderer, width]);
 
@@ -81,9 +113,30 @@ export function BoardToolIconCanvas<TObject extends BoardObject>({
       aria-hidden="true"
       className={className}
       ref={canvasRef}
-      style={{ width, height }}
+      style={{ width, height, color: "var(--tb-toolbar-icon-primary)" }}
     />
   );
+}
+
+function getCanvasToolbarIconColor(canvas: HTMLCanvasElement) {
+  return window.getComputedStyle(canvas).color;
+}
+
+function resolveCurrentColorObject<TObject extends BoardObject>(
+  object: TObject,
+  color: string,
+): TObject {
+  if (object.props.color !== "currentColor") {
+    return object;
+  }
+
+  return {
+    ...object,
+    props: {
+      ...object.props,
+      color,
+    },
+  } as TObject;
 }
 
 export function createCenteredObjectIconProjection(

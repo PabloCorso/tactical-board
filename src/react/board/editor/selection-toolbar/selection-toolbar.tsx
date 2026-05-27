@@ -180,7 +180,7 @@ export function BoardEditorSelectionToolbar({
     frame: state.board.frame,
     viewport: state.ui.viewport,
     canvasRect: state.ui.canvasRect,
-    fitPadding: state.ui.fitPadding,
+    viewportInsets: state.ui.viewportInsets,
   });
 
   if (selectedObjects.length > 1) {

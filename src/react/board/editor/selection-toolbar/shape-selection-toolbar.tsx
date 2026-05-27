@@ -1,14 +1,9 @@
-import { LineSegmentsIcon, SquareIcon } from "@phosphor-icons/react";
 import type {
   ShapeFillStyle,
   ShapeLineStyle,
   ShapeObject,
 } from "../../../../core/objects/shape-object";
-import {
-  THICK_SHAPE_STROKE_WIDTH,
-  THIN_SHAPE_STROKE_WIDTH,
-  updateShapeObject,
-} from "../../../../core/objects/shape-object";
+import { updateShapeObject } from "../../../../core/objects/shape-object";
 import { createToolApi } from "../../../../core/editor/create-tool-api";
 import { BoardEditorSelectionActionsMenu } from "./selection-actions-menu";
 import { useBoardEditorContext } from "../../../adapter/editor/board-editor-context";
@@ -21,23 +16,7 @@ import {
 import { BoardEditorSelectionToolbarPositioner } from "./selection-toolbar-positioner";
 import type { BoardEditorSelectionToolbarRendererProps } from "./selection-toolbar-types";
 import { ColorPicker, DEFAULT_BOARD_COLORS } from "../../../ui/color-picker";
-
-const WEIGHT_OPTIONS = [
-  {
-    label: "Thin",
-    value: String(THIN_SHAPE_STROKE_WIDTH),
-    strokeWidth: THIN_SHAPE_STROKE_WIDTH,
-  },
-  {
-    label: "Thick",
-    value: String(THICK_SHAPE_STROKE_WIDTH),
-    strokeWidth: THICK_SHAPE_STROKE_WIDTH,
-  },
-] as const;
-
-function getWeightPreviewHeight(strokeWidth: number) {
-  return strokeWidth >= THICK_SHAPE_STROKE_WIDTH ? 4 : 3;
-}
+import { LineStyleIcon } from "./line-style-icon";
 
 const LINE_STYLE_OPTIONS: Array<{
   value: ShapeLineStyle;
@@ -61,20 +40,60 @@ const BORDER_STYLE_OPTIONS = [
   { value: false, label: "Borderless" },
 ] as const;
 
-function getWeightValue(strokeWidth: number) {
-  return WEIGHT_OPTIONS.reduce((closest, option) =>
-    Math.abs(option.strokeWidth - strokeWidth) <
-    Math.abs(closest.strokeWidth - strokeWidth)
-      ? option
-      : closest,
-  ).value;
+function ShapeFillStyleIcon({ value }: { value: ShapeFillStyle }) {
+  return (
+    <span className="flex h-6 w-6 items-center justify-center">
+      <svg
+        aria-hidden="true"
+        className="h-6 w-6"
+        fill="none"
+        viewBox="0 0 24 24"
+      >
+        <rect
+          x="3"
+          y="3"
+          width="18"
+          height="18"
+          rx="2"
+          fill={value === "none" ? "none" : "currentColor"}
+          fillOpacity={value === "none" ? 1 : 0.2}
+          stroke="currentColor"
+          strokeWidth="2"
+        />
+        {value === "diagonal-stripes" ? (
+          <path
+            d="M4 19 L19 4 M10 21 L21 10 M3 13 L13 3"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          />
+        ) : null}
+      </svg>
+    </span>
+  );
 }
 
-function getWeightLabel(strokeWidth: number) {
+function ShapeBorderStyleIcon({ bordered }: { bordered: boolean }) {
   return (
-    WEIGHT_OPTIONS.find(
-      (option) => option.value === getWeightValue(strokeWidth),
-    )?.label ?? "Weight"
+    <span className="flex h-6 w-6 items-center justify-center">
+      <svg
+        aria-hidden="true"
+        className="h-6 w-6"
+        fill="none"
+        viewBox="0 0 24 24"
+      >
+        <rect
+          x="3"
+          y="3"
+          width="18"
+          height="18"
+          rx="2"
+          fill="currentColor"
+          fillOpacity="0.12"
+          stroke={bordered ? "currentColor" : "none"}
+          strokeWidth="2"
+        />
+      </svg>
+    </span>
   );
 }
 
@@ -92,52 +111,8 @@ function ShapeLineStylePopoverContent({
           key={option.value}
           active={lineStyle === option.value}
           ariaLabel={`Shape line style ${option.label}`}
-          icon={
-            <span className="flex h-5 w-10 items-center justify-center">
-              <span
-                className="bg-current"
-                style={{
-                  width: 28,
-                  height: 2.5,
-                  borderRadius: 9999,
-                  opacity: option.value === "dashed" ? 0.6 : 1,
-                }}
-              />
-            </span>
-          }
+          icon={<LineStyleIcon dashed={option.value === "dashed"} />}
           onClick={() => onSelect(option.value)}
-        />
-      ))}
-    </div>
-  );
-}
-
-function ShapeWeightPopoverContent({
-  strokeWidth,
-  onSelect,
-}: {
-  strokeWidth: number;
-  onSelect: (value: number) => void;
-}) {
-  return (
-    <div className="grid grid-cols-2 gap-2">
-      {WEIGHT_OPTIONS.map((option) => (
-        <BoardEditorToolbarOptionButton
-          key={option.value}
-          active={getWeightValue(strokeWidth) === option.value}
-          ariaLabel={`Shape weight ${option.label}`}
-          icon={
-            <span className="flex h-5 w-10 items-center justify-center">
-              <span
-                className="rounded-full bg-current"
-                style={{
-                  width: 28,
-                  height: getWeightPreviewHeight(option.strokeWidth),
-                }}
-              />
-            </span>
-          }
-          onClick={() => onSelect(option.strokeWidth)}
         />
       ))}
     </div>
@@ -158,35 +133,7 @@ function ShapeFillPopoverContent({
           key={option.value}
           active={value === option.value}
           ariaLabel={`Shape style ${option.label}`}
-          icon={
-            <span className="flex h-5 w-10 items-center justify-center">
-              <svg
-                aria-hidden="true"
-                className="h-5 w-10"
-                fill="none"
-                viewBox="0 0 40 20"
-              >
-                <rect
-                  x="9"
-                  y="4"
-                  width="22"
-                  height="12"
-                  rx="2"
-                  fill={option.value === "none" ? "none" : "currentColor"}
-                  fillOpacity={option.value === "none" ? 1 : 0.2}
-                  stroke="currentColor"
-                  strokeWidth="2"
-                />
-                {option.value === "diagonal-stripes" ? (
-                  <path
-                    d="M10 15 L20 5 M15 17 L27 5 M22 17 L30 9"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                  />
-                ) : null}
-              </svg>
-            </span>
-          }
+          icon={<ShapeFillStyleIcon value={option.value} />}
           onClick={() => onSelect(option.value)}
         />
       ))}
@@ -208,28 +155,7 @@ function ShapeBorderPopoverContent({
           key={String(option.value)}
           active={value === option.value}
           ariaLabel={`Shape border ${option.label}`}
-          icon={
-            <span className="flex h-5 w-10 items-center justify-center">
-              <svg
-                aria-hidden="true"
-                className="h-5 w-10"
-                fill="none"
-                viewBox="0 0 40 20"
-              >
-                <rect
-                  x="9"
-                  y="4"
-                  width="22"
-                  height="12"
-                  rx="2"
-                  fill="currentColor"
-                  fillOpacity="0.12"
-                  stroke={option.value ? "currentColor" : "none"}
-                  strokeWidth="2"
-                />
-              </svg>
-            </span>
-          }
+          icon={<ShapeBorderStyleIcon bordered={option.value} />}
           onClick={() => onSelect(option.value)}
         />
       ))}
@@ -276,7 +202,7 @@ export function BoardEditorShapeSelectionToolbar({
           }
           icon={
             <span
-              className="border-tb-border-default inline-flex h-5 w-5 rounded-full border"
+              className="border-tb-border-default inline-flex h-6 w-6 rounded-full border"
               style={{ backgroundColor: selectedObject.props.color }}
             >
               <span className="sr-only">{selectedObject.props.color}</span>
@@ -293,30 +219,10 @@ export function BoardEditorShapeSelectionToolbar({
               onSelect={(value) => updateShapeProps({ lineStyle: value })}
             />
           }
-          icon={<LineSegmentsIcon weight="bold" />}
-        />
-
-        <BoardEditorToolbarPopoverButton
-          ariaLabel="Shape weight"
-          tooltip={`Weight: ${getWeightLabel(selectedObject.props.strokeWidth)}`}
-          content={
-            <ShapeWeightPopoverContent
-              strokeWidth={selectedObject.props.strokeWidth}
-              onSelect={(value) => updateShapeProps({ strokeWidth: value })}
-            />
-          }
           icon={
-            <span className="flex h-5 w-10 items-center justify-center">
-              <span
-                className="rounded-full bg-current"
-                style={{
-                  width: 28,
-                  height: getWeightPreviewHeight(
-                    selectedObject.props.strokeWidth,
-                  ),
-                }}
-              />
-            </span>
+            <LineStyleIcon
+              dashed={selectedObject.props.lineStyle === "dashed"}
+            />
           }
         />
 
@@ -329,7 +235,7 @@ export function BoardEditorShapeSelectionToolbar({
               onSelect={(value) => updateShapeProps({ fillStyle: value })}
             />
           }
-          icon={<SquareIcon weight="bold" />}
+          icon={<ShapeFillStyleIcon value={selectedObject.props.fillStyle} />}
         />
 
         <BoardEditorToolbarPopoverButton
@@ -341,8 +247,11 @@ export function BoardEditorShapeSelectionToolbar({
               onSelect={(value) => updateShapeProps({ bordered: value })}
             />
           }
-          icon={<LineSegmentsIcon weight="bold" />}
+          icon={
+            <ShapeBorderStyleIcon bordered={selectedObject.props.bordered} />
+          }
         />
+
         <BoardEditorToolbarSeparator />
         <BoardEditorSelectionActionsMenu
           selectedObjectIds={[selectedObject.id]}
