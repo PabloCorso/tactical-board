@@ -34,6 +34,7 @@ const POLYGON_FINISH_HIT_RADIUS_PX = 12;
 const DIAGONAL_STRIPE_TILE_SIZE_PX = 11;
 const DIAGONAL_STRIPE_LINE_WIDTH_PX = 2.25;
 const RECTANGLE_CORNER_RADIUS_RATIO = 0.08;
+const MAX_RECTANGLE_CORNER_RADIUS_PX = 8;
 const DEFAULT_SHAPE_PREVIEW_SIZE = {
   width: 16,
   height: 12,
@@ -343,11 +344,7 @@ function getRenderedRectangleMetrics(
   const height = Math.abs(
     (shape.size?.height ?? shape.size?.width ?? 0) * frameTransform.scale,
   );
-  const radius = Math.min(
-    Math.min(width, height) * RECTANGLE_CORNER_RADIUS_RATIO,
-    width / 2,
-    height / 2,
-  );
+  const radius = getRectangleCornerRadius(width, height);
 
   return {
     center,
@@ -357,6 +354,15 @@ function getRenderedRectangleMetrics(
     halfHeight: height / 2,
     radius,
   };
+}
+
+export function getRectangleCornerRadius(width: number, height: number) {
+  return Math.min(
+    Math.min(Math.abs(width), Math.abs(height)) * RECTANGLE_CORNER_RADIUS_RATIO,
+    MAX_RECTANGLE_CORNER_RADIUS_PX,
+    Math.abs(width) / 2,
+    Math.abs(height) / 2,
+  );
 }
 
 function rotateLocalCanvasPoint(
