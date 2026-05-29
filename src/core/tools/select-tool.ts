@@ -737,6 +737,41 @@ function isGroupSelectionChromeHit(
   );
 }
 
+function isPointInsideGroupSelectionBounds(
+  state: Pick<BoardEditorState, "objectRegistry">,
+  projection: SelectionProjection,
+  objects: BoardObject[],
+  event: ToolPointerEvent,
+) {
+  if (objects.length <= 1) {
+    return false;
+  }
+
+  const canvasBounds = getGroupSelectionCanvasBounds(
+    projection,
+    objects,
+    Object.fromEntries(
+      objects.map((object) => [
+        object.id,
+        getObjectSelectionAdapterForObject(state, object),
+      ]),
+    ),
+  );
+
+  if (!canvasBounds) {
+    return false;
+  }
+
+  const canvasPoint = projection.boardToCanvas(event.point);
+
+  return (
+    canvasPoint.x >= canvasBounds.left &&
+    canvasPoint.x <= canvasBounds.right &&
+    canvasPoint.y >= canvasBounds.top &&
+    canvasPoint.y <= canvasBounds.bottom
+  );
+}
+
 function createGroupSelectionOverlayItem(
   state: BoardEditorState,
   selectState: SelectToolState,
@@ -964,6 +999,9 @@ function setSelectState(api: ToolApi, value: Partial<SelectToolState>) {
 function beginSelectionInteraction(event: ToolPointerEvent, api: ToolApi) {
   const state = api.getState();
   const selectedObjectIds = state.selection.selectedObjectIds;
+  const selectedObjects = selectedObjectIds
+    .map((objectId) => state.board.objects.byId[objectId])
+    .filter((object): object is BoardObject => Boolean(object));
   const projection = createBoardSpaceProjection({
     frame: state.board.frame,
     viewport: state.ui.viewport,
@@ -975,9 +1013,7 @@ function beginSelectionInteraction(event: ToolPointerEvent, api: ToolApi) {
       ? hitGroupSelectionHandle(
           state,
           projection as SelectionProjection,
-          selectedObjectIds
-            .map((objectId) => state.board.objects.byId[objectId])
-            .filter((object): object is BoardObject => Boolean(object)),
+          selectedObjects,
           event,
         )
       : undefined;
@@ -999,38 +1035,41 @@ function beginSelectionInteraction(event: ToolPointerEvent, api: ToolApi) {
     isGroupSelectionChromeHit(
       state,
       projection as SelectionProjection,
-      selectedObjectIds
-        .map((objectId) => state.board.objects.byId[objectId])
-        .filter((object): object is BoardObject => Boolean(object)),
+      selectedObjects,
       event,
     )
   ) {
     return;
   }
 
-  for (const objectId of selectedObjectIds) {
-    const object = state.board.objects.byId[objectId];
-    const selectionAdapter = getObjectSelectionAdapterForObject(state, object);
-    const session = object
-      ? selectionAdapter?.hitSelectionHandle?.({
-          state,
-          object,
-          projection: projection as SelectionProjection,
-          event,
-        })
-      : undefined;
+  if (selectedObjectIds.length === 1) {
+    for (const objectId of selectedObjectIds) {
+      const object = state.board.objects.byId[objectId];
+      const selectionAdapter = getObjectSelectionAdapterForObject(
+        state,
+        object,
+      );
+      const session = object
+        ? selectionAdapter?.hitSelectionHandle?.({
+            state,
+            object,
+            projection: projection as SelectionProjection,
+            event,
+          })
+        : undefined;
 
-    if (object && session) {
-      api.beginHistoryBatch();
-      api.setSelectedObjectIds([object.id]);
-      setSelectState(api, {
-        interaction: {
-          mode: "object-selection",
-          objectId: object.id,
-          session,
-        } satisfies ObjectSelectionInteraction,
-      });
-      return;
+      if (object && session) {
+        api.beginHistoryBatch();
+        api.setSelectedObjectIds([object.id]);
+        setSelectState(api, {
+          interaction: {
+            mode: "object-selection",
+            objectId: object.id,
+            session,
+          } satisfies ObjectSelectionInteraction,
+        });
+        return;
+      }
     }
   }
 
@@ -1077,6 +1116,31 @@ function beginSelectionInteraction(event: ToolPointerEvent, api: ToolApi) {
     });
 
     if (transformCapabilities?.move !== false) {
+      api.beginHistoryBatch();
+    }
+    return;
+  }
+
+  if (
+    selectedObjectIds.length > 1 &&
+    isPointInsideGroupSelectionBounds(
+      state,
+      projection as SelectionProjection,
+      selectedObjects,
+      event,
+    )
+  ) {
+    setSelectState(api, {
+      interaction: selectedObjects.some((object) => object.locked)
+        ? undefined
+        : {
+            mode: "drag",
+            dragObjectIds: selectedObjectIds,
+            lastPoint: event.point,
+          },
+    });
+
+    if (!selectedObjects.some((object) => object.locked)) {
       api.beginHistoryBatch();
     }
     return;

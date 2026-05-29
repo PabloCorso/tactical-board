@@ -31,7 +31,7 @@ import { setSelectedObjectIds } from "../tools/select-tool-actions";
 import { TextTool } from "../tools/text-tool";
 import { getArrowToolState } from "../tools/arrow-tool-state";
 import { getPlayerToolState, PLAYER_TOOL_ID } from "../tools/player-tool-state";
-import { SELECT_TOOL_ID } from "../tools/select-tool-state";
+import { getSelectToolState, SELECT_TOOL_ID } from "../tools/select-tool-state";
 import { getShapeToolState } from "../tools/shape-tool-state";
 import { getTextToolState, TEXT_TOOL_ID } from "../tools/text-tool-state";
 import type { ToolDefinition } from "../tools/types";
@@ -1358,6 +1358,218 @@ describe("createBoardEditorController", () => {
     );
     expect(resizedFirstPlayer.size).toMatchObject(firstPlayer.size ?? {});
     expect(resizedSecondPlayer.size).toMatchObject(secondPlayer.size ?? {});
+  });
+
+  it("drags a multi selection from a child resize edge without selecting the child", () => {
+    const shapeTool = new ShapeTool();
+    const firstShape = createShapeObject({
+      id: "shape-1",
+      kind: "rectangle",
+      start: { x: 20, y: 20 },
+      end: { x: 30, y: 50 },
+      color: "#111827",
+      strokeWidth: 2,
+      lineStyle: "solid",
+      fillStyle: "none",
+      bordered: true,
+    });
+    const secondShape = createShapeObject({
+      id: "shape-2",
+      kind: "rectangle",
+      start: { x: 70, y: 80 },
+      end: { x: 80, y: 90 },
+      color: "#111827",
+      strokeWidth: 2,
+      lineStyle: "solid",
+      fillStyle: "none",
+      bordered: true,
+    });
+    const store = createBoardEditorStore({
+      initialBoard: createTestBoard([firstShape, secondShape]),
+      initialToolId: SELECT_TOOL_ID,
+      tools: [selectTool, shapeTool],
+    });
+    const toolApi = createToolApi(store);
+    shapeTool.registerCapabilities?.(toolApi);
+    setSelectedObjectIds(toolApi, [firstShape.id, secondShape.id]);
+
+    const controller = createBoardEditorController(store);
+    const projection = createBoardSpaceProjection({
+      frame: store.getState().board.frame,
+      viewport: store.getState().ui.viewport,
+      canvasRect,
+    });
+    const firstShapeOutline = getShapeSelectionOutlineCanvasPoints(
+      projection,
+      firstShape,
+    );
+    const childResizeEdge = {
+      x: (firstShapeOutline[1]!.x + firstShapeOutline[2]!.x) / 2,
+      y: (firstShapeOutline[1]!.y + firstShapeOutline[2]!.y) / 2,
+    };
+    const dragTarget = {
+      x: childResizeEdge.x + 60,
+      y: childResizeEdge.y + 30,
+    };
+
+    controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: childResizeEdge,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+    controller.dispatchPointerEvent("onPointerMove", {
+      clientPoint: dragTarget,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    expect(store.getState().selection.selectedObjectIds).toEqual([
+      firstShape.id,
+      secondShape.id,
+    ]);
+    expect(getSelectToolState(store.getState().toolState).interaction).toEqual({
+      mode: "drag",
+      dragObjectIds: [firstShape.id, secondShape.id],
+      lastPoint: projection.canvasToBoard(dragTarget),
+    });
+
+    const movedFirstShape = store.getState().board.objects.byId[
+      firstShape.id
+    ] as ShapeObject;
+    const movedSecondShape = store.getState().board.objects.byId[
+      secondShape.id
+    ] as ShapeObject;
+    const delta = {
+      x:
+        projection.canvasToBoard(dragTarget).x -
+        projection.canvasToBoard(childResizeEdge).x,
+      y:
+        projection.canvasToBoard(dragTarget).y -
+        projection.canvasToBoard(childResizeEdge).y,
+    };
+
+    expect(movedFirstShape.position).toEqual({
+      x: firstShape.position.x + delta.x,
+      y: firstShape.position.y + delta.y,
+    });
+    expect(movedSecondShape.position).toEqual({
+      x: secondShape.position.x + delta.x,
+      y: secondShape.position.y + delta.y,
+    });
+    expect(movedFirstShape.size).toMatchObject(firstShape.size ?? {});
+  });
+
+  it("drags a multi selection from a hidden child rotate handle without rotating the child", () => {
+    const shapeTool = new ShapeTool();
+    const firstShape = createShapeObject({
+      id: "shape-1",
+      kind: "rectangle",
+      start: { x: 45, y: 45 },
+      end: { x: 55, y: 55 },
+      color: "#111827",
+      strokeWidth: 2,
+      lineStyle: "solid",
+      fillStyle: "none",
+      bordered: true,
+    });
+    const secondShape = createShapeObject({
+      id: "shape-2",
+      kind: "rectangle",
+      start: { x: 20, y: 80 },
+      end: { x: 30, y: 90 },
+      color: "#111827",
+      strokeWidth: 2,
+      lineStyle: "solid",
+      fillStyle: "none",
+      bordered: true,
+    });
+    const store = createBoardEditorStore({
+      initialBoard: createTestBoard([firstShape, secondShape]),
+      initialToolId: SELECT_TOOL_ID,
+      tools: [selectTool, shapeTool],
+    });
+    const toolApi = createToolApi(store);
+    shapeTool.registerCapabilities?.(toolApi);
+    setSelectedObjectIds(toolApi, [firstShape.id, secondShape.id]);
+
+    const controller = createBoardEditorController(store);
+    const projection = createBoardSpaceProjection({
+      frame: store.getState().board.frame,
+      viewport: store.getState().ui.viewport,
+      canvasRect,
+    });
+    const hiddenRotateHandle = getCornerHandleCanvasPoint(
+      getShapeSelectionOutlineCanvasPoints(projection, firstShape),
+      3,
+      18,
+    );
+    const dragTarget = {
+      x: hiddenRotateHandle.x + 40,
+      y: hiddenRotateHandle.y + 20,
+    };
+
+    controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: hiddenRotateHandle,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+    controller.dispatchPointerEvent("onPointerMove", {
+      clientPoint: dragTarget,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    expect(store.getState().selection.selectedObjectIds).toEqual([
+      firstShape.id,
+      secondShape.id,
+    ]);
+    expect(getSelectToolState(store.getState().toolState).interaction).toEqual({
+      mode: "drag",
+      dragObjectIds: [firstShape.id, secondShape.id],
+      lastPoint: projection.canvasToBoard(dragTarget),
+    });
+
+    const movedFirstShape = store.getState().board.objects.byId[
+      firstShape.id
+    ] as ShapeObject;
+    const movedSecondShape = store.getState().board.objects.byId[
+      secondShape.id
+    ] as ShapeObject;
+    const delta = {
+      x:
+        projection.canvasToBoard(dragTarget).x -
+        projection.canvasToBoard(hiddenRotateHandle).x,
+      y:
+        projection.canvasToBoard(dragTarget).y -
+        projection.canvasToBoard(hiddenRotateHandle).y,
+    };
+
+    expect(movedFirstShape.position).toEqual({
+      x: firstShape.position.x + delta.x,
+      y: firstShape.position.y + delta.y,
+    });
+    expect(movedSecondShape.position).toEqual({
+      x: secondShape.position.x + delta.x,
+      y: secondShape.position.y + delta.y,
+    });
+    expect(movedFirstShape.rotation).toBe(firstShape.rotation);
+    expect(movedSecondShape.rotation).toBe(secondShape.rotation);
   });
 
   it("scales geometric objects but only repositions players during group resize", () => {
