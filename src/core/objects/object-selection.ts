@@ -35,6 +35,24 @@ export interface ObjectSelectionInteractionInput<
   event: ToolPointerEvent;
 }
 
+export interface ObjectSelectionGroupResizeInput<
+  TObject extends BoardObject = BoardObject,
+> {
+  object: TObject;
+  bounds: {
+    minX: number;
+    maxX: number;
+    minY: number;
+    maxY: number;
+  };
+  nextBounds: {
+    minX: number;
+    maxX: number;
+    minY: number;
+    maxY: number;
+  };
+}
+
 export interface ObjectSelectionToolbarAnchorInput<
   TObject extends BoardObject = BoardObject,
 > {
@@ -74,6 +92,9 @@ export interface ObjectSelectionAdapter<
   hitSelectionHandle?: (
     input: ObjectSelectionHitTestInput<TObject>,
   ) => TSession | undefined;
+  updateGroupResizeInteraction?: (
+    input: ObjectSelectionGroupResizeInput<TObject>,
+  ) => TObject;
   updateSelectionInteraction?: (
     input: ObjectSelectionInteractionInput<TObject, TSession>,
   ) => TObject;

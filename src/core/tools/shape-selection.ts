@@ -177,6 +177,71 @@ function getShapeResizeReferencePoint(
   }
 }
 
+function remapValue(
+  value: number,
+  fromMin: number,
+  fromMax: number,
+  toMin: number,
+  toMax: number,
+) {
+  const fromSpan = fromMax - fromMin;
+
+  if (Math.abs(fromSpan) < 1e-6) {
+    return (toMin + toMax) / 2;
+  }
+
+  return toMin + ((value - fromMin) / fromSpan) * (toMax - toMin);
+}
+
+function remapShapeBoundsForGroupResize(
+  shape: ShapeObject,
+  bounds: {
+    minX: number;
+    maxX: number;
+    minY: number;
+    maxY: number;
+  },
+  nextBounds: {
+    minX: number;
+    maxX: number;
+    minY: number;
+    maxY: number;
+  },
+) {
+  const shapeBounds = getShapeBounds(shape.props);
+
+  return {
+    minX: remapValue(
+      shapeBounds.minX,
+      bounds.minX,
+      bounds.maxX,
+      nextBounds.minX,
+      nextBounds.maxX,
+    ),
+    maxX: remapValue(
+      shapeBounds.maxX,
+      bounds.minX,
+      bounds.maxX,
+      nextBounds.minX,
+      nextBounds.maxX,
+    ),
+    minY: remapValue(
+      shapeBounds.minY,
+      bounds.minY,
+      bounds.maxY,
+      nextBounds.minY,
+      nextBounds.maxY,
+    ),
+    maxY: remapValue(
+      shapeBounds.maxY,
+      bounds.minY,
+      bounds.maxY,
+      nextBounds.minY,
+      nextBounds.maxY,
+    ),
+  };
+}
+
 function getShapeRotateHandleCanvasPoint(
   projection: Parameters<
     NonNullable<ObjectSelectionAdapter<ShapeObject>["renderSelection"]>
@@ -402,6 +467,11 @@ export const shapeSelectionAdapter: ObjectSelectionAdapter<
 
     return undefined;
   },
+  updateGroupResizeInteraction: ({ object, bounds, nextBounds }) =>
+    resizeShapeObjectToBounds(
+      object,
+      remapShapeBoundsForGroupResize(object, bounds, nextBounds),
+    ),
   updateSelectionInteraction: ({ object, session, event }) => {
     if (session.kind === "rotate") {
       return rotateShapeObject(

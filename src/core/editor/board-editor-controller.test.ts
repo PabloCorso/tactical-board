@@ -3,9 +3,11 @@ import { createBoardEditorController } from "./board-editor-controller";
 import { createToolApi } from "./create-tool-api";
 import { createBoardSpaceProjection } from "../geometry/board-space-projection";
 import { createBoardEditorStore } from "../store/board-editor-store";
+import type { BoardObject } from "../board/types";
 import {
   createArrowObject,
   getArrowCurveHandlePoint,
+  type ArrowObject,
 } from "../objects/arrow-object";
 import {
   createEquipmentObject,
@@ -18,9 +20,11 @@ import {
 } from "../objects/player-object";
 import { createShapeObject, type ShapeObject } from "../objects/shape-object";
 import { ArrowTool } from "../tools/arrow-tool";
+import { getArrowSelectionCanvasBounds } from "../tools/arrow-selection";
 import { EquipmentTool } from "../tools/equipment-tool";
 import { PlayerTool } from "../tools/player-tool";
 import { getPlayerSelectionOutlineCanvasPoints } from "../tools/player-selection";
+import { getShapeSelectionOutlineCanvasPoints } from "../tools/shape-selection";
 import { ShapeTool } from "../tools/shape-tool";
 import { SelectTool } from "../tools/select-tool";
 import { setSelectedObjectIds } from "../tools/select-tool-actions";
@@ -79,6 +83,60 @@ describe("createBoardEditorController", () => {
       right: Math.max(...points.map((point) => point.x)),
       top: Math.min(...points.map((point) => point.y)),
       bottom: Math.max(...points.map((point) => point.y)),
+    };
+  };
+  const getMixedSelectionCanvasBounds = (
+    projection: ReturnType<typeof createBoardSpaceProjection>,
+    objects: BoardObject[],
+  ) => {
+    const bounds = objects.map((object) => {
+      if (object.type === "player") {
+        const points = getPlayerSelectionOutlineCanvasPoints(
+          projection,
+          object as PlayerObject,
+        );
+
+        return {
+          left: Math.min(...points.map((point) => point.x)),
+          right: Math.max(...points.map((point) => point.x)),
+          top: Math.min(...points.map((point) => point.y)),
+          bottom: Math.max(...points.map((point) => point.y)),
+        };
+      }
+
+      if (object.type === "shape") {
+        const points = getShapeSelectionOutlineCanvasPoints(
+          projection,
+          object as ShapeObject,
+        );
+
+        return {
+          left: Math.min(...points.map((point) => point.x)),
+          right: Math.max(...points.map((point) => point.x)),
+          top: Math.min(...points.map((point) => point.y)),
+          bottom: Math.max(...points.map((point) => point.y)),
+        };
+      }
+
+      if (object.type === "arrow") {
+        return getArrowSelectionCanvasBounds(projection, object as ArrowObject);
+      }
+
+      const objectBounds = projection.getObjectCanvasBounds(object);
+
+      return {
+        left: objectBounds.x,
+        right: objectBounds.x + objectBounds.width,
+        top: objectBounds.y,
+        bottom: objectBounds.y + objectBounds.height,
+      };
+    });
+
+    return {
+      left: Math.min(...bounds.map((bound) => bound.left)),
+      right: Math.max(...bounds.map((bound) => bound.right)),
+      top: Math.min(...bounds.map((bound) => bound.top)),
+      bottom: Math.max(...bounds.map((bound) => bound.bottom)),
     };
   };
   it("keeps the arrow tool in creation mode when pointer down hits an existing arrow", () => {
@@ -1612,6 +1670,157 @@ describe("createBoardEditorController", () => {
     );
     expect(resizedFirstPlayer.size).toMatchObject(firstPlayer.size ?? {});
     expect(resizedSecondPlayer.size).toMatchObject(secondPlayer.size ?? {});
+  });
+
+  it("scales geometric objects but only repositions players during group resize", () => {
+    const playerTool = new PlayerTool();
+    const shapeTool = new ShapeTool();
+    const arrowTool = new ArrowTool();
+    const player = createPlayerObject({
+      id: "player-1",
+      position: { x: 10, y: 10 },
+      rotation: 0,
+      size: { width: 2.5, height: 2.5 },
+      color: "#ffffff",
+    });
+    const shape = createShapeObject({
+      id: "shape-1",
+      kind: "rectangle",
+      start: { x: 20, y: 8 },
+      end: { x: 30, y: 14 },
+      color: "#111827",
+      strokeWidth: 2,
+      lineStyle: "solid",
+      fillStyle: "none",
+      bordered: true,
+    });
+    const arrow = createArrowObject({
+      id: "arrow-1",
+      start: { x: 34, y: 10 },
+      end: { x: 44, y: 10 },
+      color: "#111827",
+      strokeWidth: 2,
+      lineStyle: "solid",
+      kind: "straight",
+      startHead: "none",
+      endHead: "triangle",
+    });
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        frame: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {
+            [player.id]: player,
+            [shape.id]: shape,
+            [arrow.id]: arrow,
+          },
+          order: [player.id, shape.id, arrow.id],
+        },
+        style: {},
+      },
+      initialToolId: SELECT_TOOL_ID,
+      tools: [selectTool, playerTool, shapeTool, arrowTool],
+    });
+    const toolApi = createToolApi(store);
+    playerTool.registerCapabilities?.(toolApi);
+    shapeTool.registerCapabilities?.(toolApi);
+    arrowTool.registerCapabilities?.(toolApi);
+    setSelectedObjectIds(toolApi, [player.id, shape.id, arrow.id]);
+
+    const controller = createBoardEditorController(store);
+    const canvasRect = {
+      left: 0,
+      top: 0,
+      width: 1000,
+      height: 500,
+    };
+    const projection = createBoardSpaceProjection({
+      frame: store.getState().board.frame,
+      viewport: store.getState().ui.viewport,
+      canvasRect,
+      viewportInsets: { top: 14, right: 14, bottom: 14, left: 14 },
+    });
+    const bounds = getMixedSelectionCanvasBounds(projection, [
+      player,
+      shape,
+      arrow,
+    ]);
+    const handlePoint = {
+      x: bounds.right,
+      y: (bounds.top + bounds.bottom) / 2,
+    };
+    const initialBoardBounds = {
+      minX: projection.canvasToBoard({ x: bounds.left, y: bounds.top }).x,
+      maxX: projection.canvasToBoard({ x: bounds.right, y: bounds.bottom }).x,
+      minY: projection.canvasToBoard({ x: bounds.left, y: bounds.top }).y,
+      maxY: projection.canvasToBoard({ x: bounds.right, y: bounds.bottom }).y,
+    };
+    const nextBoardBounds = {
+      ...initialBoardBounds,
+      maxX: initialBoardBounds.maxX + 12,
+    };
+    const dragPoint = {
+      x: projection.boardToCanvas({ x: nextBoardBounds.maxX, y: 0 }).x,
+      y: handlePoint.y,
+    };
+    const remapX = (value: number) =>
+      initialBoardBounds.minX +
+      ((value - initialBoardBounds.minX) /
+        (initialBoardBounds.maxX - initialBoardBounds.minX)) *
+        (nextBoardBounds.maxX - initialBoardBounds.minX);
+
+    controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: handlePoint,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+    controller.dispatchPointerEvent("onPointerMove", {
+      clientPoint: dragPoint,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    const resizedPlayer = store.getState().board.objects.byId[
+      player.id
+    ] as PlayerObject;
+    const resizedShape = store.getState().board.objects.byId[
+      shape.id
+    ] as ShapeObject;
+    const resizedArrow = store.getState().board.objects.byId[
+      arrow.id
+    ] as ArrowObject;
+
+    expect(resizedPlayer.position.x).toBeCloseTo(remapX(player.position.x), 6);
+    expect(resizedPlayer.size).toMatchObject(player.size ?? {});
+    expect(resizedShape.props.start?.x).toBeCloseTo(
+      remapX(shape.props.start!.x),
+      6,
+    );
+    expect(resizedShape.props.end?.x).toBeCloseTo(
+      remapX(shape.props.end!.x),
+      6,
+    );
+    expect(resizedShape.size?.width).toBeGreaterThan(shape.size?.width ?? 0);
+    expect(resizedArrow.props.start.x).toBeCloseTo(
+      remapX(arrow.props.start.x),
+      6,
+    );
+    expect(resizedArrow.props.end.x).toBeCloseTo(remapX(arrow.props.end.x), 6);
+    expect(resizedArrow.size?.width).toBeGreaterThan(arrow.size?.width ?? 0);
   });
 
   it("resizes a multi selection diagonally from a corner handle", () => {

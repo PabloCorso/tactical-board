@@ -520,6 +520,39 @@ function remapValue(
   return toMin + ((value - fromMin) / fromSpan) * (toMax - toMin);
 }
 
+function remapPoint(
+  point: Point,
+  bounds: {
+    minX: number;
+    maxX: number;
+    minY: number;
+    maxY: number;
+  },
+  nextBounds: {
+    minX: number;
+    maxX: number;
+    minY: number;
+    maxY: number;
+  },
+) {
+  return {
+    x: remapValue(
+      point.x,
+      bounds.minX,
+      bounds.maxX,
+      nextBounds.minX,
+      nextBounds.maxX,
+    ),
+    y: remapValue(
+      point.y,
+      bounds.minY,
+      bounds.maxY,
+      nextBounds.minY,
+      nextBounds.maxY,
+    ),
+  };
+}
+
 function isGroupSelectionChromeHit(
   state: Pick<BoardEditorState, "objectRegistry">,
   projection: SelectionProjection,
@@ -1308,22 +1341,20 @@ function updateGroupSelectionInteraction(
       return object;
     }
 
-    const nextPosition = {
-      x: remapValue(
-        initialObject.position.x,
-        bounds.minX,
-        bounds.maxX,
-        nextBounds.minX,
-        nextBounds.maxX,
-      ),
-      y: remapValue(
-        initialObject.position.y,
-        bounds.minY,
-        bounds.maxY,
-        nextBounds.minY,
-        nextBounds.maxY,
-      ),
-    };
+    const selectionAdapter = getObjectSelectionAdapterForObject(
+      api.getState(),
+      initialObject,
+    );
+
+    if (selectionAdapter?.updateGroupResizeInteraction) {
+      return selectionAdapter.updateGroupResizeInteraction({
+        object: initialObject,
+        bounds,
+        nextBounds,
+      });
+    }
+
+    const nextPosition = remapPoint(initialObject.position, bounds, nextBounds);
 
     return moveBoardObject(api.getState(), initialObject, {
       x: nextPosition.x - initialObject.position.x,

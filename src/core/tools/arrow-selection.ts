@@ -4,10 +4,12 @@ import {
   getArrowBodyStrokeWidth,
   getArrowBodyPolylines,
   getArrowControlPoint,
+  getArrowCurveOffset,
   getArrowCurveHandlePoint,
   getArrowCurveOffsetFromHandlePoint,
   setArrowCurveOffset,
   setArrowEndpoint,
+  updateArrowObject,
   type ArrowHeadStyle,
   type ArrowObject,
 } from "../objects/arrow-object";
@@ -54,6 +56,55 @@ function offsetPointToward(
   return {
     x: point.x + (dx / length) * clampedDistance,
     y: point.y + (dy / length) * clampedDistance,
+  };
+}
+
+function remapValue(
+  value: number,
+  fromMin: number,
+  fromMax: number,
+  toMin: number,
+  toMax: number,
+) {
+  const fromSpan = fromMax - fromMin;
+
+  if (Math.abs(fromSpan) < 1e-6) {
+    return (toMin + toMax) / 2;
+  }
+
+  return toMin + ((value - fromMin) / fromSpan) * (toMax - toMin);
+}
+
+function remapPoint(
+  point: { x: number; y: number },
+  bounds: {
+    minX: number;
+    maxX: number;
+    minY: number;
+    maxY: number;
+  },
+  nextBounds: {
+    minX: number;
+    maxX: number;
+    minY: number;
+    maxY: number;
+  },
+) {
+  return {
+    x: remapValue(
+      point.x,
+      bounds.minX,
+      bounds.maxX,
+      nextBounds.minX,
+      nextBounds.maxX,
+    ),
+    y: remapValue(
+      point.y,
+      bounds.minY,
+      bounds.maxY,
+      nextBounds.minY,
+      nextBounds.maxY,
+    ),
   };
 }
 
@@ -171,6 +222,31 @@ export const arrowSelectionAdapter: ObjectSelectionAdapter<
 > = {
   getCanvasBounds: ({ object, projection }) =>
     getArrowSelectionCanvasBounds(projection, object),
+  updateGroupResizeInteraction: ({ object, bounds, nextBounds }) => {
+    const start = remapPoint(object.props.start, bounds, nextBounds);
+    const end = remapPoint(object.props.end, bounds, nextBounds);
+    const controlPoint =
+      object.props.kind === "curved"
+        ? remapPoint(
+            getArrowControlPoint(
+              object.props.start,
+              object.props.end,
+              object.props.curveOffset,
+            ),
+            bounds,
+            nextBounds,
+          )
+        : undefined;
+
+    return updateArrowObject(object, {
+      start,
+      end,
+      curveOffset:
+        object.props.kind === "curved"
+          ? getArrowCurveOffset(start, end, controlPoint)
+          : object.props.curveOffset,
+    });
+  },
   renderSelection: ({ context, object, projection, color }) => {
     const startPoint = projection.boardToCanvas(object.props.start);
     const endPoint = projection.boardToCanvas(object.props.end);
