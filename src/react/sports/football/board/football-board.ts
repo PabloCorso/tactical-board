@@ -654,6 +654,63 @@ const pitchFrameHeight =
   FOOTBALL_FULL_PITCH_METRICS.field.width +
   FOOTBALL_FULL_PITCH_METRICS.perimeter.goalLine * 2;
 
+function getFootballPitchPreviewSize(
+  options: FootballPitchVariant | CreateFootballPitchOptions = "full-pitch",
+): { height: number; width: number } {
+  const variant = typeof options === "string" ? options : options.variant;
+  const orientation =
+    typeof options === "string" ? undefined : options.orientation;
+  const resolvedVariant = variant ?? "full-pitch";
+  const lineWidth = FOOTBALL_FULL_PITCH_METRICS.lineWidth;
+
+  if (resolvedVariant === "reduced-space") {
+    return {
+      width: metersToPixels(halfPitchFrameWidth),
+      height: metersToPixels(halfPitchFrameHeight),
+    };
+  }
+
+  if (resolvedVariant === "half-pitch") {
+    return {
+      width: metersToPixels(FOOTBALL_FULL_PITCH_METRICS.field.width + lineWidth),
+      height: metersToPixels(
+        FOOTBALL_FULL_PITCH_METRICS.field.length / 2 +
+          FOOTBALL_FULL_PITCH_METRICS.goal.frameDepth +
+          lineWidth,
+      ),
+    };
+  }
+
+  const width =
+    FOOTBALL_FULL_PITCH_METRICS.field.length +
+    FOOTBALL_FULL_PITCH_METRICS.goal.frameDepth * 2 +
+    lineWidth;
+  const height = FOOTBALL_FULL_PITCH_METRICS.field.width + lineWidth;
+
+  if (orientation === 90 || orientation === 270) {
+    return {
+      width: metersToPixels(height),
+      height: metersToPixels(width),
+    };
+  }
+
+  return {
+    width: metersToPixels(width),
+    height: metersToPixels(height),
+  };
+}
+
+export function getFootballPitchAspectRatio(
+  options: FootballPitchVariant | CreateFootballPitchOptions = "full-pitch",
+): number {
+  const contentSize = getFootballPitchPreviewSize(options);
+
+  return contentSize.width / contentSize.height;
+}
+
+export const FOOTBALL_FULL_PITCH_ASPECT_RATIO =
+  getFootballPitchAspectRatio("full-pitch");
+
 export function createFootballPitch(
   options: FootballPitchVariant | CreateFootballPitchOptions = "full-pitch",
 ): BoardFrameConfig {

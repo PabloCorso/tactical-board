@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 import { getBoardContentBounds } from "../../../../core/board/board-content-bounds";
 import {
   createFootballPitch,
+  FOOTBALL_FULL_PITCH_ASPECT_RATIO,
   FOOTBALL_FULL_PITCH_METRICS,
   FOOTBALL_PITCH_COLORS,
+  getFootballPitchAspectRatio,
 } from "./football-board";
 import { metersToPixels } from "./football-units";
 
@@ -225,6 +227,29 @@ describe("football board frames", () => {
     expect(bounds.maxX).toBeCloseTo(expectedRightGoalFrameOuterX);
     expect(bounds.minX).toBeGreaterThan(0);
     expect(bounds.maxX).toBeLessThan(fullPitch.width);
+  });
+
+  it("exports aspect ratios from football pitch dimensions", () => {
+    const fullPitch = createFootballPitch("full-pitch");
+    const bounds = getBoardContentBounds({
+      id: "football-board",
+      version: 1,
+      metadata: {},
+      frame: fullPitch,
+      objects: {
+        byId: {},
+        order: [],
+      },
+      style: {},
+    });
+    const expectedAspectRatio =
+      (bounds.maxX - bounds.minX) / (bounds.maxY - bounds.minY);
+    const reducedSpace = createFootballPitch("reduced-space");
+
+    expect(FOOTBALL_FULL_PITCH_ASPECT_RATIO).toBeCloseTo(expectedAspectRatio);
+    expect(getFootballPitchAspectRatio("reduced-space")).toBeCloseTo(
+      reducedSpace.width / reducedSpace.height,
+    );
   });
 
   it("draws full-pitch goals as three-line frames centered on each goal line", () => {

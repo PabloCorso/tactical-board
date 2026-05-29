@@ -1,13 +1,15 @@
 import type { ComponentProps } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { footballShowcaseBoard } from "../examples/football/football-showcase-board";
-import { FootballBoardViewerCanvas } from "../react";
+import {
+  createFootballBoard,
+  createFootballPitch,
+  FOOTBALL_FULL_PITCH_ASPECT_RATIO,
+  type FootballPitchVariant,
+  FootballBoardViewerCanvas,
+} from "../react";
 import { cn } from "../react/ui/misc";
 
-const footballBoardPreviewMetrics = {
-  aspectRatio:
-    footballShowcaseBoard.frame.width / footballShowcaseBoard.frame.height,
-} as const;
+const BOARD_CARD_PREVIEW_ASPECT_RATIO = FOOTBALL_FULL_PITCH_ASPECT_RATIO;
 
 export type CardProps = ComponentProps<"div">;
 
@@ -52,40 +54,72 @@ function CardContent({ className, ...props }: CardContentProps) {
 
 const boardCards = [
   {
+    id: "build-up-pattern",
+    pitch: "full-pitch",
     title: "Build-up pattern",
     description: "Full-pitch possession sequence with players and lanes.",
   },
   {
+    id: "final-third",
+    pitch: "half-pitch",
     title: "Final third",
     description: "Attacking actions, deliveries, and finishing options.",
   },
   {
+    id: "training-setup",
+    pitch: "reduced-space",
     title: "Training setup",
     description: "Equipment layout for a repeatable session exercise.",
   },
   {
+    id: "pressing-shape",
+    pitch: "full-pitch",
     title: "Pressing shape",
     description: "Out-of-possession roles and compactness cues.",
   },
-];
+  {
+    id: "build-up-pattern-half",
+    pitch: "half-pitch",
+    title: "Build-up pattern",
+    description: "Full-pitch possession sequence with players and lanes.",
+  },
+  {
+    id: "final-third-reduced-space",
+    pitch: "reduced-space",
+    title: "Final third",
+    description: "Attacking actions, deliveries, and finishing options.",
+  },
+] as const;
+
+type BoardCard = {
+  description: string;
+  id: string;
+  pitch: FootballPitchVariant;
+  title: string;
+};
 
 function TacticalBoardCardItem({
   description,
+  id,
+  pitch,
   title,
-}: {
-  description: string;
-  title: string;
-}) {
+}: BoardCard) {
+  const board = createFootballBoard({
+    id: `football-card-${id}`,
+    name: title,
+    frame: createFootballPitch(pitch),
+  });
+
   return (
     <Card className="shadow-sm">
       <CardContent className="gap-0 p-0">
         <div
           className="relative w-full overflow-hidden rounded-t-xl bg-zinc-950"
-          style={{ aspectRatio: footballBoardPreviewMetrics.aspectRatio }}
+          style={{ aspectRatio: BOARD_CARD_PREVIEW_ASPECT_RATIO }}
         >
           <FootballBoardViewerCanvas
-            board={footballShowcaseBoard}
-            fitPadding={0}
+            board={board}
+            fitPadding={8}
             frameClassName="h-full flex-none"
             mode="fit-content"
           />
@@ -109,11 +143,7 @@ function TacticalBoardCard() {
         }}
       >
         {boardCards.map((card) => (
-          <TacticalBoardCardItem
-            key={card.title}
-            description={card.description}
-            title={card.title}
-          />
+          <TacticalBoardCardItem key={card.id} {...card} />
         ))}
       </div>
     </main>
