@@ -8,7 +8,7 @@ import {
   rotateOffset,
 } from "./selection-geometry";
 
-const TEXT_SELECTION_PADDING_PX = 6;
+const TEXT_SELECTION_PADDING_PX = 0;
 
 function getTextSelectionOutlineCanvasPoints(
   projection: Parameters<

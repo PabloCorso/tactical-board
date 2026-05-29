@@ -11,7 +11,6 @@ import {
   TEXT_FONT_FAMILY,
   TEXT_HORIZONTAL_PADDING_PX,
   TEXT_LINE_HEIGHT_RATIO,
-  TEXT_VERTICAL_PADDING_PX,
 } from "../../../core/objects/text-object";
 import { useBoardEditorCanvas } from "./use-board-editor-canvas";
 import { useBoardEditorStore } from "./use-board-editor-store";
@@ -153,9 +152,8 @@ function BoardEditorTextEditorOverlay() {
 
   const { anchorCanvasPoint, object, objectBounds, scale } = overlayState;
   const horizontalPadding = TEXT_HORIZONTAL_PADDING_PX * scale;
-  const verticalPadding = TEXT_VERTICAL_PADDING_PX * scale;
   const contentWidth = Math.max(1, objectBounds.width - horizontalPadding);
-  const contentHeight = Math.max(1, objectBounds.height - verticalPadding);
+  const contentHeight = Math.max(1, objectBounds.height);
   const style: CSSProperties = {
     left: anchorCanvasPoint.x,
     top: anchorCanvasPoint.y,

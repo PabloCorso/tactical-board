@@ -31,12 +31,12 @@ export function getFootballPitchFitPadding(
   const variant = getFootballPitchVariant(frame.markup?.variant);
 
   if (variant === "full-pitch") {
-    return { left: 4 + 40 + 16, right: 0, top: 16, bottom: 16 };
+    return { left: 8 + 48 + 16, right: 0, top: 16, bottom: 16 };
   }
 
   if (variant === "half-pitch") {
-    return { x: 0, y: 8 };
+    return { x: 0, y: 16 };
   }
 
-  return { x: 16, y: 16 };
+  return 16;
 }

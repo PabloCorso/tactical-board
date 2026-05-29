@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { createToolApi } from "../../../../core/editor/create-tool-api";
-import { getViewportToFitFrame } from "../../../../core/editor/viewport-utils";
+import { getViewportToFitBoard } from "../../../../core/editor/viewport-utils";
 import { useBoardEditorContext } from "../../../adapter/editor/board-editor-context";
 import {
   BoardEditorToolbar,
@@ -22,9 +22,10 @@ import { footballTheme, footballThemeAdapters } from "../theme/football-theme";
 export type FootballSecondaryToolbarProps = Omit<
   BoardEditorToolbarProps,
   "children"
->;
+> & { onRequestDismiss?: () => void };
 
 export function FootballSecondaryToolbar({
+  onRequestDismiss,
   orientation = "vertical",
   ...toolbarProps
 }: FootballSecondaryToolbarProps) {
@@ -55,14 +56,18 @@ export function FootballSecondaryToolbar({
               toolApi.setFrame(frame);
 
               if (state.ui.canvasRect) {
+                const nextBoard = { ...state.board, frame };
+
                 state.actions.setViewport(
-                  getViewportToFitFrame({
-                    frame,
+                  getViewportToFitBoard({
+                    board: nextBoard,
                     canvasRect: state.ui.canvasRect,
                     fitPadding: getFootballPitchFitPadding(frame),
                   }),
                 );
               }
+
+              onRequestDismiss?.();
             }}
             size="md"
             tooltip={option.label}
@@ -83,6 +88,7 @@ export function FootballSecondaryToolbar({
     <BoardSecondaryToolbar
       {...toolbarProps}
       adapters={footballThemeAdapters}
+      onRequestDismiss={onRequestDismiss}
       orientation={orientation}
       theme={footballTheme}
     />

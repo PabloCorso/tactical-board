@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import type { Board } from "../../../../core/board/types";
 import type { BoardEditorState } from "../../../../core/editor/types";
 import type { AssetResolver } from "../../../../core/rendering/canvas/types";
@@ -35,6 +35,7 @@ export function FootballBoardEditor({
   store: providedStore,
   navigationMode,
 }: FootballBoardEditorProps = {}) {
+  const [secondaryToolbarOpen, setSecondaryToolbarOpen] = useState(true);
   const store = useMemo(
     () =>
       providedStore ??
@@ -57,8 +58,14 @@ export function FootballBoardEditor({
         <BoardEditorCanvasToolbar />
         <BoardEditorSelectionToolbar />
         <BoardEditorToolbarDock>
-          <FootballPrimaryToolbar />
-          <FootballSecondaryToolbar />
+          <div onClick={() => setSecondaryToolbarOpen(true)}>
+            <FootballPrimaryToolbar />
+          </div>
+          {secondaryToolbarOpen ? (
+            <FootballSecondaryToolbar
+              onRequestDismiss={() => setSecondaryToolbarOpen(false)}
+            />
+          ) : null}
         </BoardEditorToolbarDock>
       </BoardEditor>
     </BoardEditorProvider>

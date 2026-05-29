@@ -10,10 +10,10 @@ import type {
 import type { BoardEditorState } from "../editor/types";
 import { resolveBoardEditorFitPadding } from "../editor/fit-padding";
 import {
-  constrainViewportToFrame,
-  getContainedViewportForCanvasResize,
-  getViewportForCanvasResize,
-  getViewportToFitFrame,
+  constrainViewportToBoard,
+  getContainedViewportForBoardCanvasResize,
+  getViewportForBoardCanvasResize,
+  getViewportToFitBoard,
 } from "../editor/viewport-utils";
 import { moveObjectIdsToLayerBoundary } from "../board/object-order";
 import { moveBoardObject } from "../objects/object-behaviors";
@@ -221,8 +221,8 @@ export function createEditorStore({
       return viewport;
     }
 
-    return constrainViewportToFrame({
-      frame: state.board.frame,
+    return constrainViewportToBoard({
+      board: state.board,
       canvasRect: state.ui.canvasRect,
       viewport,
       fitPadding: resolveBoardEditorFitPadding(state),
@@ -379,21 +379,21 @@ export function createEditorStore({
           }
 
           const nextViewport = !previousCanvasRect
-            ? getViewportToFitFrame({
-                frame: state.board.frame,
+            ? getViewportToFitBoard({
+                board: state.board,
                 canvasRect: rect,
                 fitPadding: resolveBoardEditorFitPadding(state),
               })
             : state.ui.navigationMode === "contained"
-              ? getContainedViewportForCanvasResize({
-                  frame: state.board.frame,
+              ? getContainedViewportForBoardCanvasResize({
+                  board: state.board,
                   previousCanvasRect,
                   nextCanvasRect: rect,
                   viewport: state.ui.viewport,
                   fitPadding: resolveBoardEditorFitPadding(state),
                 })
-              : getViewportForCanvasResize({
-                  frame: state.board.frame,
+              : getViewportForBoardCanvasResize({
+                  board: state.board,
                   previousCanvasRect,
                   nextCanvasRect: rect,
                   viewport: state.ui.viewport,

@@ -3,7 +3,7 @@ import { createBoardEditorRuntime } from "./board-editor-runtime";
 import { createBoardEditorStore } from "../store/board-editor-store";
 import { getSelectToolState, SELECT_TOOL_ID } from "../tools/select-tool-state";
 import * as canvasRendererModule from "../rendering/canvas/create-canvas-renderer";
-import { getViewportToFitFrame } from "./viewport-utils";
+import { getViewportToFitBoard } from "./viewport-utils";
 import { createToolApi } from "./create-tool-api";
 import { setSelectedObjectIds } from "../tools/select-tool-actions";
 import { ArrowTool } from "../tools/arrow-tool";
@@ -78,8 +78,8 @@ describe("createBoardEditorRuntime", () => {
     runtime.mount(canvas);
 
     expect(store.getState().ui.viewport).toEqual(
-      getViewportToFitFrame({
-        frame: store.getState().board.frame,
+      getViewportToFitBoard({
+        board: store.getState().board,
         canvasRect: {
           width: canvas.clientWidth,
           height: canvas.clientHeight,

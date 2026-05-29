@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { getBoardContentBounds } from "../../../../core/board/board-content-bounds";
 import {
   createFootballPitch,
   FOOTBALL_FULL_PITCH_METRICS,
@@ -193,6 +194,37 @@ describe("football board frames", () => {
       horizontalPitch.markings?.length,
     );
     expect(halfPitch).not.toHaveProperty("orientation");
+  });
+
+  it("fits full-pitch content to the outer visible markings instead of the frame perimeter", () => {
+    const fullPitch = createFootballPitch("full-pitch");
+    const bounds = getBoardContentBounds({
+      id: "football-board",
+      version: 1,
+      metadata: {},
+      frame: fullPitch,
+      objects: {
+        byId: {},
+        order: [],
+      },
+      style: {},
+    });
+    const expectedGoalFrameOuterX = metersToPixels(
+      FOOTBALL_FULL_PITCH_METRICS.perimeter.touchline -
+        FOOTBALL_FULL_PITCH_METRICS.goal.frameDepth -
+        FOOTBALL_FULL_PITCH_METRICS.lineWidth / 2,
+    );
+    const expectedRightGoalFrameOuterX = metersToPixels(
+      FOOTBALL_FULL_PITCH_METRICS.perimeter.touchline +
+        FOOTBALL_FULL_PITCH_METRICS.field.length +
+        FOOTBALL_FULL_PITCH_METRICS.goal.frameDepth +
+        FOOTBALL_FULL_PITCH_METRICS.lineWidth / 2,
+    );
+
+    expect(bounds.minX).toBeCloseTo(expectedGoalFrameOuterX);
+    expect(bounds.maxX).toBeCloseTo(expectedRightGoalFrameOuterX);
+    expect(bounds.minX).toBeGreaterThan(0);
+    expect(bounds.maxX).toBeLessThan(fullPitch.width);
   });
 
   it("draws full-pitch goals as three-line frames centered on each goal line", () => {

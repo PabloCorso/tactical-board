@@ -16,7 +16,7 @@ import { cn } from "../../ui/misc";
 import {
   getViewportForZoomAtCanvasPoint,
   getViewportFrame,
-  getViewportToFitFrame,
+  getViewportToFitBoard,
   VIEWPORT_ZOOM_STEP_FACTOR,
 } from "../../../core/editor/viewport-utils";
 
@@ -35,6 +35,7 @@ export function BoardEditorCanvasToolbar({
     (state) => state.ui.navigationMode,
   );
   const canvasRect = useBoardEditorStore(store, (state) => state.ui.canvasRect);
+  const board = useBoardEditorStore(store, (state) => state.board);
   const frame = useBoardEditorStore(store, (state) => state.board.frame);
   const history = useBoardEditorStore(store, (state) => state.history);
   const actions = useBoardEditorStore(store, (state) => state.actions);
@@ -167,8 +168,8 @@ export function BoardEditorCanvasToolbar({
           onClick={() =>
             actions.setViewport(
               canvasRect
-                ? getViewportToFitFrame({
-                    frame,
+                ? getViewportToFitBoard({
+                    board,
                     canvasRect,
                     fitPadding: resolvedFitPadding,
                   })

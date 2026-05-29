@@ -3,7 +3,6 @@ import type { BoardEditorState } from "../editor/types";
 import {
   MIN_TEXT_CONTENT_WIDTH_PX,
   TEXT_HORIZONTAL_PADDING_PX,
-  TEXT_VERTICAL_PADDING_PX,
   getTextBoxSize,
 } from "../objects/text-object";
 import {
@@ -49,6 +48,17 @@ describe("text layout anchoring", () => {
     expect(getTextBoxSize("WW", 24).width).toBeGreaterThan(
       getTextBoxSize("ii", 24).width,
     );
+  });
+
+  it("uses only subtle horizontal padding around text bounds", () => {
+    const text = "Hello";
+    const fontSize = 24;
+    const singleLineSize = getTextBoxSize(text, fontSize);
+    const wrappedSize = getTextBoxSize(text, fontSize, 100);
+
+    expect(singleLineSize.width).toBeGreaterThan(MIN_TEXT_CONTENT_WIDTH_PX);
+    expect(singleLineSize.height).toBe(fontSize * (20 / 14));
+    expect(wrappedSize.width).toBe(100 + TEXT_HORIZONTAL_PADDING_PX);
   });
 
   it("treats the anchor as the text insertion point", () => {
@@ -100,9 +110,7 @@ describe("text layout anchoring", () => {
     expect(bounds.x + TEXT_HORIZONTAL_PADDING_PX / 2).toBeCloseTo(
       anchorCanvasPoint.x,
     );
-    expect(bounds.y + TEXT_VERTICAL_PADDING_PX / 2).toBeCloseTo(
-      anchorCanvasPoint.y,
-    );
+    expect(bounds.y).toBeCloseTo(anchorCanvasPoint.y);
   });
 
   it("keeps the insertion point stable when the font size changes", () => {
@@ -132,9 +140,7 @@ describe("text layout anchoring", () => {
     expect(bounds.x + TEXT_HORIZONTAL_PADDING_PX / 2).toBeCloseTo(
       anchorCanvasPoint.x,
     );
-    expect(bounds.y + TEXT_VERTICAL_PADDING_PX / 2).toBeCloseTo(
-      anchorCanvasPoint.y,
-    );
+    expect(bounds.y).toBeCloseTo(anchorCanvasPoint.y);
   });
 
   it("uses the explicit wrap width and grows vertically as lines wrap", () => {

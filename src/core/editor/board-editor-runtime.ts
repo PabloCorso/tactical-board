@@ -5,7 +5,7 @@ import { createBoardEditorController } from "./board-editor-controller";
 import type { BoardEditorStore } from "../store/board-editor-store";
 import type { ToolDefinition } from "../tools/types";
 import { resolveBoardEditorFitPadding } from "./fit-padding";
-import { DEFAULT_VIEWPORT, getViewportToFitFrame } from "./viewport-utils";
+import { DEFAULT_VIEWPORT, getViewportToFitBoard } from "./viewport-utils";
 
 export interface BoardEditorRuntime {
   mount: (canvas: HTMLCanvasElement) => void;
@@ -119,8 +119,8 @@ export function createBoardEditorRuntime({
     }
 
     state.actions.setViewport(
-      getViewportToFitFrame({
-        frame: state.board.frame,
+      getViewportToFitBoard({
+        board: state.board,
         canvasRect,
         fitPadding: resolveBoardEditorFitPadding(state),
       }),

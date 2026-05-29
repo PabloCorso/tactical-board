@@ -6,7 +6,6 @@ import {
   TEXT_FONT_WEIGHT,
   TEXT_HORIZONTAL_PADDING_PX,
   TEXT_LINE_HEIGHT_RATIO,
-  TEXT_VERTICAL_PADDING_PX,
   TEXT_OBJECT_TYPE,
   type TextObject,
 } from "../objects/text-object";
@@ -162,9 +161,7 @@ export function renderText({
   const lineHeight = canvasFontSize * TEXT_LINE_HEIGHT_RATIO;
   const lineMetrics = getTextLineMetrics(canvasFontSize);
   const horizontalPadding = (TEXT_HORIZONTAL_PADDING_PX * scale) / 2;
-  const verticalPadding = (TEXT_VERTICAL_PADDING_PX * scale) / 2;
-  const firstBaselineOffset =
-    verticalPadding + lineMetrics.topInset + lineMetrics.ascent;
+  const firstBaselineOffset = lineMetrics.topInset + lineMetrics.ascent;
 
   context.save();
   context.globalAlpha = appearance === "preview" ? 0.55 : 1;

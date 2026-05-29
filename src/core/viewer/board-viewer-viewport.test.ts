@@ -133,6 +133,85 @@ describe("board viewer viewport", () => {
     expect(viewport.pan.y).toBe(0);
   });
 
+  it("fits the board content bounds in fit mode", () => {
+    const contentBoard: Board = {
+      ...board,
+      objects: {
+        byId: {
+          outside: {
+            id: "outside",
+            type: "marker",
+            position: {
+              x: 120,
+              y: 25,
+            },
+            size: {
+              width: 20,
+              height: 20,
+            },
+            props: {},
+          },
+        },
+        order: ["outside"],
+      },
+    };
+    const viewport = getBoardViewerViewport({
+      board: contentBoard,
+      mode: "fit",
+      frame,
+      canvasRect: {
+        width: 228,
+        height: 128,
+      },
+    });
+
+    expect(viewport.zoom).toBeCloseTo(228 / 130);
+    expect(viewport.pan.x).toBeCloseTo(-((130 / 2 - 50) * viewport.zoom));
+    expect(viewport.pan.y).toBe(0);
+  });
+
+  it("centers fitted content bounds in fit mode", () => {
+    const contentBoard: Board = {
+      ...board,
+      objects: {
+        byId: {
+          outside: {
+            id: "outside",
+            type: "marker",
+            position: {
+              x: 160,
+              y: 25,
+            },
+            size: {
+              width: 20,
+              height: 20,
+            },
+            props: {},
+          },
+        },
+        order: ["outside"],
+      },
+    };
+
+    expect(
+      getBoardViewerViewport({
+        board: contentBoard,
+        mode: "fit",
+        frame,
+        canvasRect: {
+          width: 400,
+          height: 100,
+        },
+      }),
+    ).toEqual({
+      pan: {
+        x: -70,
+        y: 0,
+      },
+      zoom: 2,
+    });
+  });
+
   it("uses the supplied viewport outside fit mode", () => {
     const viewport = {
       pan: {

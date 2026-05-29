@@ -1,4 +1,5 @@
 export * from "./board/create-board";
+export * from "./board/board-content-bounds";
 export * from "./board/object-order";
 export type * from "./board/types";
 export * from "./colors/default-colors";

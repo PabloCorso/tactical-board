@@ -4,7 +4,6 @@ import type { BoardEditorState } from "../editor/types";
 import { createBoardSpaceProjection } from "../geometry/board-space-projection";
 import {
   TEXT_HORIZONTAL_PADDING_PX,
-  TEXT_VERTICAL_PADDING_PX,
   createTextObject,
   updateTextObject,
   type TextObject,
@@ -32,7 +31,7 @@ export function getTextAnchorPosition(
 
   return projection.canvasToBoard({
     x: bounds.x + (TEXT_HORIZONTAL_PADDING_PX * projection.scale) / 2,
-    y: bounds.y + (TEXT_VERTICAL_PADDING_PX * projection.scale) / 2,
+    y: bounds.y,
   });
 }
 
@@ -48,16 +47,13 @@ export function updateAnchoredTextObject(
   const anchorCanvasPoint = projection.boardToCanvas(anchorPosition);
   const nextSize = nextObject.size ?? { width: 0, height: 0 };
   const horizontalPadding = TEXT_HORIZONTAL_PADDING_PX * projection.scale;
-  const verticalPadding = TEXT_VERTICAL_PADDING_PX * projection.scale;
 
   return updateTextObject(nextObject, {
     position: projection.canvasToBoard({
       x:
         anchorCanvasPoint.x +
         (nextSize.width * projection.scale - horizontalPadding) / 2,
-      y:
-        anchorCanvasPoint.y +
-        (nextSize.height * projection.scale - verticalPadding) / 2,
+      y: anchorCanvasPoint.y + (nextSize.height * projection.scale) / 2,
     }),
   });
 }

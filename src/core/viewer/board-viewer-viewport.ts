@@ -1,23 +1,9 @@
-import type {
-  Board,
-  BoardObject,
-  BoardFrameConfig,
-  Point,
-} from "../board/types";
-import {
-  ARROW_OBJECT_TYPE,
-  getArrowControlPoint,
-  type ArrowObject,
-} from "../objects/arrow-object";
-import {
-  getShapePoints,
-  SHAPE_OBJECT_TYPE,
-  type ShapeObject,
-} from "../objects/shape-object";
+import type { Board, BoardFrameConfig, Point } from "../board/types";
 import type { Viewport } from "../geometry/types";
 import {
   DEFAULT_VIEWPORT,
   getViewportForZoomAtCanvasPoint,
+  getViewportToFitBoard,
   VIEWPORT_WHEEL_ZOOM_SENSITIVITY,
 } from "../editor/viewport-utils";
 import { getFrameFitScale } from "../geometry/frame-scale";
@@ -51,118 +37,6 @@ export interface BoardViewerPinchInput {
   clientPoint: Point;
   fitPadding?: number;
   scale: number;
-}
-
-type BoardContentBounds = {
-  minX: number;
-  minY: number;
-  maxX: number;
-  maxY: number;
-};
-
-function expandBoundsToPoint(bounds: BoardContentBounds, point: Point) {
-  bounds.minX = Math.min(bounds.minX, point.x);
-  bounds.minY = Math.min(bounds.minY, point.y);
-  bounds.maxX = Math.max(bounds.maxX, point.x);
-  bounds.maxY = Math.max(bounds.maxY, point.y);
-}
-
-function expandBoundsToObject(bounds: BoardContentBounds, object: BoardObject) {
-  if (object.type === ARROW_OBJECT_TYPE) {
-    const arrow = object as ArrowObject;
-
-    expandBoundsToPoint(bounds, arrow.props.start);
-    expandBoundsToPoint(bounds, arrow.props.end);
-    expandBoundsToPoint(
-      bounds,
-      arrow.props.controlPoint ??
-        getArrowControlPoint(
-          arrow.props.start,
-          arrow.props.end,
-          arrow.props.curveOffset,
-        ),
-    );
-    return;
-  }
-
-  if (object.type === SHAPE_OBJECT_TYPE) {
-    const shape = object as ShapeObject;
-
-    for (const point of getShapePoints(shape.props)) {
-      expandBoundsToPoint(bounds, point);
-    }
-    return;
-  }
-
-  const width = object.size?.width ?? 0;
-  const height = object.size?.height ?? object.size?.width ?? 0;
-
-  expandBoundsToPoint(bounds, {
-    x: object.position.x - width / 2,
-    y: object.position.y - height / 2,
-  });
-  expandBoundsToPoint(bounds, {
-    x: object.position.x + width / 2,
-    y: object.position.y + height / 2,
-  });
-}
-
-function normalizeZero(value: number) {
-  return Object.is(value, -0) ? 0 : value;
-}
-
-export function getBoardContentBounds(board: Board): BoardContentBounds {
-  const bounds = {
-    minX: 0,
-    minY: 0,
-    maxX: board.frame.width,
-    maxY: board.frame.height,
-  };
-
-  for (const objectId of board.objects.order) {
-    const object = board.objects.byId[objectId];
-
-    if (object) {
-      expandBoundsToObject(bounds, object);
-    }
-  }
-
-  return bounds;
-}
-
-function getViewportToFitContent({
-  board,
-  canvasRect,
-  fitPadding,
-}: {
-  board: Board;
-  canvasRect: BoardViewerCanvasRect;
-  fitPadding: number;
-}): Viewport {
-  const bounds = getBoardContentBounds(board);
-  const width = Math.max(1, bounds.maxX - bounds.minX);
-  const height = Math.max(1, bounds.maxY - bounds.minY);
-  const frame = {
-    width: Math.max(1, canvasRect.width - fitPadding * 2),
-    height: Math.max(1, canvasRect.height - fitPadding * 2),
-  };
-  const zoom = getFrameFitScale({ width, height }, frame);
-  const boundsCenter = {
-    x: bounds.minX + width / 2,
-    y: bounds.minY + height / 2,
-  };
-  const frameCenter = {
-    x: board.frame.width / 2,
-    y: board.frame.height / 2,
-  };
-
-  return {
-    pan: {
-      x: normalizeZero(-(boundsCenter.x - frameCenter.x) * zoom),
-      y: normalizeZero(-(boundsCenter.y - frameCenter.y) * zoom),
-    },
-    zoom,
-  };
 }
 
 function getViewerViewportToFitFrame({
@@ -200,23 +74,15 @@ export function getBoardViewerViewport({
   viewport?: Viewport;
   fitPadding?: number;
 }): Viewport {
-  if (mode === "fit") {
-    return getViewerViewportToFitFrame({
-      frame,
-      canvasRect,
-      fitPadding,
-    });
-  }
-
-  if (mode === "fit-content" && board) {
-    return getViewportToFitContent({
+  if ((mode === "fit" || mode === "fit-content") && board) {
+    return getViewportToFitBoard({
       board,
       canvasRect,
       fitPadding,
     });
   }
 
-  if (mode === "fit-content") {
+  if (mode === "fit" || mode === "fit-content") {
     return getViewerViewportToFitFrame({
       frame,
       canvasRect,

@@ -239,7 +239,7 @@ export function BoardEditorToolbarPopoverButton({
   tooltip,
   icon,
   content,
-  showCaret = true,
+  showCaret = false,
 }: BoardEditorToolbarPopoverButtonProps) {
   const { tooltipSide } = useContext(BoardEditorToolbarContext);
 

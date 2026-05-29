@@ -3,7 +3,7 @@ import type { Board } from "../../../core/board/types";
 import type { Viewport } from "../../../core/geometry/types";
 import {
   DEFAULT_VIEWPORT,
-  getViewportToFitFrame,
+  getViewportToFitBoard,
 } from "../../../core/editor/viewport-utils";
 import {
   DEFAULT_BOARD_VIEWER_FIT_PADDING,
@@ -82,8 +82,8 @@ export function useBoardViewerCanvas({
   const resolveInitialViewport = useCallback(
     (rect: BoardViewerCanvasRect) => {
       if (initialViewport === "fit") {
-        return getViewportToFitFrame({
-          frame: board.frame,
+        return getViewportToFitBoard({
+          board,
           canvasRect: rect,
           fitPadding,
         });
@@ -91,7 +91,7 @@ export function useBoardViewerCanvas({
 
       return initialViewport;
     },
-    [board.frame, fitPadding, initialViewport],
+    [board, fitPadding, initialViewport],
   );
 
   useEffect(function observeCanvasResize() {

@@ -242,7 +242,7 @@ describe("getSelectionToolbarAnchor", () => {
     expect(anchor).toBeDefined();
     expect(anchor).toEqual({
       left: 100,
-      top: 18,
+      top: 24,
     });
   });
 });

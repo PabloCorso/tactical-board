@@ -102,6 +102,7 @@ export type BoardSecondaryToolbarProps = Omit<
   shapeDefaults?: ShapeToolDefault[];
   theme?: Pick<BoardTheme, "objects">;
   adapters?: BoardThemeAdapters;
+  onRequestDismiss?: () => void;
 };
 
 const SECONDARY_TOOLBAR_BUTTON_SIZE = "md";
@@ -115,6 +116,7 @@ export function BoardSecondaryToolbar({
   shapeDefaults = BOARD_SHAPE_DEFAULTS,
   adapters,
   theme,
+  onRequestDismiss,
   ...toolbarProps
 }: BoardSecondaryToolbarProps) {
   const editorStore = useBoardEditorContext();
@@ -184,6 +186,7 @@ export function BoardSecondaryToolbar({
                     ...toolDefault.draftStyle,
                   },
                 });
+                onRequestDismiss?.();
               }}
               iconSize={SECONDARY_TOOLBAR_ICON_SIZE}
               size={SECONDARY_TOOLBAR_BUTTON_SIZE}
@@ -232,6 +235,7 @@ export function BoardSecondaryToolbar({
                   kind: definition.kind,
                 },
               });
+              onRequestDismiss?.();
             }}
             iconSize={SECONDARY_TOOLBAR_ICON_SIZE}
             size={SECONDARY_TOOLBAR_BUTTON_SIZE}
@@ -285,6 +289,7 @@ export function BoardSecondaryToolbar({
                     ...toolDefault.draftStyle,
                   },
                 });
+                onRequestDismiss?.();
               }}
               iconSize={SECONDARY_TOOLBAR_ICON_SIZE}
               size={SECONDARY_TOOLBAR_BUTTON_SIZE}
@@ -339,6 +344,7 @@ export function BoardSecondaryToolbar({
                     ...toolDefault.draftStyle,
                   },
                 });
+                onRequestDismiss?.();
               }}
               iconSize={SECONDARY_TOOLBAR_ICON_SIZE}
               size={SECONDARY_TOOLBAR_BUTTON_SIZE}

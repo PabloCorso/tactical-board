@@ -1,4 +1,4 @@
-import type { DocumentBackgroundConfig, Point } from "../board/types";
+import type { Board, DocumentBackgroundConfig, Point } from "../board/types";
 import type { BoardViewport } from "./types";
 import { createBoardSpaceProjection } from "../geometry/board-space-projection";
 import type { CanvasRect } from "./board-editor-controller";
@@ -6,6 +6,7 @@ import { getFitPaddingInsets } from "../geometry/fit-padding";
 import { getFrameFitScale } from "../geometry/frame-scale";
 import type { FitPadding } from "../geometry/types";
 import { MAX_VIEWPORT_ZOOM, MIN_VIEWPORT_ZOOM } from "./viewport-zoom";
+import { getBoardContentBounds } from "../board/board-content-bounds";
 
 export const DEFAULT_VIEWPORT: BoardViewport = {
   pan: { x: 0, y: 0 },
@@ -112,28 +113,101 @@ export function getViewportToFitFrame({
   };
 }
 
+function normalizeZero(value: number) {
+  return Math.abs(value) < 1e-9 || Object.is(value, -0) ? 0 : value;
+}
+
+export function getViewportToFitBoard({
+  board,
+  canvasRect,
+  fitPadding,
+}: {
+  board: Board;
+  canvasRect: Pick<CanvasRect, "width" | "height">;
+  fitPadding?: FitPadding;
+}): BoardViewport {
+  const viewportFrame = getViewportFrame({
+    canvasRect,
+    fitPadding,
+  });
+  const bounds = getBoardContentBounds(board);
+  const width = Math.max(1, bounds.maxX - bounds.minX);
+  const height = Math.max(1, bounds.maxY - bounds.minY);
+  const zoom = getFrameFitScale({ width, height }, viewportFrame);
+
+  return {
+    pan: {
+      x: normalizeZero(
+        getPanAxisToCenterBounds({
+          frameSize: board.frame.width,
+          boundsMin: bounds.minX,
+          boundsMax: bounds.maxX,
+          zoom,
+          viewportFrameSize: viewportFrame.width,
+        }),
+      ),
+      y: normalizeZero(
+        getPanAxisToCenterBounds({
+          frameSize: board.frame.height,
+          boundsMin: bounds.minY,
+          boundsMax: bounds.maxY,
+          zoom,
+          viewportFrameSize: viewportFrame.height,
+        }),
+      ),
+    },
+    zoom,
+  };
+}
+
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
 
-function getConstrainedPanAxis({
-  pan,
-  renderSize,
+function getPanAxisToCenterBounds({
   frameSize,
+  boundsMin,
+  boundsMax,
+  zoom,
+  viewportFrameSize,
+}: {
+  frameSize: number;
+  boundsMin: number;
+  boundsMax: number;
+  zoom: number;
+  viewportFrameSize: number;
+}) {
+  const frameOffset = (viewportFrameSize - frameSize * zoom) / 2;
+  const boundsCenter = (boundsMin + boundsMax) / 2;
+  const boundsCenterCanvas = frameOffset + boundsCenter * zoom;
+
+  return viewportFrameSize / 2 - boundsCenterCanvas;
+}
+
+function getPanAxisToFitBounds({
+  pan,
+  frameSize,
+  boundsMin,
+  boundsMax,
+  zoom,
+  viewportFrameSize,
 }: {
   pan: number;
-  renderSize: number;
   frameSize: number;
+  boundsMin: number;
+  boundsMax: number;
+  zoom: number;
+  viewportFrameSize: number;
 }) {
-  const overflow = renderSize - frameSize;
+  const frameOffset = (viewportFrameSize - frameSize * zoom) / 2;
+  const minCanvas = frameOffset + boundsMin * zoom;
+  const maxCanvas = frameOffset + boundsMax * zoom;
+  const contentRenderSize = maxCanvas - minCanvas;
+  const minPan = Math.min(-minCanvas, viewportFrameSize - maxCanvas);
+  const maxPan = Math.max(-minCanvas, viewportFrameSize - maxCanvas);
+  const targetPan = contentRenderSize <= viewportFrameSize ? 0 : pan;
 
-  if (overflow <= 0) {
-    return 0;
-  }
-
-  const maxPan = overflow / 2;
-
-  return clamp(pan, -maxPan, maxPan);
+  return clamp(targetPan, minPan, maxPan);
 }
 
 export function constrainViewportToFrame({
@@ -153,22 +227,78 @@ export function constrainViewportToFrame({
   });
   const fitZoom = getFrameFitScale(frame, viewportFrame);
   const zoom = Math.max(viewport.zoom, fitZoom);
-  const renderWidth = frame.width * zoom;
-  const renderHeight = frame.height * zoom;
 
   return {
     zoom,
     pan: {
-      x: getConstrainedPanAxis({
-        pan: viewport.pan.x,
-        renderSize: renderWidth,
-        frameSize: viewportFrame.width,
-      }),
-      y: getConstrainedPanAxis({
-        pan: viewport.pan.y,
-        renderSize: renderHeight,
-        frameSize: viewportFrame.height,
-      }),
+      x: normalizeZero(
+        getPanAxisToFitBounds({
+          pan: viewport.pan.x,
+          frameSize: frame.width,
+          boundsMin: 0,
+          boundsMax: frame.width,
+          zoom,
+          viewportFrameSize: viewportFrame.width,
+        }),
+      ),
+      y: normalizeZero(
+        getPanAxisToFitBounds({
+          pan: viewport.pan.y,
+          frameSize: frame.height,
+          boundsMin: 0,
+          boundsMax: frame.height,
+          zoom,
+          viewportFrameSize: viewportFrame.height,
+        }),
+      ),
+    },
+  };
+}
+
+export function constrainViewportToBoard({
+  board,
+  canvasRect,
+  viewport,
+  fitPadding,
+}: {
+  board: Board;
+  canvasRect: Pick<CanvasRect, "width" | "height">;
+  viewport: BoardViewport;
+  fitPadding?: FitPadding;
+}): BoardViewport {
+  const viewportFrame = getViewportFrame({
+    canvasRect,
+    fitPadding,
+  });
+  const bounds = getBoardContentBounds(board);
+  const width = Math.max(1, bounds.maxX - bounds.minX);
+  const height = Math.max(1, bounds.maxY - bounds.minY);
+  const fitZoom = getFrameFitScale({ width, height }, viewportFrame);
+  const zoom = Math.max(viewport.zoom, fitZoom);
+
+  return {
+    zoom,
+    pan: {
+      x: normalizeZero(
+        getPanAxisToFitBounds({
+          pan: viewport.pan.x,
+          frameSize: board.frame.width,
+          boundsMin: bounds.minX,
+          boundsMax: bounds.maxX,
+          zoom,
+          viewportFrameSize: viewportFrame.width,
+        }),
+      ),
+      y: normalizeZero(
+        getPanAxisToFitBounds({
+          pan: viewport.pan.y,
+          frameSize: board.frame.height,
+          boundsMin: bounds.minY,
+          boundsMax: bounds.maxY,
+          zoom,
+          viewportFrameSize: viewportFrame.height,
+        }),
+      ),
     },
   };
 }
@@ -209,6 +339,42 @@ export function getViewportForCanvasResize({
   };
 }
 
+export function getViewportForBoardCanvasResize({
+  board,
+  previousCanvasRect,
+  nextCanvasRect,
+  viewport,
+  fitPadding,
+}: {
+  board: Board;
+  previousCanvasRect: Pick<CanvasRect, "width" | "height">;
+  nextCanvasRect: Pick<CanvasRect, "width" | "height">;
+  viewport: BoardViewport;
+  fitPadding?: FitPadding;
+}): BoardViewport {
+  const previousFitZoom = getViewportToFitBoard({
+    board,
+    canvasRect: previousCanvasRect,
+    fitPadding,
+  }).zoom;
+  const nextFitZoom = getViewportToFitBoard({
+    board,
+    canvasRect: nextCanvasRect,
+    fitPadding,
+  }).zoom;
+  const zoomRatio = previousFitZoom > 0 ? viewport.zoom / previousFitZoom : 1;
+  const nextZoom = nextFitZoom * zoomRatio;
+  const panScale = viewport.zoom > 0 ? nextZoom / viewport.zoom : 1;
+
+  return {
+    zoom: nextZoom,
+    pan: {
+      x: viewport.pan.x * panScale,
+      y: viewport.pan.y * panScale,
+    },
+  };
+}
+
 export function getContainedViewportForCanvasResize({
   frame,
   nextCanvasRect,
@@ -219,6 +385,23 @@ export function getContainedViewportForCanvasResize({
     canvasRect: nextCanvasRect,
     viewport: getViewportForCanvasResize({
       frame,
+      nextCanvasRect,
+      ...resizeOptions,
+    }),
+    fitPadding: resizeOptions.fitPadding,
+  });
+}
+
+export function getContainedViewportForBoardCanvasResize({
+  board,
+  nextCanvasRect,
+  ...resizeOptions
+}: Parameters<typeof getViewportForBoardCanvasResize>[0]): BoardViewport {
+  return constrainViewportToBoard({
+    board,
+    canvasRect: nextCanvasRect,
+    viewport: getViewportForBoardCanvasResize({
+      board,
       nextCanvasRect,
       ...resizeOptions,
     }),

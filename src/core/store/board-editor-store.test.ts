@@ -127,6 +127,89 @@ describe("createBoardEditorStore", () => {
     });
   });
 
+  it("fits the initial viewport to objects outside the frame", () => {
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        frame: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {
+            outside: {
+              id: "outside",
+              type: "marker",
+              position: {
+                x: 120,
+                y: 25,
+              },
+              size: {
+                width: 20,
+                height: 20,
+              },
+              props: {},
+            },
+          },
+          order: ["outside"],
+        },
+        style: {},
+      },
+      tools: [selectTool],
+    });
+
+    store.getState().actions.setCanvasRect({ width: 228, height: 128 });
+
+    expect(store.getState().ui.viewport.zoom).toBeCloseTo(228 / 130);
+    expect(store.getState().ui.viewport.pan.x).toBeCloseTo(
+      -((130 / 2 - 50) * store.getState().ui.viewport.zoom),
+    );
+    expect(store.getState().ui.viewport.pan.y).toBe(0);
+  });
+
+  it("centers fitted content bounds", () => {
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        frame: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {
+            outside: {
+              id: "outside",
+              type: "marker",
+              position: {
+                x: 160,
+                y: 25,
+              },
+              size: {
+                width: 20,
+                height: 20,
+              },
+              props: {},
+            },
+          },
+          order: ["outside"],
+        },
+        style: {},
+      },
+      tools: [selectTool],
+    });
+
+    store.getState().actions.setCanvasRect({ width: 400, height: 100 });
+
+    expect(store.getState().ui.viewport).toEqual({
+      pan: { x: -70, y: 0 },
+      zoom: 2,
+    });
+  });
+
   it("uses fit viewport padding when fitting contained navigation", () => {
     const store = createBoardEditorStore({
       initialBoard: {

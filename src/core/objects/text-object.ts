@@ -10,8 +10,7 @@ export const TEXT_FONT_FAMILY =
 export const TEXT_FONT_WEIGHT = 400;
 export const TEXT_LINE_HEIGHT_RATIO = 20 / 14;
 export const TEXT_CHARACTER_WIDTH_RATIO = 0.64;
-export const TEXT_HORIZONTAL_PADDING_PX = 12;
-export const TEXT_VERTICAL_PADDING_PX = 8;
+export const TEXT_HORIZONTAL_PADDING_PX = 2;
 export const MIN_TEXT_CONTENT_WIDTH_PX = 10;
 
 export type TextLineMetrics = {
@@ -91,30 +90,32 @@ function getTextMeasureContext() {
   return null;
 }
 
+function estimateTextWidth(text: string, fontSize: number) {
+  return Array.from(text.length > 0 ? text : " ").reduce((total, character) => {
+    if ("ilI.,:;'|!".includes(character)) {
+      return total + fontSize * 0.32;
+    }
+
+    if ("mwMW@%#&".includes(character)) {
+      return total + fontSize * 0.9;
+    }
+
+    if (character === " ") {
+      return total + fontSize * 0.35;
+    }
+
+    return total + fontSize * TEXT_CHARACTER_WIDTH_RATIO;
+  }, 0);
+}
+
 function measureTextWidth(text: string, fontSize: number) {
   const context = getTextMeasureContext();
 
   if (!context) {
-    const estimatedWidth = Array.from(text.length > 0 ? text : " ").reduce(
-      (total, character) => {
-        if ("ilI.,:;'|!".includes(character)) {
-          return total + fontSize * 0.32;
-        }
-
-        if ("mwMW@%#&".includes(character)) {
-          return total + fontSize * 0.9;
-        }
-
-        if (character === " ") {
-          return total + fontSize * 0.35;
-        }
-
-        return total + fontSize * TEXT_CHARACTER_WIDTH_RATIO;
-      },
-      0,
+    return Math.max(
+      MIN_TEXT_CONTENT_WIDTH_PX,
+      estimateTextWidth(text, fontSize),
     );
-
-    return Math.max(MIN_TEXT_CONTENT_WIDTH_PX, estimatedWidth);
   }
 
   context.font = `${TEXT_FONT_WEIGHT} ${fontSize}px ${TEXT_FONT_FAMILY}`;
@@ -272,7 +273,7 @@ export function getTextBoxSize(
 
   return {
     width: contentWidth + TEXT_HORIZONTAL_PADDING_PX,
-    height: lines.length * lineMetrics.lineHeight + TEXT_VERTICAL_PADDING_PX,
+    height: lines.length * lineMetrics.lineHeight,
   };
 }
 
