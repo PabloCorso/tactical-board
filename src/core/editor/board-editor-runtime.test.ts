@@ -20,6 +20,9 @@ function createCanvasStub(): HTMLCanvasElement {
     clientHeight: 360,
     width: 640,
     height: 360,
+    style: {
+      cursor: "",
+    },
     addEventListener: vi.fn(),
     removeEventListener: vi.fn(),
     focus: vi.fn(),

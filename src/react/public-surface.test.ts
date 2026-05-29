@@ -86,10 +86,10 @@ describe("React public frame", () => {
     const lineIndex = markup.indexOf('aria-label="Arrow line style"');
     const rightHeadIndex = markup.indexOf('aria-label="Arrow right head"');
 
-    expect(bodyIndex).toBeGreaterThan(-1);
-    expect(leftHeadIndex).toBeGreaterThan(bodyIndex);
-    expect(lineIndex).toBeGreaterThan(leftHeadIndex);
-    expect(rightHeadIndex).toBeGreaterThan(lineIndex);
+    expect(leftHeadIndex).toBeGreaterThan(-1);
+    expect(bodyIndex).toBeGreaterThan(leftHeadIndex);
+    expect(rightHeadIndex).toBeGreaterThan(bodyIndex);
+    expect(lineIndex).toBeGreaterThan(rightHeadIndex);
     expect(markup.match(/role="separator"/g)?.length).toBe(2);
   });
 
