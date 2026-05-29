@@ -133,7 +133,7 @@ function expandBoundsToMarking(
         maxY: marking.y + marking.height + strokeOffset,
       });
       return;
-    case "line":
+    case "line": {
       if (!hasStroke) {
         return;
       }
@@ -153,6 +153,7 @@ function expandBoundsToMarking(
         maxY: Math.max(marking.y1, marking.y2) + yStrokeOffset,
       });
       return;
+    }
     case "circle":
       if (!hasFill && !hasStroke) {
         return;

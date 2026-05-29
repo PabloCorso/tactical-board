@@ -62,7 +62,7 @@ export function FootballSecondaryToolbar({
                   getViewportToFitBoard({
                     board: nextBoard,
                     canvasRect: state.ui.canvasRect,
-                    fitPadding: getFootballPitchFitPadding(frame),
+                    fitPadding: getFootballPitchFitPadding(),
                   }),
                 );
               }

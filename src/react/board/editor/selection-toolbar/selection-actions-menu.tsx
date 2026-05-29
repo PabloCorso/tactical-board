@@ -57,7 +57,7 @@ export function BoardEditorSelectionActionsMenu({
           />
         )}
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" sideOffset={8}>
+      <DropdownMenuContent align="start" side="bottom" sideOffset={8}>
         <DropdownMenuItem onClick={handleDuplicate}>Duplicate</DropdownMenuItem>
         <DropdownMenuItem onClick={() => deleteSelectedObjects(toolApi)}>
           Delete

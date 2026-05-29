@@ -44,10 +44,10 @@ export function BoardEditorPlayerSelectionToolbar({
       <BoardEditorToolbar className={className}>
         <Input
           aria-label="Player label"
-          className="border-tb-border-default bg-tb-background-screen text-tb-text-primary h-10 w-12 px-2 text-center text-sm font-medium md:text-sm"
+          className="border-tb-border-default bg-tb-background-screen text-tb-text-primary h-8 w-12 px-2 text-center text-sm font-medium md:text-sm"
           onChange={(event) => updatePlayer({ label: event.target.value })}
           value={selectedObject.props.label ?? ""}
-          wrapperProps={{ className: "w-auto" }}
+          wrapperProps={{ className: "h-10 w-auto" }}
         />
 
         <BoardEditorToolbarPopoverButton

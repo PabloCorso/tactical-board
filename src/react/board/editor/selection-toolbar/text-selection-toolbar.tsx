@@ -49,7 +49,7 @@ export function BoardEditorTextSelectionToolbar({
       <BoardEditorToolbar className={className}>
         <Input
           aria-label="Text size"
-          className="border-tb-border-default bg-tb-background-screen text-tb-text-primary h-10 w-12 px-2 text-center text-sm font-medium md:text-sm"
+          className="border-tb-border-default bg-tb-background-screen text-tb-text-primary h-8 w-12 px-2 text-center text-sm font-medium md:text-sm"
           min={12}
           max={144}
           onBlur={() => setFontSizeAnchor(null)}
@@ -65,7 +65,7 @@ export function BoardEditorTextSelectionToolbar({
           }
           type="number"
           value={selectedObject.props.fontSize}
-          wrapperProps={{ className: "w-auto" }}
+          wrapperProps={{ className: "h-10 w-auto" }}
         />
 
         <BoardEditorToolbarPopoverButton

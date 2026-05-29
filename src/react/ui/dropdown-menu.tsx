@@ -24,12 +24,18 @@ export function DropdownMenuTrigger({
 export type DropdownMenuContentProps = MenuPrimitive.Popup.Props &
   Pick<
     MenuPrimitive.Positioner.Props,
-    "align" | "alignOffset" | "positionMethod" | "side" | "sideOffset"
+    | "align"
+    | "alignOffset"
+    | "collisionPadding"
+    | "positionMethod"
+    | "side"
+    | "sideOffset"
   >;
 
 export function DropdownMenuContent({
   align = "start",
   alignOffset = 0,
+  collisionPadding = 8,
   positionMethod = "fixed",
   side = "bottom",
   sideOffset = 4,
@@ -42,6 +48,7 @@ export function DropdownMenuContent({
         className="isolate z-50 outline-none"
         align={align}
         alignOffset={alignOffset}
+        collisionPadding={collisionPadding}
         positionMethod={positionMethod}
         side={side}
         sideOffset={sideOffset}
@@ -49,7 +56,7 @@ export function DropdownMenuContent({
         <MenuPrimitive.Popup
           data-tactical-board
           className={cn(
-            "data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=inline-end]:slide-in-from-left-2 data-[side=inline-start]:slide-in-from-right-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 border-tb-border-default bg-tb-background-surface text-tb-text-primary z-50 max-h-(--available-height) min-w-36 origin-(--transform-origin) overflow-x-hidden overflow-y-auto rounded-lg border p-1 shadow-lg duration-100 outline-none data-closed:overflow-hidden",
+            "data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=inline-end]:slide-in-from-left-2 data-[side=inline-start]:slide-in-from-right-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 border-tb-border-default bg-tb-background-surface text-tb-text-primary z-50 box-border max-h-(--available-height) min-w-36 origin-(--transform-origin) overflow-x-hidden overflow-y-auto rounded-lg border p-1.5 shadow-lg duration-100 outline-none data-closed:overflow-hidden",
             className,
           )}
           {...props}
@@ -76,7 +83,7 @@ export function DropdownMenuGroupLabel({
     <MenuPrimitive.GroupLabel
       data-inset={inset}
       className={cn(
-        "text-tb-text-tertiary px-2 py-1.5 text-xs font-medium data-inset:pl-8",
+        "text-tb-text-tertiary box-border px-2 py-1.5 text-xs font-medium data-inset:pl-8",
         className,
       )}
       {...props}
@@ -86,7 +93,7 @@ export function DropdownMenuGroupLabel({
 
 export const menuItemVariants = cva(
   [
-    "group/menu-item relative flex min-h-8 w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm outline-hidden transition-interactive select-none data-inset:pl-8",
+    "group/menu-item relative flex min-h-7 w-full cursor-pointer items-center gap-2 rounded-md box-border px-2 py-1 text-sm outline-hidden transition-interactive select-none data-inset:pl-8",
     "disabled:pointer-events-none disabled:opacity-40",
   ],
   {
@@ -270,7 +277,7 @@ export function DropdownMenuSeparator({
 }: DropdownMenuSeparatorProps) {
   return (
     <MenuPrimitive.Separator
-      className={cn("bg-tb-border-default -mx-1 my-1 h-px", className)}
+      className={cn("bg-tb-border-default my-1 box-border h-px", className)}
       {...props}
     />
   );
