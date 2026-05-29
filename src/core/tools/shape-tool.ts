@@ -8,6 +8,7 @@ import {
   type ShapeObject,
 } from "../objects/shape-object";
 import { createBoardSpaceProjection } from "../geometry/board-space-projection";
+import { resolveBoardEditorFitPadding } from "../editor/fit-padding";
 import {
   scaleCanvasDashStyle,
   scaleCanvasStyleValue,
@@ -829,7 +830,7 @@ function shouldFinishPolygon(
     frame: state.board.frame,
     viewport: state.ui.viewport,
     canvasRect: event.canvasRect,
-    viewportInsets: state.ui.viewportInsets,
+    fitPadding: resolveBoardEditorFitPadding(state),
   });
   const firstPoint = projection.boardToCanvas(pendingPoints[0]);
   const candidate = projection.boardToCanvas(nextPoint);

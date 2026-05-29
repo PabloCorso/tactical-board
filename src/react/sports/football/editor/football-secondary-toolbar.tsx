@@ -13,6 +13,7 @@ import { createFootballPitch } from "../board/football-board";
 import {
   FOOTBALL_PITCH_OPTIONS,
   FOOTBALL_PITCH_TOOL_ID,
+  getFootballPitchFitPadding,
   getFootballPitchVariant,
 } from "../theme/football-pitch-options";
 import { FootballPitchPreview } from "../theme/football-pitch-icons";
@@ -58,7 +59,7 @@ export function FootballSecondaryToolbar({
                   getViewportToFitFrame({
                     frame,
                     canvasRect: state.ui.canvasRect,
-                    viewportInsets: state.ui.viewportInsets,
+                    fitPadding: getFootballPitchFitPadding(frame),
                   }),
                 );
               }

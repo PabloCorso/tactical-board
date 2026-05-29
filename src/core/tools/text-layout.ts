@@ -1,4 +1,5 @@
 import type { Point } from "../board/types";
+import { resolveBoardEditorFitPadding } from "../editor/fit-padding";
 import type { BoardEditorState } from "../editor/types";
 import { createBoardSpaceProjection } from "../geometry/board-space-projection";
 import {
@@ -17,7 +18,7 @@ export function createTextToolProjection(
     frame: state.board.frame,
     viewport: state.ui.viewport,
     canvasRect,
-    viewportInsets: state.ui.viewportInsets,
+    fitPadding: resolveBoardEditorFitPadding(state),
   });
 }
 

@@ -1,6 +1,6 @@
 import type { Asset, Board, BoardObject } from "../../board/types";
 import type { BoardSpaceProjection } from "../../geometry/board-space-projection";
-import type { Viewport, ViewportInsets } from "../../geometry/types";
+import type { FitPadding, Viewport } from "../../geometry/types";
 
 export interface CanvasRectOverlayItem {
   kind: "rect";
@@ -73,8 +73,7 @@ export interface CanvasRenderRequest {
   board: Board;
   viewport: Viewport;
   extendBackground?: boolean;
-  fitPadding?: number;
-  viewportInsets?: ViewportInsets;
+  fitPadding?: FitPadding;
   requestRender?: () => void;
   previewObjects?: BoardObject[];
   overlayItems?: CanvasOverlayItem[];

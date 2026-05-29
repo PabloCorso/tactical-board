@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import type { BoardObject } from "../../../../core/board/types";
 import { createBoardSpaceProjection } from "../../../../core/geometry/board-space-projection";
+import { resolveBoardEditorFitPadding } from "../../../../core/editor/fit-padding";
 import {
   ARROW_OBJECT_TYPE,
   type ArrowObject,
@@ -180,7 +181,7 @@ export function BoardEditorSelectionToolbar({
     frame: state.board.frame,
     viewport: state.ui.viewport,
     canvasRect: state.ui.canvasRect,
-    viewportInsets: state.ui.viewportInsets,
+    fitPadding: resolveBoardEditorFitPadding(state),
   });
 
   if (selectedObjects.length > 1) {

@@ -3,6 +3,7 @@ import type { BoardEditorState } from "../../../../core/editor/types";
 import { createBoardEditorStore } from "../../../../core/store/board-editor-store";
 import { SELECT_TOOL_ID } from "../../../../core/tools/select-tool-state";
 import { createFootballBoard } from "../board/football-board";
+import { getFootballPitchFitPadding } from "../theme/football-pitch-options";
 import { createFootballTools } from "../theme/football-tools";
 
 export type CreateFootballBoardEditorStoreOptions = {
@@ -15,6 +16,7 @@ export function createFootballBoardEditorStore(
 ) {
   return createBoardEditorStore({
     initialBoard,
+    fitPadding: getFootballPitchFitPadding,
     initialToolId: SELECT_TOOL_ID,
     navigationMode,
     tools: createFootballTools(),

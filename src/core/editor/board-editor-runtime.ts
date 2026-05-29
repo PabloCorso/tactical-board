@@ -4,6 +4,7 @@ import { createToolApi } from "./create-tool-api";
 import { createBoardEditorController } from "./board-editor-controller";
 import type { BoardEditorStore } from "../store/board-editor-store";
 import type { ToolDefinition } from "../tools/types";
+import { resolveBoardEditorFitPadding } from "./fit-padding";
 import { DEFAULT_VIEWPORT, getViewportToFitFrame } from "./viewport-utils";
 
 export interface BoardEditorRuntime {
@@ -85,7 +86,7 @@ export function createBoardEditorRuntime({
       board: state.board,
       viewport: state.ui.viewport,
       extendBackground,
-      viewportInsets: state.ui.viewportInsets,
+      fitPadding: resolveBoardEditorFitPadding(state),
       requestRender,
       previewObjects: state.rendering.previewObjects,
       overlayItems,
@@ -121,7 +122,7 @@ export function createBoardEditorRuntime({
       getViewportToFitFrame({
         frame: state.board.frame,
         canvasRect,
-        viewportInsets: state.ui.viewportInsets,
+        fitPadding: resolveBoardEditorFitPadding(state),
       }),
     );
     hasAppliedInitialViewportFit = true;

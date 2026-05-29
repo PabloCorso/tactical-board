@@ -56,10 +56,7 @@ export function FootballBoardEditor({
         <BoardEditorShapePolygonDone />
         <BoardEditorCanvasToolbar />
         <BoardEditorSelectionToolbar />
-        <BoardEditorToolbarDock
-          reserveViewportInsets
-          viewportInsetExtraSize={58}
-        >
+        <BoardEditorToolbarDock>
           <FootballPrimaryToolbar />
           <FootballSecondaryToolbar />
         </BoardEditorToolbarDock>

@@ -1,4 +1,5 @@
 import type { BoardEditorState } from "../editor/types";
+import { resolveBoardEditorFitPadding } from "../editor/fit-padding";
 import type {
   ToolApi,
   ToolCapabilityRegistrationApi,
@@ -242,7 +243,7 @@ function getMarqueeObjectIds(
     frame: state.board.frame,
     viewport: state.ui.viewport,
     canvasRect,
-    viewportInsets: state.ui.viewportInsets,
+    fitPadding: resolveBoardEditorFitPadding(state),
   });
   const marqueeStart = projection.boardToCanvas(marquee.origin);
   const marqueeEnd = projection.boardToCanvas(marquee.current);
@@ -852,7 +853,7 @@ function beginSelectionInteraction(event: ToolPointerEvent, api: ToolApi) {
     frame: state.board.frame,
     viewport: state.ui.viewport,
     canvasRect: event.canvasRect,
-    viewportInsets: state.ui.viewportInsets,
+    fitPadding: resolveBoardEditorFitPadding(state),
   });
   const groupSelectionSession =
     selectedObjectIds.length > 1

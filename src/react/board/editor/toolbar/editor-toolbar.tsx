@@ -7,7 +7,6 @@ import {
   type RefCallback,
   type ReactNode,
   useContext,
-  useRef,
 } from "react";
 import { CaretDownIcon } from "@phosphor-icons/react";
 import { cn } from "../../../ui/misc";
@@ -20,9 +19,6 @@ import {
   TooltipTrigger,
   type TooltipContentProps,
 } from "../../../ui/tooltip";
-import type { ViewportInsets } from "../../../../core/geometry/types";
-import { BoardEditorContext } from "../../../adapter/editor/board-editor-context";
-import { useIsomorphicLayoutEffect } from "../../../adapter/editor/use-isomorphic-layout-effect";
 
 export type BoardEditorToolbarOrientation = "horizontal" | "vertical";
 export type BoardEditorToolbarDockPlacement =
@@ -52,12 +48,7 @@ export type BoardEditorToolbarDockProps = PropsWithChildren & {
   className?: string;
   contentClassName?: string;
   placement?: BoardEditorToolbarDockPlacement;
-  reserveViewportInsets?: boolean;
-  viewportInsetExtraSize?: number;
-  viewportInsetGutter?: number;
 };
-
-const DEFAULT_VIEWPORT_INSET_GUTTER = 8;
 
 function setRef<T>(ref: Ref<T> | undefined, value: T | null) {
   if (!ref) {
@@ -70,32 +61,6 @@ function setRef<T>(ref: Ref<T> | undefined, value: T | null) {
   }
 
   ref.current = value;
-}
-
-function getViewportInsetsForToolbar({
-  extraSize,
-  gutter,
-  placement,
-  rect,
-}: {
-  extraSize: number;
-  gutter: number;
-  placement: BoardEditorToolbarDockPlacement;
-  rect: DOMRectReadOnly;
-}): ViewportInsets {
-  const viewportInsets = {
-    top: gutter,
-    right: gutter,
-    bottom: gutter,
-    left: gutter,
-  };
-
-  viewportInsets[placement] =
-    (placement === "left" || placement === "right" ? rect.width : rect.height) +
-    extraSize +
-    gutter;
-
-  return viewportInsets;
 }
 
 export function BoardEditorToolbar({
@@ -137,22 +102,10 @@ export const BoardEditorToolbarDock = forwardRef<
   HTMLDivElement,
   BoardEditorToolbarDockProps
 >(function BoardEditorToolbarDock(
-  {
-    children,
-    className,
-    contentClassName,
-    placement = "left",
-    reserveViewportInsets = false,
-    viewportInsetExtraSize = 0,
-    viewportInsetGutter = DEFAULT_VIEWPORT_INSET_GUTTER,
-  },
+  { children, className, contentClassName, placement = "left" },
   forwardedRef,
 ) {
-  const store = useContext(BoardEditorContext);
-  const dockRef = useRef<HTMLDivElement | null>(null);
-  const contentRef = useRef<HTMLDivElement | null>(null);
   const ref: RefCallback<HTMLDivElement> = (element) => {
-    dockRef.current = element;
     setRef(forwardedRef, element);
   };
   const placementClassName = {
@@ -161,51 +114,6 @@ export const BoardEditorToolbarDock = forwardRef<
     right: "inset-y-4 right-4 items-center",
     top: "inset-x-4 top-4 justify-center",
   } satisfies Record<BoardEditorToolbarDockPlacement, string>;
-
-  useIsomorphicLayoutEffect(() => {
-    const element =
-      contentRef.current?.firstElementChild instanceof HTMLElement
-        ? contentRef.current.firstElementChild
-        : dockRef.current;
-
-    if (!reserveViewportInsets || !store || !element) {
-      return;
-    }
-
-    const updateInsets = (rect: DOMRectReadOnly) => {
-      store.getState().actions.setViewportInsets(
-        getViewportInsetsForToolbar({
-          extraSize: viewportInsetExtraSize,
-          gutter: viewportInsetGutter,
-          placement,
-          rect,
-        }),
-      );
-    };
-
-    updateInsets(element.getBoundingClientRect());
-
-    const resizeObserver = new ResizeObserver(([entry]) => {
-      updateInsets(entry.contentRect);
-    });
-    resizeObserver.observe(element);
-
-    return () => {
-      resizeObserver.disconnect();
-      store.getState().actions.setViewportInsets({
-        top: 0,
-        right: 0,
-        bottom: 0,
-        left: 0,
-      });
-    };
-  }, [
-    placement,
-    reserveViewportInsets,
-    store,
-    viewportInsetExtraSize,
-    viewportInsetGutter,
-  ]);
 
   return (
     <div
@@ -218,7 +126,6 @@ export const BoardEditorToolbarDock = forwardRef<
       )}
     >
       <div
-        ref={contentRef}
         className={cn(
           "pointer-events-none flex max-h-full min-h-0 max-w-full min-w-0 items-center gap-2",
           contentClassName,

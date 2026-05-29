@@ -5,6 +5,7 @@ import type { ObjectId, Point } from "../board/types";
 import { createBoardSpaceProjection } from "../geometry/board-space-projection";
 import type { BoardEditorStore } from "../store/board-editor-store";
 import type { ToolPointerEvent, ToolWheelEvent } from "../tools/types";
+import { resolveBoardEditorFitPadding } from "./fit-padding";
 import {
   getViewportForZoomAtCanvasPoint,
   VIEWPORT_WHEEL_ZOOM_SENSITIVITY,
@@ -66,7 +67,7 @@ function getBoardPoint(
     frame: state.board.frame,
     viewport: state.ui.viewport,
     canvasRect,
-    viewportInsets: state.ui.viewportInsets,
+    fitPadding: resolveBoardEditorFitPadding(state),
   });
 
   return projection.canvasToBoard({
@@ -84,7 +85,7 @@ function getTargetObjectId(
     frame: state.board.frame,
     viewport: state.ui.viewport,
     canvasRect,
-    viewportInsets: state.ui.viewportInsets,
+    fitPadding: resolveBoardEditorFitPadding(state),
   });
   const canvasPoint = {
     x: clientPoint.x - canvasRect.left,
@@ -158,7 +159,7 @@ export function createBoardEditorController(
       },
       zoom: state.ui.viewport.zoom * input.scale,
       minZoom: state.ui.navigationMode === "contained" ? 0 : undefined,
-      viewportInsets: state.ui.viewportInsets,
+      fitPadding: resolveBoardEditorFitPadding(state),
     });
 
     state.actions.setViewport(nextViewport);

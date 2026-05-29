@@ -79,10 +79,7 @@ export function BasketballBoardEditor({
         <BoardEditorShapePolygonDone />
         <BoardEditorCanvasToolbar />
         <BoardEditorSelectionToolbar />
-        <BoardEditorToolbarDock
-          reserveViewportInsets
-          viewportInsetExtraSize={58}
-        >
+        <BoardEditorToolbarDock>
           <BasketballPrimaryToolbar />
           <BoardSecondaryToolbar />
         </BoardEditorToolbarDock>

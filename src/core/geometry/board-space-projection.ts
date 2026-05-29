@@ -4,14 +4,9 @@ import type {
   Point,
 } from "../board/types";
 import { createBoardFrameTransform } from "./create-board-frame-transform";
-import type { Rect, Viewport, ViewportInsets } from "./types";
+import type { FitPadding, Rect, Viewport } from "./types";
+import { getFitPaddingInsets } from "./fit-padding";
 
-const DEFAULT_VIEWPORT_INSETS: ViewportInsets = {
-  top: 0,
-  right: 0,
-  bottom: 0,
-  left: 0,
-};
 const DEFAULT_OBJECT_DIAMETER = 18;
 const DEFAULT_MINIMUM_HIT_RADIUS_PX = 24;
 
@@ -34,28 +29,29 @@ export interface CreateBoardSpaceProjectionOptions {
   frame: DocumentBackgroundConfig;
   viewport: Viewport;
   canvasRect: Pick<Rect, "width" | "height">;
-  viewportInsets?: ViewportInsets;
+  fitPadding?: FitPadding;
 }
 
 export function createBoardSpaceProjection({
   frame,
   viewport,
   canvasRect,
-  viewportInsets = DEFAULT_VIEWPORT_INSETS,
+  fitPadding,
 }: CreateBoardSpaceProjectionOptions): BoardSpaceProjection {
+  const padding = getFitPaddingInsets(fitPadding);
   const viewportFrameWidth = Math.max(
     1,
-    canvasRect.width - viewportInsets.left - viewportInsets.right,
+    canvasRect.width - padding.left - padding.right,
   );
   const viewportFrameHeight = Math.max(
     1,
-    canvasRect.height - viewportInsets.top - viewportInsets.bottom,
+    canvasRect.height - padding.top - padding.bottom,
   );
   const frameTransform = createBoardFrameTransform({
     boardFrame: frame,
     viewportFrame: {
-      x: viewportInsets.left + viewport.pan.x,
-      y: viewportInsets.top + viewport.pan.y,
+      x: padding.left + viewport.pan.x,
+      y: padding.top + viewport.pan.y,
       width: viewportFrameWidth,
       height: viewportFrameHeight,
     },

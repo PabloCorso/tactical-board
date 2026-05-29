@@ -29,10 +29,7 @@ export function BoardEditorCanvasToolbar({
 }: BoardEditorCanvasToolbarProps) {
   const store = useBoardEditorContext();
   const viewport = useBoardEditorStore(store, (state) => state.ui.viewport);
-  const viewportInsets = useBoardEditorStore(
-    store,
-    (state) => state.ui.viewportInsets,
-  );
+  const fitPadding = useBoardEditorStore(store, (state) => state.ui.fitPadding);
   const navigationMode = useBoardEditorStore(
     store,
     (state) => state.ui.navigationMode,
@@ -43,6 +40,8 @@ export function BoardEditorCanvasToolbar({
   const actions = useBoardEditorStore(store, (state) => state.actions);
   const canUndo = history.past.length > 0;
   const canRedo = history.future.length > 0;
+  const resolvedFitPadding =
+    typeof fitPadding === "function" ? fitPadding(frame) : fitPadding;
 
   const zoomAroundCanvasCenter = (nextZoom: number) => {
     if (!canvasRect) {
@@ -55,7 +54,10 @@ export function BoardEditorCanvasToolbar({
 
     actions.setViewport(
       (() => {
-        const viewportFrame = getViewportFrame({ canvasRect, viewportInsets });
+        const viewportFrame = getViewportFrame({
+          canvasRect,
+          fitPadding: resolvedFitPadding,
+        });
         return getViewportForZoomAtCanvasPoint({
           frame,
           viewport,
@@ -66,7 +68,7 @@ export function BoardEditorCanvasToolbar({
           },
           zoom: nextZoom,
           minZoom: navigationMode === "contained" ? 0 : undefined,
-          viewportInsets,
+          fitPadding: resolvedFitPadding,
         });
       })(),
     );
@@ -168,7 +170,7 @@ export function BoardEditorCanvasToolbar({
                 ? getViewportToFitFrame({
                     frame,
                     canvasRect,
-                    viewportInsets,
+                    fitPadding: resolvedFitPadding,
                   })
                 : { pan: { x: 0, y: 0 }, zoom: 1 },
             )

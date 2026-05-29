@@ -87,4 +87,29 @@ describe("createBoardSpaceProjection", () => {
       height: 36,
     });
   });
+
+  it("applies side-specific fit padding", () => {
+    const paddedProjection = createBoardSpaceProjection({
+      frame: {
+        width: 100,
+        height: 50,
+      },
+      viewport: {
+        pan: { x: 0, y: 0 },
+        zoom: 2,
+      },
+      canvasRect: {
+        width: 260,
+        height: 140,
+      },
+      fitPadding: { top: 20, right: 40, bottom: 10, left: 20 },
+    });
+
+    expect(paddedProjection.frame).toEqual({
+      x: 20,
+      y: 25,
+      width: 200,
+      height: 100,
+    });
+  });
 });

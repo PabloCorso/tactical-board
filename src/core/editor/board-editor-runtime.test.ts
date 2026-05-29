@@ -395,6 +395,63 @@ describe("createBoardEditorRuntime", () => {
     createCanvasRendererSpy.mockRestore();
   });
 
+  it("passes resolved fit padding to the renderer", () => {
+    const render = vi.fn();
+    const createCanvasRendererSpy = vi
+      .spyOn(canvasRendererModule, "createCanvasRenderer")
+      .mockReturnValue({ render });
+    const fitPadding = { top: 8, right: 0, bottom: 16, left: 40 };
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        frame: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      fitPadding,
+      tools: [
+        {
+          id: SELECT_TOOL_ID,
+          label: "Select",
+        },
+      ],
+    });
+    const runtime = createBoardEditorRuntime({ store });
+    const canvas = createCanvasStub();
+    const originalRequestAnimationFrame = globalThis.requestAnimationFrame;
+    const originalCancelAnimationFrame = globalThis.cancelAnimationFrame;
+    vi.stubGlobal(
+      "requestAnimationFrame",
+      vi.fn((callback: FrameRequestCallback) => {
+        callback(0);
+        return 1;
+      }),
+    );
+    vi.stubGlobal("cancelAnimationFrame", vi.fn());
+
+    runtime.mount(canvas);
+
+    expect(render).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        fitPadding,
+      }),
+    );
+
+    runtime.unmount();
+    vi.unstubAllGlobals();
+    globalThis.requestAnimationFrame = originalRequestAnimationFrame;
+    globalThis.cancelAnimationFrame = originalCancelAnimationFrame;
+    createCanvasRendererSpy.mockRestore();
+  });
+
   it("clears previews when the pointer leaves the canvas without capture", () => {
     const store = createBoardEditorStore({
       initialBoard: {

@@ -1,5 +1,6 @@
 import { createBoardSpaceProjection } from "../../../core/geometry/board-space-projection";
 import { createToolApi } from "../../../core/editor/create-tool-api";
+import { resolveBoardEditorFitPadding } from "../../../core/editor/fit-padding";
 import { createShapeObject } from "../../../core/objects/shape-object";
 import { completePendingPolygon } from "../../../core/tools/shape-tool";
 import {
@@ -33,7 +34,7 @@ export function BoardEditorShapePolygonDone() {
     frame: state.board.frame,
     viewport: state.ui.viewport,
     canvasRect: state.ui.canvasRect,
-    viewportInsets: state.ui.viewportInsets,
+    fitPadding: resolveBoardEditorFitPadding(state),
   });
   const firstPoint = projection.boardToCanvas(shapeState.pendingPoints[0]);
 
