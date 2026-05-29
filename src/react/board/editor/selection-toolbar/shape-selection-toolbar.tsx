@@ -193,6 +193,7 @@ export function BoardEditorShapeSelectionToolbar({
         <BoardEditorToolbarPopoverButton
           ariaLabel="Shape color"
           tooltip="Color"
+          popoverSide="top"
           content={
             <ColorPicker
               value={selectedObject.props.color}
@@ -213,6 +214,7 @@ export function BoardEditorShapeSelectionToolbar({
         <BoardEditorToolbarPopoverButton
           ariaLabel="Shape line style"
           tooltip="Line style"
+          popoverSide="top"
           content={
             <ShapeLineStylePopoverContent
               lineStyle={selectedObject.props.lineStyle}
@@ -229,6 +231,7 @@ export function BoardEditorShapeSelectionToolbar({
         <BoardEditorToolbarPopoverButton
           ariaLabel="Shape fill style"
           tooltip="Fill style"
+          popoverSide="top"
           content={
             <ShapeFillPopoverContent
               value={selectedObject.props.fillStyle}
@@ -241,6 +244,7 @@ export function BoardEditorShapeSelectionToolbar({
         <BoardEditorToolbarPopoverButton
           ariaLabel="Shape border style"
           tooltip="Border"
+          popoverSide="top"
           content={
             <ShapeBorderPopoverContent
               value={selectedObject.props.bordered}

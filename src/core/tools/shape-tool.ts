@@ -25,6 +25,7 @@ import {
   getShapeToolState,
   SHAPE_TOOL_ID,
   type ShapeDraftStyle,
+  type ShapeToolState,
 } from "./shape-tool-state";
 import { clearSelection } from "./select-tool-actions";
 import { shapeSelectionAdapter } from "./shape-selection";
@@ -95,7 +96,10 @@ export class ShapeTool extends BoardEditorTool implements ToolDefinition {
   }
 
   onActivate(api: ToolApi) {
-    if (this.defaults.length > 0) {
+    if (
+      this.defaults.length > 0 &&
+      !hasStoredShapeDraftStyle(api.getState().toolState[SHAPE_TOOL_ID])
+    ) {
       applyShapeDefault(api, this.defaults[0]);
     }
   }
@@ -265,6 +269,16 @@ function applyShapeDefault(
       ...toolDefault.draftStyle,
     },
   });
+}
+
+function hasStoredShapeDraftStyle(
+  value: unknown,
+): value is Pick<Partial<ShapeToolState>, "draftStyle"> {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    Object.prototype.hasOwnProperty.call(value, "draftStyle")
+  );
 }
 
 function setPendingPoints(api: ToolApi, pendingPoints: Point[]) {

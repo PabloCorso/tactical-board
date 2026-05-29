@@ -71,6 +71,7 @@ export function BoardEditorTextSelectionToolbar({
         <BoardEditorToolbarPopoverButton
           ariaLabel="Text color"
           tooltip="Color"
+          popoverSide="top"
           content={
             <ColorPicker
               value={selectedObject.props.color}

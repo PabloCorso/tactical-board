@@ -28,6 +28,7 @@ import {
   ARROW_TOOL_ID,
   getArrowToolState,
   type ArrowDraftStyle,
+  type ArrowToolState,
 } from "./arrow-tool-state";
 import { clearSelection } from "./select-tool-actions";
 import { arrowSelectionAdapter } from "./arrow-selection";
@@ -71,7 +72,10 @@ export class ArrowTool extends BoardEditorTool implements ToolDefinition {
   }
 
   onActivate(api: ToolApi) {
-    if (this.defaults.length > 0) {
+    if (
+      this.defaults.length > 0 &&
+      !hasStoredArrowDraftStyle(api.getState().toolState[ARROW_TOOL_ID])
+    ) {
       applyArrowDefault(api, this.defaults[0]);
     }
   }
@@ -194,6 +198,16 @@ function applyArrowDefault(
       ...toolDefault.draftStyle,
     },
   });
+}
+
+function hasStoredArrowDraftStyle(
+  value: unknown,
+): value is Pick<Partial<ArrowToolState>, "draftStyle"> {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    Object.prototype.hasOwnProperty.call(value, "draftStyle")
+  );
 }
 
 function setPendingPoints(api: ToolApi, pendingPoints: Point[]) {

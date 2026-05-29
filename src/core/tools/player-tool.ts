@@ -20,6 +20,7 @@ import {
   getPlayerToolState,
   PLAYER_TOOL_ID,
   type PlayerDraftStyle,
+  type PlayerToolState,
 } from "./player-tool-state";
 import {
   getAbsoluteCanvasExtent,
@@ -71,13 +72,16 @@ export class PlayerTool extends BoardEditorTool implements ToolDefinition {
   }
 
   getActivatedDraftStyle(toolState: BoardEditorToolState): PlayerDraftStyle {
+    const hasStoredDraftStyle = hasStoredPlayerDraftStyle(
+      toolState[PLAYER_TOOL_ID],
+    );
     const currentState = getPlayerToolState(toolState);
     const nextDraftStyle = {
       ...DEFAULT_PLAYER_TOOL_STATE.draftStyle,
       ...currentState.draftStyle,
     };
 
-    if (this.defaults.length > 0) {
+    if (this.defaults.length > 0 && !hasStoredDraftStyle) {
       Object.assign(nextDraftStyle, this.defaults[0].draftStyle);
     }
 
@@ -159,6 +163,16 @@ export class PlayerTool extends BoardEditorTool implements ToolDefinition {
       }),
     ]);
   }
+}
+
+function hasStoredPlayerDraftStyle(
+  value: unknown,
+): value is Pick<Partial<PlayerToolState>, "draftStyle"> {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    Object.prototype.hasOwnProperty.call(value, "draftStyle")
+  );
 }
 
 function createPlayerPreviewObject({

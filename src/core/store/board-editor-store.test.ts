@@ -642,7 +642,7 @@ describe("createBoardEditorStore", () => {
     expect(store.getState().ui.defaultToolId).toBe("draw");
   });
 
-  it("applies the first arrow default when activating the arrow tool", () => {
+  it("applies the first arrow default when activating the arrow tool without a stored selection", () => {
     const arrowTool = new ArrowTool({
       defaults: [
         {
@@ -680,14 +680,6 @@ describe("createBoardEditorStore", () => {
       tools: [selectTool, arrowTool],
     });
 
-    store.getState().actions.setToolState(ARROW_TOOL_ID, {
-      ...DEFAULT_ARROW_TOOL_STATE,
-      draftStyle: {
-        ...DEFAULT_ARROW_TOOL_STATE.draftStyle,
-        kind: "double",
-      },
-    });
-
     store.getState().actions.setActiveTool(ARROW_TOOL_ID);
 
     expect(getArrowToolState(store.getState().toolState).draftStyle).toEqual({
@@ -696,7 +688,63 @@ describe("createBoardEditorStore", () => {
     });
   });
 
-  it("applies the first player default when activating the player tool", () => {
+  it("keeps the selected arrow default when reactivating the arrow tool", () => {
+    const arrowTool = new ArrowTool({
+      defaults: [
+        {
+          id: "line",
+          label: "Line",
+          draftStyle: {
+            kind: "straight",
+          },
+        },
+        {
+          id: "curvy",
+          label: "Curvy",
+          draftStyle: {
+            kind: "curved",
+          },
+        },
+      ],
+    });
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        frame: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      initialToolId: SELECT_TOOL_ID,
+      tools: [selectTool, arrowTool],
+    });
+
+    store.getState().actions.setActiveTool(ARROW_TOOL_ID);
+    store.getState().actions.setToolState(ARROW_TOOL_ID, {
+      ...getArrowToolState(store.getState().toolState),
+      draftStyle: {
+        ...getArrowToolState(store.getState().toolState).draftStyle,
+        kind: "curved",
+      },
+    });
+
+    store.getState().actions.setActiveTool(SELECT_TOOL_ID);
+    store.getState().actions.setActiveTool(ARROW_TOOL_ID);
+
+    expect(getArrowToolState(store.getState().toolState).draftStyle).toEqual({
+      ...DEFAULT_ARROW_TOOL_STATE.draftStyle,
+      kind: "curved",
+    });
+  });
+
+  it("applies the first player default when activating the player tool without a stored selection", () => {
     const playerTool = new PlayerTool({
       defaults: [
         {
@@ -733,15 +781,6 @@ describe("createBoardEditorStore", () => {
       },
       initialToolId: SELECT_TOOL_ID,
       tools: [selectTool, playerTool],
-    });
-
-    store.getState().actions.setToolState(PLAYER_TOOL_ID, {
-      ...DEFAULT_PLAYER_TOOL_STATE,
-      draftStyle: {
-        ...DEFAULT_PLAYER_TOOL_STATE.draftStyle,
-        color: "#111827",
-        size: 3,
-      },
     });
 
     store.getState().actions.setActiveTool(PLAYER_TOOL_ID);

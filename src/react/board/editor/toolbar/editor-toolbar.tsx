@@ -12,7 +12,12 @@ import { CaretDownIcon } from "@phosphor-icons/react";
 import { cn } from "../../../ui/misc";
 import { Button, type ButtonProps } from "../../../ui/button";
 import type { IconRender } from "../../../ui/icon";
-import { Popover, PopoverContent, PopoverTrigger } from "../../../ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  type PopoverContentProps,
+} from "../../../ui/popover";
 import {
   Tooltip,
   TooltipContent,
@@ -232,6 +237,7 @@ export type BoardEditorToolbarPopoverButtonProps = {
   icon: IconRender;
   content: ReactNode;
   showCaret?: boolean;
+  popoverSide?: PopoverContentProps["side"];
 };
 
 export function BoardEditorToolbarPopoverButton({
@@ -240,6 +246,7 @@ export function BoardEditorToolbarPopoverButton({
   icon,
   content,
   showCaret = true,
+  popoverSide = "bottom",
 }: BoardEditorToolbarPopoverButtonProps) {
   const { tooltipSide } = useContext(BoardEditorToolbarContext);
 
@@ -273,6 +280,7 @@ export function BoardEditorToolbarPopoverButton({
       </Tooltip>
       <PopoverContent
         align="center"
+        side={popoverSide}
         sideOffset={8}
         className="w-auto min-w-max"
       >

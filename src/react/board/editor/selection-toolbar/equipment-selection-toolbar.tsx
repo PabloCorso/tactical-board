@@ -55,6 +55,7 @@ export function BoardEditorEquipmentSelectionToolbar({
           <BoardEditorToolbarPopoverButton
             ariaLabel="Equipment color"
             tooltip="Color"
+            popoverSide="top"
             content={
               <ColorPicker
                 value={color}

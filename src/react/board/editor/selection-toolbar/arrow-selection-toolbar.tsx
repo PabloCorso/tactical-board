@@ -158,6 +158,7 @@ export function BoardEditorArrowSelectionToolbar({
         <BoardEditorToolbarPopoverButton
           ariaLabel="Arrow color"
           tooltip="Color"
+          popoverSide="top"
           content={
             <ArrowColorPopoverContent
               color={selectedObject.props.color}
@@ -177,6 +178,7 @@ export function BoardEditorArrowSelectionToolbar({
         <BoardEditorToolbarPopoverButton
           ariaLabel="Arrow line style"
           tooltip="Line style"
+          popoverSide="top"
           content={
             <ArrowLineStylePopoverContent
               lineStyle={selectedObject.props.lineStyle}
@@ -193,6 +195,7 @@ export function BoardEditorArrowSelectionToolbar({
         <BoardEditorToolbarPopoverButton
           ariaLabel="Arrow body style"
           tooltip="Body style"
+          popoverSide="top"
           content={
             <ArrowBodyPopoverContent
               selectedObject={selectedObject}
