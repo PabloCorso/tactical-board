@@ -282,7 +282,7 @@ export function BoardEditorToolbarPopoverButton({
         align="center"
         side={popoverSide}
         sideOffset={8}
-        className="w-auto min-w-max"
+        className="w-auto min-w-max gap-0.5 p-1"
       >
         {content}
       </PopoverContent>
