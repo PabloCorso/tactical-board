@@ -672,7 +672,9 @@ function getFootballPitchPreviewSize(
 
   if (resolvedVariant === "half-pitch") {
     return {
-      width: metersToPixels(FOOTBALL_FULL_PITCH_METRICS.field.width + lineWidth),
+      width: metersToPixels(
+        FOOTBALL_FULL_PITCH_METRICS.field.width + lineWidth,
+      ),
       height: metersToPixels(
         FOOTBALL_FULL_PITCH_METRICS.field.length / 2 +
           FOOTBALL_FULL_PITCH_METRICS.goal.frameDepth +

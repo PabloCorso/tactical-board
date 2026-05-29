@@ -11,7 +11,10 @@ import {
 } from "../../../../core/tools/select-tool-actions";
 import { useBoardEditorStore } from "../../../adapter/editor/use-board-editor-store";
 import { useBoardEditorContext } from "../../../adapter/editor/board-editor-context";
-import { BoardEditorToolbarButton } from "../toolbar/editor-toolbar";
+import {
+  BoardEditorToolbarButton,
+  useBoardEditorToolbarFloatingPortal,
+} from "../toolbar/editor-toolbar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,6 +31,7 @@ export function BoardEditorSelectionActionsMenu({
   selectedObjectIds,
 }: BoardEditorSelectionActionsMenuProps) {
   const store = useBoardEditorContext();
+  const floatingPortal = useBoardEditorToolbarFloatingPortal();
   const board = useBoardEditorStore(store, (state) => state.board);
   const toolApi = createToolApi(store);
   const canBringToFront = selectedObjectIds.some((objectId) =>
@@ -57,7 +61,13 @@ export function BoardEditorSelectionActionsMenu({
           />
         )}
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" side="bottom" sideOffset={8}>
+      <DropdownMenuContent
+        align="start"
+        side="bottom"
+        sideOffset={8}
+        portalContainer={floatingPortal.container}
+        positionMethod={floatingPortal.positionMethod}
+      >
         <DropdownMenuItem onClick={handleDuplicate}>Duplicate</DropdownMenuItem>
         <DropdownMenuItem onClick={() => deleteSelectedObjects(toolApi)}>
           Delete

@@ -27,7 +27,9 @@ export type PopoverContentProps = PopoverPrimitive.Popup.Props &
     | "positionMethod"
     | "side"
     | "sideOffset"
-  >;
+  > & {
+    portalContainer?: PopoverPrimitive.Portal.Props["container"];
+  };
 
 export function PopoverContent({
   className,
@@ -35,12 +37,13 @@ export function PopoverContent({
   alignOffset = 0,
   collisionPadding = 8,
   positionMethod = "fixed",
+  portalContainer,
   side = "bottom",
   sideOffset = 4,
   ...props
 }: PopoverContentProps) {
   return (
-    <PopoverPrimitive.Portal>
+    <PopoverPrimitive.Portal container={portalContainer}>
       <PopoverPrimitive.Positioner
         align={align}
         alignOffset={alignOffset}

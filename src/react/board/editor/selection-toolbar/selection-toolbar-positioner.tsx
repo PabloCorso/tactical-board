@@ -1,5 +1,6 @@
-import { type PropsWithChildren, useRef, useState } from "react";
+import { type PropsWithChildren, useCallback, useState } from "react";
 import { useIsomorphicLayoutEffect } from "../../../adapter/editor/use-isomorphic-layout-effect";
+import { BoardEditorToolbarFloatingPortalProvider } from "../toolbar/editor-toolbar";
 
 const VIEWPORT_PADDING_PX = 10;
 
@@ -66,11 +67,14 @@ export function BoardEditorSelectionToolbarPositioner({
   viewportHeight,
   children,
 }: BoardEditorSelectionToolbarPositionerProps) {
-  const contentRef = useRef<HTMLDivElement | null>(null);
+  const [contentNode, setContentNode] = useState<HTMLDivElement | null>(null);
   const [toolbarSize, setToolbarSize] = useState({ width: 0, height: 0 });
+  const setContentRef = useCallback((node: HTMLDivElement | null) => {
+    setContentNode(node);
+  }, []);
 
   useIsomorphicLayoutEffect(() => {
-    const node = contentRef.current;
+    const node = contentNode;
 
     if (!node) {
       return;
@@ -98,7 +102,7 @@ export function BoardEditorSelectionToolbarPositioner({
     return () => {
       resizeObserver.disconnect();
     };
-  }, []);
+  }, [contentNode]);
 
   const position = getSelectionToolbarPlacement({
     anchorLeft,
@@ -116,7 +120,7 @@ export function BoardEditorSelectionToolbarPositioner({
       style={{ zIndex: 10 }}
     >
       <div
-        ref={contentRef}
+        ref={setContentRef}
         className="pointer-events-auto absolute max-h-full max-w-full"
         style={{
           left: position.left,
@@ -126,7 +130,12 @@ export function BoardEditorSelectionToolbarPositioner({
           transform: position.transform,
         }}
       >
-        {children}
+        <BoardEditorToolbarFloatingPortalProvider
+          container={contentNode}
+          positionMethod="absolute"
+        >
+          {children}
+        </BoardEditorToolbarFloatingPortalProvider>
       </div>
     </div>
   );

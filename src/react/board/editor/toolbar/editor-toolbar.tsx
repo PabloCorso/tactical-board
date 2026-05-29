@@ -37,9 +37,20 @@ type BoardEditorToolbarContextValue = {
   tooltipSide: TooltipContentProps["side"];
 };
 
+type BoardEditorToolbarFloatingPortalContextValue = {
+  container: HTMLElement | null;
+  positionMethod: PopoverContentProps["positionMethod"];
+};
+
 const BoardEditorToolbarContext = createContext<BoardEditorToolbarContextValue>(
   { orientation: "horizontal", tooltipSide: "top" },
 );
+
+const BoardEditorToolbarFloatingPortalContext =
+  createContext<BoardEditorToolbarFloatingPortalContextValue>({
+    container: null,
+    positionMethod: "fixed",
+  });
 
 export type BoardEditorToolbarProps = PropsWithChildren & {
   className?: string;
@@ -54,6 +65,24 @@ export type BoardEditorToolbarDockProps = PropsWithChildren & {
   contentClassName?: string;
   placement?: BoardEditorToolbarDockPlacement;
 };
+
+export function BoardEditorToolbarFloatingPortalProvider({
+  children,
+  container,
+  positionMethod,
+}: PropsWithChildren<BoardEditorToolbarFloatingPortalContextValue>) {
+  return (
+    <BoardEditorToolbarFloatingPortalContext.Provider
+      value={{ container, positionMethod }}
+    >
+      {children}
+    </BoardEditorToolbarFloatingPortalContext.Provider>
+  );
+}
+
+export function useBoardEditorToolbarFloatingPortal() {
+  return useContext(BoardEditorToolbarFloatingPortalContext);
+}
 
 function setRef<T>(ref: Ref<T> | undefined, value: T | null) {
   if (!ref) {
@@ -249,6 +278,7 @@ export function BoardEditorToolbarPopoverButton({
   popoverSide = "bottom",
 }: BoardEditorToolbarPopoverButtonProps) {
   const { tooltipSide } = useContext(BoardEditorToolbarContext);
+  const floatingPortal = useBoardEditorToolbarFloatingPortal();
 
   return (
     <Popover>
@@ -282,6 +312,8 @@ export function BoardEditorToolbarPopoverButton({
         align="center"
         side={popoverSide}
         sideOffset={8}
+        portalContainer={floatingPortal.container}
+        positionMethod={floatingPortal.positionMethod}
         className="w-auto min-w-max gap-0.5 p-1"
       >
         {content}

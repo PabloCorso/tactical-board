@@ -30,20 +30,23 @@ export type DropdownMenuContentProps = MenuPrimitive.Popup.Props &
     | "positionMethod"
     | "side"
     | "sideOffset"
-  >;
+  > & {
+    portalContainer?: MenuPrimitive.Portal.Props["container"];
+  };
 
 export function DropdownMenuContent({
   align = "start",
   alignOffset = 0,
   collisionPadding = 8,
   positionMethod = "fixed",
+  portalContainer,
   side = "bottom",
   sideOffset = 4,
   className,
   ...props
 }: DropdownMenuContentProps) {
   return (
-    <MenuPrimitive.Portal>
+    <MenuPrimitive.Portal container={portalContainer}>
       <MenuPrimitive.Positioner
         className="isolate z-50 outline-none"
         align={align}

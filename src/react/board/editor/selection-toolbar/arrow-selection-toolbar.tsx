@@ -1,6 +1,7 @@
 import {
   setArrowKind,
   updateArrowObject,
+  type ArrowHeadStyle,
   type ArrowKind,
   type ArrowLineStyle,
   type ArrowObject,
@@ -39,6 +40,14 @@ const LINE_STYLE_OPTIONS: Array<{
   { label: "Dashed", value: "dashed" },
 ] as const;
 
+const HEAD_STYLE_OPTIONS: Array<{
+  value: ArrowHeadStyle;
+  label: string;
+}> = [
+  { label: "None", value: "none" },
+  { label: "Arrow", value: "triangle" },
+] as const;
+
 function getBodyStyleIcon(kind: ArrowKind): IconRender {
   return (
     <BoardEditorArrowIcon
@@ -46,6 +55,24 @@ function getBodyStyleIcon(kind: ArrowKind): IconRender {
         kind,
         startHead: "none",
         endHead: "triangle",
+      }}
+      width={24}
+      height={24}
+      layout="compact"
+    />
+  );
+}
+
+function getHeadStyleIcon(
+  headStyle: ArrowHeadStyle,
+  side: "start" | "end",
+): IconRender {
+  return (
+    <BoardEditorArrowIcon
+      draftStyle={{
+        kind: "straight",
+        startHead: side === "start" ? headStyle : "none",
+        endHead: side === "end" ? headStyle : "none",
       }}
       width={24}
       height={24}
@@ -71,6 +98,34 @@ function ArrowBodyPopoverContent({
           active={selectedObject.props.kind === option.value}
           ariaLabel={`Arrow body ${option.label}`}
           icon={getBodyStyleIcon(option.value)}
+          onClick={() => onSelect(option.value)}
+        />
+      ))}
+    </div>
+  );
+}
+
+type ArrowHeadPopoverContentProps = {
+  headStyle: ArrowHeadStyle;
+  side: "start" | "end";
+  onSelect: (value: ArrowHeadStyle) => void;
+};
+
+function ArrowHeadPopoverContent({
+  headStyle,
+  side,
+  onSelect,
+}: ArrowHeadPopoverContentProps) {
+  const labelPrefix = side === "start" ? "Left" : "Right";
+
+  return (
+    <div className="grid grid-cols-2 gap-2">
+      {HEAD_STYLE_OPTIONS.map((option) => (
+        <BoardEditorToolbarOptionButton
+          key={option.value}
+          active={headStyle === option.value}
+          ariaLabel={`${labelPrefix} arrow head ${option.label}`}
+          icon={getHeadStyleIcon(option.value, side)}
           onClick={() => onSelect(option.value)}
         />
       ))}
@@ -176,6 +231,35 @@ export function BoardEditorArrowSelectionToolbar({
         />
 
         <BoardEditorToolbarPopoverButton
+          ariaLabel="Arrow body style"
+          tooltip="Body style"
+          popoverSide="top"
+          content={
+            <ArrowBodyPopoverContent
+              selectedObject={selectedObject}
+              onSelect={updateBodyStyle}
+            />
+          }
+          icon={getBodyStyleIcon(selectedObject.props.kind)}
+        />
+
+        <BoardEditorToolbarSeparator />
+
+        <BoardEditorToolbarPopoverButton
+          ariaLabel="Arrow left head"
+          tooltip="Left head"
+          popoverSide="top"
+          content={
+            <ArrowHeadPopoverContent
+              headStyle={selectedObject.props.startHead}
+              side="start"
+              onSelect={(value) => updateArrowProps({ startHead: value })}
+            />
+          }
+          icon={getHeadStyleIcon(selectedObject.props.startHead, "start")}
+        />
+
+        <BoardEditorToolbarPopoverButton
           ariaLabel="Arrow line style"
           tooltip="Line style"
           popoverSide="top"
@@ -193,16 +277,17 @@ export function BoardEditorArrowSelectionToolbar({
         />
 
         <BoardEditorToolbarPopoverButton
-          ariaLabel="Arrow body style"
-          tooltip="Body style"
+          ariaLabel="Arrow right head"
+          tooltip="Right head"
           popoverSide="top"
           content={
-            <ArrowBodyPopoverContent
-              selectedObject={selectedObject}
-              onSelect={updateBodyStyle}
+            <ArrowHeadPopoverContent
+              headStyle={selectedObject.props.endHead}
+              side="end"
+              onSelect={(value) => updateArrowProps({ endHead: value })}
             />
           }
-          icon={getBodyStyleIcon(selectedObject.props.kind)}
+          icon={getHeadStyleIcon(selectedObject.props.endHead, "end")}
         />
 
         <BoardEditorToolbarSeparator />

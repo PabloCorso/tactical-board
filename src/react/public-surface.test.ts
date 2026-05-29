@@ -3,6 +3,7 @@ import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import {
   BoardEditor,
+  BoardEditorArrowSelectionToolbar,
   BoardEditorCanvas,
   BoardEditorCanvasToolbar,
   BoardEditorProvider,
@@ -27,7 +28,10 @@ import {
   getBasketballObjectRenderers,
 } from "./";
 import { ContainedNavigation } from "../stories/football-board-editor.stories";
-import { ARROW_OBJECT_TYPE } from "../core/objects/arrow-object";
+import {
+  ARROW_OBJECT_TYPE,
+  createArrowObject,
+} from "../core/objects/arrow-object";
 import { EQUIPMENT_OBJECT_TYPE } from "../core/objects/equipment-object";
 import { PLAYER_OBJECT_TYPE } from "../core/objects/player-object";
 import { SHAPE_OBJECT_TYPE } from "../core/objects/shape-object";
@@ -48,6 +52,45 @@ describe("React public frame", () => {
 
     expect(toolbarMarkup).toContain("overflow-auto");
     expect(toolbarMarkup).toContain("p-0.5");
+  });
+
+  it("groups arrow head and line controls in the selection toolbar", () => {
+    const board = createFootballBoard({ id: "arrow-toolbar-board" });
+    const store = createFootballBoardEditorStore(board);
+    const arrow = createArrowObject({
+      id: "arrow-toolbar-arrow",
+      color: "#111827",
+      kind: "straight",
+      lineStyle: "solid",
+      start: { x: 0, y: 0 },
+      end: { x: 80, y: 40 },
+      startHead: "none",
+      endHead: "triangle",
+    });
+    const markup = renderToString(
+      createElement(
+        BoardEditorProvider,
+        { store },
+        createElement(BoardEditorArrowSelectionToolbar, {
+          selectedObject: arrow,
+          toolbarLeft: 100,
+          toolbarTop: 80,
+          toolbarBottom: 120,
+          viewportWidth: 400,
+          viewportHeight: 300,
+        }),
+      ),
+    );
+    const bodyIndex = markup.indexOf('aria-label="Arrow body style"');
+    const leftHeadIndex = markup.indexOf('aria-label="Arrow left head"');
+    const lineIndex = markup.indexOf('aria-label="Arrow line style"');
+    const rightHeadIndex = markup.indexOf('aria-label="Arrow right head"');
+
+    expect(bodyIndex).toBeGreaterThan(-1);
+    expect(leftHeadIndex).toBeGreaterThan(bodyIndex);
+    expect(lineIndex).toBeGreaterThan(leftHeadIndex);
+    expect(rightHeadIndex).toBeGreaterThan(lineIndex);
+    expect(markup.match(/role="separator"/g)?.length).toBe(2);
   });
 
   it("exports the simple and composable football modules", () => {

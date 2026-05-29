@@ -98,12 +98,7 @@ type BoardCard = {
   title: string;
 };
 
-function TacticalBoardCardItem({
-  description,
-  id,
-  pitch,
-  title,
-}: BoardCard) {
+function TacticalBoardCardItem({ description, id, pitch, title }: BoardCard) {
   const board = createFootballBoard({
     id: `football-card-${id}`,
     name: title,
