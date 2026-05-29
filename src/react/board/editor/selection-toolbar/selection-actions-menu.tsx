@@ -46,7 +46,7 @@ export function BoardEditorSelectionActionsMenu({
   };
 
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger>
         {(triggerProps) => (
           <BoardEditorToolbarButton
