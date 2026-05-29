@@ -263,7 +263,13 @@ export const shapeSelectionAdapter: ObjectSelectionAdapter<
     getBoundsFromCanvasPoints(
       getShapeSelectionOutlineCanvasPoints(projection, object),
     ),
-  renderSelection: ({ context, object, projection, color }) => {
+  renderSelection: ({
+    context,
+    object,
+    projection,
+    color,
+    showControls = true,
+  }) => {
     const outlinePoints = getShapeSelectionOutlineCanvasPoints(
       projection,
       object,
@@ -276,7 +282,7 @@ export const shapeSelectionAdapter: ObjectSelectionAdapter<
     drawClosedCanvasPath(context, outlinePoints);
     context.stroke();
 
-    if (!object.locked) {
+    if (showControls && !object.locked) {
       for (const handlePoint of outlinePoints) {
         drawRoundedSquareHandle(
           context,

@@ -919,6 +919,19 @@ function registerSelectOverlayRenderer(
       if (outlinePoints.length !== 4) {
         return;
       }
+
+      for (const object of overlay.objects) {
+        const selectionAdapter = overlay.selectionAdaptersByObjectId[object.id];
+
+        selectionAdapter?.renderSelection?.({
+          context,
+          object,
+          projection: frameTransform as SelectionProjection,
+          color: overlay.color,
+          showControls: false,
+        });
+      }
+
       const rotateHandlePoint =
         overlay.rotation === undefined
           ? (() => {

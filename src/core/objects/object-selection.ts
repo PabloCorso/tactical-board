@@ -15,6 +15,7 @@ export interface ObjectSelectionRenderInput<
   object: TObject;
   projection: SelectionProjection;
   color: string;
+  showControls?: boolean;
 }
 
 export interface ObjectSelectionHitTestInput<

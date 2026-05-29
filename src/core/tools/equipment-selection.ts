@@ -67,7 +67,13 @@ export const equipmentSelectionAdapter: ObjectSelectionAdapter<
     getBoundsFromCanvasPoints(
       getEquipmentSelectionOutlineCanvasPoints(projection, object),
     ),
-  renderSelection: ({ context, object, projection, color }) => {
+  renderSelection: ({
+    context,
+    object,
+    projection,
+    color,
+    showControls = true,
+  }) => {
     const outlinePoints = getEquipmentSelectionOutlineCanvasPoints(
       projection,
       object,
@@ -81,7 +87,7 @@ export const equipmentSelectionAdapter: ObjectSelectionAdapter<
     drawClosedCanvasPath(context, outlinePoints);
     context.stroke();
 
-    if (!object.locked) {
+    if (showControls && !object.locked) {
       if (transformCapabilities?.resize !== false) {
         for (const handlePoint of outlinePoints) {
           drawRoundedSquareHandle(

@@ -4,7 +4,10 @@ import { createEquipmentObject } from "../objects/equipment-object";
 import { createPlayerObject } from "../objects/player-object";
 import { hoopEquipment } from "../../react/sports/football/equipment/hoop";
 import { getEquipmentSelectionOutlineCanvasPoints } from "./equipment-geometry";
-import { getPlayerSelectionOutlineCanvasPoints } from "./player-selection";
+import {
+  getPlayerSelectionOutlineCanvasPoints,
+  playerSelectionAdapter,
+} from "./player-selection";
 
 const projection = createBoardSpaceProjection({
   frame: {
@@ -68,5 +71,41 @@ describe("selection outlines", () => {
 
     expect(outlineBounds.minX).toBeLessThan(center.x - rawHalfWidth - 0.5);
     expect(outlineBounds.maxX).toBeGreaterThan(center.x + rawHalfWidth + 0.5);
+  });
+
+  it("can render a player selection outline without resize handles", () => {
+    const player = createPlayerObject({
+      id: "player-1",
+      position: { x: 20, y: 10 },
+      size: { width: 120, height: 120 },
+      color: "#111827",
+    });
+    const operations: string[] = [];
+    const context = {
+      strokeStyle: "",
+      lineWidth: 0,
+      fillStyle: "",
+      save: () => operations.push("save"),
+      restore: () => operations.push("restore"),
+      beginPath: () => operations.push("beginPath"),
+      moveTo: () => {},
+      lineTo: () => {},
+      closePath: () => {},
+      stroke: () => operations.push("stroke"),
+      fill: () => operations.push("fill"),
+      roundRect: () => operations.push("roundRect"),
+    } as unknown as CanvasRenderingContext2D;
+
+    playerSelectionAdapter.renderSelection?.({
+      context,
+      object: player,
+      projection,
+      color: "#38bdf8",
+      showControls: false,
+    });
+
+    expect(operations).toContain("stroke");
+    expect(operations).not.toContain("fill");
+    expect(operations).not.toContain("roundRect");
   });
 });

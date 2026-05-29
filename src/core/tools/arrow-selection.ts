@@ -248,7 +248,13 @@ export const arrowSelectionAdapter: ObjectSelectionAdapter<
           : object.props.curveOffset,
     });
   },
-  renderSelection: ({ context, object, projection, color }) => {
+  renderSelection: ({
+    context,
+    object,
+    projection,
+    color,
+    showControls = true,
+  }) => {
     const startPoint = projection.boardToCanvas(object.props.start);
     const endPoint = projection.boardToCanvas(object.props.end);
 
@@ -256,6 +262,19 @@ export const arrowSelectionAdapter: ObjectSelectionAdapter<
     context.fillStyle = colors.white;
     context.strokeStyle = color;
     context.lineWidth = 1.5;
+
+    if (!showControls) {
+      const bounds = getArrowSelectionCanvasBounds(projection, object);
+
+      context.strokeRect(
+        bounds.left,
+        bounds.top,
+        bounds.right - bounds.left,
+        bounds.bottom - bounds.top,
+      );
+      context.restore();
+      return;
+    }
 
     for (const point of [object.props.start, object.props.end].map((endpoint) =>
       projection.boardToCanvas(endpoint),
