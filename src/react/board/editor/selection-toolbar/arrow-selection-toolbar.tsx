@@ -211,23 +211,17 @@ export function BoardEditorArrowSelectionToolbar({
     >
       <BoardEditorToolbar className={className}>
         <BoardEditorToolbarPopoverButton
-          ariaLabel="Arrow color"
-          tooltip="Color"
+          ariaLabel="Arrow left head"
+          tooltip="Left head"
           popoverSide="top"
           content={
-            <ArrowColorPopoverContent
-              color={selectedObject.props.color}
-              onSelect={(value) => updateArrowProps({ color: value })}
+            <ArrowHeadPopoverContent
+              headStyle={selectedObject.props.startHead}
+              side="start"
+              onSelect={(value) => updateArrowProps({ startHead: value })}
             />
           }
-          icon={
-            <span
-              className="border-tb-border-default inline-flex h-6 w-6 rounded-full border"
-              style={{ backgroundColor: selectedObject.props.color }}
-            >
-              <span className="sr-only">{selectedObject.props.color}</span>
-            </span>
-          }
+          icon={getHeadStyleIcon(selectedObject.props.startHead, "start")}
         />
 
         <BoardEditorToolbarPopoverButton
@@ -243,21 +237,21 @@ export function BoardEditorArrowSelectionToolbar({
           icon={getBodyStyleIcon(selectedObject.props.kind)}
         />
 
-        <BoardEditorToolbarSeparator />
-
         <BoardEditorToolbarPopoverButton
-          ariaLabel="Arrow left head"
-          tooltip="Left head"
+          ariaLabel="Arrow right head"
+          tooltip="Right head"
           popoverSide="top"
           content={
             <ArrowHeadPopoverContent
-              headStyle={selectedObject.props.startHead}
-              side="start"
-              onSelect={(value) => updateArrowProps({ startHead: value })}
+              headStyle={selectedObject.props.endHead}
+              side="end"
+              onSelect={(value) => updateArrowProps({ endHead: value })}
             />
           }
-          icon={getHeadStyleIcon(selectedObject.props.startHead, "start")}
+          icon={getHeadStyleIcon(selectedObject.props.endHead, "end")}
         />
+
+        <BoardEditorToolbarSeparator />
 
         <BoardEditorToolbarPopoverButton
           ariaLabel="Arrow line style"
@@ -277,17 +271,23 @@ export function BoardEditorArrowSelectionToolbar({
         />
 
         <BoardEditorToolbarPopoverButton
-          ariaLabel="Arrow right head"
-          tooltip="Right head"
+          ariaLabel="Arrow color"
+          tooltip="Color"
           popoverSide="top"
           content={
-            <ArrowHeadPopoverContent
-              headStyle={selectedObject.props.endHead}
-              side="end"
-              onSelect={(value) => updateArrowProps({ endHead: value })}
+            <ArrowColorPopoverContent
+              color={selectedObject.props.color}
+              onSelect={(value) => updateArrowProps({ color: value })}
             />
           }
-          icon={getHeadStyleIcon(selectedObject.props.endHead, "end")}
+          icon={
+            <span
+              className="border-tb-border-default inline-flex h-6 w-6 rounded-full border"
+              style={{ backgroundColor: selectedObject.props.color }}
+            >
+              <span className="sr-only">{selectedObject.props.color}</span>
+            </span>
+          }
         />
 
         <BoardEditorToolbarSeparator />
