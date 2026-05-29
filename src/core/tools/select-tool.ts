@@ -113,9 +113,124 @@ type GroupSelectionSession = {
   initialObjects: BoardObject[];
 };
 
+function getDirectionalResizeCursor(
+  handle: GroupSelectionHandle,
+  rotation = 0,
+) {
+  const baseAxisByHandle: Record<GroupSelectionHandle, number> = {
+    right: 0,
+    left: 0,
+    "top-left": 1,
+    "bottom-right": 1,
+    top: 2,
+    bottom: 2,
+    "top-right": 3,
+    "bottom-left": 3,
+  };
+  const cursorByAxis = [
+    "ew-resize",
+    "nwse-resize",
+    "ns-resize",
+    "nesw-resize",
+  ] as const;
+  const rotationSteps = Math.round(rotation / 45);
+  const axis = (baseAxisByHandle[handle] + rotationSteps) % cursorByAxis.length;
+
+  return cursorByAxis[(axis + cursorByAxis.length) % cursorByAxis.length];
+}
+
+function getSelectionResizeCursor(
+  session: { kind?: unknown; handle?: unknown; rotation?: unknown } | undefined,
+) {
+  if (
+    session?.kind !== "resize" ||
+    typeof session.handle !== "string" ||
+    !isGroupSelectionHandle(session.handle)
+  ) {
+    return undefined;
+  }
+
+  return getDirectionalResizeCursor(
+    session.handle,
+    typeof session.rotation === "number" ? session.rotation : 0,
+  );
+}
+
+function isGroupSelectionHandle(value: string): value is GroupSelectionHandle {
+  return (
+    value === "top" ||
+    value === "right" ||
+    value === "bottom" ||
+    value === "left" ||
+    value === "top-left" ||
+    value === "top-right" ||
+    value === "bottom-right" ||
+    value === "bottom-left"
+  );
+}
+
 export class SelectTool extends BoardEditorTool implements ToolDefinition {
   readonly id = SELECT_TOOL_ID;
   readonly label = "Select";
+
+  getCursor(event: ToolPointerEvent, api: ToolApi) {
+    const state = api.getState();
+    const selectState = getSelectToolState(state.toolState);
+    const activeInteraction = selectState.interaction;
+    const activeSessionCursor = getSelectionResizeCursor(
+      activeInteraction?.mode === "group-selection" ||
+        activeInteraction?.mode === "object-selection"
+        ? activeInteraction.session
+        : undefined,
+    );
+
+    if (activeSessionCursor) {
+      return activeSessionCursor;
+    }
+
+    const selectedObjectIds = state.selection.selectedObjectIds;
+
+    if (selectedObjectIds.length === 0) {
+      return undefined;
+    }
+
+    const projection = createBoardSpaceProjection({
+      frame: state.board.frame,
+      viewport: state.ui.viewport,
+      canvasRect: event.canvasRect,
+      fitPadding: resolveBoardEditorFitPadding(state),
+    });
+    const selectedObjects = selectedObjectIds
+      .map((objectId) => state.board.objects.byId[objectId])
+      .filter((object): object is BoardObject => Boolean(object));
+
+    if (selectedObjects.length > 1) {
+      return getSelectionResizeCursor(
+        hitGroupSelectionHandle(
+          state,
+          projection as SelectionProjection,
+          selectedObjects,
+          event,
+        ),
+      );
+    }
+
+    const selectedObject = selectedObjects[0];
+    const selectionAdapter = getObjectSelectionAdapterForObject(
+      state,
+      selectedObject,
+    );
+    const session = selectedObject
+      ? selectionAdapter?.hitSelectionHandle?.({
+          state,
+          object: selectedObject,
+          projection: projection as SelectionProjection,
+          event,
+        })
+      : undefined;
+
+    return getSelectionResizeCursor(session);
+  }
 
   getOverlayItems(state: BoardEditorState) {
     return getSelectOverlayItems(state);

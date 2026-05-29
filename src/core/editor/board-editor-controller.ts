@@ -50,6 +50,7 @@ export interface BoardEditorZoomInput {
 
 export interface BoardEditorController {
   createToolPointerEvent: (input: BoardEditorPointerInput) => ToolPointerEvent;
+  getCursor: (input: BoardEditorPointerInput) => string | undefined;
   dispatchPointerEvent: (
     handlerName: "onPointerDown" | "onPointerMove" | "onPointerUp",
     input: BoardEditorPointerInput,
@@ -216,6 +217,39 @@ export function createBoardEditorController(
         altKey: input.altKey,
         metaKey: input.metaKey,
       };
+    },
+    getCursor: (input) => {
+      const state = store.getState();
+      const currentTool = state.toolRegistry.definitions[state.ui.activeToolId];
+
+      if (!currentTool?.getCursor) {
+        return undefined;
+      }
+
+      const point = getBoardPoint(state, input.canvasRect, input.clientPoint);
+
+      return currentTool.getCursor(
+        {
+          point,
+          clientPoint: input.clientPoint,
+          canvasRect: input.canvasRect,
+          pointerId: input.pointerId,
+          button: input.button ?? 0,
+          interactionStartPoint: point,
+          interactionStartClientPoint: input.clientPoint,
+          draggedSincePointerDown: false,
+          targetObjectId: getTargetObjectId(
+            state,
+            input.canvasRect,
+            input.clientPoint,
+          ),
+          ctrlKey: input.ctrlKey,
+          shiftKey: input.shiftKey,
+          altKey: input.altKey,
+          metaKey: input.metaKey,
+        },
+        toolApi,
+      );
     },
     dispatchPointerEvent: (handlerName, input) => {
       if (handlerName === "onPointerDown") {

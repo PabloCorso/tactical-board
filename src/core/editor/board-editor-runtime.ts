@@ -1,7 +1,10 @@
 import { createCanvasRenderer } from "../rendering/canvas/create-canvas-renderer";
 import type { AssetResolver, CanvasRenderer } from "../rendering/canvas/types";
 import { createToolApi } from "./create-tool-api";
-import { createBoardEditorController } from "./board-editor-controller";
+import {
+  createBoardEditorController,
+  type BoardEditorPointerInput,
+} from "./board-editor-controller";
 import type { BoardEditorStore } from "../store/board-editor-store";
 import type { ToolDefinition } from "../tools/types";
 import { resolveBoardEditorFitPadding } from "./fit-padding";
@@ -32,6 +35,7 @@ export function createBoardEditorRuntime({
   let unsubscribe: (() => void) | null = null;
   let resizeObserver: ResizeObserver | null = null;
   let hasAppliedInitialViewportFit = false;
+  let lastPointerInput: BoardEditorPointerInput | null = null;
   const touchPointers = new Map<
     number,
     {
@@ -157,6 +161,18 @@ export function createBoardEditorRuntime({
       metaKey: event.metaKey,
       canvasRect: canvas.getBoundingClientRect(),
     };
+  };
+
+  const setCanvasCursor = (cursor: string | undefined) => {
+    if (!canvas) {
+      return;
+    }
+
+    canvas.style.cursor = cursor ?? "";
+  };
+
+  const updateCanvasCursor = (input: BoardEditorPointerInput | null) => {
+    setCanvasCursor(input ? controller.getCursor(input) : undefined);
   };
 
   const getTouchPointerPair = () => {
@@ -327,6 +343,8 @@ export function createBoardEditorRuntime({
       return;
     }
 
+    lastPointerInput = input;
+    updateCanvasCursor(input);
     controller.dispatchPointerEvent("onPointerMove", input);
   };
 
@@ -343,6 +361,8 @@ export function createBoardEditorRuntime({
       return;
     }
 
+    lastPointerInput = null;
+    updateCanvasCursor(null);
     store.getState().actions.clearPreviewObjects();
   };
 
@@ -607,6 +627,7 @@ export function createBoardEditorRuntime({
 
       unsubscribe = store.subscribe(() => {
         syncToolRenderers();
+        updateCanvasCursor(lastPointerInput);
         requestRender();
       });
 
@@ -635,6 +656,7 @@ export function createBoardEditorRuntime({
       unsubscribe = null;
       touchPointers.clear();
       pinchGesture = null;
+      lastPointerInput = null;
 
       if (canvas) {
         canvas.removeEventListener("pointerdown", onPointerDown);
@@ -645,6 +667,7 @@ export function createBoardEditorRuntime({
         canvas.removeEventListener("wheel", onWheel);
         canvas.removeEventListener("contextmenu", onContextMenu);
         canvas.removeEventListener("keydown", onKeyDown);
+        setCanvasCursor(undefined);
       }
 
       canvas = null;

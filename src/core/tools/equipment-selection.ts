@@ -34,6 +34,7 @@ function getEquipmentTransformCapabilities(equipment: EquipmentObject) {
 
 type EquipmentSelectionSession = ObjectSelectionSession & {
   kind: "resize" | "rotate";
+  handle?: "top-left" | "top-right" | "bottom-right" | "bottom-left";
   center: EquipmentObject["position"];
   initialRotation?: number;
   initialPointerAngle?: number;
@@ -119,7 +120,7 @@ export const equipmentSelectionAdapter: ObjectSelectionAdapter<
         object,
       );
 
-      for (const handleCanvasPoint of handlePoints) {
+      for (const [index, handleCanvasPoint] of handlePoints.entries()) {
         const distance = Math.hypot(
           canvasPoint.x - handleCanvasPoint.x,
           canvasPoint.y - handleCanvasPoint.y,
@@ -128,6 +129,14 @@ export const equipmentSelectionAdapter: ObjectSelectionAdapter<
         if (distance <= EQUIPMENT_RESIZE_HANDLE_HIT_RADIUS_PX) {
           return {
             kind: "resize",
+            handle:
+              index === 0
+                ? "top-left"
+                : index === 1
+                  ? "top-right"
+                  : index === 2
+                    ? "bottom-right"
+                    : "bottom-left",
             center: object.position,
             initialSize: {
               width: object.size?.width ?? 0,

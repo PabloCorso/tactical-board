@@ -2390,6 +2390,75 @@ describe("createBoardEditorController", () => {
     );
   });
 
+  it("uses directional resize cursors for selected shape handles", () => {
+    const shapeTool = new ShapeTool();
+    const existingShape = createShapeObject({
+      id: "shape-cursor-1",
+      kind: "rectangle",
+      start: { x: 10, y: 10 },
+      end: { x: 20, y: 18 },
+      color: "#fff",
+      lineStyle: "solid",
+      fillStyle: "solid",
+      bordered: true,
+    });
+    const { controller, projection } = createEditorHarness({
+      initialToolId: SELECT_TOOL_ID,
+      tools: [shapeTool],
+      objects: [existingShape],
+      selectedObjectIds: [existingShape.id],
+    });
+    const bottomRightHandle = getShapeSelectionOutlineCanvasPoints(
+      projection,
+      existingShape,
+    )[2]!;
+
+    expect(
+      controller.getCursor({
+        clientPoint: bottomRightHandle,
+        pointerId: 1,
+        ctrlKey: false,
+        shiftKey: false,
+        altKey: false,
+        metaKey: false,
+        canvasRect,
+      }),
+    ).toBe("nwse-resize");
+  });
+
+  it("does not use resize cursors for selected arrow endpoints", () => {
+    const arrowTool = new ArrowTool();
+    const existingArrow = createArrowObject({
+      id: "arrow-cursor-1",
+      start: { x: 10, y: 10 },
+      end: { x: 20, y: 18 },
+      color: "#fff",
+      strokeWidth: 2,
+      lineStyle: "solid",
+      kind: "straight",
+      startHead: "none",
+      endHead: "triangle",
+    });
+    const { controller, boardToCanvas } = createEditorHarness({
+      initialToolId: SELECT_TOOL_ID,
+      tools: [arrowTool],
+      objects: [existingArrow],
+      selectedObjectIds: [existingArrow.id],
+    });
+
+    expect(
+      controller.getCursor({
+        clientPoint: boardToCanvas(existingArrow.props.end),
+        pointerId: 1,
+        ctrlKey: false,
+        shiftKey: false,
+        altKey: false,
+        metaKey: false,
+        canvasRect,
+      }),
+    ).toBeUndefined();
+  });
+
   it("rotates a selected shape using the rotate handle", () => {
     const arrowTool = new ArrowTool();
     const shapeTool = new ShapeTool();

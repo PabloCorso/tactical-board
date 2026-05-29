@@ -109,6 +109,7 @@ export interface ToolDefinition {
   id: ToolId;
   label: string;
   getOverlayItems?: (state: BoardEditorState) => CanvasOverlayItem[];
+  getCursor?: (event: ToolPointerEvent, api: ToolApi) => string | undefined;
   registerCapabilities?: (api: ToolCapabilityRegistrationApi) => void;
   onActivate?: (api: ToolApi) => void;
   onDeactivate?: (api: ToolApi) => void;
