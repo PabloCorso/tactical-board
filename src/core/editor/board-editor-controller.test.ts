@@ -4259,4 +4259,95 @@ describe("createBoardEditorController", () => {
       },
     );
   });
+
+  it("adjusts a selected curved arrow when dragging near its curve handle", () => {
+    const arrowTool = new ArrowTool();
+    const existingArrow = createArrowObject({
+      id: "arrow-1",
+      start: { x: 10, y: 10 },
+      end: { x: 20, y: 10 },
+      color: "#fff",
+      strokeWidth: 2,
+      lineStyle: "solid",
+      kind: "curved",
+      startHead: "none",
+      endHead: "triangle",
+    });
+    const initialHandlePoint = getArrowCurveHandlePoint(
+      existingArrow.props.start,
+      existingArrow.props.end,
+      existingArrow.props.curveOffset,
+    );
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        frame: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {
+            [existingArrow.id]: existingArrow,
+          },
+          order: [existingArrow.id],
+        },
+        style: {},
+      },
+      initialToolId: SELECT_TOOL_ID,
+      tools: [selectTool, arrowTool],
+    });
+    const toolApi = createToolApi(store);
+    arrowTool.registerCapabilities?.(toolApi);
+    setSelectedObjectIds(toolApi, [existingArrow.id]);
+
+    const controller = createBoardEditorController(store);
+    const canvasRect = {
+      left: 0,
+      top: 0,
+      width: 1000,
+      height: 500,
+    };
+    const projection = createBoardSpaceProjection({
+      frame: store.getState().board.frame,
+      viewport: store.getState().ui.viewport,
+      canvasRect,
+    });
+    const controlPoint = projection.boardToCanvas(initialHandlePoint);
+    const nearControlPoint = {
+      x: controlPoint.x,
+      y: controlPoint.y + 8,
+    };
+    const nextControlPoint = projection.boardToCanvas({ x: 15, y: 5 });
+
+    controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: nearControlPoint,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+    controller.dispatchPointerEvent("onPointerMove", {
+      clientPoint: nextControlPoint,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    expect(store.getState().board.objects.byId[existingArrow.id]).toMatchObject(
+      {
+        props: {
+          start: { x: 10, y: 10 },
+          end: { x: 20, y: 10 },
+          curveOffset: -9,
+        },
+      },
+    );
+  });
 });

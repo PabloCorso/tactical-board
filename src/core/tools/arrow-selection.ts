@@ -27,6 +27,7 @@ const ARROW_ENDPOINT_HANDLE_RADIUS_PX = 4;
 const ARROW_ENDPOINT_HANDLE_HIT_RADIUS_PX = 12;
 const ARROW_CURVE_HANDLE_WIDTH_PX = 16;
 const ARROW_CURVE_HANDLE_HEIGHT_PX = 5;
+const ARROW_CURVE_HANDLE_HIT_PADDING_PX = 8;
 type ArrowSelectionSession = ObjectSelectionSession & {
   kind: "endpoint" | "curve";
   endpoint?: "start" | "end";
@@ -365,8 +366,10 @@ export const arrowSelectionAdapter: ObjectSelectionAdapter<
     const localY = -dx * Math.sin(angle) + dy * Math.cos(angle);
 
     if (
-      Math.abs(localX) <= ARROW_CURVE_HANDLE_WIDTH_PX / 2 + 2 &&
-      Math.abs(localY) <= ARROW_CURVE_HANDLE_HEIGHT_PX / 2
+      Math.abs(localX) <=
+        ARROW_CURVE_HANDLE_WIDTH_PX / 2 + ARROW_CURVE_HANDLE_HIT_PADDING_PX &&
+      Math.abs(localY) <=
+        ARROW_CURVE_HANDLE_HEIGHT_PX / 2 + ARROW_CURVE_HANDLE_HIT_PADDING_PX
     ) {
       return { kind: "curve" };
     }
