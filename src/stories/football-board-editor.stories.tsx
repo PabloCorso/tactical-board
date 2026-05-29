@@ -38,6 +38,7 @@ export const ShowcaseBoard: Story = {
 export const ContainedNavigation: Story = {
   args: {
     initialBoard: footballShowcaseBoard,
+    navigationMode: "contained",
   },
   parameters: {
     docs: {

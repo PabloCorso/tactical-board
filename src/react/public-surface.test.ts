@@ -26,6 +26,7 @@ import {
   getFootballObjectRenderers,
   getBasketballObjectRenderers,
 } from "./";
+import { ContainedNavigation } from "../stories/football-board-editor.stories";
 import { ARROW_OBJECT_TYPE } from "../core/objects/arrow-object";
 import { EQUIPMENT_OBJECT_TYPE } from "../core/objects/equipment-object";
 import { PLAYER_OBJECT_TYPE } from "../core/objects/player-object";
@@ -59,6 +60,7 @@ describe("React public frame", () => {
         navigationMode: "contained",
       }).getState().ui.navigationMode,
     ).toBe("contained");
+    expect(ContainedNavigation.args?.navigationMode).toBe("contained");
 
     expect(() =>
       renderToString(createElement(FootballBoardEditor)),
