@@ -1,4 +1,4 @@
-import type { BoardEditorState, BoardEditorToolState } from "../editor/types";
+import type { BoardEditorToolState } from "../editor/types";
 import type { ToolApi, ToolDefinition } from "./types";
 import { BoardEditorTool } from "./tool";
 import { defineObjectDefinition } from "../objects/types";
@@ -15,6 +15,7 @@ import type {
 } from "../rendering/canvas/types";
 import { clearSelection } from "./select-tool-actions";
 import { playerSelectionAdapter } from "./player-selection";
+import { getNextNumericPlayerLabel } from "./player-labels";
 import {
   DEFAULT_PLAYER_TOOL_STATE,
   getPlayerToolState,
@@ -27,7 +28,7 @@ import {
   getPlayerBorderWidth,
 } from "../rendering/canvas/object-render-scale";
 
-type PlayerToolLabelStrategy = "numeric-by-color" | "none";
+export type PlayerToolLabelStrategy = "numeric-by-color" | "none";
 
 export type PlayerToolDefault = {
   id: string;
@@ -60,7 +61,7 @@ export class PlayerTool extends BoardEditorTool implements ToolDefinition {
   readonly id = PLAYER_TOOL_ID;
   readonly label = "Player";
 
-  private readonly labelStrategy: PlayerToolLabelStrategy;
+  readonly labelStrategy: PlayerToolLabelStrategy;
   private readonly defaults: PlayerToolDefault[];
   private readonly renderer: CanvasObjectRenderer;
 
@@ -118,7 +119,7 @@ export class PlayerTool extends BoardEditorTool implements ToolDefinition {
     const playerId = createPlayerId(state.board.objects.byId);
     const label =
       this.labelStrategy === "numeric-by-color"
-        ? getNextNumericLabel(api, playerState, playerState.draftStyle.color)
+        ? getNextNumericPlayerLabel(state.board, playerState.draftStyle.color)
         : undefined;
 
     clearSelection(api);
@@ -130,17 +131,6 @@ export class PlayerTool extends BoardEditorTool implements ToolDefinition {
         label,
       }),
     ]);
-
-    if (this.labelStrategy === "numeric-by-color") {
-      api.setToolState(PLAYER_TOOL_ID, {
-        ...playerState,
-        nextNumericLabelByColor: incrementNumericLabelForColor(
-          playerState,
-          playerState.draftStyle.color,
-          label,
-        ),
-      });
-    }
   }
 
   onPointerMove(
@@ -151,7 +141,7 @@ export class PlayerTool extends BoardEditorTool implements ToolDefinition {
     const playerState = getPlayerToolState(state.toolState);
     const label =
       this.labelStrategy === "numeric-by-color"
-        ? getNextNumericLabel(api, playerState, playerState.draftStyle.color)
+        ? getNextNumericPlayerLabel(state.board, playerState.draftStyle.color)
         : undefined;
 
     api.setPreviewObjects([
@@ -197,23 +187,6 @@ function createPlayerPreviewObject({
     color: draftStyle.color,
     label,
   });
-}
-
-function normalizeColorKey(color: string) {
-  return color.trim().toLowerCase();
-}
-
-function parseNumericLabel(label: unknown) {
-  if (typeof label !== "string" || label.trim() === "") {
-    return undefined;
-  }
-
-  const value = Number.parseInt(label, 10);
-  if (!Number.isFinite(value) || String(value) !== label.trim()) {
-    return undefined;
-  }
-
-  return value;
 }
 
 function getContrastingTextColor(color: string) {
@@ -386,53 +359,4 @@ function hitTestPlayer({
   return (
     Math.hypot(canvasPoint.x - center.x, canvasPoint.y - center.y) <= radius
   );
-}
-
-function getNextNumericLabelFromState(
-  state: Pick<BoardEditorState, "board">,
-  playerState: ReturnType<typeof getPlayerToolState>,
-  color: string,
-) {
-  const colorKey = normalizeColorKey(color);
-  const nextLabelFromState = playerState.nextNumericLabelByColor[colorKey] ?? 1;
-  const nextLabelFromBoard =
-    Math.max(
-      0,
-      ...Object.values(state.board.objects.byId)
-        .filter(
-          (object) =>
-            object.type === PLAYER_OBJECT_TYPE &&
-            typeof object.props.color === "string" &&
-            normalizeColorKey(object.props.color) === colorKey,
-        )
-        .map((object) => parseNumericLabel(object.props.label))
-        .filter((value): value is number => typeof value === "number"),
-    ) + 1;
-
-  return String(Math.max(nextLabelFromState, nextLabelFromBoard));
-}
-
-function getNextNumericLabel(
-  api: ToolApi,
-  playerState: ReturnType<typeof getPlayerToolState>,
-  color: string,
-) {
-  return getNextNumericLabelFromState(api.getState(), playerState, color);
-}
-
-function incrementNumericLabelForColor(
-  playerState: ReturnType<typeof getPlayerToolState>,
-  color: string,
-  placedLabel: string | undefined,
-) {
-  const colorKey = normalizeColorKey(color);
-  const numericPlacedLabel = parseNumericLabel(placedLabel);
-
-  return {
-    ...playerState.nextNumericLabelByColor,
-    [colorKey]:
-      typeof numericPlacedLabel === "number"
-        ? numericPlacedLabel + 1
-        : (playerState.nextNumericLabelByColor[colorKey] ?? 1) + 1,
-  };
 }

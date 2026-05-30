@@ -1,8 +1,7 @@
 import { useMemo } from "react";
 import { EQUIPMENT_OBJECT_TYPE } from "../../../core/objects/equipment-object";
-import { PLAYER_OBJECT_TYPE } from "../../../core/objects/player-object";
 import { createToolApi } from "../../../core/editor/create-tool-api";
-import type { BoardEditorState } from "../../../core/editor/types";
+import { getNextNumericPlayerLabel } from "../../../core/tools/player-labels";
 import {
   ARROW_TOOL_ID,
   getArrowToolState,
@@ -17,7 +16,10 @@ import {
   PLAYER_TOOL_ID,
   type PlayerDraftStyle,
 } from "../../../core/tools/player-tool-state";
-import type { PlayerToolDefault } from "../../../core/tools/player-tool";
+import {
+  PlayerTool,
+  type PlayerToolDefault,
+} from "../../../core/tools/player-tool";
 import {
   getShapeToolState,
   SHAPE_TOOL_ID,
@@ -57,41 +59,6 @@ function matchesDraftStyle<T extends Record<string, unknown>>(
   return (Object.entries(toolDefault) as Array<[keyof T, T[keyof T]]>).every(
     ([key, value]) => JSON.stringify(current[key]) === JSON.stringify(value),
   );
-}
-
-function parseNumericLabel(label: unknown) {
-  if (typeof label !== "string" || label.trim() === "") {
-    return undefined;
-  }
-
-  const value = Number.parseInt(label, 10);
-
-  if (!Number.isFinite(value) || String(value) !== label.trim()) {
-    return undefined;
-  }
-
-  return value;
-}
-
-function getNextPlayerLabel(state: BoardEditorState, color: string) {
-  const playerState = getPlayerToolState(state.toolState);
-  const colorKey = color.trim().toLowerCase();
-  const nextLabelFromState = playerState.nextNumericLabelByColor[colorKey] ?? 1;
-  const nextLabelFromBoard =
-    Math.max(
-      0,
-      ...Object.values(state.board.objects.byId)
-        .filter(
-          (object) =>
-            object.type === PLAYER_OBJECT_TYPE &&
-            typeof object.props.color === "string" &&
-            object.props.color.trim().toLowerCase() === colorKey,
-        )
-        .map((object) => parseNumericLabel(object.props.label))
-        .filter((value): value is number => typeof value === "number"),
-    ) + 1;
-
-  return String(Math.max(nextLabelFromState, nextLabelFromBoard));
 }
 
 export type BoardEditorSecondaryToolbarProps = Omit<
@@ -139,6 +106,10 @@ export function BoardEditorSecondaryToolbar({
 
   if (activeToolId === PLAYER_TOOL_ID && playerDefaults.length > 0) {
     const playerState = getPlayerToolState(state.toolState);
+    const playerTool = state.toolRegistry.definitions[PLAYER_TOOL_ID];
+    const usesNumericLabels =
+      playerTool instanceof PlayerTool &&
+      playerTool.labelStrategy === "numeric-by-color";
 
     return (
       <BoardEditorToolbar
@@ -149,9 +120,9 @@ export function BoardEditorSecondaryToolbar({
         {playerDefaults.map((toolDefault) => {
           const color = toolDefault.draftStyle.color;
           const label =
-            typeof color === "string"
-              ? getNextPlayerLabel(state, color)
-              : toolDefault.label;
+            usesNumericLabels && typeof color === "string"
+              ? getNextNumericPlayerLabel(state.board, color)
+              : undefined;
           const draftStyle = {
             ...playerState.draftStyle,
             ...toolDefault.draftStyle,

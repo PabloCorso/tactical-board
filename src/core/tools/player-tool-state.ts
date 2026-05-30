@@ -13,7 +13,6 @@ export type PlayerDraftStyle = {
 
 export type PlayerToolState = {
   draftStyle: PlayerDraftStyle;
-  nextNumericLabelByColor: Record<string, number>;
 };
 
 export const DEFAULT_PLAYER_TOOL_STATE: PlayerToolState = {
@@ -21,7 +20,6 @@ export const DEFAULT_PLAYER_TOOL_STATE: PlayerToolState = {
     color: DEFAULT_PLAYER_COLOR,
     size: DEFAULT_PLAYER_SIZE,
   },
-  nextNumericLabelByColor: {},
 };
 
 export function getPlayerToolState(
@@ -36,15 +34,5 @@ export function getPlayerToolState(
       ...DEFAULT_PLAYER_TOOL_STATE.draftStyle,
       ...(state?.draftStyle ?? {}),
     },
-    nextNumericLabelByColor:
-      state?.nextNumericLabelByColor &&
-      typeof state.nextNumericLabelByColor === "object"
-        ? Object.fromEntries(
-            Object.entries(state.nextNumericLabelByColor).filter(
-              ([color, value]) =>
-                typeof color === "string" && typeof value === "number",
-            ),
-          )
-        : {},
   };
 }

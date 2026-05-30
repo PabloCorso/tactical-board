@@ -654,12 +654,6 @@ describe("createBoardEditorController", () => {
       type: "player",
       props: { label: "2", color: "#ff6b35" },
     });
-    expect(
-      getPlayerToolState(store.getState().toolState).nextNumericLabelByColor,
-    ).toEqual({
-      "#1f1f1f": 4,
-      "#ff6b35": 3,
-    });
   });
 
   it("seeds player numbering from existing players on the board", () => {
@@ -722,10 +716,23 @@ describe("createBoardEditorController", () => {
       type: "player",
       props: { color: "#1f6feb", label: "2" },
     });
-    expect(
-      getPlayerToolState(store.getState().toolState).nextNumericLabelByColor,
-    ).toEqual({
-      "#1f6feb": 3,
+  });
+
+  it("reuses the next player number from the current highest board label after deletion", () => {
+    const playerTool = new PlayerTool();
+    const { dispatchPointer, boardToCanvas, store } = createEditorHarness({
+      initialToolId: playerTool.id,
+      tools: [playerTool],
+    });
+
+    dispatchPointer("onPointerDown", boardToCanvas({ x: 10, y: 10 }));
+    dispatchPointer("onPointerDown", boardToCanvas({ x: 20, y: 10 }));
+    store.getState().actions.deleteObjects(["player-2"]);
+    dispatchPointer("onPointerDown", boardToCanvas({ x: 30, y: 10 }));
+
+    expect(store.getState().board.objects.byId["player-2"]).toMatchObject({
+      type: "player",
+      props: { label: "2" },
     });
   });
 

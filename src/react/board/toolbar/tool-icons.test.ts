@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { DEFAULT_PLAYER_SIZE } from "../../../core/objects/player-object";
+import { getNextNumericPlayerLabel } from "../../../core/tools/player-labels";
 import { PlayerTool } from "../../../core/tools/player-tool";
 import { PLAYER_TOOL_ID } from "../../../core/tools/player-tool-state";
 import type { ToolRegistry } from "../../../core/tools/types";
@@ -52,7 +53,6 @@ describe("getPlayerToolIconDraftStyle", () => {
           color: "#111827",
           size: 3,
         },
-        nextNumericLabelByColor: {},
       },
     };
 
@@ -65,6 +65,32 @@ describe("getPlayerToolIconDraftStyle", () => {
       color: "#111827",
       size: 3,
     });
+  });
+});
+
+describe("getNextNumericPlayerLabel", () => {
+  it("ignores non-numeric player labels", () => {
+    expect(
+      getNextNumericPlayerLabel(
+        {
+          objects: {
+            byId: {
+              player: {
+                id: "player",
+                type: "player",
+                position: { x: 10, y: 10 },
+                props: {
+                  color: "#1f6feb",
+                  label: "GK",
+                },
+              },
+            },
+            order: ["player"],
+          },
+        },
+        "#1f6feb",
+      ),
+    ).toBe("1");
   });
 });
 

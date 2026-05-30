@@ -6,10 +6,7 @@ import {
   type EquipmentDefinition,
 } from "../../../core/objects/equipment-object";
 import type { CanvasObjectRenderer } from "../../../core/rendering/canvas/types";
-import {
-  createPlayerObject,
-  PLAYER_OBJECT_TYPE,
-} from "../../../core/objects/player-object";
+import { createPlayerObject } from "../../../core/objects/player-object";
 import {
   createShapeObject,
   type ShapeKind,
@@ -19,6 +16,7 @@ import { useBoardEditorContext } from "../../adapter/editor/board-editor-context
 import { cn } from "../../ui/misc";
 import { useBoardEditorStore } from "../../adapter/editor/use-board-editor-store";
 import { PlayerTool, renderPlayer } from "../../../core/tools/player-tool";
+import { getNextNumericPlayerLabel } from "../../../core/tools/player-labels";
 import {
   getArrowToolState,
   type ArrowDraftStyle,
@@ -53,44 +51,6 @@ export function getThemeAwareToolIconColor(color: string | undefined) {
     : color;
 }
 
-function parseNumericLabel(label: unknown) {
-  if (typeof label !== "string" || label.trim() === "") {
-    return undefined;
-  }
-
-  const value = Number.parseInt(label, 10);
-
-  if (!Number.isFinite(value) || String(value) !== label.trim()) {
-    return undefined;
-  }
-
-  return value;
-}
-
-function getCurrentPlayerLabel(
-  state: Pick<BoardEditorState, "toolState" | "board">,
-  color: string,
-) {
-  const playerState = getPlayerToolState(state.toolState);
-  const colorKey = color.trim().toLowerCase();
-  const nextLabelFromState = playerState.nextNumericLabelByColor[colorKey] ?? 1;
-  const nextLabelFromBoard =
-    Math.max(
-      0,
-      ...Object.values(state.board.objects.byId)
-        .filter(
-          (object) =>
-            object.type === PLAYER_OBJECT_TYPE &&
-            typeof object.props.color === "string" &&
-            object.props.color.trim().toLowerCase() === colorKey,
-        )
-        .map((object) => parseNumericLabel(object.props.label))
-        .filter((value): value is number => typeof value === "number"),
-    ) + 1;
-
-  return String(Math.max(nextLabelFromState, nextLabelFromBoard));
-}
-
 export function BoardPlayerDefaultIcon({
   draftStyle,
   label,
@@ -99,7 +59,7 @@ export function BoardPlayerDefaultIcon({
   height = 24,
 }: {
   draftStyle: PlayerDraftStyle;
-  label: string;
+  label?: string;
   className?: string;
   width?: number;
   height?: number;
@@ -155,6 +115,7 @@ export function BoardPlayerToolIcon({
     store,
     (state) => state.toolRegistry,
   );
+  const playerTool = toolRegistry.definitions[PLAYER_TOOL_ID];
   const toolState = useBoardEditorStore(store, (state) => state.toolState);
   const board = useBoardEditorStore(store, (state) => state.board);
   const draftStyle = useMemo(
@@ -163,8 +124,12 @@ export function BoardPlayerToolIcon({
   );
   const color = draftStyle.color || fallbackColor;
   const label = useMemo(
-    () => getCurrentPlayerLabel({ toolState, board }, color),
-    [board, color, toolState],
+    () =>
+      playerTool instanceof PlayerTool &&
+      playerTool.labelStrategy === "numeric-by-color"
+        ? getNextNumericPlayerLabel(board, color)
+        : undefined,
+    [board, color, playerTool],
   );
 
   return <BoardPlayerDefaultIcon draftStyle={draftStyle} label={label} />;
