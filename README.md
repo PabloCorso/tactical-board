@@ -167,6 +167,54 @@ export function MatchPlanEditor() {
 
 Run `npm run storybook` and open `React/Board Editor/Football` for an interactive reference.
 
+### Custom toolbars, export, and share
+
+Host apps can compose their own toolbar around the exported toolbar primitives.
+Use the library for editor state, rendering, serialization, and visual controls;
+keep product-specific actions such as save, upload, deep links, WhatsApp links,
+native share sheets, and analytics in the host app.
+
+```tsx
+import {
+  BoardEditorToolbar,
+  BoardEditorToolbarButton,
+  serializeBoard,
+  useBoardEditorStore,
+} from "@pablocorso/tactical-board/react";
+import { FloppyDiskIcon, ShareNetworkIcon } from "@phosphor-icons/react";
+
+function HostActionsToolbar() {
+  const board = useBoardEditorStore((state) => state.board);
+
+  return (
+    <BoardEditorToolbar>
+      <BoardEditorToolbarButton
+        aria-label="Save board"
+        iconBefore={FloppyDiskIcon}
+        tooltip="Save board"
+        onClick={() => {
+          const json = serializeBoard(board);
+
+          void saveBoardInHostApp(json);
+        }}
+      />
+      <BoardEditorToolbarButton
+        aria-label="Share board"
+        iconBefore={ShareNetworkIcon}
+        tooltip="Share board"
+        onClick={() => {
+          void openHostShareWorkflow(board);
+        }}
+      />
+    </BoardEditorToolbar>
+  );
+}
+```
+
+Import `@pablocorso/tactical-board/styles.css` once in the host app. Toolbar
+components read Tactical Board CSS variables from `[data-tactical-board]`, and
+host apps may override those variables to match their own design system.
+
 ## SSR compatibility
 
 The package is safe to statically import and server-render in React SSR apps,

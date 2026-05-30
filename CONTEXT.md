@@ -36,7 +36,20 @@
 - **Standard Tool**: A reusable generic Tool, such as Select, Hand, Shape, Arrow, or Text, that is provided outside the Editor Engine and registered by an editor instance.
 - **Default Tool**: The configured fallback Tool for an editor instance. The Editor Engine stores the default tool id but does not know which Tool, such as Select, fills that role.
 - **Selection**: The editor-session set of Shapes currently targeted for editing. Tools may change Selection or decide how to present it, but Selection is not owned by any specific Tool.
+- **Smart Guides**: Temporary editor-session assistance that helps a user place, align, size, or constrain Shapes while interacting with a Document.
+- **Guide**: A visual hint shown for a possible or active Smart Guides target, distinct from a persistent visual grid.
+- **Guide Target**: A Shape, Board Frame boundary, or Theme-provided Board Frame marking that Smart Guides may use for placement assistance.
+- **Snap**: The adjustment of an in-progress interaction to a nearby Guide target.
+- **Selection Bounds**: The aggregate bounds of the current Selection when it is treated as one editable unit.
 - **Shape Skin**: A visual representation of a Shape that can change without changing the shape's meaning or serialized identity.
 - **Player**: A Board Object representing a player or participant on a Board; in the board layer, a Player is an object kind rather than a separate domain aggregate.
 - **Equipment Object**: A Board Object representing placeable training or game equipment whose name and visual appearance may be extended by a Theme or Host App.
 - **Shape Index**: The canonical internal storage shape for Shapes inside the Editor Engine: a map keyed by shape id plus a separate ordering list.
+- **Export Primitive**: A low-level Board Library capability that turns Board data into a portable representation, such as serialized JSON or a rendered image, without deciding where the result is stored or shared.
+- **Share Workflow**: A Host App workflow that chooses product-specific sharing behavior such as uploads, short links, deep links, native share sheets, WhatsApp links, permissions, analytics, or server-side rendering.
+
+## Relationships
+
+- **Smart Guides** treat a multi-Shape **Selection** through its **Selection Bounds** and exclude Shapes inside that Selection from the active set of **Guide Targets**.
+- The **Board Library** may provide reusable **Export Primitives**, while **Share Workflows** belong to the **Host App** because storage, privacy, URLs, channels, and analytics are product-specific.
+- A **Host App** may compose custom save, export, or share controls with Board Library toolbar primitives instead of using a prescribed Board Library toolbar.
