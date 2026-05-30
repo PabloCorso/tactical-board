@@ -5,10 +5,15 @@ import {
   BoardEditor,
   BoardEditorCanvas,
   BoardEditorProvider,
+  BoardPrimaryToolbar,
   BoardViewerCanvas,
   createBoardEditorStore,
 } from ".";
-import { createFootballBoard, FootballBoardEditor } from "./react";
+import {
+  createFootballBoard,
+  createFootballTools,
+  footballTheme,
+} from "./react";
 
 describe("SSR safety", () => {
   it("server-renders the public React exports with static imports", () => {
@@ -36,9 +41,19 @@ describe("SSR safety", () => {
     ).not.toThrow();
   });
 
-  it("server-renders the football React entrypoint with static imports", () => {
-    const html = renderToString(createElement(FootballBoardEditor));
+  it("server-renders sport defaults composed through generic React components", () => {
+    const store = createBoardEditorStore({
+      initialBoard: createFootballBoard(),
+      tools: createFootballTools(),
+    });
+    const html = renderToString(
+      createElement(
+        BoardEditorProvider,
+        { store },
+        createElement(BoardPrimaryToolbar, { theme: footballTheme }),
+      ),
+    );
 
-    expect(html).toContain("<canvas");
+    expect(html).toContain('role="toolbar"');
   });
 });

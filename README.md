@@ -1,12 +1,28 @@
 # Tactical Board
 
-Reusable tactical board/editor library scaffolded around a simple layered architecture.
+Reusable tactical board/editor library for embedding coach-facing planning boards
+in React applications.
+
+Tactical Board lets a host app create, edit, render, and serialize bounded visual
+planning canvases for sport workflows such as tactics, game plans, and practice
+drills. It provides the editing engine, canvas rendering, React integration,
+standard tools, and board UI primitives; sport adapters such as football and
+basketball add pitch/court frames, object presets, skins, themes, and tool
+registrations.
+
+The package is centered on composable `BoardEditor` and `BoardViewer`
+components. Sport packages provide defaults that a host app can compose into its
+own board experience.
+
+## Architecture
+
+The repository is scaffolded around a simple layered architecture.
 
 - `src/core`: the framework-independent Editor Engine. It owns Document/Shape state, editor operations, tool contracts, geometry contracts, selection, history, and serialization entrypoints.
 - `src/rendering/canvas`: the Canvas Renderer. It paints Document or Board state and transient overlays to HTML canvas.
 - `src/react/adapter`: the React Adapter. It wires DOM input and subscriptions without owning canonical Document state.
 - `src/react/board`: shared Board Editor UI, Theme composition, toolbar, renderer, and Tool registration modules.
-- `src/react/sports`: sport adapters such as football and basketball. They own sport-specific frames, dimensions, object presets, skins, and composed React editors.
+- `src/react/sports`: sport adapters such as football and basketball. They own sport-specific frames, dimensions, object presets, skins, themes, and tool registrations.
 - `src/tools`: reusable Standard Tools such as Select, Hand, Shape, Arrow, Text, Player, and Equipment.
 
 The shared Board Library seam is now expressed inside `src/react/board` for React-facing Board modules. Framework-independent Board concepts still live in `src/core` until a concrete non-React seam is proven.
@@ -23,11 +39,15 @@ import {
   BoardEditor,
   BoardEditorCanvas,
   BoardEditorCanvasToolbar,
+  BoardEditorArrowToolControl,
   BoardEditorProvider,
+  BoardEditorHandToolControl,
   BoardEditorSelectionToolbar,
   BoardEditorShapePolygonDone,
+  BoardEditorSelectToolControl,
+  BoardEditorShapeToolControl,
+  BoardEditorTextToolControl,
   BoardEditorToolbar,
-  BoardEditorToolControl,
   createBoard,
   createBoardEditorStore,
   HandTool,
@@ -74,11 +94,11 @@ export function TrainingBoardEditor() {
         <BoardEditorSelectionToolbar />
         <div className="pointer-events-none absolute inset-y-4 left-4 flex items-center">
           <BoardEditorToolbar className="pointer-events-auto flex-col">
-            <BoardEditorToolControl toolId="select" />
-            <BoardEditorToolControl toolId="hand" />
-            <BoardEditorToolControl toolId="text" />
-            <BoardEditorToolControl toolId="arrow" />
-            <BoardEditorToolControl toolId="shape" />
+            <BoardEditorSelectToolControl />
+            <BoardEditorHandToolControl />
+            <BoardEditorTextToolControl />
+            <BoardEditorArrowToolControl />
+            <BoardEditorShapeToolControl />
           </BoardEditorToolbar>
         </div>
       </BoardEditor>
@@ -87,18 +107,10 @@ export function TrainingBoardEditor() {
 }
 ```
 
-The football implementation is published as a React preset package. Consumers can render the composed editor or import the underlying board, tool, equipment, icon, and toolbar parts:
-
-```tsx
-import {
-  createFootballBoard,
-  FootballBoardEditor,
-} from "@pablocorso/tactical-board/react";
-```
-
-`FootballBoardEditor` accepts a caller-owned store or initial board. Without either, it creates an empty full-pitch football document via `createFootballBoard()`. Local showcase data lives under `src/examples` for Storybook and visual smoke testing rather than the public football API.
-
-Football UI is also composable. Use `createFootballBoardEditorStore()` for the football tool setup, then arrange the generic React adapter pieces and football toolbar pieces in your own shell:
+Sport adapters are defaults, not separate React editors. For football, compose
+the generic editor store with `createFootballTools()`, then render the generic
+editor components with `footballTheme`, `footballThemeAdapters`, and any
+sport-specific frame controls your app wants to expose:
 
 ```tsx
 import {
@@ -106,19 +118,27 @@ import {
   BoardEditorCanvas,
   BoardEditorCanvasToolbar,
   BoardEditorProvider,
+  BoardEditorSecondaryToolbar,
   BoardEditorSelectionToolbar,
   BoardEditorShapePolygonDone,
+  BoardEditorToolbarDock,
+  BoardEditorToolbarDockProvider,
+  BoardPrimaryToolbar,
+  createBoardEditorStore,
   createFootballBoard,
-  createFootballBoardEditorStore,
-  FootballPrimaryToolbar,
-  FootballSecondaryToolbar,
+  createFootballTools,
+  footballTheme,
+  footballThemeAdapters,
+  getFootballPitchFitPadding,
 } from "@pablocorso/tactical-board/react";
 
-const store = createFootballBoardEditorStore(
-  createFootballBoard({ id: "match-plan", name: "Match Plan" }),
-);
+const store = createBoardEditorStore({
+  initialBoard: createFootballBoard({ id: "match-plan", name: "Match Plan" }),
+  fitPadding: getFootballPitchFitPadding,
+  tools: createFootballTools(),
+});
 
-export function CustomFootballBoardEditor() {
+export function MatchPlanEditor() {
   return (
     <BoardEditorProvider store={store}>
       <BoardEditor className="relative h-dvh w-full overflow-hidden">
@@ -126,12 +146,19 @@ export function CustomFootballBoardEditor() {
         <BoardEditorShapePolygonDone />
         <BoardEditorCanvasToolbar />
         <BoardEditorSelectionToolbar />
-        <div className="pointer-events-none absolute inset-y-4 left-4 flex items-center">
-          <div className="pointer-events-auto flex items-center gap-3">
-            <FootballPrimaryToolbar />
-            <FootballSecondaryToolbar className="flex-col" />
-          </div>
-        </div>
+        <BoardEditorToolbarDockProvider>
+          <BoardEditorToolbarDock>
+            <BoardPrimaryToolbar
+              adapters={footballThemeAdapters}
+              showEquipment
+              theme={footballTheme}
+            />
+            <BoardEditorSecondaryToolbar
+              adapters={footballThemeAdapters}
+              theme={footballTheme}
+            />
+          </BoardEditorToolbarDock>
+        </BoardEditorToolbarDockProvider>
       </BoardEditor>
     </BoardEditorProvider>
   );

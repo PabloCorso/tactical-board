@@ -1,4 +1,5 @@
 import type { Board } from "../../../core/board/types";
+import type { PropsWithChildren } from "react";
 import type { Viewport } from "../../../core/geometry/types";
 import type { BoardViewerViewportMode } from "../../../core/viewer/board-viewer-viewport";
 import type {
@@ -28,6 +29,24 @@ export type BoardViewerCanvasProps = {
   overlayRenderers?: CanvasOverlayRendererRegistry;
   assetResolver?: AssetResolver;
 };
+
+export type BoardViewerProps = PropsWithChildren & {
+  className?: string;
+};
+
+export function BoardViewer({ children, className }: BoardViewerProps) {
+  return (
+    <div
+      data-tactical-board
+      className={cn(
+        "flex min-h-full w-full min-w-0 flex-1 flex-col",
+        className,
+      )}
+    >
+      {children}
+    </div>
+  );
+}
 
 export function BoardViewerCanvas({
   board,

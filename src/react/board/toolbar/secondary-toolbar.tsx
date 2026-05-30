@@ -29,6 +29,7 @@ import {
   BoardEditorToolbar,
   BoardEditorToolbarButton,
   type BoardEditorToolbarProps,
+  useBoardEditorToolbarDockOptional,
 } from "../editor/toolbar/editor-toolbar";
 import { useBoardEditorStore } from "../../adapter/editor/use-board-editor-store";
 import {
@@ -93,7 +94,7 @@ function getNextPlayerLabel(state: BoardEditorState, color: string) {
   return String(Math.max(nextLabelFromState, nextLabelFromBoard));
 }
 
-export type BoardSecondaryToolbarProps = Omit<
+export type BoardEditorSecondaryToolbarProps = Omit<
   BoardEditorToolbarProps,
   "children"
 > & {
@@ -102,24 +103,23 @@ export type BoardSecondaryToolbarProps = Omit<
   shapeDefaults?: ShapeToolDefault[];
   theme?: Pick<BoardTheme, "objects">;
   adapters?: BoardThemeAdapters;
-  onRequestDismiss?: () => void;
 };
 
 const SECONDARY_TOOLBAR_BUTTON_SIZE = "md";
 const SECONDARY_TOOLBAR_ICON_SIZE = "xl";
 const SECONDARY_TOOLBAR_ICON_BUTTON_CLASS_NAME = "aspect-square px-0";
 
-export function BoardSecondaryToolbar({
+export function BoardEditorSecondaryToolbar({
   arrowDefaults = BOARD_ARROW_DEFAULTS,
   orientation = "vertical",
   playerDefaults = BOARD_PLAYER_DEFAULTS,
   shapeDefaults = BOARD_SHAPE_DEFAULTS,
   adapters,
   theme,
-  onRequestDismiss,
   ...toolbarProps
-}: BoardSecondaryToolbarProps) {
+}: BoardEditorSecondaryToolbarProps) {
   const editorStore = useBoardEditorContext();
+  const toolbarDock = useBoardEditorToolbarDockOptional();
   const toolApi = useMemo(() => createToolApi(editorStore), [editorStore]);
   const state = useBoardEditorStore(
     editorStore,
@@ -186,7 +186,7 @@ export function BoardSecondaryToolbar({
                     ...toolDefault.draftStyle,
                   },
                 });
-                onRequestDismiss?.();
+                toolbarDock?.requestDismiss();
               }}
               iconSize={SECONDARY_TOOLBAR_ICON_SIZE}
               size={SECONDARY_TOOLBAR_BUTTON_SIZE}
@@ -228,15 +228,15 @@ export function BoardSecondaryToolbar({
               const currentState = getEquipmentToolState(
                 toolApi.getState().toolState,
               );
-              toolApi.setToolState(EQUIPMENT_TOOL_ID, {
-                ...currentState,
-                draftStyle: {
-                  ...currentState.draftStyle,
-                  kind: definition.kind,
-                },
-              });
-              onRequestDismiss?.();
-            }}
+                toolApi.setToolState(EQUIPMENT_TOOL_ID, {
+                  ...currentState,
+                  draftStyle: {
+                    ...currentState.draftStyle,
+                    kind: definition.kind,
+                  },
+                });
+                toolbarDock?.requestDismiss();
+              }}
             iconSize={SECONDARY_TOOLBAR_ICON_SIZE}
             size={SECONDARY_TOOLBAR_BUTTON_SIZE}
             tooltip={definition.label}
@@ -289,7 +289,7 @@ export function BoardSecondaryToolbar({
                     ...toolDefault.draftStyle,
                   },
                 });
-                onRequestDismiss?.();
+                toolbarDock?.requestDismiss();
               }}
               iconSize={SECONDARY_TOOLBAR_ICON_SIZE}
               size={SECONDARY_TOOLBAR_BUTTON_SIZE}
@@ -344,7 +344,7 @@ export function BoardSecondaryToolbar({
                     ...toolDefault.draftStyle,
                   },
                 });
-                onRequestDismiss?.();
+                toolbarDock?.requestDismiss();
               }}
               iconSize={SECONDARY_TOOLBAR_ICON_SIZE}
               size={SECONDARY_TOOLBAR_BUTTON_SIZE}

@@ -1,4 +1,5 @@
 export * from "./adapter/editor/board-editor";
+export { createBoardEditorStore } from "../core/store/board-editor-store";
 export * from "./board/editor/arrow-icon";
 export * from "./board/editor/canvas-toolbar";
 export * from "./adapter/editor/board-editor-context";
@@ -16,6 +17,7 @@ export * from "./board/editor/toolbar/tool-control";
 export * from "./board/editor/toolbar/default-tool-icons";
 export * from "./board/editor/toolbar/editor-toolbar";
 export * from "./adapter/viewer/board-viewer";
+export * from "./board/toolbar/frame-variant-toolbar";
 export * from "./sports/basketball";
 export * from "./sports/football";
 export * from "./board";

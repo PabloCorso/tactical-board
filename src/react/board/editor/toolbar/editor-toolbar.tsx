@@ -7,6 +7,8 @@ import {
   type RefCallback,
   type ReactNode,
   useContext,
+  useMemo,
+  useState,
 } from "react";
 import { CaretDownIcon } from "@phosphor-icons/react";
 import { cn } from "../../../ui/misc";
@@ -42,6 +44,13 @@ type BoardEditorToolbarFloatingPortalContextValue = {
   positionMethod: PopoverContentProps["positionMethod"];
 };
 
+type BoardEditorToolbarDockContextValue = {
+  secondaryToolbarOpen: boolean;
+  openSecondaryToolbar: () => void;
+  closeSecondaryToolbar: () => void;
+  requestDismiss: () => void;
+};
+
 const BoardEditorToolbarContext = createContext<BoardEditorToolbarContextValue>(
   { orientation: "horizontal", tooltipSide: "top" },
 );
@@ -51,6 +60,9 @@ const BoardEditorToolbarFloatingPortalContext =
     container: null,
     positionMethod: "fixed",
   });
+
+const BoardEditorToolbarDockContext =
+  createContext<BoardEditorToolbarDockContextValue | null>(null);
 
 export type BoardEditorToolbarProps = PropsWithChildren & {
   className?: string;
@@ -64,6 +76,11 @@ export type BoardEditorToolbarDockProps = PropsWithChildren & {
   className?: string;
   contentClassName?: string;
   placement?: BoardEditorToolbarDockPlacement;
+};
+
+export type BoardEditorToolbarDockProviderProps = PropsWithChildren & {
+  defaultSecondaryToolbarOpen?: boolean;
+  dismissSecondaryToolbarOnSelect?: boolean;
 };
 
 export function BoardEditorToolbarFloatingPortalProvider({
@@ -82,6 +99,51 @@ export function BoardEditorToolbarFloatingPortalProvider({
 
 export function useBoardEditorToolbarFloatingPortal() {
   return useContext(BoardEditorToolbarFloatingPortalContext);
+}
+
+export function BoardEditorToolbarDockProvider({
+  children,
+  defaultSecondaryToolbarOpen = true,
+  dismissSecondaryToolbarOnSelect = true,
+}: BoardEditorToolbarDockProviderProps) {
+  const [secondaryToolbarOpen, setSecondaryToolbarOpen] = useState(
+    defaultSecondaryToolbarOpen,
+  );
+  const value = useMemo<BoardEditorToolbarDockContextValue>(
+    () => ({
+      secondaryToolbarOpen,
+      openSecondaryToolbar: () => setSecondaryToolbarOpen(true),
+      closeSecondaryToolbar: () => setSecondaryToolbarOpen(false),
+      requestDismiss: () => {
+        if (dismissSecondaryToolbarOnSelect) {
+          setSecondaryToolbarOpen(false);
+        }
+      },
+    }),
+    [dismissSecondaryToolbarOnSelect, secondaryToolbarOpen],
+  );
+
+  return (
+    <BoardEditorToolbarDockContext.Provider value={value}>
+      {children}
+    </BoardEditorToolbarDockContext.Provider>
+  );
+}
+
+export function useBoardEditorToolbarDock() {
+  const value = useContext(BoardEditorToolbarDockContext);
+
+  if (!value) {
+    throw new Error(
+      "useBoardEditorToolbarDock must be used within BoardEditorToolbarDockProvider",
+    );
+  }
+
+  return value;
+}
+
+export function useBoardEditorToolbarDockOptional() {
+  return useContext(BoardEditorToolbarDockContext);
 }
 
 function setRef<T>(ref: Ref<T> | undefined, value: T | null) {

@@ -6,26 +6,37 @@ import {
   BoardEditorArrowSelectionToolbar,
   BoardEditorCanvas,
   BoardEditorCanvasToolbar,
+  BoardEditorEquipmentToolControl,
+  BoardEditorFrameVariantDefaultsToolbar,
+  BoardEditorFrameVariantToolControl,
+  BoardEditorHandToolControl,
+  BoardEditorPlayerToolControl,
   BoardEditorProvider,
-  BoardSecondaryToolbar,
+  BoardEditorSecondaryToolbar,
   BoardEditorSelectionToolbar,
   BoardEditorShapePolygonDone,
+  BoardEditorTextToolControl,
+  BoardEditorToolbarDockProvider,
   BoardEditorToolbar,
   BoardEditorToolbarButton,
   BoardEditorToolbarDock,
-  BasketballBoardEditor,
-  BasketballBoardViewerCanvas,
-  BasketballPrimaryToolbar,
+  BoardViewerCanvas,
+  BoardPrimaryToolbar,
+  basketballTheme,
   createBasketballBoard,
-  createBasketballBoardEditorStore,
+  createBasketballTools,
+  createBoardEditorStore,
   createFootballBoard,
-  createFootballBoardEditorStore,
-  FootballBoardViewerCanvas,
-  FootballBoardEditor,
-  FootballPrimaryToolbar,
-  FootballSecondaryToolbar,
+  createFootballTools,
+  createFootballPitch,
+  FOOTBALL_PITCH_OPTIONS,
+  FOOTBALL_PITCH_TOOL_ID,
+  footballTheme,
+  footballThemeAdapters,
   getFootballObjectRenderers,
   getBasketballObjectRenderers,
+  getFootballPitchFitPadding,
+  getFootballPitchVariant,
 } from "./";
 import { ContainedNavigation } from "../stories/football-board-editor.stories";
 import {
@@ -56,7 +67,11 @@ describe("React public frame", () => {
 
   it("groups arrow head and line controls in the selection toolbar", () => {
     const board = createFootballBoard({ id: "arrow-toolbar-board" });
-    const store = createFootballBoardEditorStore(board);
+    const store = createBoardEditorStore({
+      initialBoard: board,
+      fitPadding: getFootballPitchFitPadding,
+      tools: createFootballTools(),
+    });
     const arrow = createArrowObject({
       id: "arrow-toolbar-arrow",
       color: "#111827",
@@ -95,23 +110,36 @@ describe("React public frame", () => {
 
   it("exports the simple and composable football modules", () => {
     const board = createFootballBoard({ id: "public-frame-board" });
-    const store = createFootballBoardEditorStore(board);
+    const store = createBoardEditorStore({
+      initialBoard: board,
+      fitPadding: getFootballPitchFitPadding,
+      tools: createFootballTools(),
+    });
 
     expect(store.getState().ui.navigationMode).toBe("free");
     expect(
-      createFootballBoardEditorStore(board, {
+      createBoardEditorStore({
+        initialBoard: board,
+        fitPadding: getFootballPitchFitPadding,
         navigationMode: "contained",
+        tools: createFootballTools(),
       }).getState().ui.navigationMode,
     ).toBe("contained");
     expect(ContainedNavigation.args?.navigationMode).toBe("contained");
 
     expect(() =>
-      renderToString(createElement(FootballBoardEditor)),
+      renderToString(
+        createElement(BoardViewerCanvas, {
+          board,
+          objectRenderers: getFootballObjectRenderers(),
+        }),
+      ),
     ).not.toThrow();
 
-    expect(() =>
-      renderToString(createElement(FootballBoardViewerCanvas, { board })),
-    ).not.toThrow();
+    const footballPitchFrameOptions = FOOTBALL_PITCH_OPTIONS.map((option) => ({
+      ...option,
+      createFrame: () => createFootballPitch(option.value),
+    }));
 
     expect(() =>
       renderToString(
@@ -126,10 +154,42 @@ describe("React public frame", () => {
             createElement(BoardEditorCanvasToolbar),
             createElement(BoardEditorSelectionToolbar),
             createElement(
-              BoardEditorToolbarDock,
-              null,
-              createElement(FootballPrimaryToolbar),
-              createElement(FootballSecondaryToolbar),
+              BoardEditorToolbarDockProvider,
+              { defaultSecondaryToolbarOpen: false },
+              createElement(
+                BoardEditorToolbarDock,
+                { placement: "right" },
+                createElement(
+                  BoardPrimaryToolbar,
+                  {
+                    adapters: footballThemeAdapters,
+                    showEquipment: true,
+                    theme: footballTheme,
+                  },
+                  createElement(BoardEditorFrameVariantToolControl, {
+                    toolId: FOOTBALL_PITCH_TOOL_ID,
+                    options: footballPitchFrameOptions,
+                    getValue: getFootballPitchVariant,
+                  }),
+                ),
+                createElement(BoardEditorFrameVariantDefaultsToolbar, {
+                  toolId: FOOTBALL_PITCH_TOOL_ID,
+                  options: footballPitchFrameOptions,
+                  getValue: getFootballPitchVariant,
+                }),
+                createElement(BoardEditorSecondaryToolbar, {
+                  adapters: footballThemeAdapters,
+                  theme: footballTheme,
+                }),
+                createElement(
+                  BoardEditorToolbar,
+                  null,
+                  createElement(BoardEditorHandToolControl),
+                  createElement(BoardEditorPlayerToolControl),
+                  createElement(BoardEditorEquipmentToolControl),
+                  createElement(BoardEditorTextToolControl),
+                ),
+              ),
             ),
           ),
         ),
@@ -139,21 +199,27 @@ describe("React public frame", () => {
 
   it("exports the simple and composable basketball modules", () => {
     const board = createBasketballBoard({ id: "public-basketball-board" });
-    const store = createBasketballBoardEditorStore(board);
+    const store = createBoardEditorStore({
+      initialBoard: board,
+      tools: createBasketballTools(),
+    });
 
     expect(store.getState().ui.navigationMode).toBe("free");
     expect(
-      createBasketballBoardEditorStore(board, {
+      createBoardEditorStore({
+        initialBoard: board,
         navigationMode: "contained",
+        tools: createBasketballTools(),
       }).getState().ui.navigationMode,
     ).toBe("contained");
 
     expect(() =>
-      renderToString(createElement(BasketballBoardEditor)),
-    ).not.toThrow();
-
-    expect(() =>
-      renderToString(createElement(BasketballBoardViewerCanvas, { board })),
+      renderToString(
+        createElement(BoardViewerCanvas, {
+          board,
+          objectRenderers: getBasketballObjectRenderers(),
+        }),
+      ),
     ).not.toThrow();
 
     expect(() =>
@@ -169,10 +235,18 @@ describe("React public frame", () => {
             createElement(BoardEditorCanvasToolbar),
             createElement(BoardEditorSelectionToolbar),
             createElement(
-              BoardEditorToolbarDock,
+              BoardEditorToolbarDockProvider,
               null,
-              createElement(BasketballPrimaryToolbar),
-              createElement(BoardSecondaryToolbar),
+              createElement(
+                BoardEditorToolbarDock,
+                null,
+                createElement(BoardPrimaryToolbar, {
+                  theme: basketballTheme,
+                }),
+                createElement(BoardEditorSecondaryToolbar, {
+                  theme: basketballTheme,
+                }),
+              ),
             ),
           ),
         ),

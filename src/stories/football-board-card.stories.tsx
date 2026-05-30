@@ -5,7 +5,8 @@ import {
   createFootballPitch,
   FOOTBALL_FULL_PITCH_ASPECT_RATIO,
   type FootballPitchVariant,
-  FootballBoardViewerCanvas,
+  BoardViewerCanvas,
+  getFootballObjectRenderers,
 } from "../react";
 import { cn } from "../react/ui/misc";
 
@@ -112,11 +113,12 @@ function TacticalBoardCardItem({ description, id, pitch, title }: BoardCard) {
           className="relative w-full overflow-hidden rounded-t-xl bg-zinc-950"
           style={{ aspectRatio: BOARD_CARD_PREVIEW_ASPECT_RATIO }}
         >
-          <FootballBoardViewerCanvas
+          <BoardViewerCanvas
             board={board}
             fitPadding={8}
             frameClassName="h-full flex-none"
             mode="fit-content"
+            objectRenderers={getFootballObjectRenderers()}
           />
         </div>
         <div className="border-tb-border-default flex flex-col gap-1 border-t px-4 py-3">
