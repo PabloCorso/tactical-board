@@ -95,7 +95,7 @@ export function BoardEditorCanvas({
     >
       <canvas
         className={cn(
-          "block size-full touch-none overflow-hidden",
+          "block size-full touch-none overflow-hidden outline-none",
           activeToolId === TEXT_TOOL_ID && "cursor-text",
           className,
         )}

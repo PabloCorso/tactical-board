@@ -49,6 +49,25 @@ import { SHAPE_OBJECT_TYPE } from "../core/objects/shape-object";
 import { TEXT_OBJECT_TYPE } from "../core/objects/text-object";
 
 describe("React public frame", () => {
+  it("keeps the editor canvas focusable without the browser focus outline", () => {
+    const board = createFootballBoard({ id: "canvas-focus-board" });
+    const store = createBoardEditorStore({
+      initialBoard: board,
+      fitPadding: getFootballPitchFitPadding,
+      tools: createFootballTools(),
+    });
+    const markup = renderToString(
+      createElement(
+        BoardEditorProvider,
+        { store },
+        createElement(BoardEditorCanvas),
+      ),
+    );
+
+    expect(markup).toContain("tabindex=\"0\"");
+    expect(markup).toContain("outline-none");
+  });
+
   it("keeps focus-ring padding inside scrollable toolbar content", () => {
     const toolbarMarkup = renderToString(
       createElement(
