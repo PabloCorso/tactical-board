@@ -1,5 +1,7 @@
 export * from "./adapter/editor/board-editor";
 export { createBoardEditorStore } from "../core/store/board-editor-store";
+export type * from "../core/board/types";
+export type * from "../core/editor/types";
 export * from "./board/editor/arrow-icon";
 export * from "./board/editor/canvas-toolbar";
 export * from "./adapter/editor/board-editor-context";

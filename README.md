@@ -166,6 +166,10 @@ export function MatchPlanEditor() {
 ```
 
 Run `npm run storybook` and open `React/Board Editor/Football` for an interactive reference.
+The source examples in `src/stories/examples` are written as copyable host-app
+integration references for humans and AI agents. They intentionally use the
+public React entrypoint and keep Storybook metadata in separate `*.stories.tsx`
+files.
 
 ### Custom toolbars, export, and share
 

@@ -1,130 +1,11 @@
-import { useMemo } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { footballShowcaseBoard } from "../examples/football/football-showcase-board";
-import type { Board } from "../core/board/types";
-import type { BoardEditorState } from "../core/editor/types";
-import {
-  BoardEditor,
-  BoardEditorCanvas,
-  BoardEditorCanvasToolbar,
-  BoardEditorFrameVariantDefaultsToolbar,
-  BoardEditorFrameVariantToolControl,
-  BoardEditorProvider,
-  BoardEditorSecondaryToolbar,
-  BoardEditorSelectionToolbar,
-  BoardEditorShapePolygonDone,
-  BoardEditorToolbarDock,
-  BoardEditorToolbarDockProvider,
-  BoardPrimaryToolbar,
-  createBoardEditorStore,
-  createFootballBoard,
-  createFootballPitch,
-  createFootballTools,
-  FOOTBALL_PITCH_OPTIONS,
-  FOOTBALL_PITCH_TOOL_ID,
-  footballTheme,
-  footballThemeAdapters,
-  getFootballPitchFitPadding,
-  getFootballPitchVariant,
-  useBoardEditorToolbarDock,
-  FootballPitchPreview,
-} from "../react";
-
-type FootballBoardStoryProps = {
-  initialBoard?: Board;
-  navigationMode?: BoardEditorState["ui"]["navigationMode"];
-};
-
-const footballPitchFrameOptions = FOOTBALL_PITCH_OPTIONS.map((option) => ({
-  ...option,
-  createFrame: () => createFootballPitch(option.value),
-  renderIcon: () => (
-    <FootballPitchPreview
-      className="rounded-sm"
-      variant={option.value}
-      width={24}
-      height={24}
-    />
-  ),
-  renderPreview: () => (
-    <FootballPitchPreview
-      className="rounded-md"
-      variant={option.value}
-      width={78}
-      height={48}
-    />
-  ),
-}));
-
-function FootballToolbarDockExample() {
-  const toolbarDock = useBoardEditorToolbarDock();
-
-  return (
-    <BoardEditorToolbarDock>
-      <div onClick={toolbarDock.openSecondaryToolbar}>
-        <BoardPrimaryToolbar
-          adapters={footballThemeAdapters}
-          showEquipment
-          theme={footballTheme}
-        >
-          <BoardEditorFrameVariantToolControl
-            toolId={FOOTBALL_PITCH_TOOL_ID}
-            options={footballPitchFrameOptions}
-            getValue={getFootballPitchVariant}
-          />
-        </BoardPrimaryToolbar>
-      </div>
-      {toolbarDock.secondaryToolbarOpen ? (
-        <>
-          <BoardEditorFrameVariantDefaultsToolbar
-            toolId={FOOTBALL_PITCH_TOOL_ID}
-            options={footballPitchFrameOptions}
-            fitPadding={getFootballPitchFitPadding()}
-            getValue={getFootballPitchVariant}
-          />
-          <BoardEditorSecondaryToolbar
-            adapters={footballThemeAdapters}
-            theme={footballTheme}
-          />
-        </>
-      ) : null}
-    </BoardEditorToolbarDock>
-  );
-}
-
-function FootballBoardStory({
-  initialBoard,
-  navigationMode,
-}: FootballBoardStoryProps = {}) {
-  const store = useMemo(
-    () =>
-      createBoardEditorStore({
-        initialBoard: initialBoard ?? createFootballBoard(),
-        fitPadding: getFootballPitchFitPadding,
-        navigationMode,
-        tools: createFootballTools(),
-      }),
-    [initialBoard, navigationMode],
-  );
-
-  return (
-    <BoardEditorProvider store={store}>
-      <BoardEditor className="relative h-dvh w-full overflow-hidden">
-        <BoardEditorCanvas />
-        <BoardEditorShapePolygonDone />
-        <BoardEditorCanvasToolbar />
-        <BoardEditorSelectionToolbar />
-        <BoardEditorToolbarDockProvider>
-          <FootballToolbarDockExample />
-        </BoardEditorToolbarDockProvider>
-      </BoardEditor>
-    </BoardEditorProvider>
-  );
-}
+import { FootballBoardEditorExample } from "./examples/football-board-editor.example";
+import { createFootballPitch, FootballPitchPreview } from "../react";
 
 const meta = {
   title: "React/Board Editor/Football",
-  component: FootballBoardStory,
+  component: FootballBoardEditorExample,
   parameters: {
     layout: "fullscreen",
     docs: {
@@ -134,7 +15,7 @@ const meta = {
       },
     },
   },
-} satisfies Meta<typeof FootballBoardStory>;
+} satisfies Meta<typeof FootballBoardEditorExample>;
 
 export default meta;
 

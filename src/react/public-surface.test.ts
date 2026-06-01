@@ -38,7 +38,6 @@ import {
   getFootballPitchFitPadding,
   getFootballPitchVariant,
 } from "./";
-import { ContainedNavigation } from "../stories/football-board-editor.stories";
 import {
   ARROW_OBJECT_TYPE,
   createArrowObject,
@@ -144,7 +143,6 @@ describe("React public frame", () => {
         tools: createFootballTools(),
       }).getState().ui.navigationMode,
     ).toBe("contained");
-    expect(ContainedNavigation.args?.navigationMode).toBe("contained");
 
     expect(() =>
       renderToString(

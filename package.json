@@ -6,6 +6,8 @@
   "type": "module",
   "files": [
     "dist",
+    "src/examples",
+    "src/stories",
     "src/styles.css"
   ],
   "sideEffects": [

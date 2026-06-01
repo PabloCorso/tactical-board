@@ -13,6 +13,7 @@ import { getShapeToolState, SHAPE_TOOL_ID } from "../tools/shape-tool-state";
 import { TextTool } from "../tools/text-tool";
 import { createTextObject } from "../objects/text-object";
 import { getTextToolState } from "../tools/text-tool-state";
+import { PlayerTool } from "../tools/player-tool";
 
 function createCanvasStub(): HTMLCanvasElement {
   return {
@@ -159,6 +160,18 @@ describe("createBoardEditorRuntime", () => {
       metaKey: false,
       preventDefault: vi.fn(),
     } as unknown as PointerEvent);
+    pointerMoveHandler?.({
+      pointerId: 1,
+      pointerType: "touch",
+      button: 0,
+      clientX: 110,
+      clientY: 100,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      preventDefault: vi.fn(),
+    } as unknown as PointerEvent);
     pointerDownHandler?.({
       pointerId: 2,
       pointerType: "touch",
@@ -185,6 +198,246 @@ describe("createBoardEditorRuntime", () => {
     } as unknown as PointerEvent);
 
     expect(store.getState().ui.viewport.zoom).toBeGreaterThan(beforeZoom);
+
+    runtime.unmount();
+    vi.unstubAllGlobals();
+    globalThis.requestAnimationFrame = originalRequestAnimationFrame;
+    globalThis.cancelAnimationFrame = originalCancelAnimationFrame;
+  });
+
+  it("pans the viewport when two touch pointers move together", () => {
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        frame: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      tools: [
+        {
+          id: SELECT_TOOL_ID,
+          label: "Select",
+        },
+      ],
+    });
+    const runtime = createBoardEditorRuntime({ store });
+    const canvas = createCanvasStub();
+    const originalRequestAnimationFrame = globalThis.requestAnimationFrame;
+    const originalCancelAnimationFrame = globalThis.cancelAnimationFrame;
+    vi.stubGlobal(
+      "requestAnimationFrame",
+      vi.fn(() => 1),
+    );
+    vi.stubGlobal("cancelAnimationFrame", vi.fn());
+
+    runtime.mount(canvas);
+    store.getState().actions.setViewport({
+      pan: { x: 0, y: 0 },
+      zoom: 1,
+    });
+
+    const pointerDownHandler = vi
+      .mocked(canvas.addEventListener)
+      .mock.calls.find(([eventName]) => eventName === "pointerdown")?.[1] as
+      | ((event: PointerEvent) => void)
+      | undefined;
+    const pointerMoveHandler = vi
+      .mocked(canvas.addEventListener)
+      .mock.calls.find(([eventName]) => eventName === "pointermove")?.[1] as
+      | ((event: PointerEvent) => void)
+      | undefined;
+
+    pointerDownHandler?.({
+      pointerId: 1,
+      pointerType: "touch",
+      button: 0,
+      clientX: 100,
+      clientY: 100,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      preventDefault: vi.fn(),
+    } as unknown as PointerEvent);
+    pointerDownHandler?.({
+      pointerId: 2,
+      pointerType: "touch",
+      button: 0,
+      clientX: 200,
+      clientY: 100,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      preventDefault: vi.fn(),
+    } as unknown as PointerEvent);
+    pointerMoveHandler?.({
+      pointerId: 1,
+      pointerType: "touch",
+      button: 0,
+      clientX: 120,
+      clientY: 130,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      preventDefault: vi.fn(),
+    } as unknown as PointerEvent);
+    pointerMoveHandler?.({
+      pointerId: 2,
+      pointerType: "touch",
+      button: 0,
+      clientX: 220,
+      clientY: 130,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      preventDefault: vi.fn(),
+    } as unknown as PointerEvent);
+
+    expect(store.getState().ui.viewport.zoom).toBe(1);
+    expect(store.getState().ui.viewport.pan).toEqual({
+      x: 20,
+      y: 30,
+    });
+
+    runtime.unmount();
+    vi.unstubAllGlobals();
+    globalThis.requestAnimationFrame = originalRequestAnimationFrame;
+    globalThis.cancelAnimationFrame = originalCancelAnimationFrame;
+  });
+
+  it("does not place an object when a touch becomes a pinch gesture", () => {
+    const playerTool = new PlayerTool();
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        frame: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      initialToolId: playerTool.id,
+      tools: [playerTool],
+    });
+    const runtime = createBoardEditorRuntime({ store });
+    const canvas = createCanvasStub();
+    const originalRequestAnimationFrame = globalThis.requestAnimationFrame;
+    const originalCancelAnimationFrame = globalThis.cancelAnimationFrame;
+    vi.stubGlobal(
+      "requestAnimationFrame",
+      vi.fn(() => 1),
+    );
+    vi.stubGlobal("cancelAnimationFrame", vi.fn());
+
+    runtime.mount(canvas);
+
+    const pointerDownHandler = vi
+      .mocked(canvas.addEventListener)
+      .mock.calls.find(([eventName]) => eventName === "pointerdown")?.[1] as
+      | ((event: PointerEvent) => void)
+      | undefined;
+    const pointerMoveHandler = vi
+      .mocked(canvas.addEventListener)
+      .mock.calls.find(([eventName]) => eventName === "pointermove")?.[1] as
+      | ((event: PointerEvent) => void)
+      | undefined;
+    const pointerUpHandler = vi
+      .mocked(canvas.addEventListener)
+      .mock.calls.find(([eventName]) => eventName === "pointerup")?.[1] as
+      | ((event: PointerEvent) => void)
+      | undefined;
+
+    pointerDownHandler?.({
+      pointerId: 1,
+      pointerType: "touch",
+      button: 0,
+      clientX: 100,
+      clientY: 100,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      preventDefault: vi.fn(),
+    } as unknown as PointerEvent);
+    pointerMoveHandler?.({
+      pointerId: 1,
+      pointerType: "touch",
+      button: 0,
+      clientX: 110,
+      clientY: 100,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      preventDefault: vi.fn(),
+    } as unknown as PointerEvent);
+    pointerDownHandler?.({
+      pointerId: 2,
+      pointerType: "touch",
+      button: 0,
+      clientX: 200,
+      clientY: 100,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      preventDefault: vi.fn(),
+    } as unknown as PointerEvent);
+    pointerMoveHandler?.({
+      pointerId: 2,
+      pointerType: "touch",
+      button: 0,
+      clientX: 300,
+      clientY: 100,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      preventDefault: vi.fn(),
+    } as unknown as PointerEvent);
+    pointerUpHandler?.({
+      pointerId: 1,
+      pointerType: "touch",
+      button: 0,
+      clientX: 100,
+      clientY: 100,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      preventDefault: vi.fn(),
+    } as unknown as PointerEvent);
+    pointerUpHandler?.({
+      pointerId: 2,
+      pointerType: "touch",
+      button: 0,
+      clientX: 300,
+      clientY: 100,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      preventDefault: vi.fn(),
+    } as unknown as PointerEvent);
+
+    expect(store.getState().board.objects.order).toEqual([]);
 
     runtime.unmount();
     vi.unstubAllGlobals();
