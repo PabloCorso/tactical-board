@@ -1,5 +1,9 @@
 export * from "./adapter/editor/board-editor";
 export { createBoardEditorStore } from "../core/store/board-editor-store";
+export {
+  remapObjectToFrameRotation,
+  remapObjectToFrameSize,
+} from "../core/board/frame-object-remap";
 export type * from "../core/board/types";
 export type * from "../core/editor/types";
 export * from "./board/editor/arrow-icon";

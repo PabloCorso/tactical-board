@@ -1,6 +1,11 @@
 import { useMemo, type ReactNode } from "react";
-import type { BoardFrameConfig } from "../../../core/board/types";
+import { ArrowClockwiseIcon } from "@phosphor-icons/react";
+import type {
+  BoardFrameConfig,
+  BoardObject,
+} from "../../../core/board/types";
 import { createToolApi } from "../../../core/editor/create-tool-api";
+import { getObjectSelectionAdapterForObject } from "../../../core/objects/object-selection";
 import {
   getViewportToFitBoard,
   type FitPadding,
@@ -11,17 +16,44 @@ import { BoardEditorToolControl } from "../editor/toolbar/tool-control";
 import {
   BoardEditorToolbar,
   BoardEditorToolbarButton,
+  BoardEditorToolbarSeparator,
   type BoardEditorToolbarProps,
   useBoardEditorToolbarDockOptional,
 } from "../editor/toolbar/editor-toolbar";
 import type { IconRender } from "../../ui/icon";
 
+export type BoardEditorFrameVariantRenderContext<
+  TValue extends string = string,
+> = {
+  active: boolean;
+  frame: BoardFrameConfig;
+  value: TValue;
+};
+
 export type BoardEditorFrameVariantOption<TValue extends string = string> = {
   label: string;
   value: TValue;
   createFrame: () => BoardFrameConfig;
-  renderIcon?: () => IconRender;
-  renderPreview?: () => ReactNode;
+  renderIcon?: (
+    context?: BoardEditorFrameVariantRenderContext<TValue>,
+  ) => IconRender;
+  renderPreview?: (
+    context?: BoardEditorFrameVariantRenderContext<TValue>,
+  ) => ReactNode;
+};
+
+export type BoardEditorFrameVariantAction<TValue extends string = string> = {
+  label: string;
+  buttonLabel?: ReactNode;
+  createFrame: () => BoardFrameConfig;
+  icon?: IconRender;
+  remapObject?: (context: {
+    object: BoardObject;
+    previousFrame: BoardFrameConfig;
+    nextFrame: BoardFrameConfig;
+    rotateObject: boolean;
+  }) => BoardObject;
+  value?: TValue;
 };
 
 export type BoardEditorFrameVariantToolControlProps<
@@ -39,6 +71,10 @@ export type BoardEditorFrameVariantDefaultsToolbarProps<
   toolId: string;
   options: BoardEditorFrameVariantOption<TValue>[];
   fitPadding?: FitPadding;
+  getAction?: (context: {
+    frame: BoardFrameConfig;
+    value: TValue | undefined;
+  }) => BoardEditorFrameVariantAction<TValue> | undefined;
   getValue?: (value: unknown) => TValue;
 };
 
@@ -74,13 +110,18 @@ export function BoardEditorFrameVariantToolControl<
   const value = useBoardEditorStore(store, (state) =>
     getFrameVariantValue(state.board.frame.markup?.variant, options, getValue),
   );
+  const frame = useBoardEditorStore(store, (state) => state.board.frame);
   const option = options.find((candidate) => candidate.value === value);
 
   return (
     <BoardEditorToolControl
       toolId={toolId}
       label={label}
-      icon={option?.renderIcon?.()}
+      icon={
+        option && value
+          ? option.renderIcon?.({ active: true, frame, value })
+          : undefined
+      }
     />
   );
 }
@@ -91,6 +132,7 @@ export function BoardEditorFrameVariantDefaultsToolbar<
   toolId,
   options,
   fitPadding,
+  getAction,
   getValue,
   orientation = "vertical",
   ...toolbarProps
@@ -112,6 +154,84 @@ export function BoardEditorFrameVariantDefaultsToolbar<
     options,
     getValue,
   );
+  const action = getAction?.({ frame: state.board.frame, value });
+  const setFrame = (
+    frame: BoardFrameConfig,
+    remapObject?: BoardEditorFrameVariantAction<TValue>["remapObject"],
+  ) => {
+    let nextObjects = state.board.objects;
+
+    if (remapObject) {
+      let changed = false;
+      const nextById = { ...state.board.objects.byId };
+
+      for (const objectId of state.board.objects.order) {
+        const object = state.board.objects.byId[objectId];
+
+        if (!object) {
+          continue;
+        }
+
+        const transformCapabilities = getObjectSelectionAdapterForObject(
+          state,
+          object,
+        )?.getTransformCapabilities?.(object);
+        const nextObject = remapObject({
+          object,
+          previousFrame: state.board.frame,
+          nextFrame: frame,
+          rotateObject: transformCapabilities?.rotate !== false,
+        });
+
+        if (nextObject !== object) {
+          changed = true;
+          nextById[objectId] = nextObject;
+        }
+      }
+
+      if (changed) {
+        nextObjects = {
+          ...state.board.objects,
+          byId: nextById,
+        };
+      }
+    }
+
+    const nextBoard = {
+      ...state.board,
+      frame,
+      objects: nextObjects,
+    };
+
+    if (remapObject) {
+      toolApi.beginHistoryBatch();
+    }
+
+    try {
+      toolApi.setFrame(frame);
+
+      if (remapObject) {
+        toolApi.updateObjects(
+          state.board.objects.order,
+          (object) => nextObjects.byId[object.id] ?? object,
+        );
+      }
+    } finally {
+      if (remapObject) {
+        toolApi.endHistoryBatch();
+      }
+    }
+
+    if (state.ui.canvasRect) {
+      state.actions.setViewport(
+        getViewportToFitBoard({
+          board: nextBoard,
+          canvasRect: state.ui.canvasRect,
+          fitPadding,
+        }),
+      );
+    }
+  };
 
   return (
     <BoardEditorToolbar
@@ -126,27 +246,33 @@ export function BoardEditorFrameVariantDefaultsToolbar<
           className="h-auto w-auto p-1"
           key={option.value}
           onClick={() => {
-            const frame = option.createFrame();
-            toolApi.setFrame(frame);
-
-            if (state.ui.canvasRect) {
-              state.actions.setViewport(
-                getViewportToFitBoard({
-                  board: { ...state.board, frame },
-                  canvasRect: state.ui.canvasRect,
-                  fitPadding,
-                }),
-              );
-            }
-
+            setFrame(option.createFrame());
             toolbarDock?.requestDismiss();
           }}
           size="md"
           tooltip={option.label}
         >
-          {option.renderPreview?.()}
+          {option.renderPreview?.({
+            active: value === option.value,
+            frame: state.board.frame,
+            value: option.value,
+          })}
         </BoardEditorToolbarButton>
       ))}
+      {action ? (
+        <>
+          <BoardEditorToolbarSeparator />
+          <BoardEditorToolbarButton
+            aria-label={action.label}
+            iconBefore={action.icon ?? <ArrowClockwiseIcon />}
+            onClick={() => setFrame(action.createFrame(), action.remapObject)}
+            size="md"
+            tooltip={false}
+          >
+            {action.buttonLabel ?? action.label}
+          </BoardEditorToolbarButton>
+        </>
+      ) : null}
     </BoardEditorToolbar>
   );
 }

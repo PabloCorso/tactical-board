@@ -671,15 +671,22 @@ function getFootballPitchPreviewSize(
   }
 
   if (resolvedVariant === "half-pitch") {
+    const width = FOOTBALL_FULL_PITCH_METRICS.field.width + lineWidth;
+    const height =
+      FOOTBALL_FULL_PITCH_METRICS.field.length / 2 +
+      FOOTBALL_FULL_PITCH_METRICS.goal.frameDepth +
+      lineWidth;
+
+    if (orientation === 90 || orientation === 270) {
+      return {
+        width: metersToPixels(height),
+        height: metersToPixels(width),
+      };
+    }
+
     return {
-      width: metersToPixels(
-        FOOTBALL_FULL_PITCH_METRICS.field.width + lineWidth,
-      ),
-      height: metersToPixels(
-        FOOTBALL_FULL_PITCH_METRICS.field.length / 2 +
-          FOOTBALL_FULL_PITCH_METRICS.goal.frameDepth +
-          lineWidth,
-      ),
+      width: metersToPixels(width),
+      height: metersToPixels(height),
     };
   }
 
@@ -737,7 +744,7 @@ export function createFootballPitch(
   const isHalfPitch = resolvedVariant === "half-pitch";
   const width = isHalfPitch ? halfPitchFrameWidth : fullPitchFrameWidth;
   const height = isHalfPitch ? halfPitchFrameHeight : pitchFrameHeight;
-  const appliedOrientation = isHalfPitch ? undefined : orientation;
+  const appliedOrientation = orientation;
   const shouldOrient =
     appliedOrientation !== undefined && appliedOrientation !== 0;
   const markings = createFootballPitchMarkings({ variant: resolvedVariant });

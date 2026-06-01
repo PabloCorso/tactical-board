@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from "react";
 import type {
   BoardFrameConfig,
   BoardFrameMarking,
+  BoardFrameOrientation,
 } from "../../../../core/board/types";
 import {
   createFootballPitch,
@@ -11,6 +12,7 @@ import { cn } from "../../../ui/misc";
 
 export type FootballPitchPreviewProps = {
   className?: string;
+  orientation?: BoardFrameOrientation;
   variant: FootballPitchVariant;
   width: number;
   height: number;
@@ -18,12 +20,16 @@ export type FootballPitchPreviewProps = {
 
 export function FootballPitchPreview({
   className,
+  orientation,
   variant,
   width,
   height,
 }: FootballPitchPreviewProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const frame = useMemo(() => createFootballPitch(variant), [variant]);
+  const frame = useMemo(
+    () => createFootballPitch({ orientation, variant }),
+    [orientation, variant],
+  );
 
   useEffect(() => {
     drawFootballPitchPreviewCanvas({

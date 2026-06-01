@@ -15,6 +15,7 @@ import {
   createBoardEditorStore,
   createFootballBoard,
   createFootballPitch,
+  createNextFootballPitchFrame,
   createFootballTools,
   FOOTBALL_PITCH_OPTIONS,
   FOOTBALL_PITCH_TOOL_ID,
@@ -22,7 +23,10 @@ import {
   footballThemeAdapters,
   FootballPitchPreview,
   getFootballPitchFitPadding,
+  getFootballPitchOrientation,
+  getFootballPitchOrientationLabel,
   getFootballPitchVariant,
+  remapObjectToFrameRotation,
   useBoardEditorToolbarDock,
   type Board,
   type BoardEditorNavigationMode,
@@ -98,18 +102,28 @@ export function createFootballPitchFrameOptions(
     ...option,
     createFrame: () => createFootballPitch(option.value),
     label: translatePitchLabel?.(option.value, option.label) ?? option.label,
-    renderIcon: () => (
+    renderIcon: (context) => (
       <FootballPitchPreview
         className="rounded-sm"
         height={24}
+        orientation={
+          context?.active
+            ? getFootballPitchOrientation(context.frame.orientation)
+            : undefined
+        }
         variant={option.value}
         width={24}
       />
     ),
-    renderPreview: () => (
+    renderPreview: (context) => (
       <FootballPitchPreview
         className="rounded-md"
         height={48}
+        orientation={
+          context?.active
+            ? getFootballPitchOrientation(context.frame.orientation)
+            : undefined
+        }
         variant={option.value}
         width={78}
       />
@@ -141,6 +155,29 @@ function FootballBoardEditorToolbarDock({
         <>
           <BoardEditorFrameVariantDefaultsToolbar
             fitPadding={getFootballPitchFitPadding()}
+            getAction={({ frame }) => {
+              const nextFrame = createNextFootballPitchFrame(frame);
+
+              if (!nextFrame) {
+                return undefined;
+              }
+
+              const variant = getFootballPitchVariant(frame.markup?.variant);
+              const nextOrientation = getFootballPitchOrientation(
+                nextFrame.orientation,
+              );
+              const orientationLabel = getFootballPitchOrientationLabel({
+                orientation: nextOrientation,
+                variant,
+              });
+
+              return {
+                label: `Rotate pitch to ${orientationLabel}`,
+                buttonLabel: "Rotate",
+                createFrame: () => nextFrame,
+                remapObject: remapObjectToFrameRotation,
+              };
+            }}
             getValue={getFootballPitchVariant}
             options={pitchOptions}
             toolId={FOOTBALL_PITCH_TOOL_ID}

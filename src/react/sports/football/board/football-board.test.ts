@@ -177,13 +177,14 @@ describe("football board frames", () => {
     expect(reducedSpace.background).toBe(FOOTBALL_PITCH_COLORS.outer);
   });
 
-  it("can create an oriented full pitch without changing default pitch options", () => {
+  it("can create oriented full and half pitches without changing default pitch options", () => {
     const horizontalPitch = createFootballPitch("full-pitch");
     const verticalPitch = createFootballPitch({
       variant: "full-pitch",
       orientation: 90,
     });
-    const halfPitch = createFootballPitch({
+    const defaultHalfPitch = createFootballPitch("half-pitch");
+    const orientedHalfPitch = createFootballPitch({
       variant: "half-pitch",
       orientation: 90,
     });
@@ -195,7 +196,13 @@ describe("football board frames", () => {
     expect(verticalPitch.markings?.length).toBe(
       horizontalPitch.markings?.length,
     );
-    expect(halfPitch).not.toHaveProperty("orientation");
+    expect(defaultHalfPitch).not.toHaveProperty("orientation");
+    expect(orientedHalfPitch.orientation).toBe(90);
+    expect(orientedHalfPitch.width).toBe(defaultHalfPitch.height);
+    expect(orientedHalfPitch.height).toBe(defaultHalfPitch.width);
+    expect(orientedHalfPitch.markings?.length).toBe(
+      defaultHalfPitch.markings?.length,
+    );
   });
 
   it("fits full-pitch content to the outer visible markings instead of the frame perimeter", () => {
