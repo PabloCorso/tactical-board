@@ -173,7 +173,7 @@ export function BoardEditorToolbar({
         role="toolbar"
         aria-orientation={orientation}
         className={cn(
-          "border-tb-border-default bg-tb-background-surface pointer-events-auto mx-auto inline-flex max-h-full w-max max-w-full overflow-hidden rounded-xl border shadow-lg",
+          "bg-tb-background-surface pointer-events-auto mx-auto inline-flex max-h-full w-max max-w-full overflow-hidden rounded-xl shadow-lg",
           "max-h-[calc(100dvh-1rem)] max-w-[calc(100dvw-1rem)]",
           className,
         )}
