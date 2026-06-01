@@ -24,5 +24,8 @@ Rules for host-facing examples:
 For npm consumers, replace repo-relative imports such as `../../react` with:
 
 ```tsx
-import { BoardEditor, createBoardEditorStore } from "@pablocorso/tactical-board/react";
+import {
+  BoardEditor,
+  createBoardEditorStore,
+} from "@pablocorso/tactical-board/react";
 ```

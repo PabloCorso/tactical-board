@@ -320,6 +320,51 @@ describe("createBoardEditorStore", () => {
     });
   });
 
+  it("keeps contained zoom-out aligned with the fitted content on narrow canvases", () => {
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        frame: {
+          width: 100,
+          height: 100,
+          markings: [
+            {
+              kind: "rect",
+              x: 0,
+              y: 0,
+              width: 100,
+              height: 50,
+              fill: "#177238",
+            },
+          ],
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      tools: [selectTool],
+      navigationMode: "contained",
+    });
+
+    store.getState().actions.setCanvasRect({ width: 50, height: 100 });
+    const fittedViewport = store.getState().ui.viewport;
+
+    store.getState().actions.setViewport({
+      pan: { x: 0, y: 0 },
+      zoom: 2,
+    });
+    store.getState().actions.setViewport({
+      pan: { x: 0, y: 0 },
+      zoom: 0.1,
+    });
+
+    expect(store.getState().ui.viewport).toEqual(fittedViewport);
+  });
+
   it("refits contained navigation when the canvas size changes", () => {
     const store = createBoardEditorStore({
       initialBoard: {

@@ -29,6 +29,7 @@ import { ShapeTool } from "../tools/shape-tool";
 import { SelectTool } from "../tools/select-tool";
 import { setSelectedObjectIds } from "../tools/select-tool-actions";
 import { TextTool } from "../tools/text-tool";
+import { HandTool } from "../tools/hand-tool";
 import { getArrowToolState } from "../tools/arrow-tool-state";
 import { getPlayerToolState, PLAYER_TOOL_ID } from "../tools/player-tool-state";
 import { getSelectToolState, SELECT_TOOL_ID } from "../tools/select-tool-state";
@@ -36,7 +37,7 @@ import { getShapeToolState } from "../tools/shape-tool-state";
 import { getTextToolState, TEXT_TOOL_ID } from "../tools/text-tool-state";
 import type { ToolDefinition } from "../tools/types";
 import { BOARD_PLAYER_DEFAULT_COLORS } from "../../react/board/theme/board-tool-defaults";
-import { MAX_VIEWPORT_ZOOM, MIN_VIEWPORT_ZOOM } from "./viewport-utils";
+import { MIN_VIEWPORT_ZOOM } from "./viewport-utils";
 import {
   getCornerHandleCanvasPoint,
   getRotatedRectBoardPoints,
@@ -2645,6 +2646,34 @@ describe("createBoardEditorController", () => {
     ).toBe("nwse-resize");
   });
 
+  it("uses grab cursors for the hand tool", () => {
+    const handTool = new HandTool();
+    const { controller, dispatchPointer } = createEditorHarness({
+      initialToolId: "hand",
+      tools: [handTool],
+    });
+    const clientPoint = { x: 100, y: 120 };
+    const input = {
+      clientPoint,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    };
+
+    expect(controller.getCursor(input)).toBe("grab");
+
+    dispatchPointer("onPointerDown", clientPoint);
+
+    expect(controller.getCursor(input)).toBe("grabbing");
+
+    dispatchPointer("onPointerUp", clientPoint);
+
+    expect(controller.getCursor(input)).toBe("grab");
+  });
+
   it("does not use resize cursors for selected arrow endpoints", () => {
     const arrowTool = new ArrowTool();
     const existingArrow = createArrowObject({
@@ -3983,7 +4012,7 @@ describe("createBoardEditorController", () => {
     expect(afterProjection.boardToCanvas(boardPoint).y).toBeCloseTo(200);
   });
 
-  it("clamps modifier + wheel zoom", () => {
+  it("clamps modifier + wheel zoom to the fit-relative range", () => {
     const store = createBoardEditorStore({
       initialBoard: {
         id: "board-1",
@@ -4010,6 +4039,9 @@ describe("createBoardEditorController", () => {
       height: 500,
     };
 
+    store.getState().actions.setCanvasRect(canvasRect);
+    const fittedViewport = store.getState().ui.viewport;
+
     controller.dispatchWheelEvent({
       clientPoint: { x: 500, y: 250 },
       deltaX: 0,
@@ -4020,7 +4052,7 @@ describe("createBoardEditorController", () => {
       metaKey: false,
       canvasRect,
     });
-    expect(store.getState().ui.viewport.zoom).toBe(MIN_VIEWPORT_ZOOM);
+    expect(store.getState().ui.viewport.zoom).toBe(fittedViewport.zoom * 0.5);
 
     controller.dispatchWheelEvent({
       clientPoint: { x: 500, y: 250 },
@@ -4032,7 +4064,122 @@ describe("createBoardEditorController", () => {
       metaKey: false,
       canvasRect,
     });
-    expect(store.getState().ui.viewport.zoom).toBe(MAX_VIEWPORT_ZOOM);
+    expect(store.getState().ui.viewport.zoom).toBe(fittedViewport.zoom * 4);
+  });
+
+  it("allows free modifier + wheel zoom to pass a mobile fit below the manual minimum", () => {
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        frame: {
+          width: 1000,
+          height: 600,
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      initialToolId: SELECT_TOOL_ID,
+      tools: [selectTool],
+    });
+    const controller = createBoardEditorController(store);
+    const canvasRect = {
+      left: 0,
+      top: 0,
+      width: 320,
+      height: 240,
+    };
+
+    store.getState().actions.setCanvasRect(canvasRect);
+    const fittedViewport = store.getState().ui.viewport;
+
+    expect(fittedViewport.zoom).toBeLessThan(MIN_VIEWPORT_ZOOM);
+
+    controller.dispatchWheelEvent({
+      clientPoint: { x: 160, y: 120 },
+      deltaX: 0,
+      deltaY: -10000,
+      ctrlKey: true,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+    controller.dispatchWheelEvent({
+      clientPoint: { x: 160, y: 120 },
+      deltaX: 0,
+      deltaY: 10000,
+      ctrlKey: true,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    expect(store.getState().ui.viewport.zoom).toBe(fittedViewport.zoom * 0.5);
+  });
+
+  it("supports custom free zoom scale limits", () => {
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        frame: {
+          width: 1000,
+          height: 600,
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      initialToolId: SELECT_TOOL_ID,
+      tools: [selectTool],
+      zoomScaleLimits: {
+        min: 0.25,
+        max: 2,
+      },
+    });
+    const controller = createBoardEditorController(store);
+    const canvasRect = {
+      left: 0,
+      top: 0,
+      width: 320,
+      height: 240,
+    };
+
+    store.getState().actions.setCanvasRect(canvasRect);
+    const fitZoom = store.getState().ui.viewport.zoom;
+
+    controller.dispatchWheelEvent({
+      clientPoint: { x: 160, y: 120 },
+      deltaX: 0,
+      deltaY: 10000,
+      ctrlKey: true,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+    expect(store.getState().ui.viewport.zoom).toBe(fitZoom * 0.25);
+
+    controller.dispatchWheelEvent({
+      clientPoint: { x: 160, y: 120 },
+      deltaX: 0,
+      deltaY: -10000,
+      ctrlKey: true,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+    expect(store.getState().ui.viewport.zoom).toBe(fitZoom * 2);
   });
 
   it("allows contained modifier + wheel zoom to reach fit", () => {

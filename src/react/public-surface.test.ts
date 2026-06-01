@@ -63,7 +63,7 @@ describe("React public frame", () => {
       ),
     );
 
-    expect(markup).toContain("tabindex=\"0\"");
+    expect(markup).toContain('tabindex="0"');
     expect(markup).toContain("outline-none");
   });
 

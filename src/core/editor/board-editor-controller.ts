@@ -7,7 +7,10 @@ import type { BoardEditorStore } from "../store/board-editor-store";
 import type { ToolPointerEvent, ToolWheelEvent } from "../tools/types";
 import { resolveBoardEditorFitPadding } from "./fit-padding";
 import {
+  MAX_VIEWPORT_ZOOM,
+  MIN_VIEWPORT_ZOOM,
   getViewportForZoomAtCanvasPoint,
+  getViewportZoomRangeToFitBoard,
   VIEWPORT_WHEEL_ZOOM_SENSITIVITY,
 } from "./viewport-utils";
 
@@ -150,6 +153,19 @@ export function createBoardEditorController(
   };
   const zoomViewportAtClientPoint = (input: BoardEditorZoomInput) => {
     const state = store.getState();
+    const fitPadding = resolveBoardEditorFitPadding(state);
+    const zoomRange = state.ui.canvasRect
+      ? getViewportZoomRangeToFitBoard({
+          board: state.board,
+          canvasRect: input.canvasRect,
+          fitPadding,
+          zoomScaleLimits: state.ui.zoomScaleLimits,
+          constrainMinToFit: state.ui.navigationMode === "contained",
+        })
+      : {
+          minZoom: MIN_VIEWPORT_ZOOM,
+          maxZoom: MAX_VIEWPORT_ZOOM,
+        };
     const nextViewport = getViewportForZoomAtCanvasPoint({
       frame: state.board.frame,
       viewport: state.ui.viewport,
@@ -159,8 +175,9 @@ export function createBoardEditorController(
         y: input.clientPoint.y - input.canvasRect.top,
       },
       zoom: state.ui.viewport.zoom * input.scale,
-      minZoom: state.ui.navigationMode === "contained" ? 0 : undefined,
-      fitPadding: resolveBoardEditorFitPadding(state),
+      minZoom: zoomRange.minZoom,
+      maxZoom: zoomRange.maxZoom,
+      fitPadding,
     });
 
     state.actions.setViewport(nextViewport);

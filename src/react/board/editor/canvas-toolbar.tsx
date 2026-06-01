@@ -17,6 +17,7 @@ import {
   getViewportForZoomAtCanvasPoint,
   getViewportFrame,
   getViewportToFitBoard,
+  getViewportZoomRangeToFitBoard,
   VIEWPORT_ZOOM_STEP_FACTOR,
 } from "../../../core/editor/viewport-utils";
 
@@ -33,6 +34,10 @@ export function BoardEditorCanvasToolbar({
   const navigationMode = useBoardEditorStore(
     store,
     (state) => state.ui.navigationMode,
+  );
+  const zoomScaleLimits = useBoardEditorStore(
+    store,
+    (state) => state.ui.zoomScaleLimits,
   );
   const canvasRect = useBoardEditorStore(store, (state) => state.ui.canvasRect);
   const board = useBoardEditorStore(store, (state) => state.board);
@@ -59,6 +64,13 @@ export function BoardEditorCanvasToolbar({
           canvasRect,
           fitPadding: resolvedFitPadding,
         });
+        const zoomRange = getViewportZoomRangeToFitBoard({
+          board,
+          canvasRect,
+          fitPadding: resolvedFitPadding,
+          zoomScaleLimits,
+          constrainMinToFit: navigationMode === "contained",
+        });
         return getViewportForZoomAtCanvasPoint({
           frame,
           viewport,
@@ -68,7 +80,8 @@ export function BoardEditorCanvasToolbar({
             y: viewportFrame.y + viewportFrame.height / 2,
           },
           zoom: nextZoom,
-          minZoom: navigationMode === "contained" ? 0 : undefined,
+          minZoom: zoomRange.minZoom,
+          maxZoom: zoomRange.maxZoom,
           fitPadding: resolvedFitPadding,
         });
       })(),

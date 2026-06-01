@@ -23,7 +23,7 @@ import type {
   ShapeDefinition,
   ShapeRegistry,
 } from "../objects/types";
-import type { FitPadding } from "./viewport-utils";
+import type { FitPadding, ViewportZoomScaleLimits } from "./viewport-utils";
 
 export interface BoardViewport {
   pan: Point;
@@ -46,6 +46,7 @@ export interface BoardEditorUiState {
   viewport: BoardViewport;
   fitPadding?: BoardEditorFitPadding;
   navigationMode: BoardEditorNavigationMode;
+  zoomScaleLimits?: ViewportZoomScaleLimits;
 }
 
 export interface BoardEditorRenderingState {

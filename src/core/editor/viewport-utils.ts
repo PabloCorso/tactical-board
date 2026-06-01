@@ -19,6 +19,29 @@ export const VIEWPORT_WHEEL_ZOOM_SENSITIVITY = 0.0015;
 
 export type { FitPadding };
 
+export interface ViewportZoomScaleLimits {
+  /**
+   * Smallest interactive zoom as a multiplier of the current fit-to-board zoom.
+   * Values below 1 let free navigation show space around the fitted board.
+   */
+  min?: number;
+  /**
+   * Largest interactive zoom as a multiplier of the current fit-to-board zoom.
+   */
+  max?: number;
+}
+
+export interface ViewportZoomRange {
+  fitZoom: number;
+  maxZoom: number;
+  minZoom: number;
+}
+
+export const DEFAULT_VIEWPORT_ZOOM_SCALE_LIMITS = {
+  min: 0.5,
+  max: 4,
+} satisfies Required<ViewportZoomScaleLimits>;
+
 export function getViewportFrame({
   canvasRect,
   fitPadding,
@@ -49,6 +72,7 @@ export function getViewportForZoomAtCanvasPoint({
   anchorCanvasPoint,
   zoom,
   minZoom = MIN_VIEWPORT_ZOOM,
+  maxZoom = MAX_VIEWPORT_ZOOM,
   fitPadding,
 }: {
   frame: DocumentBackgroundConfig;
@@ -57,9 +81,10 @@ export function getViewportForZoomAtCanvasPoint({
   anchorCanvasPoint: Point;
   zoom: number;
   minZoom?: number;
+  maxZoom?: number;
   fitPadding?: FitPadding;
 }): BoardViewport {
-  const nextZoom = Math.min(MAX_VIEWPORT_ZOOM, Math.max(minZoom, zoom));
+  const nextZoom = Math.min(maxZoom, Math.max(minZoom, zoom));
 
   if (nextZoom === viewport.zoom) {
     return viewport;
@@ -160,6 +185,47 @@ export function getViewportToFitBoard({
   };
 }
 
+function getValidZoomScale(value: number | undefined, fallback: number) {
+  return typeof value === "number" && Number.isFinite(value) && value > 0
+    ? value
+    : fallback;
+}
+
+export function getViewportZoomRangeToFitBoard({
+  board,
+  canvasRect,
+  fitPadding,
+  zoomScaleLimits,
+  constrainMinToFit = false,
+}: {
+  board: Board;
+  canvasRect: Pick<CanvasRect, "width" | "height">;
+  fitPadding?: FitPadding;
+  zoomScaleLimits?: ViewportZoomScaleLimits;
+  constrainMinToFit?: boolean;
+}): ViewportZoomRange {
+  const fitZoom = getViewportToFitBoard({ board, canvasRect, fitPadding }).zoom;
+  const minScale = getValidZoomScale(
+    zoomScaleLimits?.min,
+    DEFAULT_VIEWPORT_ZOOM_SCALE_LIMITS.min,
+  );
+  const maxScale = getValidZoomScale(
+    zoomScaleLimits?.max,
+    DEFAULT_VIEWPORT_ZOOM_SCALE_LIMITS.max,
+  );
+  const effectiveMinScale = constrainMinToFit
+    ? Math.max(1, minScale)
+    : minScale;
+  const minZoom = fitZoom * effectiveMinScale;
+  const maxZoom = fitZoom * Math.max(effectiveMinScale, maxScale);
+
+  return {
+    fitZoom,
+    minZoom,
+    maxZoom,
+  };
+}
+
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
@@ -205,7 +271,16 @@ function getPanAxisToFitBounds({
   const contentRenderSize = maxCanvas - minCanvas;
   const minPan = Math.min(-minCanvas, viewportFrameSize - maxCanvas);
   const maxPan = Math.max(-minCanvas, viewportFrameSize - maxCanvas);
-  const targetPan = contentRenderSize <= viewportFrameSize ? 0 : pan;
+  const targetPan =
+    contentRenderSize <= viewportFrameSize
+      ? getPanAxisToCenterBounds({
+          frameSize,
+          boundsMin,
+          boundsMax,
+          zoom,
+          viewportFrameSize,
+        })
+      : pan;
 
   return clamp(targetPan, minPan, maxPan);
 }

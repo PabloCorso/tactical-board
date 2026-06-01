@@ -267,11 +267,7 @@ export function BoardEditorToolbarButton({
       variant={active ? "outline" : "ghost"}
       iconSize={iconSize}
       iconClassName="text-[var(--tb-toolbar-icon-primary)]"
-      className={cn(
-        active &&
-          "border-tb-neutral-soft-active shadow-[inset_0_0_0_1px_var(--tb-neutral-soft-active)]",
-        className,
-      )}
+      className={cn({ "border-tb-neutral-soft-active": active }, className)}
       aria-label={ariaLabel}
       onClick={(event) => {
         onClick?.(event);
@@ -402,10 +398,7 @@ export function BoardEditorToolbarOptionButton({
       variant={active ? "secondary" : "ghost"}
       aria-label={ariaLabel}
       aria-pressed={active}
-      className={cn(
-        active &&
-          "border-tb-neutral-soft-active shadow-[inset_0_0_0_1px_var(--tb-neutral-soft-active)]",
-      )}
+      className={cn({ "border-tb-neutral-soft-active": active })}
       iconBefore={icon}
       iconSize="xl"
       onClick={(event) => {

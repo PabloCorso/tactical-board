@@ -38,6 +38,7 @@ type CreateEditorStoreBaseOptions = {
   initialToolId?: ToolId;
   fitPadding?: BoardEditorState["ui"]["fitPadding"];
   navigationMode?: BoardEditorState["ui"]["navigationMode"];
+  zoomScaleLimits?: BoardEditorState["ui"]["zoomScaleLimits"];
   objectRenderers?: CanvasObjectRendererRegistry;
   objectHitTesters?: CanvasObjectHitTesterRegistry;
   overlayRenderers?: CanvasOverlayRendererRegistry;
@@ -180,6 +181,7 @@ export function createEditorStore({
   initialToolId,
   fitPadding,
   navigationMode = "free",
+  zoomScaleLimits,
   objectRenderers = {},
   objectHitTesters = {},
   overlayRenderers = {},
@@ -245,6 +247,7 @@ export function createEditorStore({
       },
       fitPadding,
       navigationMode,
+      zoomScaleLimits,
     },
     selection: {
       selectedObjectIds: [],

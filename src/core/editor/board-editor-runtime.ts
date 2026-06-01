@@ -9,7 +9,14 @@ import type { BoardEditorState } from "./types";
 import type { BoardEditorStore } from "../store/board-editor-store";
 import type { ToolDefinition } from "../tools/types";
 import { resolveBoardEditorFitPadding } from "./fit-padding";
-import { DEFAULT_VIEWPORT, getViewportToFitBoard } from "./viewport-utils";
+import {
+  DEFAULT_VIEWPORT,
+  MAX_VIEWPORT_ZOOM,
+  MIN_VIEWPORT_ZOOM,
+  getViewportForZoomAtCanvasPoint,
+  getViewportToFitBoard,
+  getViewportZoomRangeToFitBoard,
+} from "./viewport-utils";
 
 export interface BoardEditorRuntime {
   mount: (canvas: HTMLCanvasElement) => void;
@@ -54,8 +61,10 @@ export function createBoardEditorRuntime({
     }
   >();
   let pinchGesture: {
+    startCenter: { x: number; y: number };
+    startDistance: number;
+    startViewport: BoardEditorState["ui"]["viewport"];
     previousCenter: { x: number; y: number };
-    previousDistance: number;
   } | null = null;
 
   const registerToolCapabilities = (tool: ToolDefinition | undefined) => {
@@ -326,8 +335,10 @@ export function createBoardEditorRuntime({
       });
     }
     pinchGesture = {
+      startCenter: metrics.center,
+      startDistance: metrics.distance,
+      startViewport: store.getState().ui.viewport,
       previousCenter: metrics.center,
-      previousDistance: metrics.distance,
     };
   };
 
@@ -338,11 +349,7 @@ export function createBoardEditorRuntime({
 
     const metrics = getPinchMetrics();
 
-    if (
-      !metrics ||
-      metrics.distance <= 0 ||
-      pinchGesture.previousDistance <= 0
-    ) {
+    if (!metrics || metrics.distance <= 0 || pinchGesture.startDistance <= 0) {
       return false;
     }
 
@@ -350,22 +357,59 @@ export function createBoardEditorRuntime({
       x: metrics.center.x - pinchGesture.previousCenter.x,
       y: metrics.center.y - pinchGesture.previousCenter.y,
     };
-    const didPan = centerDelta.x !== 0 || centerDelta.y !== 0;
-
-    if (didPan) {
-      store.getState().actions.panViewport(centerDelta);
-    }
-
-    const didZoom = controller.dispatchZoomEvent({
-      clientPoint: metrics.center,
-      canvasRect: canvas.getBoundingClientRect(),
-      scale: metrics.distance / pinchGesture.previousDistance,
-    });
-    pinchGesture = {
-      previousCenter: metrics.center,
-      previousDistance: metrics.distance,
+    const totalCenterDelta = {
+      x: metrics.center.x - pinchGesture.startCenter.x,
+      y: metrics.center.y - pinchGesture.startCenter.y,
     };
-    return didPan || didZoom;
+    const state = store.getState();
+    const canvasRect = canvas.getBoundingClientRect();
+    const fitPadding = resolveBoardEditorFitPadding(state);
+    const zoomRange = state.ui.canvasRect
+      ? getViewportZoomRangeToFitBoard({
+          board: state.board,
+          canvasRect,
+          fitPadding,
+          zoomScaleLimits: state.ui.zoomScaleLimits,
+          constrainMinToFit: state.ui.navigationMode === "contained",
+        })
+      : {
+          minZoom: MIN_VIEWPORT_ZOOM,
+          maxZoom: MAX_VIEWPORT_ZOOM,
+        };
+    const zoomedViewport = getViewportForZoomAtCanvasPoint({
+      frame: state.board.frame,
+      viewport: pinchGesture.startViewport,
+      canvasRect,
+      anchorCanvasPoint: {
+        x: pinchGesture.startCenter.x - canvasRect.left,
+        y: pinchGesture.startCenter.y - canvasRect.top,
+      },
+      zoom:
+        pinchGesture.startViewport.zoom *
+        (metrics.distance / pinchGesture.startDistance),
+      minZoom: zoomRange.minZoom,
+      maxZoom: zoomRange.maxZoom,
+      fitPadding,
+    });
+    const nextViewport = {
+      ...zoomedViewport,
+      pan: {
+        x: zoomedViewport.pan.x + totalCenterDelta.x,
+        y: zoomedViewport.pan.y + totalCenterDelta.y,
+      },
+    };
+    const didPan = centerDelta.x !== 0 || centerDelta.y !== 0;
+    const didViewportChange =
+      state.ui.viewport.zoom !== nextViewport.zoom ||
+      state.ui.viewport.pan.x !== nextViewport.pan.x ||
+      state.ui.viewport.pan.y !== nextViewport.pan.y;
+
+    state.actions.setViewport(nextViewport);
+    pinchGesture = {
+      ...pinchGesture,
+      previousCenter: metrics.center,
+    };
+    return didPan || didViewportChange;
   };
 
   const onPointerDown = (event: PointerEvent) => {
@@ -418,7 +462,9 @@ export function createBoardEditorRuntime({
       return;
     }
 
+    lastPointerInput = input;
     controller.dispatchPointerEvent("onPointerDown", input);
+    updateCanvasCursor(input);
   };
 
   const onPointerMove = (event: PointerEvent) => {
@@ -513,6 +559,7 @@ export function createBoardEditorRuntime({
     if (canvas.hasPointerCapture(event.pointerId)) {
       canvas.releasePointerCapture(event.pointerId);
     }
+    updateCanvasCursor(input);
   };
 
   const beginEditingSelection = (

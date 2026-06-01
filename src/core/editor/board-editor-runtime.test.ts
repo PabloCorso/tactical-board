@@ -131,10 +131,6 @@ describe("createBoardEditorRuntime", () => {
     vi.stubGlobal("cancelAnimationFrame", vi.fn());
 
     runtime.mount(canvas);
-    store.getState().actions.setViewport({
-      pan: { x: 0, y: 0 },
-      zoom: 1,
-    });
 
     const pointerDownHandler = vi
       .mocked(canvas.addEventListener)
@@ -239,10 +235,7 @@ describe("createBoardEditorRuntime", () => {
     vi.stubGlobal("cancelAnimationFrame", vi.fn());
 
     runtime.mount(canvas);
-    store.getState().actions.setViewport({
-      pan: { x: 0, y: 0 },
-      zoom: 1,
-    });
+    const initialZoom = store.getState().ui.viewport.zoom;
 
     const pointerDownHandler = vi
       .mocked(canvas.addEventListener)
@@ -304,7 +297,7 @@ describe("createBoardEditorRuntime", () => {
       preventDefault: vi.fn(),
     } as unknown as PointerEvent);
 
-    expect(store.getState().ui.viewport.zoom).toBe(1);
+    expect(store.getState().ui.viewport.zoom).toBe(initialZoom);
     expect(store.getState().ui.viewport.pan).toEqual({
       x: 20,
       y: 30,

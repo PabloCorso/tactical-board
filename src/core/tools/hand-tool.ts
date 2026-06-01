@@ -12,6 +12,13 @@ export class HandTool extends BoardEditorTool implements ToolDefinition {
   readonly id = "hand";
   readonly label = "Hand";
 
+  getCursor(
+    _event: Parameters<NonNullable<ToolDefinition["getCursor"]>>[0],
+    api: ToolApi,
+  ) {
+    return api.getState().toolState.hand ? "grabbing" : "grab";
+  }
+
   onPointerDown(
     event: Parameters<NonNullable<ToolDefinition["onPointerDown"]>>[0],
     api: ToolApi,
