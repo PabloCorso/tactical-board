@@ -235,6 +235,7 @@ export const BoardEditorToolbarDock = forwardRef<
 
 export type BoardEditorToolbarButtonProps = ButtonProps & {
   active?: boolean;
+  restoreCanvasFocusOnClick?: boolean;
   tooltip?: ReactNode | false;
 };
 
@@ -258,6 +259,7 @@ export function BoardEditorToolbarButton({
   iconSize = "xl",
   className,
   onClick,
+  restoreCanvasFocusOnClick = true,
   ...props
 }: BoardEditorToolbarButtonProps) {
   const { tooltipSide } = useContext(BoardEditorToolbarContext);
@@ -271,7 +273,9 @@ export function BoardEditorToolbarButton({
       aria-label={ariaLabel}
       onClick={(event) => {
         onClick?.(event);
-        focusEditorCanvasFromElement(event.currentTarget);
+        if (restoreCanvasFocusOnClick) {
+          focusEditorCanvasFromElement(event.currentTarget);
+        }
       }}
       {...props}
     />
