@@ -14,6 +14,7 @@ import { BoardEditorSelectionActionsMenu } from "./selection-actions-menu";
 import type { BoardEditorSelectionToolbarRendererProps } from "./selection-toolbar-types";
 import { ColorPicker, DEFAULT_BOARD_COLORS } from "../../../ui/color-picker";
 import { Input } from "../../../ui/inputs";
+import { useBoardEditorLabels } from "../board-editor-labels";
 
 export function BoardEditorPlayerSelectionToolbar({
   className,
@@ -24,6 +25,7 @@ export function BoardEditorPlayerSelectionToolbar({
   viewportWidth,
   viewportHeight,
 }: BoardEditorSelectionToolbarRendererProps<PlayerObject>) {
+  const labels = useBoardEditorLabels();
   const store = useBoardEditorContext();
   const toolApi = createToolApi(store);
 
@@ -43,7 +45,7 @@ export function BoardEditorPlayerSelectionToolbar({
     >
       <BoardEditorToolbar className={className}>
         <Input
-          aria-label="Player label"
+          aria-label={labels.selectionToolbar.playerLabel}
           className="border-tb-border-default bg-tb-background-screen text-tb-text-primary h-8 w-12 px-2 text-center text-sm font-medium md:text-sm"
           onChange={(event) => updatePlayer({ label: event.target.value })}
           value={selectedObject.props.label ?? ""}
@@ -51,13 +53,14 @@ export function BoardEditorPlayerSelectionToolbar({
         />
 
         <BoardEditorToolbarPopoverButton
-          ariaLabel="Player color"
-          tooltip="Color"
+          ariaLabel={labels.selectionToolbar.playerColor}
+          tooltip={labels.selectionToolbar.color}
           popoverSide="top"
           content={
             <ColorPicker
               value={selectedObject.props.color}
               onChange={(value) => updatePlayer({ color: value })}
+              chooseCustomColorLabel={labels.colorPicker.chooseCustomColor}
               defaultColors={[...DEFAULT_BOARD_COLORS]}
             />
           }

@@ -35,6 +35,7 @@
 - **Tool**: An interaction module that interprets user input and invokes Editor Engine operations. Tools may own temporary interaction state, but persistent Document mutations belong to the Editor Engine rather than the Tool itself.
 - **Standard Tool**: A reusable generic Tool, such as Select, Hand, Shape, Arrow, or Text, that is provided outside the Editor Engine and registered by an editor instance.
 - **Default Tool**: The configured fallback Tool for an editor instance. The Editor Engine stores the default tool id but does not know which Tool, such as Select, fills that role.
+- **React UI Copy**: User-facing labels, aria labels, tooltips, and menu text owned by the React Adapter rather than by the Editor Engine, Tool registrations, Theme data, or Host App data.
 - **Selection**: The editor-session set of Shapes currently targeted for editing. Tools may change Selection or decide how to present it, but Selection is not owned by any specific Tool.
 - **Smart Guides**: Temporary editor-session assistance that helps a user place, align, size, or constrain Shapes while interacting with a Document.
 - **Guide**: A visual hint shown for a possible or active Smart Guides target, distinct from a persistent visual grid.
@@ -53,3 +54,5 @@
 - **Smart Guides** treat a multi-Shape **Selection** through its **Selection Bounds** and exclude Shapes inside that Selection from the active set of **Guide Targets**.
 - The **Board Library** may provide reusable **Export Primitives**, while **Share Workflows** belong to the **Host App** because storage, privacy, URLs, channels, and analytics are product-specific.
 - A **Host App** may compose custom save, export, or share controls with Board Library toolbar primitives instead of using a prescribed Board Library toolbar.
+- **React UI Copy** is localized through the React Adapter labels provider only when the copy is owned by React UI. Labels carried by **Tool** registrations, **Theme** definitions, frame variant options, equipment definitions, or Host App-provided presets remain owned by that data and should not be overwritten by the provider.
+- Built-in toolbar presets should prefer stable ids or values for behavior and resolve their display text at the React rendering boundary. If a Host App supplies a custom preset label or tooltip, that caller-owned copy takes precedence.

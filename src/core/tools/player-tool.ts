@@ -32,7 +32,7 @@ export type PlayerToolLabelStrategy = "numeric-by-color" | "none";
 
 export type PlayerToolDefault = {
   id: string;
-  label: string;
+  label?: string;
   tooltip?: string;
   draftStyle: Partial<PlayerDraftStyle>;
 };

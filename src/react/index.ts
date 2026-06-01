@@ -20,6 +20,7 @@ export * from "./board/editor/selection-toolbar/text-selection-toolbar";
 export type * from "./board/editor/selection-toolbar/selection-toolbar-types";
 export * from "./board/editor/shape-polygon-done";
 export * from "./board/editor/toolbar/tool-control";
+export * from "./board/editor/board-editor-labels";
 export * from "./board/editor/toolbar/default-tool-icons";
 export * from "./board/editor/toolbar/editor-toolbar";
 export * from "./adapter/viewer/board-viewer";

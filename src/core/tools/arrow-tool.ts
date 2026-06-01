@@ -38,7 +38,7 @@ const MIN_HIT_DISTANCE_PX = 10;
 
 export type ArrowToolDefault = {
   id: string;
-  label: string;
+  label?: string;
   tooltip?: string;
   draftStyle: Partial<ArrowDraftStyle>;
 };

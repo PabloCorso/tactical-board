@@ -22,6 +22,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../../../ui/dropdown-menu";
+import { useBoardEditorLabels } from "../board-editor-labels";
 
 export type BoardEditorSelectionActionsMenuProps = {
   selectedObjectIds: ObjectId[];
@@ -30,6 +31,7 @@ export type BoardEditorSelectionActionsMenuProps = {
 export function BoardEditorSelectionActionsMenu({
   selectedObjectIds,
 }: BoardEditorSelectionActionsMenuProps) {
+  const labels = useBoardEditorLabels();
   const store = useBoardEditorContext();
   const floatingPortal = useBoardEditorToolbarFloatingPortal();
   const board = useBoardEditorStore(store, (state) => state.board);
@@ -54,9 +56,9 @@ export function BoardEditorSelectionActionsMenu({
       <DropdownMenuTrigger>
         {(triggerProps) => (
           <BoardEditorToolbarButton
-            aria-label="More actions"
+            aria-label={labels.selectionActions.moreActions}
             iconBefore={<DotsThreeVerticalIcon weight="bold" />}
-            tooltip="More actions"
+            tooltip={labels.selectionActions.moreActions}
             {...triggerProps}
           />
         )}
@@ -68,22 +70,24 @@ export function BoardEditorSelectionActionsMenu({
         portalContainer={floatingPortal.container}
         positionMethod={floatingPortal.positionMethod}
       >
-        <DropdownMenuItem onClick={handleDuplicate}>Duplicate</DropdownMenuItem>
+        <DropdownMenuItem onClick={handleDuplicate}>
+          {labels.selectionActions.duplicate}
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={() => deleteSelectedObjects(toolApi)}>
-          Delete
+          {labels.selectionActions.delete}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           disabled={!canBringToFront}
           onClick={() => toolApi.bringObjectsToFront(selectedObjectIds)}
         >
-          Bring to front
+          {labels.selectionActions.bringToFront}
         </DropdownMenuItem>
         <DropdownMenuItem
           disabled={!canSendToBack}
           onClick={() => toolApi.sendObjectsToBack(selectedObjectIds)}
         >
-          Send to back
+          {labels.selectionActions.sendToBack}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

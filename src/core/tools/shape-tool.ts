@@ -44,7 +44,7 @@ const DEFAULT_SHAPE_PREVIEW_SIZE = {
 
 export type ShapeToolDefault = {
   id: string;
-  label: string;
+  label?: string;
   tooltip?: string;
   draftStyle: Partial<ShapeDraftStyle>;
 };

@@ -22,7 +22,11 @@ export type FrameObjectRemapContext = {
   rotateObject?: boolean;
 };
 
-function remapCoordinate(value: number, previousSize: number, nextSize: number) {
+function remapCoordinate(
+  value: number,
+  previousSize: number,
+  nextSize: number,
+) {
   if (Math.abs(previousSize) < 1e-6) {
     return nextSize / 2;
   }
@@ -78,7 +82,9 @@ function remapCurveOffset(
 function remapObjectPoints(
   object: BoardObject,
   remapPoint: (point: Point) => Point,
-  remapCurveOffsetValue: (curveOffset: number | undefined) => number | undefined,
+  remapCurveOffsetValue: (
+    curveOffset: number | undefined,
+  ) => number | undefined,
   rotationDelta = 0,
 ): BoardObject {
   if (object.type === ARROW_OBJECT_TYPE) {

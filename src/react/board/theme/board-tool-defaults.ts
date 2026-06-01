@@ -22,7 +22,6 @@ export const BOARD_ARROW_DEFAULTS: Array<
 > = [
   {
     id: "line",
-    label: "Line",
     variant: "line",
     draftStyle: {
       kind: "straight",
@@ -32,7 +31,6 @@ export const BOARD_ARROW_DEFAULTS: Array<
   },
   {
     id: "run",
-    label: "Run",
     variant: "straight-solid",
     draftStyle: {
       kind: "straight",
@@ -42,7 +40,6 @@ export const BOARD_ARROW_DEFAULTS: Array<
   },
   {
     id: "dribble",
-    label: "Dribble",
     variant: "wavy",
     draftStyle: {
       kind: "wavy",
@@ -52,7 +49,6 @@ export const BOARD_ARROW_DEFAULTS: Array<
   },
   {
     id: "lofted-pass",
-    label: "Lofted pass",
     variant: "curved-solid",
     draftStyle: {
       kind: "curved",
@@ -62,7 +58,6 @@ export const BOARD_ARROW_DEFAULTS: Array<
   },
   {
     id: "screen",
-    label: "Screen",
     variant: "double",
     draftStyle: {
       kind: "double",
@@ -79,7 +74,6 @@ export const BOARD_SHAPE_DEFAULTS: Array<
 > = [
   {
     id: "shape-rectangle",
-    label: "Rectangle",
     variant: "rectangle",
     draftStyle: {
       kind: "rectangle",
@@ -87,7 +81,6 @@ export const BOARD_SHAPE_DEFAULTS: Array<
   },
   {
     id: "shape-oval",
-    label: "Oval",
     variant: "oval",
     draftStyle: {
       kind: "oval",
@@ -95,7 +88,6 @@ export const BOARD_SHAPE_DEFAULTS: Array<
   },
   {
     id: "shape-triangle",
-    label: "Triangle",
     variant: "triangle",
     draftStyle: {
       kind: "triangle",
@@ -103,7 +95,6 @@ export const BOARD_SHAPE_DEFAULTS: Array<
   },
   {
     id: "shape-diamond",
-    label: "Diamond",
     variant: "diamond",
     draftStyle: {
       kind: "diamond",
@@ -111,7 +102,6 @@ export const BOARD_SHAPE_DEFAULTS: Array<
   },
   {
     id: "shape-polygon",
-    label: "Polygon",
     variant: "polygon",
     draftStyle: {
       kind: "polygon",
@@ -122,8 +112,6 @@ export const BOARD_SHAPE_DEFAULTS: Array<
 export const BOARD_PLAYER_DEFAULTS: PlayerToolDefault[] =
   BOARD_PLAYER_DEFAULT_COLORS.map((color, index) => ({
     id: `team-color-${index + 1}`,
-    label: String(index + 1),
-    tooltip: "Player color",
     draftStyle: {
       color,
     },

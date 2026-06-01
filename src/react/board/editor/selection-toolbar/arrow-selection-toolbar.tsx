@@ -21,32 +21,27 @@ import type { BoardEditorSelectionToolbarRendererProps } from "./selection-toolb
 import { ColorPicker, DEFAULT_BOARD_COLORS } from "../../../ui/color-picker";
 import type { IconRender } from "../../../ui/icon";
 import { LineStyleIcon } from "./line-style-icon";
+import {
+  useBoardEditorLabels,
+  type BoardEditorLabels,
+} from "../board-editor-labels";
 
 const BODY_STYLE_OPTIONS: Array<{
   value: ArrowKind;
-  label: string;
 }> = [
-  { value: "straight", label: "Straight" },
-  { value: "curved", label: "Curved" },
-  { value: "wavy", label: "Wavy" },
-  { value: "double", label: "Double" },
+  { value: "straight" },
+  { value: "curved" },
+  { value: "wavy" },
+  { value: "double" },
 ];
 
 const LINE_STYLE_OPTIONS: Array<{
   value: ArrowLineStyle;
-  label: string;
-}> = [
-  { label: "Solid", value: "solid" },
-  { label: "Dashed", value: "dashed" },
-] as const;
+}> = [{ value: "solid" }, { value: "dashed" }] as const;
 
 const HEAD_STYLE_OPTIONS: Array<{
   value: ArrowHeadStyle;
-  label: string;
-}> = [
-  { label: "None", value: "none" },
-  { label: "Arrow", value: "triangle" },
-] as const;
+}> = [{ value: "none" }, { value: "triangle" }] as const;
 
 function getBodyStyleIcon(kind: ArrowKind): IconRender {
   return (
@@ -82,11 +77,13 @@ function getHeadStyleIcon(
 }
 
 type ArrowBodyPopoverContentProps = {
+  labels: BoardEditorLabels;
   selectedObject: ArrowObject;
   onSelect: (value: ArrowKind) => void;
 };
 
 function ArrowBodyPopoverContent({
+  labels,
   selectedObject,
   onSelect,
 }: ArrowBodyPopoverContentProps) {
@@ -96,7 +93,9 @@ function ArrowBodyPopoverContent({
         <BoardEditorToolbarOptionButton
           key={option.value}
           active={selectedObject.props.kind === option.value}
-          ariaLabel={`Arrow body ${option.label}`}
+          ariaLabel={labels.selectionToolbar.arrowBodyOption(
+            labels.selectionToolbar.arrowStyle[option.value],
+          )}
           icon={getBodyStyleIcon(option.value)}
           onClick={() => onSelect(option.value)}
         />
@@ -106,17 +105,19 @@ function ArrowBodyPopoverContent({
 }
 
 type ArrowHeadPopoverContentProps = {
+  labels: BoardEditorLabels;
   headStyle: ArrowHeadStyle;
   side: "start" | "end";
   onSelect: (value: ArrowHeadStyle) => void;
 };
 
 function ArrowHeadPopoverContent({
+  labels,
   headStyle,
   side,
   onSelect,
 }: ArrowHeadPopoverContentProps) {
-  const labelPrefix = side === "start" ? "Left" : "Right";
+  const labelSide = side === "start" ? "left" : "right";
 
   return (
     <div className="grid grid-cols-2 gap-2">
@@ -124,7 +125,12 @@ function ArrowHeadPopoverContent({
         <BoardEditorToolbarOptionButton
           key={option.value}
           active={headStyle === option.value}
-          ariaLabel={`${labelPrefix} arrow head ${option.label}`}
+          ariaLabel={labels.selectionToolbar.arrowHeadOption(
+            labelSide,
+            option.value === "triangle"
+              ? labels.selectionToolbar.arrowHead.arrow
+              : labels.selectionToolbar.arrowHead.none,
+          )}
           icon={getHeadStyleIcon(option.value, side)}
           onClick={() => onSelect(option.value)}
         />
@@ -134,11 +140,13 @@ function ArrowHeadPopoverContent({
 }
 
 type ArrowLineStylePopoverContentProps = {
+  labels: BoardEditorLabels;
   lineStyle: ArrowLineStyle;
   onSelect: (value: ArrowLineStyle) => void;
 };
 
 function ArrowLineStylePopoverContent({
+  labels,
   lineStyle,
   onSelect,
 }: ArrowLineStylePopoverContentProps) {
@@ -148,7 +156,9 @@ function ArrowLineStylePopoverContent({
         <BoardEditorToolbarOptionButton
           key={option.value}
           active={lineStyle === option.value}
-          ariaLabel={`Arrow line style ${option.label}`}
+          ariaLabel={labels.selectionToolbar.arrowLineOption(
+            labels.selectionToolbar.lineValue[option.value],
+          )}
           icon={<LineStyleIcon dashed={option.value === "dashed"} />}
           onClick={() => onSelect(option.value)}
         />
@@ -159,17 +169,20 @@ function ArrowLineStylePopoverContent({
 
 type ArrowColorPopoverContentProps = {
   color: string;
+  labels: BoardEditorLabels;
   onSelect: (value: string) => void;
 };
 
 function ArrowColorPopoverContent({
   color,
+  labels,
   onSelect,
 }: ArrowColorPopoverContentProps) {
   return (
     <ColorPicker
       value={color}
       onChange={onSelect}
+      chooseCustomColorLabel={labels.colorPicker.chooseCustomColor}
       defaultColors={[...DEFAULT_BOARD_COLORS]}
     />
   );
@@ -184,6 +197,7 @@ export function BoardEditorArrowSelectionToolbar({
   viewportWidth,
   viewportHeight,
 }: BoardEditorSelectionToolbarRendererProps<ArrowObject>) {
+  const labels = useBoardEditorLabels();
   const store = useBoardEditorContext();
   const toolApi = createToolApi(store);
 
@@ -211,11 +225,12 @@ export function BoardEditorArrowSelectionToolbar({
     >
       <BoardEditorToolbar className={className}>
         <BoardEditorToolbarPopoverButton
-          ariaLabel="Arrow left head"
-          tooltip="Left head"
+          ariaLabel={labels.selectionToolbar.arrowLeftHead}
+          tooltip={labels.selectionToolbar.arrowLeftHead}
           popoverSide="top"
           content={
             <ArrowHeadPopoverContent
+              labels={labels}
               headStyle={selectedObject.props.startHead}
               side="start"
               onSelect={(value) => updateArrowProps({ startHead: value })}
@@ -225,11 +240,12 @@ export function BoardEditorArrowSelectionToolbar({
         />
 
         <BoardEditorToolbarPopoverButton
-          ariaLabel="Arrow body style"
-          tooltip="Body style"
+          ariaLabel={labels.selectionToolbar.arrowBodyStyle}
+          tooltip={labels.selectionToolbar.arrowBodyStyle}
           popoverSide="top"
           content={
             <ArrowBodyPopoverContent
+              labels={labels}
               selectedObject={selectedObject}
               onSelect={updateBodyStyle}
             />
@@ -238,11 +254,12 @@ export function BoardEditorArrowSelectionToolbar({
         />
 
         <BoardEditorToolbarPopoverButton
-          ariaLabel="Arrow right head"
-          tooltip="Right head"
+          ariaLabel={labels.selectionToolbar.arrowRightHead}
+          tooltip={labels.selectionToolbar.arrowRightHead}
           popoverSide="top"
           content={
             <ArrowHeadPopoverContent
+              labels={labels}
               headStyle={selectedObject.props.endHead}
               side="end"
               onSelect={(value) => updateArrowProps({ endHead: value })}
@@ -254,11 +271,12 @@ export function BoardEditorArrowSelectionToolbar({
         <BoardEditorToolbarSeparator />
 
         <BoardEditorToolbarPopoverButton
-          ariaLabel="Arrow line style"
-          tooltip="Line style"
+          ariaLabel={labels.selectionToolbar.arrowLineStyle}
+          tooltip={labels.selectionToolbar.lineStyle}
           popoverSide="top"
           content={
             <ArrowLineStylePopoverContent
+              labels={labels}
               lineStyle={selectedObject.props.lineStyle}
               onSelect={(value) => updateArrowProps({ lineStyle: value })}
             />
@@ -271,12 +289,13 @@ export function BoardEditorArrowSelectionToolbar({
         />
 
         <BoardEditorToolbarPopoverButton
-          ariaLabel="Arrow color"
-          tooltip="Color"
+          ariaLabel={labels.selectionToolbar.arrowColor}
+          tooltip={labels.selectionToolbar.color}
           popoverSide="top"
           content={
             <ArrowColorPopoverContent
               color={selectedObject.props.color}
+              labels={labels}
               onSelect={(value) => updateArrowProps({ color: value })}
             />
           }

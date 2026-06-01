@@ -13,6 +13,7 @@ import {
   BoardEditorToolbarButton,
 } from "./toolbar/editor-toolbar";
 import { cn } from "../../ui/misc";
+import { useBoardEditorLabels } from "./board-editor-labels";
 import {
   getViewportForZoomAtCanvasPoint,
   getViewportFrame,
@@ -28,6 +29,7 @@ export type BoardEditorCanvasToolbarProps = {
 export function BoardEditorCanvasToolbar({
   className,
 }: BoardEditorCanvasToolbarProps) {
+  const labels = useBoardEditorLabels();
   const store = useBoardEditorContext();
   const viewport = useBoardEditorStore(store, (state) => state.ui.viewport);
   const fitPadding = useBoardEditorStore(store, (state) => state.ui.fitPadding);
@@ -100,7 +102,7 @@ export function BoardEditorCanvasToolbar({
         contentClassName="gap-0 p-0"
       >
         <BoardEditorCanvasToolbarButton
-          aria-label="Undo"
+          aria-label={labels.canvasToolbar.undo}
           className="rounded-none rounded-l-full"
           disabled={!canUndo}
           iconBefore={
@@ -113,10 +115,10 @@ export function BoardEditorCanvasToolbar({
           iconSize="sm"
           onClick={() => actions.undo()}
           size="sm"
-          tooltip="Undo"
+          tooltip={labels.canvasToolbar.undo}
         />
         <BoardEditorCanvasToolbarButton
-          aria-label="Redo"
+          aria-label={labels.canvasToolbar.redo}
           className="border-tb-border-default rounded-none rounded-r-full border-l"
           disabled={!canRedo}
           iconBefore={
@@ -129,7 +131,7 @@ export function BoardEditorCanvasToolbar({
           iconSize="sm"
           onClick={() => actions.redo()}
           size="sm"
-          tooltip="Redo"
+          tooltip={labels.canvasToolbar.redo}
         />
       </BoardEditorToolbar>
       <BoardEditorToolbar
@@ -137,7 +139,7 @@ export function BoardEditorCanvasToolbar({
         contentClassName="gap-0 p-0"
       >
         <BoardEditorCanvasToolbarButton
-          aria-label="Zoom out"
+          aria-label={labels.canvasToolbar.zoomOut}
           className="rounded-none rounded-l-full"
           iconBefore={
             <MinusIcon aria-hidden="true" className="size-4" weight="bold" />
@@ -147,10 +149,10 @@ export function BoardEditorCanvasToolbar({
             zoomAroundCanvasCenter(viewport.zoom / VIEWPORT_ZOOM_STEP_FACTOR)
           }
           size="sm"
-          tooltip="Zoom out"
+          tooltip={labels.canvasToolbar.zoomOut}
         />
         <BoardEditorCanvasToolbarButton
-          aria-label="Zoom in"
+          aria-label={labels.canvasToolbar.zoomIn}
           className="border-tb-border-default rounded-none rounded-r-full border-l"
           iconBefore={
             <PlusIcon aria-hidden="true" className="size-4" weight="bold" />
@@ -160,7 +162,7 @@ export function BoardEditorCanvasToolbar({
             zoomAroundCanvasCenter(viewport.zoom * VIEWPORT_ZOOM_STEP_FACTOR)
           }
           size="sm"
-          tooltip="Zoom in"
+          tooltip={labels.canvasToolbar.zoomIn}
         />
       </BoardEditorToolbar>
       <BoardEditorToolbar
@@ -168,7 +170,7 @@ export function BoardEditorCanvasToolbar({
         contentClassName="gap-0 p-0"
       >
         <BoardEditorCanvasToolbarButton
-          aria-label="Fit to view"
+          aria-label={labels.canvasToolbar.fitToView}
           className="rounded-full"
           iconBefore={
             <CornersOutIcon
@@ -190,7 +192,7 @@ export function BoardEditorCanvasToolbar({
             )
           }
           size="sm"
-          tooltip="Fit to view"
+          tooltip={labels.canvasToolbar.fitToView}
         />
       </BoardEditorToolbar>
     </div>

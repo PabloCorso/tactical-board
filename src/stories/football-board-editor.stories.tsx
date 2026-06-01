@@ -1,7 +1,12 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { footballShowcaseBoard } from "../examples/football/football-showcase-board";
 import { FootballBoardEditorExample } from "./examples/football-board-editor.example";
-import { createFootballPitch, FootballPitchPreview } from "../react";
+import {
+  createFootballPitch,
+  FootballPitchPreview,
+  type BoardEditorLabelOverrides,
+  type FootballPitchVariant,
+} from "../react";
 
 const meta = {
   title: "React/Board Editor/Football",
@@ -31,6 +36,122 @@ export const EmptyBoard: Story = {};
 export const ShowcaseBoard: Story = {
   args: {
     initialBoard: footballShowcaseBoard,
+  },
+};
+
+const spanishPitchLabels: Record<FootballPitchVariant, string> = {
+  "full-pitch": "Campo completo",
+  "half-pitch": "Medio campo",
+  "reduced-space": "Espacio reducido",
+};
+
+const spanishEditorLabels = {
+  canvasToolbar: {
+    fitToView: "Ajustar vista",
+    redo: "Rehacer",
+    undo: "Deshacer",
+    zoomIn: "Acercar",
+    zoomOut: "Alejar",
+  },
+  colorPicker: {
+    chooseCustomColor: "Elegir color personalizado",
+  },
+  selectionActions: {
+    bringToFront: "Traer al frente",
+    delete: "Eliminar",
+    duplicate: "Duplicar",
+    moreActions: "Mas acciones",
+    sendToBack: "Enviar atras",
+  },
+  secondaryToolbar: {
+    arrowDefaults: {
+      dribble: "Conduccion",
+      line: "Linea",
+      loftedPass: "Pase elevado",
+      run: "Carrera",
+      screen: "Bloqueo",
+    },
+    playerColor: "Color del jugador",
+    shapeDefaults: {
+      diamond: "Rombo",
+      oval: "Ovalo",
+      polygon: "Poligono",
+      rectangle: "Rectangulo",
+      triangle: "Triangulo",
+    },
+  },
+  selectionToolbar: {
+    arrowBodyOption: (label) => `Cuerpo de flecha: ${label}`,
+    arrowBodyStyle: "Estilo del cuerpo de flecha",
+    arrowColor: "Color de flecha",
+    arrowHead: {
+      arrow: "Flecha",
+      none: "Ninguna",
+    },
+    arrowHeadOption: (side, label) =>
+      `${side === "left" ? "Punta izquierda" : "Punta derecha"}: ${label}`,
+    arrowLeftHead: "Punta izquierda",
+    arrowLineOption: (label) => `Linea de flecha: ${label}`,
+    arrowLineStyle: "Estilo de linea de flecha",
+    arrowRightHead: "Punta derecha",
+    arrowStyle: {
+      curved: "Curva",
+      double: "Doble",
+      straight: "Recta",
+      wavy: "Ondulada",
+    },
+    border: "Borde",
+    color: "Color",
+    equipmentColor: "Color del material",
+    fillStyle: "Relleno",
+    lineStyle: "Linea",
+    lineValue: {
+      dashed: "Discontinua",
+      solid: "Solida",
+    },
+    playerColor: "Color del jugador",
+    playerLabel: "Etiqueta del jugador",
+    shapeBorderOption: (label) => `Borde de forma: ${label}`,
+    shapeBorderStyle: "Estilo de borde",
+    shapeBorderValue: {
+      bordered: "Con borde",
+      borderless: "Sin borde",
+    },
+    shapeColor: "Color de forma",
+    shapeFillOption: (label) => `Estilo de forma: ${label}`,
+    shapeFillStyle: "Estilo de relleno",
+    shapeFillValue: {
+      none: "Ninguno",
+      solid: "Solido",
+      stripes: "Rayas",
+    },
+    shapeLineOption: (label) => `Linea de forma: ${label}`,
+    shapeLineStyle: "Estilo de linea",
+    textColor: "Color de texto",
+    textSize: "Tamano de texto",
+  },
+  textEditor: {
+    ariaLabel: "Editor de texto",
+  },
+} satisfies BoardEditorLabelOverrides;
+
+export const SpanishLabels: Story = {
+  args: {
+    initialBoard: footballShowcaseBoard,
+    labels: spanishEditorLabels,
+    translatePitchLabel: (value) => spanishPitchLabels[value],
+    translateRotatePitchAction: () => ({
+      buttonLabel: "Girar",
+      label: "Girar campo",
+    }),
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Example of translating built-in editor copy with the labels API while keeping pitch variant labels caller-owned.",
+      },
+    },
   },
 };
 

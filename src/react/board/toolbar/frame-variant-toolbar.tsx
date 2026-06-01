@@ -1,9 +1,6 @@
 import { useMemo, type ReactNode } from "react";
 import { ArrowClockwiseIcon } from "@phosphor-icons/react";
-import type {
-  BoardFrameConfig,
-  BoardObject,
-} from "../../../core/board/types";
+import type { BoardFrameConfig, BoardObject } from "../../../core/board/types";
 import { createToolApi } from "../../../core/editor/create-tool-api";
 import { getObjectSelectionAdapterForObject } from "../../../core/objects/object-selection";
 import {

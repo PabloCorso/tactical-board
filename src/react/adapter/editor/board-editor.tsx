@@ -26,6 +26,11 @@ import {
   BoardEditorContext,
   useBoardEditorContext,
 } from "./board-editor-context";
+import {
+  BoardEditorLabelsProvider,
+  useBoardEditorLabels,
+  type BoardEditorLabelOverrides,
+} from "../../board/editor/board-editor-labels";
 import { cn } from "../../ui/misc";
 export { BoardEditorCanvasToolbar } from "../../board/editor/canvas-toolbar";
 export { BoardEditorShapePolygonDone } from "../../board/editor/shape-polygon-done";
@@ -36,6 +41,7 @@ export type BoardEditorProps = {
 };
 
 export type BoardEditorProviderProps = PropsWithChildren & {
+  labels?: BoardEditorLabelOverrides;
   store: BoardEditorStore;
 };
 
@@ -47,12 +53,15 @@ export type BoardEditorCanvasProps = {
 };
 
 export function BoardEditorProvider({
-  store,
   children,
+  labels,
+  store,
 }: BoardEditorProviderProps) {
   return (
     <BoardEditorContext.Provider value={store}>
-      {children}
+      <BoardEditorLabelsProvider labels={labels}>
+        {children}
+      </BoardEditorLabelsProvider>
     </BoardEditorContext.Provider>
   );
 }
@@ -122,6 +131,7 @@ function focusEditorCanvasFromElement(element: HTMLElement | null) {
 
 function BoardEditorTextEditorOverlay() {
   const store = useBoardEditorContext();
+  const labels = useBoardEditorLabels();
   const toolApi = useMemo(() => createToolApi(store), [store]);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const state = useBoardEditorStore(store, (currentState) => currentState);
@@ -177,7 +187,7 @@ function BoardEditorTextEditorOverlay() {
   return (
     <textarea
       ref={textareaRef}
-      aria-label="Text editor"
+      aria-label={labels.textEditor.ariaLabel}
       className="absolute z-20 m-0 resize-none overflow-hidden border-0 bg-transparent p-0 font-normal outline-none"
       onBlur={() => finishTextEditingSession(toolApi)}
       onChange={(event) =>

@@ -17,28 +17,20 @@ import { BoardEditorSelectionToolbarPositioner } from "./selection-toolbar-posit
 import type { BoardEditorSelectionToolbarRendererProps } from "./selection-toolbar-types";
 import { ColorPicker, DEFAULT_BOARD_COLORS } from "../../../ui/color-picker";
 import { LineStyleIcon } from "./line-style-icon";
+import {
+  useBoardEditorLabels,
+  type BoardEditorLabels,
+} from "../board-editor-labels";
 
 const LINE_STYLE_OPTIONS: Array<{
   value: ShapeLineStyle;
-  label: string;
-}> = [
-  { label: "Solid", value: "solid" },
-  { label: "Dashed", value: "dashed" },
-];
+}> = [{ value: "solid" }, { value: "dashed" }];
 
 const FILL_STYLE_OPTIONS: Array<{
   value: ShapeFillStyle;
-  label: string;
-}> = [
-  { value: "none", label: "None" },
-  { value: "solid", label: "Solid" },
-  { value: "diagonal-stripes", label: "Stripes" },
-];
+}> = [{ value: "none" }, { value: "solid" }, { value: "diagonal-stripes" }];
 
-const BORDER_STYLE_OPTIONS = [
-  { value: true, label: "Bordered" },
-  { value: false, label: "Borderless" },
-] as const;
+const BORDER_STYLE_OPTIONS = [{ value: true }, { value: false }] as const;
 
 function ShapeFillStyleIcon({ value }: { value: ShapeFillStyle }) {
   return (
@@ -98,9 +90,11 @@ function ShapeBorderStyleIcon({ bordered }: { bordered: boolean }) {
 }
 
 function ShapeLineStylePopoverContent({
+  labels,
   lineStyle,
   onSelect,
 }: {
+  labels: BoardEditorLabels;
   lineStyle: ShapeLineStyle;
   onSelect: (value: ShapeLineStyle) => void;
 }) {
@@ -110,7 +104,9 @@ function ShapeLineStylePopoverContent({
         <BoardEditorToolbarOptionButton
           key={option.value}
           active={lineStyle === option.value}
-          ariaLabel={`Shape line style ${option.label}`}
+          ariaLabel={labels.selectionToolbar.shapeLineOption(
+            labels.selectionToolbar.lineValue[option.value],
+          )}
           icon={<LineStyleIcon dashed={option.value === "dashed"} />}
           onClick={() => onSelect(option.value)}
         />
@@ -120,9 +116,11 @@ function ShapeLineStylePopoverContent({
 }
 
 function ShapeFillPopoverContent({
+  labels,
   value,
   onSelect,
 }: {
+  labels: BoardEditorLabels;
   value: ShapeFillStyle;
   onSelect: (nextValue: ShapeFillStyle) => void;
 }) {
@@ -132,7 +130,11 @@ function ShapeFillPopoverContent({
         <BoardEditorToolbarOptionButton
           key={option.value}
           active={value === option.value}
-          ariaLabel={`Shape style ${option.label}`}
+          ariaLabel={labels.selectionToolbar.shapeFillOption(
+            option.value === "diagonal-stripes"
+              ? labels.selectionToolbar.shapeFillValue.stripes
+              : labels.selectionToolbar.shapeFillValue[option.value],
+          )}
           icon={<ShapeFillStyleIcon value={option.value} />}
           onClick={() => onSelect(option.value)}
         />
@@ -142,9 +144,11 @@ function ShapeFillPopoverContent({
 }
 
 function ShapeBorderPopoverContent({
+  labels,
   value,
   onSelect,
 }: {
+  labels: BoardEditorLabels;
   value: boolean;
   onSelect: (nextValue: boolean) => void;
 }) {
@@ -154,7 +158,11 @@ function ShapeBorderPopoverContent({
         <BoardEditorToolbarOptionButton
           key={String(option.value)}
           active={value === option.value}
-          ariaLabel={`Shape border ${option.label}`}
+          ariaLabel={labels.selectionToolbar.shapeBorderOption(
+            option.value
+              ? labels.selectionToolbar.shapeBorderValue.bordered
+              : labels.selectionToolbar.shapeBorderValue.borderless,
+          )}
           icon={<ShapeBorderStyleIcon bordered={option.value} />}
           onClick={() => onSelect(option.value)}
         />
@@ -172,6 +180,7 @@ export function BoardEditorShapeSelectionToolbar({
   viewportWidth,
   viewportHeight,
 }: BoardEditorSelectionToolbarRendererProps<ShapeObject>) {
+  const labels = useBoardEditorLabels();
   const store = useBoardEditorContext();
   const toolApi = createToolApi(store);
 
@@ -191,13 +200,14 @@ export function BoardEditorShapeSelectionToolbar({
     >
       <BoardEditorToolbar className={className}>
         <BoardEditorToolbarPopoverButton
-          ariaLabel="Shape color"
-          tooltip="Color"
+          ariaLabel={labels.selectionToolbar.shapeColor}
+          tooltip={labels.selectionToolbar.color}
           popoverSide="top"
           content={
             <ColorPicker
               value={selectedObject.props.color}
               onChange={(value) => updateShapeProps({ color: value })}
+              chooseCustomColorLabel={labels.colorPicker.chooseCustomColor}
               defaultColors={[...DEFAULT_BOARD_COLORS]}
             />
           }
@@ -212,11 +222,12 @@ export function BoardEditorShapeSelectionToolbar({
         />
 
         <BoardEditorToolbarPopoverButton
-          ariaLabel="Shape line style"
-          tooltip="Line style"
+          ariaLabel={labels.selectionToolbar.shapeLineStyle}
+          tooltip={labels.selectionToolbar.lineStyle}
           popoverSide="top"
           content={
             <ShapeLineStylePopoverContent
+              labels={labels}
               lineStyle={selectedObject.props.lineStyle}
               onSelect={(value) => updateShapeProps({ lineStyle: value })}
             />
@@ -229,11 +240,12 @@ export function BoardEditorShapeSelectionToolbar({
         />
 
         <BoardEditorToolbarPopoverButton
-          ariaLabel="Shape fill style"
-          tooltip="Fill style"
+          ariaLabel={labels.selectionToolbar.shapeFillStyle}
+          tooltip={labels.selectionToolbar.fillStyle}
           popoverSide="top"
           content={
             <ShapeFillPopoverContent
+              labels={labels}
               value={selectedObject.props.fillStyle}
               onSelect={(value) => updateShapeProps({ fillStyle: value })}
             />
@@ -242,11 +254,12 @@ export function BoardEditorShapeSelectionToolbar({
         />
 
         <BoardEditorToolbarPopoverButton
-          ariaLabel="Shape border style"
-          tooltip="Border"
+          ariaLabel={labels.selectionToolbar.shapeBorderStyle}
+          tooltip={labels.selectionToolbar.border}
           popoverSide="top"
           content={
             <ShapeBorderPopoverContent
+              labels={labels}
               value={selectedObject.props.bordered}
               onSelect={(value) => updateShapeProps({ bordered: value })}
             />

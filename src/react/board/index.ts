@@ -4,6 +4,7 @@ export * from "./theme/create-board-tools";
 export * from "./theme/equipment-object-adapter";
 export * from "./theme/resolve-board-theme";
 export * from "./theme/board-tool-defaults";
+export * from "./editor/board-editor-labels";
 export * from "./toolbar/frame-variant-toolbar";
 export * from "./toolbar/primary-toolbar";
 export * from "./toolbar/secondary-toolbar";

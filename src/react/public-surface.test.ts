@@ -6,6 +6,7 @@ import {
   BoardEditorArrowSelectionToolbar,
   BoardEditorCanvas,
   BoardEditorCanvasToolbar,
+  BoardEditorLabelsProvider,
   BoardEditorEquipmentToolControl,
   BoardEditorFrameVariantDefaultsToolbar,
   BoardEditorFrameVariantToolControl,
@@ -15,6 +16,7 @@ import {
   BoardEditorSecondaryToolbar,
   BoardEditorSelectionToolbar,
   BoardEditorShapePolygonDone,
+  BoardEditorSelectToolControl,
   BoardEditorTextToolControl,
   BoardEditorToolbarDockProvider,
   BoardEditorToolbar,
@@ -22,6 +24,7 @@ import {
   BoardEditorToolbarDock,
   BoardViewerCanvas,
   BoardPrimaryToolbar,
+  BOARD_ARROW_DEFAULTS,
   basketballTheme,
   createBasketballBoard,
   createBasketballTools,
@@ -42,6 +45,7 @@ import {
   ARROW_OBJECT_TYPE,
   createArrowObject,
 } from "../core/objects/arrow-object";
+import { ARROW_TOOL_ID } from "../core/tools/arrow-tool-state";
 import { EQUIPMENT_OBJECT_TYPE } from "../core/objects/equipment-object";
 import { PLAYER_OBJECT_TYPE } from "../core/objects/player-object";
 import { SHAPE_OBJECT_TYPE } from "../core/objects/shape-object";
@@ -124,6 +128,107 @@ describe("React public frame", () => {
     expect(rightHeadIndex).toBeGreaterThan(bodyIndex);
     expect(lineIndex).toBeGreaterThan(rightHeadIndex);
     expect(markup.match(/role="separator"/g)?.length).toBe(2);
+  });
+
+  it("lets consumers override built-in editor labels", () => {
+    const board = createFootballBoard({ id: "translated-labels-board" });
+    const store = createBoardEditorStore({
+      initialBoard: board,
+      fitPadding: getFootballPitchFitPadding,
+      tools: createFootballTools(),
+    });
+    const markup = renderToString(
+      createElement(
+        BoardEditorProvider,
+        { store },
+        createElement(
+          BoardEditorLabelsProvider,
+          {
+            labels: {
+              canvasToolbar: {
+                undo: "Deshacer",
+              },
+              selectionActions: {
+                moreActions: "Mas acciones",
+              },
+            },
+          },
+          createElement(BoardEditorCanvasToolbar),
+          createElement(
+            BoardEditorToolbar,
+            null,
+            createElement(BoardEditorPlayerToolControl),
+          ),
+        ),
+      ),
+    );
+
+    expect(markup).toContain('aria-label="Deshacer"');
+    expect(markup).toContain('aria-label="Player"');
+  });
+
+  it("preserves caller-owned tool and preset labels", () => {
+    const board = createFootballBoard({ id: "caller-labels-board" });
+    const customToolStore = createBoardEditorStore({
+      initialBoard: board,
+      fitPadding: getFootballPitchFitPadding,
+      tools: [{ id: "select", label: "Registered select" }],
+    });
+    const store = createBoardEditorStore({
+      initialBoard: board,
+      fitPadding: getFootballPitchFitPadding,
+      initialToolId: ARROW_TOOL_ID,
+      tools: createFootballTools(),
+    });
+
+    const markup = renderToString(
+      createElement(
+        BoardEditorProvider,
+        {
+          labels: {
+            canvasToolbar: {
+              undo: "Deshacer",
+            },
+          },
+          store,
+        },
+        createElement(
+          BoardEditorProvider,
+          {
+            labels: {
+              canvasToolbar: {
+                undo: "Deshacer",
+              },
+            },
+            store: customToolStore,
+          },
+          createElement(
+            BoardEditorToolbar,
+            null,
+            createElement(BoardEditorSelectToolControl),
+          ),
+        ),
+        createElement(
+          BoardEditorToolbar,
+          null,
+          createElement(BoardEditorSelectToolControl, {
+            label: "Custom select",
+          }),
+        ),
+        createElement(BoardEditorSecondaryToolbar, {
+          arrowDefaults: [
+            {
+              ...BOARD_ARROW_DEFAULTS[1],
+              label: "Custom run",
+            },
+          ],
+        }),
+      ),
+    );
+
+    expect(markup).toContain('aria-label="Registered select"');
+    expect(markup).toContain('aria-label="Custom select"');
+    expect(markup).toContain('aria-label="Custom run"');
   });
 
   it("exports the simple and composable football modules", () => {

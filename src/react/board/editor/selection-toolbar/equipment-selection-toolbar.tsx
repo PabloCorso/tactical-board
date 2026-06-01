@@ -15,6 +15,7 @@ import { BoardEditorSelectionActionsMenu } from "./selection-actions-menu";
 import type { BoardEditorSelectionToolbarRendererProps } from "./selection-toolbar-types";
 import { ColorPicker, DEFAULT_BOARD_COLORS } from "../../../ui/color-picker";
 import { DEFAULT_BOARD_COLOR } from "../../../../core/colors/default-colors";
+import { useBoardEditorLabels } from "../board-editor-labels";
 
 export function BoardEditorEquipmentSelectionToolbar({
   className,
@@ -25,6 +26,7 @@ export function BoardEditorEquipmentSelectionToolbar({
   viewportWidth,
   viewportHeight,
 }: BoardEditorSelectionToolbarRendererProps<EquipmentObject>) {
+  const labels = useBoardEditorLabels();
   const store = useBoardEditorContext();
   const toolApi = createToolApi(store);
   const definition = getEquipmentDefinition(selectedObject);
@@ -53,13 +55,14 @@ export function BoardEditorEquipmentSelectionToolbar({
       <BoardEditorToolbar className={className}>
         {capabilities.color ? (
           <BoardEditorToolbarPopoverButton
-            ariaLabel="Equipment color"
-            tooltip="Color"
+            ariaLabel={labels.selectionToolbar.equipmentColor}
+            tooltip={labels.selectionToolbar.color}
             popoverSide="top"
             content={
               <ColorPicker
                 value={color}
                 onChange={(value) => updateEquipment({ color: value })}
+                chooseCustomColorLabel={labels.colorPicker.chooseCustomColor}
                 defaultColors={[...DEFAULT_BOARD_COLORS]}
               />
             }

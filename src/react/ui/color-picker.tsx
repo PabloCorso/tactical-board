@@ -16,6 +16,7 @@ export type ColorPickerProps = {
   value: string;
   onChange: (value: string) => void;
   label?: string;
+  chooseCustomColorLabel?: string;
   defaultColors?: string[];
   className?: string;
 };
@@ -23,6 +24,7 @@ export type ColorPickerProps = {
 export function ColorPicker({
   value,
   onChange,
+  chooseCustomColorLabel = "Choose custom color",
   label,
   defaultColors = [...DEFAULT_BOARD_COLORS],
   className,
@@ -69,7 +71,7 @@ export function ColorPicker({
             !isDefaultColor &&
               "ring-tb-accent ring-offset-tb-background-surface ring-2 ring-offset-2",
           )}
-          aria-label="Choose custom color"
+          aria-label={chooseCustomColorLabel}
         >
           <span
             className={cn(
@@ -97,7 +99,7 @@ export function ColorPicker({
           <input
             type="color"
             value={value}
-            aria-label="Choose custom color"
+            aria-label={chooseCustomColorLabel}
             className="absolute inset-0 cursor-pointer opacity-0"
             onChange={(event) => onChange(event.target.value)}
           />

@@ -46,6 +46,7 @@ import {
   BoardPlayerDefaultIcon,
   BoardShapeDefaultIcon,
 } from "./tool-icons";
+import { useBoardEditorLabels } from "../editor/board-editor-labels";
 import {
   BOARD_ARROW_DEFAULTS,
   BOARD_PLAYER_DEFAULTS,
@@ -77,14 +78,18 @@ const SECONDARY_TOOLBAR_ICON_SIZE = "xl";
 const SECONDARY_TOOLBAR_ICON_BUTTON_CLASS_NAME = "aspect-square px-0";
 
 export function BoardEditorSecondaryToolbar({
-  arrowDefaults = BOARD_ARROW_DEFAULTS,
+  arrowDefaults: arrowDefaultsProp,
   orientation = "vertical",
-  playerDefaults = BOARD_PLAYER_DEFAULTS,
-  shapeDefaults = BOARD_SHAPE_DEFAULTS,
+  playerDefaults: playerDefaultsProp,
+  shapeDefaults: shapeDefaultsProp,
   adapters,
   theme,
   ...toolbarProps
 }: BoardEditorSecondaryToolbarProps) {
+  const labels = useBoardEditorLabels();
+  const arrowDefaults = arrowDefaultsProp ?? BOARD_ARROW_DEFAULTS;
+  const playerDefaults = playerDefaultsProp ?? BOARD_PLAYER_DEFAULTS;
+  const shapeDefaults = shapeDefaultsProp ?? BOARD_SHAPE_DEFAULTS;
   const editorStore = useBoardEditorContext();
   const toolbarDock = useBoardEditorToolbarDockOptional();
   const toolApi = useMemo(() => createToolApi(editorStore), [editorStore]);
@@ -128,9 +133,11 @@ export function BoardEditorSecondaryToolbar({
             ...toolDefault.draftStyle,
           };
 
+          const buttonLabel = getPlayerDefaultLabel(toolDefault, labels);
+
           return (
             <BoardEditorToolbarButton
-              aria-label={toolDefault.tooltip ?? toolDefault.label}
+              aria-label={buttonLabel}
               active={matchesDraftStyle<PlayerDraftStyle>(
                 playerState.draftStyle,
                 toolDefault.draftStyle,
@@ -161,7 +168,7 @@ export function BoardEditorSecondaryToolbar({
               }}
               iconSize={SECONDARY_TOOLBAR_ICON_SIZE}
               size={SECONDARY_TOOLBAR_BUTTON_SIZE}
-              tooltip={toolDefault.tooltip ?? toolDefault.label}
+              tooltip={buttonLabel}
             />
           );
         })}
@@ -232,9 +239,11 @@ export function BoardEditorSecondaryToolbar({
             ...toolDefault.draftStyle,
           };
 
+          const buttonLabel = getArrowDefaultLabel(toolDefault, labels);
+
           return (
             <BoardEditorToolbarButton
-              aria-label={toolDefault.tooltip ?? toolDefault.label}
+              aria-label={buttonLabel}
               active={matchesDraftStyle(
                 arrowState.draftStyle,
                 toolDefault.draftStyle,
@@ -264,7 +273,7 @@ export function BoardEditorSecondaryToolbar({
               }}
               iconSize={SECONDARY_TOOLBAR_ICON_SIZE}
               size={SECONDARY_TOOLBAR_BUTTON_SIZE}
-              tooltip={toolDefault.tooltip ?? toolDefault.label}
+              tooltip={buttonLabel}
             />
           );
         })}
@@ -287,9 +296,11 @@ export function BoardEditorSecondaryToolbar({
             ...toolDefault.draftStyle,
           };
 
+          const buttonLabel = getShapeDefaultLabel(toolDefault, labels);
+
           return (
             <BoardEditorToolbarButton
-              aria-label={toolDefault.tooltip ?? toolDefault.label}
+              aria-label={buttonLabel}
               active={matchesDraftStyle<ShapeDraftStyle>(
                 shapeState.draftStyle,
                 toolDefault.draftStyle,
@@ -319,7 +330,7 @@ export function BoardEditorSecondaryToolbar({
               }}
               iconSize={SECONDARY_TOOLBAR_ICON_SIZE}
               size={SECONDARY_TOOLBAR_BUTTON_SIZE}
-              tooltip={toolDefault.tooltip ?? toolDefault.label}
+              tooltip={buttonLabel}
             />
           );
         })}
@@ -328,4 +339,55 @@ export function BoardEditorSecondaryToolbar({
   }
 
   return null;
+}
+
+function getPlayerDefaultLabel(
+  toolDefault: PlayerToolDefault,
+  labels: ReturnType<typeof useBoardEditorLabels>,
+) {
+  return (
+    toolDefault.tooltip ??
+    toolDefault.label ??
+    labels.secondaryToolbar.playerColor
+  );
+}
+
+function getArrowDefaultLabel(
+  toolDefault: ArrowToolDefault,
+  labels: ReturnType<typeof useBoardEditorLabels>,
+) {
+  const defaultLabels: Record<string, string> = {
+    dribble: labels.secondaryToolbar.arrowDefaults.dribble,
+    line: labels.secondaryToolbar.arrowDefaults.line,
+    "lofted-pass": labels.secondaryToolbar.arrowDefaults.loftedPass,
+    run: labels.secondaryToolbar.arrowDefaults.run,
+    screen: labels.secondaryToolbar.arrowDefaults.screen,
+  };
+
+  return (
+    toolDefault.tooltip ??
+    toolDefault.label ??
+    defaultLabels[toolDefault.id] ??
+    toolDefault.id
+  );
+}
+
+function getShapeDefaultLabel(
+  toolDefault: ShapeToolDefault,
+  labels: ReturnType<typeof useBoardEditorLabels>,
+) {
+  const defaultLabels: Record<string, string> = {
+    "shape-diamond": labels.secondaryToolbar.shapeDefaults.diamond,
+    "shape-oval": labels.secondaryToolbar.shapeDefaults.oval,
+    "shape-polygon": labels.secondaryToolbar.shapeDefaults.polygon,
+    "shape-rectangle": labels.secondaryToolbar.shapeDefaults.rectangle,
+    "shape-triangle": labels.secondaryToolbar.shapeDefaults.triangle,
+  };
+
+  return (
+    toolDefault.tooltip ??
+    toolDefault.label ??
+    defaultLabels[toolDefault.id] ??
+    toolDefault.id
+  );
 }

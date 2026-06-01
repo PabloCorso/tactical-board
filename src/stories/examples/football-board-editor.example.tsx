@@ -31,6 +31,7 @@ import {
   type Board,
   type BoardEditorNavigationMode,
   type BoardEditorFrameVariantOption,
+  type BoardEditorLabelOverrides,
   type FootballPitchVariant,
 } from "../../react";
 
@@ -39,16 +40,27 @@ export type FootballBoardEditorExampleProps = {
   boardName?: string;
   className?: string;
   initialBoard?: Board;
+  labels?: BoardEditorLabelOverrides;
   navigationMode?: BoardEditorNavigationMode;
   renderHostToolbar?: () => ReactNode;
   translatePitchLabel?: (
     value: FootballPitchVariant,
     defaultLabel: string,
   ) => string;
+  translateRotatePitchAction?: (context: {
+    defaultButtonLabel: string;
+    defaultLabel: string;
+    orientationLabel: string;
+    variant: FootballPitchVariant;
+  }) => {
+    buttonLabel: string;
+    label: string;
+  };
 };
 
 type FootballBoardEditorToolbarDockProps = {
   pitchOptions: Array<BoardEditorFrameVariantOption<FootballPitchVariant>>;
+  translateRotatePitchAction?: FootballBoardEditorExampleProps["translateRotatePitchAction"];
 };
 
 export function FootballBoardEditorExample({
@@ -56,9 +68,11 @@ export function FootballBoardEditorExample({
   boardName = "Draft board",
   className = "relative h-dvh w-full overflow-hidden",
   initialBoard,
+  labels,
   navigationMode,
   renderHostToolbar,
   translatePitchLabel,
+  translateRotatePitchAction,
 }: FootballBoardEditorExampleProps = {}) {
   const pitchOptions = useMemo(
     () => createFootballPitchFrameOptions(translatePitchLabel),
@@ -77,7 +91,7 @@ export function FootballBoardEditorExample({
   );
 
   return (
-    <BoardEditorProvider store={store}>
+    <BoardEditorProvider labels={labels} store={store}>
       <BoardEditor className={className}>
         <BoardEditorCanvas />
         <BoardEditorShapePolygonDone />
@@ -85,7 +99,10 @@ export function FootballBoardEditorExample({
         <BoardEditorSelectionToolbar />
         {renderHostToolbar?.()}
         <BoardEditorToolbarDockProvider>
-          <FootballBoardEditorToolbarDock pitchOptions={pitchOptions} />
+          <FootballBoardEditorToolbarDock
+            pitchOptions={pitchOptions}
+            translateRotatePitchAction={translateRotatePitchAction}
+          />
         </BoardEditorToolbarDockProvider>
       </BoardEditor>
     </BoardEditorProvider>
@@ -133,6 +150,7 @@ export function createFootballPitchFrameOptions(
 
 function FootballBoardEditorToolbarDock({
   pitchOptions,
+  translateRotatePitchAction,
 }: FootballBoardEditorToolbarDockProps) {
   const toolbarDock = useBoardEditorToolbarDock();
 
@@ -170,10 +188,18 @@ function FootballBoardEditorToolbarDock({
                 orientation: nextOrientation,
                 variant,
               });
+              const defaultLabel = `Rotate pitch to ${orientationLabel}`;
+              const defaultButtonLabel = "Rotate";
+              const actionLabels = translateRotatePitchAction?.({
+                defaultButtonLabel,
+                defaultLabel,
+                orientationLabel,
+                variant,
+              });
 
               return {
-                label: `Rotate pitch to ${orientationLabel}`,
-                buttonLabel: "Rotate",
+                label: actionLabels?.label ?? defaultLabel,
+                buttonLabel: actionLabels?.buttonLabel ?? defaultButtonLabel,
                 createFrame: () => nextFrame,
                 remapObject: remapObjectToFrameRotation,
               };

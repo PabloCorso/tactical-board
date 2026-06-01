@@ -1,0 +1,256 @@
+import {
+  createContext,
+  type PropsWithChildren,
+  useContext,
+  useMemo,
+} from "react";
+
+type LabelOverrides<T> = {
+  [K in keyof T]?: T[K] extends (...args: never[]) => unknown
+    ? T[K]
+    : T[K] extends object
+      ? LabelOverrides<T[K]>
+      : T[K];
+};
+
+export type BoardEditorLabels = {
+  canvasToolbar: {
+    fitToView: string;
+    redo: string;
+    undo: string;
+    zoomIn: string;
+    zoomOut: string;
+  };
+  colorPicker: {
+    chooseCustomColor: string;
+  };
+  selectionActions: {
+    bringToFront: string;
+    delete: string;
+    duplicate: string;
+    moreActions: string;
+    sendToBack: string;
+  };
+  secondaryToolbar: {
+    arrowDefaults: {
+      dribble: string;
+      line: string;
+      loftedPass: string;
+      run: string;
+      screen: string;
+    };
+    playerColor: string;
+    shapeDefaults: {
+      diamond: string;
+      oval: string;
+      polygon: string;
+      rectangle: string;
+      triangle: string;
+    };
+  };
+  selectionToolbar: {
+    arrowBodyOption: (label: string) => string;
+    arrowBodyStyle: string;
+    arrowColor: string;
+    arrowHead: {
+      arrow: string;
+      none: string;
+    };
+    arrowHeadOption: (side: "left" | "right", label: string) => string;
+    arrowLeftHead: string;
+    arrowLineOption: (label: string) => string;
+    arrowLineStyle: string;
+    arrowRightHead: string;
+    arrowStyle: {
+      curved: string;
+      double: string;
+      straight: string;
+      wavy: string;
+    };
+    border: string;
+    color: string;
+    equipmentColor: string;
+    fillStyle: string;
+    lineStyle: string;
+    lineValue: {
+      dashed: string;
+      solid: string;
+    };
+    playerColor: string;
+    playerLabel: string;
+    shapeBorderOption: (label: string) => string;
+    shapeBorderStyle: string;
+    shapeBorderValue: {
+      bordered: string;
+      borderless: string;
+    };
+    shapeColor: string;
+    shapeFillOption: (label: string) => string;
+    shapeFillStyle: string;
+    shapeLineStyle: string;
+    shapeFillValue: {
+      none: string;
+      solid: string;
+      stripes: string;
+    };
+    shapeLineOption: (label: string) => string;
+    textColor: string;
+    textSize: string;
+  };
+  textEditor: {
+    ariaLabel: string;
+  };
+};
+
+export type BoardEditorLabelOverrides = LabelOverrides<BoardEditorLabels>;
+
+export const BOARD_EDITOR_DEFAULT_LABELS: BoardEditorLabels = {
+  canvasToolbar: {
+    fitToView: "Fit to view",
+    redo: "Redo",
+    undo: "Undo",
+    zoomIn: "Zoom in",
+    zoomOut: "Zoom out",
+  },
+  colorPicker: {
+    chooseCustomColor: "Choose custom color",
+  },
+  selectionActions: {
+    bringToFront: "Bring to front",
+    delete: "Delete",
+    duplicate: "Duplicate",
+    moreActions: "More actions",
+    sendToBack: "Send to back",
+  },
+  secondaryToolbar: {
+    arrowDefaults: {
+      dribble: "Dribble",
+      line: "Line",
+      loftedPass: "Lofted pass",
+      run: "Run",
+      screen: "Screen",
+    },
+    playerColor: "Player color",
+    shapeDefaults: {
+      diamond: "Diamond",
+      oval: "Oval",
+      polygon: "Polygon",
+      rectangle: "Rectangle",
+      triangle: "Triangle",
+    },
+  },
+  selectionToolbar: {
+    arrowBodyOption: (label) => `Arrow body ${label}`,
+    arrowBodyStyle: "Arrow body style",
+    arrowColor: "Arrow color",
+    arrowHead: {
+      arrow: "Arrow",
+      none: "None",
+    },
+    arrowHeadOption: (side, label) =>
+      `${side === "left" ? "Left" : "Right"} arrow head ${label}`,
+    arrowLeftHead: "Arrow left head",
+    arrowLineOption: (label) => `Arrow line style ${label}`,
+    arrowLineStyle: "Arrow line style",
+    arrowRightHead: "Arrow right head",
+    arrowStyle: {
+      curved: "Curved",
+      double: "Double",
+      straight: "Straight",
+      wavy: "Wavy",
+    },
+    border: "Border",
+    color: "Color",
+    equipmentColor: "Equipment color",
+    fillStyle: "Fill style",
+    lineStyle: "Line style",
+    lineValue: {
+      dashed: "Dashed",
+      solid: "Solid",
+    },
+    playerColor: "Player color",
+    playerLabel: "Player label",
+    shapeBorderOption: (label) => `Shape border ${label}`,
+    shapeBorderStyle: "Shape border style",
+    shapeBorderValue: {
+      bordered: "Bordered",
+      borderless: "Borderless",
+    },
+    shapeColor: "Shape color",
+    shapeFillOption: (label) => `Shape style ${label}`,
+    shapeFillStyle: "Shape fill style",
+    shapeLineStyle: "Shape line style",
+    shapeFillValue: {
+      none: "None",
+      solid: "Solid",
+      stripes: "Stripes",
+    },
+    shapeLineOption: (label) => `Shape line style ${label}`,
+    textColor: "Text color",
+    textSize: "Text size",
+  },
+  textEditor: {
+    ariaLabel: "Text editor",
+  },
+};
+
+const BoardEditorLabelsContext = createContext<BoardEditorLabels>(
+  BOARD_EDITOR_DEFAULT_LABELS,
+);
+
+function mergeLabels<T extends object>(
+  base: T,
+  overrides: LabelOverrides<T>,
+): T {
+  const result = { ...base };
+
+  for (const [key, value] of Object.entries(overrides) as Array<
+    [keyof T, T[keyof T] | undefined]
+  >) {
+    if (value === undefined) {
+      continue;
+    }
+
+    const baseValue = base[key];
+    const nextValue =
+      typeof baseValue === "object" &&
+      baseValue !== null &&
+      typeof value === "object" &&
+      value !== null &&
+      !Array.isArray(value)
+        ? mergeLabels(
+            baseValue as Record<string, unknown>,
+            value as LabelOverrides<Record<string, unknown>>,
+          )
+        : value;
+
+    (result as Record<keyof T, unknown>)[key] = nextValue;
+  }
+
+  return result;
+}
+
+export type BoardEditorLabelsProviderProps = PropsWithChildren & {
+  labels?: BoardEditorLabelOverrides;
+};
+
+export function BoardEditorLabelsProvider({
+  children,
+  labels,
+}: BoardEditorLabelsProviderProps) {
+  const parentLabels = useContext(BoardEditorLabelsContext);
+  const value = useMemo(
+    () => (labels ? mergeLabels(parentLabels, labels) : parentLabels),
+    [labels, parentLabels],
+  );
+
+  return (
+    <BoardEditorLabelsContext.Provider value={value}>
+      {children}
+    </BoardEditorLabelsContext.Provider>
+  );
+}
+
+export function useBoardEditorLabels(): BoardEditorLabels {
+  return useContext(BoardEditorLabelsContext);
+}
