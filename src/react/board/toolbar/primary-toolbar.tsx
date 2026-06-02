@@ -44,10 +44,7 @@ export function BoardPrimaryToolbar({
       <BoardEditorHandToolControl />
       <BoardEditorPlayerToolControl />
       {showEquipment ? (
-        <BoardEditorEquipmentToolControl
-          adapters={adapters}
-          theme={theme}
-        />
+        <BoardEditorEquipmentToolControl adapters={adapters} theme={theme} />
       ) : null}
       <BoardEditorTextToolControl />
       <BoardEditorArrowToolControl />
