@@ -1,4 +1,5 @@
 import type { Point } from "../board/types";
+import type { BoardEditorToolState } from "../editor/types";
 import {
   ARROW_OBJECT_TYPE,
   createArrowObject,
@@ -71,13 +72,29 @@ export class ArrowTool extends BoardEditorTool implements ToolDefinition {
     this.defaults = options.defaults ?? [];
   }
 
-  onActivate(api: ToolApi) {
-    if (
-      this.defaults.length > 0 &&
-      !hasStoredArrowDraftStyle(api.getState().toolState[ARROW_TOOL_ID])
-    ) {
-      applyArrowDefault(api, this.defaults[0]);
+  getActivatedDraftStyle(toolState: BoardEditorToolState): ArrowDraftStyle {
+    const hasStoredDraftStyle = hasStoredArrowDraftStyle(
+      toolState[ARROW_TOOL_ID],
+    );
+    const currentState = getArrowToolState(toolState);
+    const nextDraftStyle = {
+      ...currentState.draftStyle,
+    };
+
+    if (this.defaults.length > 0 && !hasStoredDraftStyle) {
+      Object.assign(nextDraftStyle, this.defaults[0].draftStyle);
     }
+
+    return nextDraftStyle;
+  }
+
+  onActivate(api: ToolApi) {
+    const currentState = getArrowToolState(api.getState().toolState);
+
+    api.setToolState(ARROW_TOOL_ID, {
+      ...currentState,
+      draftStyle: this.getActivatedDraftStyle(api.getState().toolState),
+    });
   }
 
   onDeactivate(api: ToolApi) {
@@ -183,21 +200,6 @@ function createArrowId(existingIds: Record<string, unknown>) {
   }
 
   return `arrow-${index}`;
-}
-
-function applyArrowDefault(
-  api: ToolApi,
-  toolDefault: Pick<ArrowToolDefault, "draftStyle">,
-) {
-  const arrowState = getArrowToolState(api.getState().toolState);
-
-  api.setToolState(ARROW_TOOL_ID, {
-    ...arrowState,
-    draftStyle: {
-      ...arrowState.draftStyle,
-      ...toolDefault.draftStyle,
-    },
-  });
 }
 
 function hasStoredArrowDraftStyle(

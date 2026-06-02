@@ -21,21 +21,21 @@ export const BOARD_ARROW_DEFAULTS: Array<
   }
 > = [
   {
-    id: "line",
-    variant: "line",
-    draftStyle: {
-      kind: "straight",
-      startHead: "none",
-      endHead: "none",
-    },
-  },
-  {
     id: "run",
     variant: "straight-solid",
     draftStyle: {
       kind: "straight",
       startHead: "none",
       endHead: "triangle",
+    },
+  },
+  {
+    id: "line",
+    variant: "line",
+    draftStyle: {
+      kind: "straight",
+      startHead: "none",
+      endHead: "none",
     },
   },
   {

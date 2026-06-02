@@ -17,8 +17,10 @@ import { cn } from "../../ui/misc";
 import { useBoardEditorStore } from "../../adapter/editor/use-board-editor-store";
 import { PlayerTool, renderPlayer } from "../../../core/tools/player-tool";
 import { getNextNumericPlayerLabel } from "../../../core/tools/player-labels";
+import { ArrowTool } from "../../../core/tools/arrow-tool";
 import {
   getArrowToolState,
+  ARROW_TOOL_ID,
   type ArrowDraftStyle,
 } from "../../../core/tools/arrow-tool-state";
 import { getEquipmentToolState } from "../../../core/tools/equipment-tool-state";
@@ -27,9 +29,10 @@ import {
   PLAYER_TOOL_ID,
   type PlayerDraftStyle,
 } from "../../../core/tools/player-tool-state";
-import { renderShape } from "../../../core/tools/shape-tool";
+import { renderShape, ShapeTool } from "../../../core/tools/shape-tool";
 import {
   getShapeToolState,
+  SHAPE_TOOL_ID,
   type ShapeDraftStyle,
 } from "../../../core/tools/shape-tool-state";
 import { BoardToolIconCanvas } from "./tool-icon-canvas";
@@ -173,13 +176,14 @@ export function BoardArrowDefaultIcon({
 
 export function BoardArrowToolIcon() {
   const store = useBoardEditorContext();
-  const rawArrowToolState = useBoardEditorStore(
+  const toolRegistry = useBoardEditorStore(
     store,
-    (state) => state.toolState.arrow,
+    (state) => state.toolRegistry,
   );
+  const toolState = useBoardEditorStore(store, (state) => state.toolState);
   const draftStyle = useMemo(
-    () => getArrowToolState({ arrow: rawArrowToolState }).draftStyle,
-    [rawArrowToolState],
+    () => getArrowToolIconDraftStyle({ toolRegistry, toolState }),
+    [toolRegistry, toolState],
   );
 
   return (
@@ -194,6 +198,18 @@ export function BoardArrowToolIcon() {
       layout="compact"
     />
   );
+}
+
+export function getArrowToolIconDraftStyle(
+  state: Pick<BoardEditorState, "toolRegistry" | "toolState">,
+) {
+  const arrowTool = state.toolRegistry.definitions[ARROW_TOOL_ID];
+
+  if (arrowTool instanceof ArrowTool) {
+    return arrowTool.getActivatedDraftStyle(state.toolState);
+  }
+
+  return getArrowToolState(state.toolState).draftStyle;
 }
 
 export function BoardShapeDefaultIcon({
@@ -225,13 +241,14 @@ export function BoardShapeDefaultIcon({
 
 export function BoardShapeToolIcon() {
   const store = useBoardEditorContext();
-  const rawShapeToolState = useBoardEditorStore(
+  const toolRegistry = useBoardEditorStore(
     store,
-    (state) => state.toolState.shape,
+    (state) => state.toolRegistry,
   );
+  const toolState = useBoardEditorStore(store, (state) => state.toolState);
   const draftStyle = useMemo(
-    () => getShapeToolState({ shape: rawShapeToolState }).draftStyle,
-    [rawShapeToolState],
+    () => getShapeToolIconDraftStyle({ toolRegistry, toolState }),
+    [toolRegistry, toolState],
   );
 
   return (
@@ -242,6 +259,18 @@ export function BoardShapeToolIcon() {
       height={24}
     />
   );
+}
+
+export function getShapeToolIconDraftStyle(
+  state: Pick<BoardEditorState, "toolRegistry" | "toolState">,
+) {
+  const shapeTool = state.toolRegistry.definitions[SHAPE_TOOL_ID];
+
+  if (shapeTool instanceof ShapeTool) {
+    return shapeTool.getActivatedDraftStyle(state.toolState);
+  }
+
+  return getShapeToolState(state.toolState).draftStyle;
 }
 
 export function BoardEquipmentDefinitionIcon({

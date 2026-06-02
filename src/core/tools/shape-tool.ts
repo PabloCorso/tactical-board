@@ -1,4 +1,5 @@
 import type { Point } from "../board/types";
+import type { BoardEditorToolState } from "../editor/types";
 import {
   createShapeObject,
   getShapePoints,
@@ -95,13 +96,29 @@ export class ShapeTool extends BoardEditorTool implements ToolDefinition {
       options.defaultPreviewSize ?? DEFAULT_SHAPE_PREVIEW_SIZE;
   }
 
-  onActivate(api: ToolApi) {
-    if (
-      this.defaults.length > 0 &&
-      !hasStoredShapeDraftStyle(api.getState().toolState[SHAPE_TOOL_ID])
-    ) {
-      applyShapeDefault(api, this.defaults[0]);
+  getActivatedDraftStyle(toolState: BoardEditorToolState): ShapeDraftStyle {
+    const hasStoredDraftStyle = hasStoredShapeDraftStyle(
+      toolState[SHAPE_TOOL_ID],
+    );
+    const currentState = getShapeToolState(toolState);
+    const nextDraftStyle = {
+      ...currentState.draftStyle,
+    };
+
+    if (this.defaults.length > 0 && !hasStoredDraftStyle) {
+      Object.assign(nextDraftStyle, this.defaults[0].draftStyle);
     }
+
+    return nextDraftStyle;
+  }
+
+  onActivate(api: ToolApi) {
+    const currentState = getShapeToolState(api.getState().toolState);
+
+    api.setToolState(SHAPE_TOOL_ID, {
+      ...currentState,
+      draftStyle: this.getActivatedDraftStyle(api.getState().toolState),
+    });
   }
 
   onDeactivate(api: ToolApi) {
@@ -254,21 +271,6 @@ function createShapeId(existingIds: Record<string, unknown>) {
   }
 
   return `shape-${index}`;
-}
-
-function applyShapeDefault(
-  api: ToolApi,
-  toolDefault: Pick<ShapeToolDefault, "draftStyle">,
-) {
-  const shapeState = getShapeToolState(api.getState().toolState);
-
-  api.setToolState(SHAPE_TOOL_ID, {
-    ...shapeState,
-    draftStyle: {
-      ...shapeState.draftStyle,
-      ...toolDefault.draftStyle,
-    },
-  });
 }
 
 function hasStoredShapeDraftStyle(

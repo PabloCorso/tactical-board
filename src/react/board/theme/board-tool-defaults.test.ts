@@ -2,10 +2,10 @@ import { describe, expect, it } from "vitest";
 import { BOARD_ARROW_DEFAULTS } from "./board-tool-defaults";
 
 describe("BOARD_ARROW_DEFAULTS", () => {
-  it("includes line as the first open-stroke preset", () => {
+  it("puts the straight arrow preset first", () => {
     expect(BOARD_ARROW_DEFAULTS.map((preset) => preset.id)).toEqual([
-      "line",
       "run",
+      "line",
       "dribble",
       "lofted-pass",
       "screen",
