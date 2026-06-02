@@ -116,19 +116,6 @@ export function BoardEditorCanvas({
   );
 }
 
-function focusEditorCanvasFromElement(element: HTMLElement | null) {
-  const root = element?.closest("[data-board-editor-root]");
-  const canvas = root?.querySelector("canvas");
-
-  if (!(canvas instanceof HTMLCanvasElement)) {
-    return;
-  }
-
-  requestAnimationFrame(() => {
-    canvas.focus();
-  });
-}
-
 function BoardEditorTextEditorOverlay() {
   const store = useBoardEditorContext();
   const labels = useBoardEditorLabels();
@@ -197,7 +184,6 @@ function BoardEditorTextEditorOverlay() {
         if (event.key === "Escape") {
           event.preventDefault();
           finishTextEditingSession(toolApi);
-          focusEditorCanvasFromElement(event.currentTarget);
         }
       }}
       rows={Math.max(1, object.props.text.split("\n").length)}

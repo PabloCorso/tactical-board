@@ -235,22 +235,8 @@ export const BoardEditorToolbarDock = forwardRef<
 
 export type BoardEditorToolbarButtonProps = ButtonProps & {
   active?: boolean;
-  restoreCanvasFocusOnClick?: boolean;
   tooltip?: ReactNode | false;
 };
-
-function focusEditorCanvasFromElement(element: HTMLElement | null) {
-  const root = element?.closest("[data-board-editor-root]");
-  const canvas = root?.querySelector("canvas");
-
-  if (!(canvas instanceof HTMLCanvasElement)) {
-    return;
-  }
-
-  requestAnimationFrame(() => {
-    canvas.focus();
-  });
-}
 
 export function BoardEditorToolbarButton({
   active = false,
@@ -258,8 +244,6 @@ export function BoardEditorToolbarButton({
   tooltip,
   iconSize = "xl",
   className,
-  onClick,
-  restoreCanvasFocusOnClick = true,
   ...props
 }: BoardEditorToolbarButtonProps) {
   const { tooltipSide } = useContext(BoardEditorToolbarContext);
@@ -271,12 +255,6 @@ export function BoardEditorToolbarButton({
       iconClassName="text-[var(--tb-toolbar-icon-primary)]"
       className={cn({ "border-tb-neutral-soft-active": active }, className)}
       aria-label={ariaLabel}
-      onClick={(event) => {
-        onClick?.(event);
-        if (restoreCanvasFocusOnClick) {
-          focusEditorCanvasFromElement(event.currentTarget);
-        }
-      }}
       {...props}
     />
   );
@@ -394,7 +372,6 @@ export type BoardEditorToolbarOptionButtonProps = {
 export function BoardEditorToolbarOptionButton({
   active,
   ariaLabel,
-  onClick,
   icon,
 }: BoardEditorToolbarOptionButtonProps) {
   return (
@@ -405,10 +382,6 @@ export function BoardEditorToolbarOptionButton({
       className={cn({ "border-tb-neutral-soft-active": active })}
       iconBefore={icon}
       iconSize="xl"
-      onClick={(event) => {
-        onClick();
-        focusEditorCanvasFromElement(event.currentTarget);
-      }}
       size="md"
     />
   );
