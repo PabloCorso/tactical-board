@@ -87,6 +87,57 @@ describe("React public frame", () => {
     expect(toolbarMarkup).toContain("p-0.5");
   });
 
+  it("uses the accent active state for primary toolbar tool buttons", () => {
+    const board = createFootballBoard({ id: "primary-toolbar-active-board" });
+    const store = createBoardEditorStore({
+      initialBoard: board,
+      fitPadding: getFootballPitchFitPadding,
+      initialToolId: FOOTBALL_PITCH_TOOL_ID,
+      tools: createFootballTools(),
+    });
+    const footballPitchFrameOptions = FOOTBALL_PITCH_OPTIONS.map((option) => ({
+      ...option,
+      createFrame: () => createFootballPitch(option.value),
+    }));
+    const primaryToolbarMarkup = renderToString(
+      createElement(
+        BoardEditorProvider,
+        { store },
+        createElement(
+          BoardPrimaryToolbar,
+          null,
+          createElement(BoardEditorFrameVariantToolControl, {
+            toolId: FOOTBALL_PITCH_TOOL_ID,
+            options: footballPitchFrameOptions,
+            getValue: getFootballPitchVariant,
+          }),
+        ),
+      ),
+    );
+    const regularToolbarMarkup = renderToString(
+      createElement(
+        BoardEditorProvider,
+        { store },
+        createElement(
+          BoardEditorToolbar,
+          null,
+          createElement(BoardEditorFrameVariantToolControl, {
+            toolId: FOOTBALL_PITCH_TOOL_ID,
+            options: footballPitchFrameOptions,
+            getValue: getFootballPitchVariant,
+          }),
+        ),
+      ),
+    );
+
+    expect(primaryToolbarMarkup).toContain("bg-tb-accent");
+    expect(primaryToolbarMarkup).toContain(
+      "[--tb-toolbar-icon-primary:var(--tb-text-on-accent)]",
+    );
+    expect(regularToolbarMarkup).not.toContain("bg-tb-accent");
+    expect(regularToolbarMarkup).toContain("border-tb-neutral-soft-active");
+  });
+
   it("groups arrow head and line controls in the selection toolbar", () => {
     const board = createFootballBoard({ id: "arrow-toolbar-board" });
     const store = createBoardEditorStore({

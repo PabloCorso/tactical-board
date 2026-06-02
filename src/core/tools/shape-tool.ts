@@ -42,6 +42,7 @@ const DEFAULT_SHAPE_PREVIEW_SIZE = {
   width: 16,
   height: 12,
 } as const;
+const EQUILATERAL_TRIANGLE_HEIGHT_RATIO = Math.sqrt(3) / 2;
 
 export type ShapeToolDefault = {
   id: string;
@@ -815,6 +816,8 @@ function createDefaultShapePreview({
     height: number;
   };
 }) {
+  const resolvedSize = getDefaultShapePreviewSize(draftStyle.kind, size);
+
   return createShapeObject({
     id,
     start: {
@@ -822,11 +825,42 @@ function createDefaultShapePreview({
       y: point.y,
     },
     end: {
-      x: point.x + size.width,
-      y: point.y + size.height,
+      x: point.x + resolvedSize.width,
+      y: point.y + resolvedSize.height,
     },
     ...draftStyle,
   });
+}
+
+function getDefaultShapePreviewSize(
+  kind: ShapeDraftStyle["kind"],
+  size: {
+    width: number;
+    height: number;
+  },
+) {
+  if (kind === "oval" || kind === "diamond") {
+    const side = Math.min(size.width, size.height);
+
+    return {
+      width: side,
+      height: side,
+    };
+  }
+
+  if (kind === "triangle") {
+    const width = Math.min(
+      size.width,
+      size.height / EQUILATERAL_TRIANGLE_HEIGHT_RATIO,
+    );
+
+    return {
+      width,
+      height: width * EQUILATERAL_TRIANGLE_HEIGHT_RATIO,
+    };
+  }
+
+  return size;
 }
 
 function shouldFinishPolygon(

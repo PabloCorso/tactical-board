@@ -33,7 +33,11 @@ import { HandTool } from "../tools/hand-tool";
 import { getArrowToolState } from "../tools/arrow-tool-state";
 import { getPlayerToolState, PLAYER_TOOL_ID } from "../tools/player-tool-state";
 import { getSelectToolState, SELECT_TOOL_ID } from "../tools/select-tool-state";
-import { getShapeToolState } from "../tools/shape-tool-state";
+import {
+  DEFAULT_SHAPE_TOOL_STATE,
+  getShapeToolState,
+  SHAPE_TOOL_ID,
+} from "../tools/shape-tool-state";
 import { getTextToolState, TEXT_TOOL_ID } from "../tools/text-tool-state";
 import type { ToolDefinition } from "../tools/types";
 import { BOARD_PLAYER_DEFAULT_COLORS } from "../../react/board/theme/board-tool-defaults";
@@ -3118,6 +3122,158 @@ describe("createBoardEditorController", () => {
         end: { x: 208, y: 160 },
       },
     });
+  });
+
+  it("keeps default oval and diamond click previews square", () => {
+    for (const kind of ["oval", "diamond"] as const) {
+      const shapeTool = new ShapeTool({
+        defaultPreviewSize: {
+          width: 128,
+          height: 96,
+        },
+      });
+      const store = createBoardEditorStore({
+        initialBoard: {
+          id: "board-1",
+          version: 1,
+          metadata: {},
+          frame: {
+            width: 920,
+            height: 592,
+          },
+          objects: {
+            byId: {},
+            order: [],
+          },
+          style: {},
+        },
+        initialToolId: shapeTool.id,
+        tools: [selectTool, shapeTool],
+      });
+      const toolApi = createToolApi(store);
+      shapeTool.registerCapabilities?.(toolApi);
+      store.getState().actions.setToolState(SHAPE_TOOL_ID, {
+        ...DEFAULT_SHAPE_TOOL_STATE,
+        draftStyle: {
+          ...DEFAULT_SHAPE_TOOL_STATE.draftStyle,
+          kind,
+        },
+      });
+
+      const controller = createBoardEditorController(store);
+      const canvasRect = {
+        left: 0,
+        top: 0,
+        width: 1000,
+        height: 700,
+      };
+      const projection = createBoardSpaceProjection({
+        frame: store.getState().board.frame,
+        viewport: store.getState().ui.viewport,
+        canvasRect,
+      });
+      const clickPoint = projection.boardToCanvas({ x: 80, y: 64 });
+
+      controller.dispatchPointerEvent("onPointerDown", {
+        clientPoint: clickPoint,
+        pointerId: 1,
+        ctrlKey: false,
+        shiftKey: false,
+        altKey: false,
+        metaKey: false,
+        canvasRect,
+      });
+      controller.dispatchPointerEvent("onPointerUp", {
+        clientPoint: clickPoint,
+        pointerId: 1,
+        ctrlKey: false,
+        shiftKey: false,
+        altKey: false,
+        metaKey: false,
+        canvasRect,
+      });
+
+      const shape = store.getState().board.objects.byId[
+        "shape-1"
+      ] as ShapeObject;
+      expect(shape.props.kind).toBe(kind);
+      expect(shape.size?.width).toBe(96);
+      expect(shape.size?.height).toBe(96);
+    }
+  });
+
+  it("keeps default triangle click previews equilateral", () => {
+    const shapeTool = new ShapeTool({
+      defaultPreviewSize: {
+        width: 128,
+        height: 96,
+      },
+    });
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        frame: {
+          width: 920,
+          height: 592,
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      initialToolId: shapeTool.id,
+      tools: [selectTool, shapeTool],
+    });
+    const toolApi = createToolApi(store);
+    shapeTool.registerCapabilities?.(toolApi);
+    store.getState().actions.setToolState(SHAPE_TOOL_ID, {
+      ...DEFAULT_SHAPE_TOOL_STATE,
+      draftStyle: {
+        ...DEFAULT_SHAPE_TOOL_STATE.draftStyle,
+        kind: "triangle",
+      },
+    });
+
+    const controller = createBoardEditorController(store);
+    const canvasRect = {
+      left: 0,
+      top: 0,
+      width: 1000,
+      height: 700,
+    };
+    const projection = createBoardSpaceProjection({
+      frame: store.getState().board.frame,
+      viewport: store.getState().ui.viewport,
+      canvasRect,
+    });
+    const clickPoint = projection.boardToCanvas({ x: 80, y: 64 });
+
+    controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: clickPoint,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+    controller.dispatchPointerEvent("onPointerUp", {
+      clientPoint: clickPoint,
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    const shape = store.getState().board.objects.byId["shape-1"] as ShapeObject;
+    expect(shape.props.kind).toBe("triangle");
+    expect(shape.size?.height).toBeCloseTo(96, 6);
+    expect(shape.size?.width).toBeCloseTo(96 / (Math.sqrt(3) / 2), 6);
   });
 
   it("creates a simple arrow by dragging and releasing after the first click", () => {

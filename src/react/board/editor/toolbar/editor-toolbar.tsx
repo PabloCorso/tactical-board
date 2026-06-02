@@ -35,6 +35,7 @@ export type BoardEditorToolbarDockPlacement =
   | "left";
 
 type BoardEditorToolbarContextValue = {
+  activeVariant: BoardEditorToolbarButtonActiveVariant;
   orientation: BoardEditorToolbarOrientation;
   tooltipSide: TooltipContentProps["side"];
 };
@@ -52,7 +53,7 @@ type BoardEditorToolbarDockContextValue = {
 };
 
 const BoardEditorToolbarContext = createContext<BoardEditorToolbarContextValue>(
-  { orientation: "horizontal", tooltipSide: "top" },
+  { activeVariant: "outline", orientation: "horizontal", tooltipSide: "top" },
 );
 
 const BoardEditorToolbarFloatingPortalContext =
@@ -65,6 +66,7 @@ const BoardEditorToolbarDockContext =
   createContext<BoardEditorToolbarDockContextValue | null>(null);
 
 export type BoardEditorToolbarProps = PropsWithChildren & {
+  activeVariant?: BoardEditorToolbarButtonActiveVariant;
   className?: string;
   contentClassName?: string;
   density?: "default" | "compact";
@@ -160,6 +162,7 @@ function setRef<T>(ref: Ref<T> | undefined, value: T | null) {
 }
 
 export function BoardEditorToolbar({
+  activeVariant = "outline",
   children,
   className,
   contentClassName,
@@ -168,7 +171,9 @@ export function BoardEditorToolbar({
   tooltipSide = "top",
 }: BoardEditorToolbarProps) {
   return (
-    <BoardEditorToolbarContext.Provider value={{ orientation, tooltipSide }}>
+    <BoardEditorToolbarContext.Provider
+      value={{ activeVariant, orientation, tooltipSide }}
+    >
       <aside
         role="toolbar"
         aria-orientation={orientation}
@@ -233,27 +238,40 @@ export const BoardEditorToolbarDock = forwardRef<
   );
 });
 
+export type BoardEditorToolbarButtonActiveVariant = "outline" | "accent";
+
 export type BoardEditorToolbarButtonProps = ButtonProps & {
   active?: boolean;
+  activeVariant?: BoardEditorToolbarButtonActiveVariant;
   tooltip?: ReactNode | false;
 };
 
 export function BoardEditorToolbarButton({
   active = false,
+  activeVariant: activeVariantProp,
   "aria-label": ariaLabel,
   tooltip,
   iconSize = "xl",
   className,
   ...props
 }: BoardEditorToolbarButtonProps) {
-  const { tooltipSide } = useContext(BoardEditorToolbarContext);
+  const { activeVariant: toolbarActiveVariant, tooltipSide } = useContext(
+    BoardEditorToolbarContext,
+  );
+  const activeVariant = activeVariantProp ?? toolbarActiveVariant;
   const tooltipContent = tooltip === false ? null : (tooltip ?? ariaLabel);
+  const useAccentActiveState = active && activeVariant === "accent";
   const button = (
     <Button
-      variant={active ? "outline" : "ghost"}
+      variant={useAccentActiveState ? "primary" : active ? "outline" : "ghost"}
       iconSize={iconSize}
       iconClassName="text-[var(--tb-toolbar-icon-primary)]"
-      className={cn({ "border-tb-neutral-soft-active": active }, className)}
+      className={cn(
+        active && !useAccentActiveState && "border-tb-neutral-soft-active",
+        useAccentActiveState &&
+          "[--tb-toolbar-icon-primary:var(--tb-text-on-accent)]",
+        className,
+      )}
       aria-label={ariaLabel}
       {...props}
     />

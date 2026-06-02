@@ -43,6 +43,7 @@ const THEME_AWARE_TOOL_ICON_COLORS = new Set<string>([
   DEFAULT_BOARD_COLOR.mediumGray,
   DEFAULT_BOARD_COLOR.lightGray,
 ]);
+const EQUILATERAL_TRIANGLE_HEIGHT_RATIO = Math.sqrt(3) / 2;
 
 export function getThemeAwareToolIconColor(color: string | undefined) {
   if (!color) {
@@ -357,6 +358,12 @@ function createShapeIconPreviewObject(
   const centerX = (left + right) / 2;
   const shapeWidth = right - left;
   const shapeHeight = bottom - top;
+  const triangleHeight = Math.min(
+    shapeHeight,
+    shapeWidth * EQUILATERAL_TRIANGLE_HEIGHT_RATIO,
+  );
+  const triangleTop = top + (shapeHeight - triangleHeight) / 2;
+  const triangleBottom = triangleTop + triangleHeight;
   const base = {
     id: "shape-icon-preview",
     color: getThemeAwareToolIconColor(draftStyle.color) ?? draftStyle.color,
@@ -380,8 +387,8 @@ function createShapeIconPreviewObject(
       return createShapeObject({
         ...base,
         kind: "triangle",
-        start: { x: left, y: top },
-        end: { x: right, y: bottom },
+        start: { x: left, y: triangleTop },
+        end: { x: right, y: triangleBottom },
       });
     case "diamond":
       return createShapeObject({

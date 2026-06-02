@@ -30,6 +30,7 @@ export type BoardEditorToolControlProps = {
   label?: string;
   icon?: IconRender;
   className?: string;
+  activeVariant?: "outline" | "accent";
 };
 
 export function BoardEditorToolControl({
@@ -37,6 +38,7 @@ export function BoardEditorToolControl({
   label,
   icon,
   className,
+  activeVariant,
 }: BoardEditorToolControlProps) {
   const store = useBoardEditorContext();
   const activeToolId = useBoardEditorStore(
@@ -59,6 +61,7 @@ export function BoardEditorToolControl({
   return (
     <BoardEditorToolbarButton
       active={activeToolId === toolId}
+      activeVariant={activeVariant}
       aria-label={resolvedLabel}
       className={className}
       iconBefore={resolvedIcon}

@@ -36,6 +36,7 @@ export function BoardPrimaryToolbar({
   return (
     <BoardEditorToolbar
       {...toolbarProps}
+      activeVariant="accent"
       orientation={orientation}
       tooltipSide="right"
     >
@@ -43,7 +44,10 @@ export function BoardPrimaryToolbar({
       <BoardEditorHandToolControl />
       <BoardEditorPlayerToolControl />
       {showEquipment ? (
-        <BoardEditorEquipmentToolControl adapters={adapters} theme={theme} />
+        <BoardEditorEquipmentToolControl
+          adapters={adapters}
+          theme={theme}
+        />
       ) : null}
       <BoardEditorTextToolControl />
       <BoardEditorArrowToolControl />
