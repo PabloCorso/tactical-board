@@ -26,6 +26,7 @@ import {
 import {
   getAbsoluteCanvasExtent,
   getPlayerBorderWidth,
+  getPlayerLabelFontSize,
 } from "../rendering/canvas/object-render-scale";
 
 export type PlayerToolLabelStrategy = "numeric-by-color" | "none";
@@ -56,6 +57,22 @@ const playerObjectDefinition = defineObjectDefinition({
 const PREVIEW_OPACITY = 0.55;
 const DEFAULT_PLAYER_BORDER_COLOR = "#000000";
 const playerAssetImageCache = new Map<string, PlayerAssetImageCacheEntry>();
+const PLAYER_LABEL_VERTICAL_OFFSET = 0.5;
+
+function getPlayerLabelVerticalOffset(frameScale: number) {
+  return PLAYER_LABEL_VERTICAL_OFFSET / Math.max(frameScale, 1);
+}
+
+function getCanvasFontSizeForPlayerLabel(
+  radius: number,
+  fontSize: number,
+  scale: number,
+) {
+  const scaledConfiguredFontSize = fontSize * scale;
+  const scaledMarkerBasedFontSize = getPlayerLabelFontSize(radius);
+
+  return Math.max(scaledConfiguredFontSize, scaledMarkerBasedFontSize);
+}
 
 export class PlayerTool extends BoardEditorTool implements ToolDefinition {
   readonly id = PLAYER_TOOL_ID;
@@ -270,6 +287,11 @@ function renderPlayerAsset(
   const width = getAbsoluteCanvasExtent(bounds.width);
   const height = getAbsoluteCanvasExtent(bounds.height);
   const radius = Math.min(width, height) / 2;
+  const canvasFontSize = getCanvasFontSizeForPlayerLabel(
+    radius,
+    player.props.fontSize ?? DEFAULT_PLAYER_FONT_SIZE,
+    frameTransform.scale,
+  );
 
   context.save();
   context.globalAlpha = appearance === "preview" ? PREVIEW_OPACITY : 1;
@@ -281,9 +303,8 @@ function renderPlayerAsset(
   context.drawImage(entry.image, -width / 2, -height / 2, width, height);
 
   if (player.props.label) {
-    const canvasFontSize =
-      (player.props.fontSize ?? DEFAULT_PLAYER_FONT_SIZE) *
-      frameTransform.scale;
+    const labelOffsetY =
+      1 - getPlayerLabelVerticalOffset(frameTransform.scale);
 
     context.fillStyle = "#ffffff";
     context.font = `700 ${canvasFontSize}px "ui-rounded", "SF Pro Display", sans-serif`;
@@ -291,7 +312,7 @@ function renderPlayerAsset(
     context.textBaseline = "middle";
     context.shadowColor = "rgba(0, 0, 0, 0.55)";
     context.shadowBlur = 3;
-    context.fillText(String(player.props.label), 0, 1);
+    context.fillText(String(player.props.label), 0, labelOffsetY);
   }
 
   context.restore();
@@ -312,6 +333,11 @@ export function renderPlayer(input: CanvasObjectRenderInput) {
   const height = getAbsoluteCanvasExtent(bounds.height);
   const radius = Math.min(width, height) / 2;
   const textColor = getContrastingTextColor(player.props.color);
+  const canvasFontSize = getCanvasFontSizeForPlayerLabel(
+    radius,
+    player.props.fontSize ?? DEFAULT_PLAYER_FONT_SIZE,
+    frameTransform.scale,
+  );
 
   context.save();
   context.globalAlpha = appearance === "preview" ? PREVIEW_OPACITY : 1;
@@ -328,15 +354,14 @@ export function renderPlayer(input: CanvasObjectRenderInput) {
   context.stroke();
 
   if (player.props.label) {
-    const canvasFontSize =
-      (player.props.fontSize ?? DEFAULT_PLAYER_FONT_SIZE) *
-      frameTransform.scale;
+    const labelOffsetY =
+      1 - getPlayerLabelVerticalOffset(frameTransform.scale);
 
     context.fillStyle = textColor;
     context.font = `700 ${canvasFontSize}px "ui-rounded", "SF Pro Display", sans-serif`;
     context.textAlign = "center";
     context.textBaseline = "middle";
-    context.fillText(String(player.props.label), 0, 1);
+    context.fillText(String(player.props.label), 0, labelOffsetY);
   }
 
   context.restore();

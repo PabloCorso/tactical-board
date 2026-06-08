@@ -3,14 +3,16 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import {
   createFootballBoard,
   createFootballPitch,
-  FOOTBALL_FULL_PITCH_ASPECT_RATIO,
+  getFootballPitchAspectRatio,
   type FootballPitchVariant,
   BoardViewerCanvas,
   getFootballObjectRenderers,
 } from "../react";
+import { createPlayerObject } from "../core/objects/player-object";
+import { createTextObject } from "../core/objects/text-object";
+import { BOARD_PLAYER_DEFAULT_COLORS } from "../react/board/theme/board-tool-defaults";
 import { cn } from "../react/ui/misc";
-
-const BOARD_CARD_PREVIEW_ASPECT_RATIO = FOOTBALL_FULL_PITCH_ASPECT_RATIO;
+import { pointMetersToPixels } from "../react/sports/football/board/football-units";
 
 export type CardProps = ComponentProps<"div">;
 
@@ -92,6 +94,54 @@ const boardCards = [
   },
 ] as const;
 
+const cardDemoPlayers = [
+  { x: 14, y: 34, number: "1", label: "GK", color: BOARD_PLAYER_DEFAULT_COLORS[0]! },
+  { x: 42, y: 20, number: "10", label: "AM", color: BOARD_PLAYER_DEFAULT_COLORS[2]! },
+  { x: 72, y: 35, number: "9", label: "ST", color: BOARD_PLAYER_DEFAULT_COLORS[4]! },
+];
+
+function createCardBoardObjects() {
+  const playerEntries = cardDemoPlayers.map((player, index) => {
+    const playerId = `card-player-${index + 1}`;
+
+    return [
+      [
+        playerId,
+        createPlayerObject({
+          id: playerId,
+          position: pointMetersToPixels({ x: player.x, y: player.y }),
+          size: { width: 44, height: 44 },
+          color: player.color,
+          label: player.number,
+        }),
+      ] as const,
+      [
+        `${playerId}-label`,
+        createTextObject({
+          id: `${playerId}-label`,
+          position: pointMetersToPixels({
+            x: player.x + 1.8,
+            y: player.y + 6.5,
+          }),
+          text: player.label,
+          color: BOARD_PLAYER_DEFAULT_COLORS[0] ?? "#ef4444",
+          fontSize: 14,
+        }),
+      ] as const,
+    ];
+  });
+
+  return {
+    byId: Object.fromEntries(playerEntries.flat()),
+    order: playerEntries.flatMap((entry) => [
+      entry[0][0] as string,
+      entry[1][0] as string,
+    ]),
+  };
+}
+
+const cardBoardObjects = createCardBoardObjects();
+
 type BoardCard = {
   description: string;
   id: string;
@@ -104,6 +154,7 @@ function TacticalBoardCardItem({ description, id, pitch, title }: BoardCard) {
     id: `football-card-${id}`,
     name: title,
     frame: createFootballPitch(pitch),
+    objects: cardBoardObjects,
   });
 
   return (
@@ -111,7 +162,7 @@ function TacticalBoardCardItem({ description, id, pitch, title }: BoardCard) {
       <CardContent className="gap-0 p-0">
         <div
           className="relative w-full overflow-hidden rounded-t-xl bg-zinc-950"
-          style={{ aspectRatio: BOARD_CARD_PREVIEW_ASPECT_RATIO }}
+          style={{ aspectRatio: getFootballPitchAspectRatio(pitch) }}
         >
           <BoardViewerCanvas
             board={board}
