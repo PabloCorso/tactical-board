@@ -687,6 +687,42 @@ describe("createBoardEditorStore", () => {
     expect(store.getState().ui.defaultToolId).toBe("draw");
   });
 
+  it("resets the active tool to the default tool", () => {
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        frame: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      initialToolId: "draw",
+      tools: [
+        selectTool,
+        {
+          id: "draw",
+          label: "Draw",
+        },
+        {
+          id: "field",
+          label: "Field",
+        },
+      ],
+    });
+
+    store.getState().actions.setActiveTool("field");
+    store.getState().actions.resetTool();
+
+    expect(store.getState().ui.activeToolId).toBe("draw");
+  });
+
   it("applies the first arrow default when activating the arrow tool without a stored selection", () => {
     const arrowTool = new ArrowTool({
       defaults: [

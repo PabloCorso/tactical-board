@@ -6,6 +6,7 @@ export function createToolApi(store: BoardEditorStore): ToolApi {
 
   return {
     getState: () => store.getState(),
+    resetTool: actions.resetTool,
     beginHistoryBatch: actions.beginHistoryBatch,
     endHistoryBatch: actions.endHistoryBatch,
     addObjects: actions.addObjects,

@@ -5,7 +5,8 @@ const POLE_MARKER_LINE_RATIO = 5 / 2.4;
 const POLE_MARKER_STROKE_RATIO = 0.35 / 2.4;
 const POLE_MARKER_BASE_WIDTH_FACTOR = 4;
 const POLE_SELECTION_BOUNDS = {
-  left: -(POLE_MARKER_STROKE_RATIO * POLE_MARKER_BASE_WIDTH_FACTOR) / 2 -
+  left:
+    -(POLE_MARKER_STROKE_RATIO * POLE_MARKER_BASE_WIDTH_FACTOR) / 2 -
     POLE_MARKER_STROKE_RATIO / 2,
   top:
     (28 / 12 / 2 -
@@ -13,7 +14,8 @@ const POLE_SELECTION_BOUNDS = {
       POLE_MARKER_LINE_RATIO -
       POLE_MARKER_STROKE_RATIO / 2) /
     (28 / 12),
-  right: (POLE_MARKER_STROKE_RATIO * POLE_MARKER_BASE_WIDTH_FACTOR) / 2 +
+  right:
+    (POLE_MARKER_STROKE_RATIO * POLE_MARKER_BASE_WIDTH_FACTOR) / 2 +
     POLE_MARKER_STROKE_RATIO / 2,
   bottom:
     (28 / 12 / 2 -
@@ -58,11 +60,6 @@ export const poleEquipment: FootballEquipmentSpec = {
 
     context.beginPath();
     context.fillStyle = color;
-    context.fillRect(
-      -baseWidth / 2,
-      coneCenterY,
-      baseWidth,
-      baseHeight,
-    );
+    context.fillRect(-baseWidth / 2, coneCenterY, baseWidth, baseHeight);
   },
 };

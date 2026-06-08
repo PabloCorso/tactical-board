@@ -74,6 +74,7 @@ export interface BoardEditorSelectionState {
 
 export interface BoardEditorActions {
   setActiveTool: (toolId: ToolId) => void;
+  resetTool: () => void;
   setCanvasRect: (rect: { width: number; height: number }) => void;
   setViewport: (viewport: BoardViewport) => void;
   beginHistoryBatch: () => void;

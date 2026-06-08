@@ -48,6 +48,7 @@ export interface ToolKeyboardEvent {
 
 export interface ToolApi {
   getState: () => BoardEditorState;
+  resetTool: () => void;
   beginHistoryBatch: () => void;
   endHistoryBatch: () => void;
   addObjects: (

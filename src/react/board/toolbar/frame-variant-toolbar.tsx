@@ -30,7 +30,9 @@ export type BoardEditorFrameVariantRenderContext<
 export type BoardEditorFrameVariantOption<TValue extends string = string> = {
   label: string;
   value: TValue;
-  createFrame: () => BoardFrameConfig;
+  createFrame: (
+    context?: BoardEditorFrameVariantRenderContext<TValue>,
+  ) => BoardFrameConfig;
   renderIcon?: (
     context?: BoardEditorFrameVariantRenderContext<TValue>,
   ) => IconRender;
@@ -155,6 +157,7 @@ export function BoardEditorFrameVariantDefaultsToolbar<
   const setFrame = (
     frame: BoardFrameConfig,
     remapObject?: BoardEditorFrameVariantAction<TValue>["remapObject"],
+    resetTool = false,
   ) => {
     let nextObjects = state.board.objects;
 
@@ -228,6 +231,10 @@ export function BoardEditorFrameVariantDefaultsToolbar<
         }),
       );
     }
+
+    if (resetTool) {
+      toolApi.resetTool();
+    }
   };
 
   return (
@@ -243,7 +250,15 @@ export function BoardEditorFrameVariantDefaultsToolbar<
           className="h-auto w-auto p-1"
           key={option.value}
           onClick={() => {
-            setFrame(option.createFrame());
+            setFrame(
+              option.createFrame({
+                active: value === option.value,
+                frame: state.board.frame,
+                value: option.value,
+              }),
+              undefined,
+              true,
+            );
             toolbarDock?.requestDismiss();
           }}
           size="md"

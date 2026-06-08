@@ -115,7 +115,11 @@ export function createFootballPitchFrameOptions(
 ): Array<BoardEditorFrameVariantOption<FootballPitchVariant>> {
   return FOOTBALL_PITCH_OPTIONS.map((option) => ({
     ...option,
-    createFrame: () => createFootballPitch(option.value),
+    createFrame: (context) =>
+      createFootballPitch({
+        orientation: context?.active ? context.frame.orientation : undefined,
+        variant: option.value,
+      }),
     label: translatePitchLabel?.(option.value, option.label) ?? option.label,
     renderIcon: (context) => (
       <FootballPitchPreview

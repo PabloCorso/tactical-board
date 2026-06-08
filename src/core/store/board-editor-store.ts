@@ -325,6 +325,7 @@ export function createEditorStore({
           const actions = get().actions;
           const toolApi: ToolApi = {
             getState: () => get(),
+            resetTool: actions.resetTool,
             beginHistoryBatch: actions.beginHistoryBatch,
             endHistoryBatch: actions.endHistoryBatch,
             addObjects: actions.addObjects,
@@ -369,6 +370,10 @@ export function createEditorStore({
             },
           };
         });
+      },
+      resetTool: () => {
+        const state = get();
+        state.actions.setActiveTool(state.ui.defaultToolId);
       },
       setCanvasRect: (rect) => {
         set((state) => {
