@@ -38,7 +38,6 @@ import {
   footballThemeAdapters,
   getFootballObjectRenderers,
   getBasketballObjectRenderers,
-  getFootballPitchFitPadding,
   getFootballPitchVariant,
 } from "./";
 import {
@@ -56,7 +55,6 @@ describe("React public frame", () => {
     const board = createFootballBoard({ id: "canvas-focus-board" });
     const store = createBoardEditorStore({
       initialBoard: board,
-      fitPadding: getFootballPitchFitPadding,
       tools: createFootballTools(),
     });
     const markup = renderToString(
@@ -91,7 +89,6 @@ describe("React public frame", () => {
     const board = createFootballBoard({ id: "primary-toolbar-active-board" });
     const store = createBoardEditorStore({
       initialBoard: board,
-      fitPadding: getFootballPitchFitPadding,
       initialToolId: FOOTBALL_PITCH_TOOL_ID,
       tools: createFootballTools(),
     });
@@ -142,7 +139,6 @@ describe("React public frame", () => {
     const board = createFootballBoard({ id: "arrow-toolbar-board" });
     const store = createBoardEditorStore({
       initialBoard: board,
-      fitPadding: getFootballPitchFitPadding,
       tools: createFootballTools(),
     });
     const arrow = createArrowObject({
@@ -185,7 +181,6 @@ describe("React public frame", () => {
     const board = createFootballBoard({ id: "translated-labels-board" });
     const store = createBoardEditorStore({
       initialBoard: board,
-      fitPadding: getFootballPitchFitPadding,
       tools: createFootballTools(),
     });
     const markup = renderToString(
@@ -197,7 +192,7 @@ describe("React public frame", () => {
           {
             labels: {
               canvasToolbar: {
-                undo: "Deshacer",
+                zoomOut: "Alejar",
               },
               selectionActions: {
                 moreActions: "Mas acciones",
@@ -214,7 +209,7 @@ describe("React public frame", () => {
       ),
     );
 
-    expect(markup).toContain('aria-label="Deshacer"');
+    expect(markup).toContain('aria-label="Alejar"');
     expect(markup).toContain('aria-label="Player"');
   });
 
@@ -222,12 +217,10 @@ describe("React public frame", () => {
     const board = createFootballBoard({ id: "caller-labels-board" });
     const customToolStore = createBoardEditorStore({
       initialBoard: board,
-      fitPadding: getFootballPitchFitPadding,
       tools: [{ id: "select", label: "Registered select" }],
     });
     const store = createBoardEditorStore({
       initialBoard: board,
-      fitPadding: getFootballPitchFitPadding,
       initialToolId: ARROW_TOOL_ID,
       tools: createFootballTools(),
     });
@@ -286,7 +279,6 @@ describe("React public frame", () => {
     const board = createFootballBoard({ id: "public-frame-board" });
     const store = createBoardEditorStore({
       initialBoard: board,
-      fitPadding: getFootballPitchFitPadding,
       tools: createFootballTools(),
     });
 
@@ -294,7 +286,6 @@ describe("React public frame", () => {
     expect(
       createBoardEditorStore({
         initialBoard: board,
-        fitPadding: getFootballPitchFitPadding,
         navigationMode: "contained",
         tools: createFootballTools(),
       }).getState().ui.navigationMode,

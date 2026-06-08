@@ -2,7 +2,6 @@ import type {
   BoardFrameConfig,
   BoardFrameOrientation,
 } from "../../../../core/board/types";
-import type { FitPadding } from "../../../../core/editor/viewport-utils";
 import {
   createFootballPitch,
   type FootballPitchVariant,
@@ -102,16 +101,4 @@ export function createNextFootballPitchFrame(
   }
 
   return createFootballPitch({ orientation, variant });
-}
-
-export function getFootballPitchFitPadding(): FitPadding {
-  const toolbarPadding = 8;
-  const toolbarSize = 48;
-  const padding = 16;
-  return {
-    left: toolbarPadding + toolbarSize + padding,
-    right: padding,
-    top: padding,
-    bottom: padding,
-  };
 }

@@ -1,10 +1,12 @@
 import type { FitPadding, FitPaddingInsets } from "./types";
 
+export const DEFAULT_FIT_PADDING = 24;
+
 export const DEFAULT_FIT_PADDING_INSETS: FitPaddingInsets = {
-  top: 0,
-  right: 0,
-  bottom: 0,
-  left: 0,
+  top: DEFAULT_FIT_PADDING,
+  right: DEFAULT_FIT_PADDING,
+  bottom: DEFAULT_FIT_PADDING,
+  left: DEFAULT_FIT_PADDING,
 };
 
 export function getFitPaddingInsets(

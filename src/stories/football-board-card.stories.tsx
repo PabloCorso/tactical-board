@@ -115,7 +115,6 @@ function TacticalBoardCardItem({ description, id, pitch, title }: BoardCard) {
         >
           <BoardViewerCanvas
             board={board}
-            fitPadding={8}
             frameClassName="h-full flex-none"
             mode="fit-content"
             objectRenderers={getFootballObjectRenderers()}

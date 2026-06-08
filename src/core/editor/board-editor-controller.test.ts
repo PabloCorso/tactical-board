@@ -4380,7 +4380,7 @@ describe("createBoardEditorController", () => {
 
     expect(store.getState().ui.viewport).toEqual({
       pan: { x: 0, y: 0 },
-      zoom: 0.5,
+      zoom: 0.452,
     });
   });
 

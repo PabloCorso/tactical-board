@@ -15,10 +15,12 @@ type LabelOverrides<T> = {
 
 export type BoardEditorLabels = {
   canvasToolbar: {
+    enterFullScreen: string;
     fitToView: string;
     redo: string;
     undo: string;
     zoomIn: string;
+    zoomLevel: string;
     zoomOut: string;
   };
   colorPicker: {
@@ -106,10 +108,12 @@ export type BoardEditorLabelOverrides = LabelOverrides<BoardEditorLabels>;
 
 export const BOARD_EDITOR_DEFAULT_LABELS: BoardEditorLabels = {
   canvasToolbar: {
+    enterFullScreen: "Enter full screen",
     fitToView: "Fit to view",
     redo: "Redo",
     undo: "Undo",
     zoomIn: "Zoom in",
+    zoomLevel: "Zoom level",
     zoomOut: "Zoom out",
   },
   colorPicker: {

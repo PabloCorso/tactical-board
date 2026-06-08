@@ -22,7 +22,6 @@ import {
   footballTheme,
   footballThemeAdapters,
   FootballPitchPreview,
-  getFootballPitchFitPadding,
   getFootballPitchOrientation,
   getFootballPitchOrientationLabel,
   getFootballPitchVariant,
@@ -83,7 +82,6 @@ export function FootballBoardEditorExample({
       createBoardEditorStore({
         initialBoard:
           initialBoard ?? createFootballBoard({ id: boardId, name: boardName }),
-        fitPadding: getFootballPitchFitPadding,
         navigationMode,
         tools: createFootballTools(),
       }),
@@ -172,7 +170,6 @@ function FootballBoardEditorToolbarDock({
       {toolbarDock.secondaryToolbarOpen ? (
         <>
           <BoardEditorFrameVariantDefaultsToolbar
-            fitPadding={getFootballPitchFitPadding()}
             getAction={({ frame }) => {
               const nextFrame = createNextFootballPitchFrame(frame);
 

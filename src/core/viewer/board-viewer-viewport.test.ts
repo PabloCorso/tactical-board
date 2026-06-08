@@ -40,7 +40,7 @@ describe("board viewer viewport", () => {
         x: 0,
         y: 0,
       },
-      zoom: 2.28,
+      zoom: 1.6,
     });
   });
 
@@ -59,7 +59,7 @@ describe("board viewer viewport", () => {
         x: 0,
         y: 0,
       },
-      zoom: 0.68,
+      zoom: 0.02,
     });
   });
 
@@ -128,7 +128,7 @@ describe("board viewer viewport", () => {
       },
     });
 
-    expect(viewport.zoom).toBeCloseTo(228 / 130);
+    expect(viewport.zoom).toBeCloseTo(180 / 130);
     expect(viewport.pan.x).toBeCloseTo(-((130 / 2 - 50) * viewport.zoom));
     expect(viewport.pan.y).toBe(0);
   });
@@ -165,7 +165,7 @@ describe("board viewer viewport", () => {
       },
     });
 
-    expect(viewport.zoom).toBeCloseTo(228 / 130);
+    expect(viewport.zoom).toBeCloseTo(180 / 130);
     expect(viewport.pan.x).toBeCloseTo(-((130 / 2 - 50) * viewport.zoom));
     expect(viewport.pan.y).toBe(0);
   });
@@ -205,10 +205,10 @@ describe("board viewer viewport", () => {
       }),
     ).toEqual({
       pan: {
-        x: -70,
+        x: -36.400000000000006,
         y: 0,
       },
-      zoom: 2,
+      zoom: 1.04,
     });
   });
 

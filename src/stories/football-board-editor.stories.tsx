@@ -47,10 +47,12 @@ const spanishPitchLabels: Record<FootballPitchVariant, string> = {
 
 const spanishEditorLabels = {
   canvasToolbar: {
+    enterFullScreen: "Pantalla completa",
     fitToView: "Ajustar vista",
     redo: "Rehacer",
     undo: "Deshacer",
     zoomIn: "Acercar",
+    zoomLevel: "Nivel de zoom",
     zoomOut: "Alejar",
   },
   colorPicker: {

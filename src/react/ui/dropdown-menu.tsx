@@ -26,6 +26,7 @@ export type DropdownMenuContentProps = MenuPrimitive.Popup.Props &
     MenuPrimitive.Positioner.Props,
     | "align"
     | "alignOffset"
+    | "anchor"
     | "collisionPadding"
     | "positionMethod"
     | "side"
@@ -37,6 +38,7 @@ export type DropdownMenuContentProps = MenuPrimitive.Popup.Props &
 export function DropdownMenuContent({
   align = "start",
   alignOffset = 0,
+  anchor,
   collisionPadding = 8,
   positionMethod = "fixed",
   portalContainer,
@@ -51,6 +53,7 @@ export function DropdownMenuContent({
         className="isolate z-50 outline-none"
         align={align}
         alignOffset={alignOffset}
+        anchor={anchor}
         collisionPadding={collisionPadding}
         positionMethod={positionMethod}
         side={side}
@@ -59,7 +62,7 @@ export function DropdownMenuContent({
         <MenuPrimitive.Popup
           data-tactical-board
           className={cn(
-            "data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=inline-end]:slide-in-from-left-2 data-[side=inline-start]:slide-in-from-right-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 border-tb-border-default bg-tb-background-surface text-tb-text-primary z-50 box-border max-h-(--available-height) min-w-36 origin-(--transform-origin) overflow-x-hidden overflow-y-auto rounded-lg border p-1.5 shadow-lg duration-100 outline-none data-closed:overflow-hidden",
+            "data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=inline-end]:slide-in-from-left-2 data-[side=inline-start]:slide-in-from-right-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 border-tb-border-default bg-tb-background-surface text-tb-text-primary z-50 box-border max-h-(--available-height) min-w-36 origin-(--transform-origin) overflow-x-hidden overflow-y-auto rounded-lg border p-2 shadow-lg duration-100 outline-none data-closed:overflow-hidden",
             className,
           )}
           {...props}
@@ -96,7 +99,7 @@ export function DropdownMenuGroupLabel({
 
 export const menuItemVariants = cva(
   [
-    "group/menu-item relative flex min-h-7 w-full cursor-pointer items-center gap-2 rounded-md box-border px-2 py-1 text-sm outline-hidden transition-interactive select-none data-inset:pl-8",
+    "group/menu-item relative flex min-h-10 w-full cursor-pointer items-center gap-2.5 rounded-md box-border px-3 py-2 text-sm outline-hidden transition-interactive select-none data-inset:pl-8",
     "disabled:pointer-events-none disabled:opacity-40",
   ],
   {
@@ -127,7 +130,7 @@ export function DropdownMenuItem({
   inset,
   color,
   icon,
-  iconSize = "sm",
+  iconSize = "lg",
   ...props
 }: DropdownMenuItemProps) {
   return (
@@ -179,7 +182,7 @@ export function DropdownMenuSubTrigger({
       {...props}
     >
       {children}
-      <Icon size="sm" className="text-tb-text-tertiary ml-auto">
+      <Icon size="lg" className="text-tb-text-tertiary ml-auto">
         <CaretRightIcon />
       </Icon>
     </MenuPrimitive.SubmenuTrigger>
@@ -229,7 +232,7 @@ export function DropdownMenuCheckboxItem({
       {...props}
     >
       <MenuPrimitive.CheckboxItemIndicator className="text-tb-text-secondary pointer-events-none absolute right-2 flex items-center justify-center">
-        <Icon size="sm">
+        <Icon size="lg">
           <CheckIcon />
         </Icon>
       </MenuPrimitive.CheckboxItemIndicator>
@@ -263,7 +266,7 @@ export function DropdownMenuRadioItem({
       {...props}
     >
       <MenuPrimitive.RadioItemIndicator className="text-tb-text-secondary pointer-events-none absolute right-2 flex items-center justify-center">
-        <Icon size="sm">
+        <Icon size="lg">
           <CheckIcon />
         </Icon>
       </MenuPrimitive.RadioItemIndicator>

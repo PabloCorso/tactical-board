@@ -1,7 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { getFitPaddingInsets } from "./fit-padding";
+import { DEFAULT_FIT_PADDING, getFitPaddingInsets } from "./fit-padding";
 
 describe("getFitPaddingInsets", () => {
+  it("uses default fit padding", () => {
+    expect(getFitPaddingInsets(undefined)).toEqual({
+      top: DEFAULT_FIT_PADDING,
+      right: DEFAULT_FIT_PADDING,
+      bottom: DEFAULT_FIT_PADDING,
+      left: DEFAULT_FIT_PADDING,
+    });
+  });
+
   it("normalizes scalar fit padding", () => {
     expect(getFitPaddingInsets(12)).toEqual({
       top: 12,

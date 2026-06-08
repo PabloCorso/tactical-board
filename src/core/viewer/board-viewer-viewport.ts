@@ -6,9 +6,10 @@ import {
   getViewportToFitBoard,
   VIEWPORT_WHEEL_ZOOM_SENSITIVITY,
 } from "../editor/viewport-utils";
+import { DEFAULT_FIT_PADDING } from "../geometry/fit-padding";
 import { getFrameFitScale } from "../geometry/frame-scale";
 
-export const DEFAULT_BOARD_VIEWER_FIT_PADDING = 0;
+export const DEFAULT_BOARD_VIEWER_FIT_PADDING = DEFAULT_FIT_PADDING;
 
 export type BoardViewerViewportMode =
   | "fit"
