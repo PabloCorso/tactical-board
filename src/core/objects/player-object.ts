@@ -7,7 +7,7 @@ import type {
 import { DEFAULT_BOARD_COLOR } from "../colors/default-colors";
 
 export const PLAYER_OBJECT_TYPE = "player";
-export const DEFAULT_PLAYER_SIZE = 20;
+export const DEFAULT_PLAYER_SIZE = 22;
 export const DEFAULT_PLAYER_FONT_SIZE = 9.5;
 export const DEFAULT_PLAYER_COLOR = DEFAULT_BOARD_COLOR.black;
 export const DEFAULT_PLAYER_TRANSFORM_CAPABILITIES = {
