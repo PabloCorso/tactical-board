@@ -56,3 +56,11 @@
 - A **Host App** may compose custom save, export, or share controls with Board Library toolbar primitives instead of using a prescribed Board Library toolbar.
 - **React UI Copy** is localized through the React Adapter labels provider only when the copy is owned by React UI. Labels carried by **Tool** registrations, **Theme** definitions, frame variant options, equipment definitions, or Host App-provided presets remain owned by that data and should not be overwritten by the provider.
 - Built-in toolbar presets should prefer stable ids or values for behavior and resolve their display text at the React rendering boundary. If a Host App supplies a custom preset label or tooltip, that caller-owned copy takes precedence.
+
+## Testing Policy
+
+Tests should protect important behavior at meaningful module interfaces, not document every helper, constant, catalog entry, object size, or visual tuning value. Prefer adding tests when a behavior is central to the Editor Engine, public React Adapter, Board Library contract, serialization compatibility, architecture rule, or a regression-prone Coach Workflow.
+
+Do not add tests just because a file or function exists. Avoid tests that only assert arithmetic pass-throughs, default dimensions, icon color choices, preset order, or other low-risk implementation details unless those details have caused repeated regressions or are part of a documented public contract.
+
+When coverage is needed, test through the deepest useful module interface: editor interactions, Editor Store operations, Tool behavior, rendering contracts, public exports, or compatibility seams. Small helper tests are acceptable only when the helper hides non-obvious rules that would otherwise be hard to exercise through a higher-level interface.
