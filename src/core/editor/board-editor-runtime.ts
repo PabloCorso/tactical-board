@@ -42,6 +42,7 @@ export function createBoardEditorRuntime({
   let frameId: number | null = null;
   let unsubscribe: (() => void) | null = null;
   let resizeObserver: ResizeObserver | null = null;
+  let keydownDocument: Document | null = null;
   let hasAppliedInitialViewportFit = false;
   let lastPointerInput: BoardEditorPointerInput | null = null;
   let touchToolInteractionSnapshot:
@@ -743,6 +744,75 @@ export function createBoardEditorRuntime({
     }
   };
 
+  const onDocumentKeyDown = (event: KeyboardEvent) => {
+    if (
+      event.key !== "Escape" ||
+      event.defaultPrevented ||
+      isEditableKeyboardTarget(event.target) ||
+      isFloatingKeyboardTarget(event.target) ||
+      (!isKeyboardEventInsideEditor(event) &&
+        !isDocumentLevelKeyboardTarget(event.target))
+    ) {
+      return;
+    }
+
+    if (handleEscapeKey()) {
+      event.preventDefault();
+    }
+  };
+
+  const isKeyboardEventInsideEditor = (event: KeyboardEvent) => {
+    if (!canvas) {
+      return false;
+    }
+
+    const editorRoot =
+      typeof canvas.closest === "function"
+        ? canvas.closest("[data-board-editor-root]")
+        : null;
+
+    if (!editorRoot) {
+      return false;
+    }
+
+    const target = event.target;
+
+    return target instanceof Node && editorRoot.contains(target);
+  };
+
+  const isEditableKeyboardTarget = (target: EventTarget | null) => {
+    if (!(target instanceof Element)) {
+      return false;
+    }
+
+    return Boolean(target.closest("input, textarea, select, [contenteditable]"));
+  };
+
+  const isFloatingKeyboardTarget = (target: EventTarget | null) => {
+    if (!(target instanceof Element)) {
+      return false;
+    }
+
+    return Boolean(
+      target.closest("[data-tactical-board]") &&
+        !target.closest("[data-board-editor-root]"),
+    );
+  };
+
+  const isDocumentLevelKeyboardTarget = (target: EventTarget | null) => {
+    if (!(target instanceof Element)) {
+      return true;
+    }
+
+    const ownerDocument = canvas?.ownerDocument ?? null;
+
+    return (
+      target === ownerDocument?.body ||
+      target === ownerDocument?.documentElement ||
+      !target.isConnected
+    );
+  };
+
   const handleEscapeKey = () => {
     const state = store.getState();
     const { activeToolId, defaultToolId } = state.ui;
@@ -781,6 +851,8 @@ export function createBoardEditorRuntime({
         canvas.removeEventListener("wheel", onWheel);
         canvas.removeEventListener("contextmenu", onContextMenu);
         canvas.removeEventListener("keydown", onKeyDown);
+        keydownDocument?.removeEventListener("keydown", onDocumentKeyDown);
+        keydownDocument = null;
       }
 
       resizeObserver?.disconnect();
@@ -795,6 +867,9 @@ export function createBoardEditorRuntime({
       canvas.addEventListener("wheel", onWheel, { passive: false });
       canvas.addEventListener("contextmenu", onContextMenu);
       canvas.addEventListener("keydown", onKeyDown);
+
+      keydownDocument = canvas.ownerDocument ?? null;
+      keydownDocument?.addEventListener("keydown", onDocumentKeyDown);
 
       unsubscribe = store.subscribe(() => {
         syncToolRenderers();
@@ -842,6 +917,8 @@ export function createBoardEditorRuntime({
         setCanvasCursor(undefined);
       }
 
+      keydownDocument?.removeEventListener("keydown", onDocumentKeyDown);
+      keydownDocument = null;
       canvas = null;
     },
   };

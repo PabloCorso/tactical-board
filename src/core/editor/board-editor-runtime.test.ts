@@ -45,6 +45,49 @@ function createCanvasStub(): HTMLCanvasElement {
   } as unknown as HTMLCanvasElement;
 }
 
+class TestKeyboardNode {}
+
+class TestKeyboardElement extends TestKeyboardNode {
+  isConnected = true;
+  insideEditor = true;
+  closestMatches = new Map<string, TestKeyboardElement | null>();
+
+  closest(selector: string) {
+    if (this.closestMatches.has(selector)) {
+      return this.closestMatches.get(selector);
+    }
+
+    return null;
+  }
+}
+
+class TestKeyboardRoot extends TestKeyboardElement {
+  contains(target: unknown) {
+    return target instanceof TestKeyboardElement && target.insideEditor;
+  }
+}
+
+function createKeyboardScopeCanvas() {
+  const root = new TestKeyboardRoot();
+  const body = new TestKeyboardElement();
+  const documentElement = new TestKeyboardElement();
+  body.insideEditor = false;
+  documentElement.insideEditor = false;
+  const document = {
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    body,
+    documentElement,
+  };
+  const canvas = {
+    ...createCanvasStub(),
+    closest: vi.fn(() => root),
+    ownerDocument: document,
+  } as unknown as HTMLCanvasElement;
+
+  return { canvas, document };
+}
+
 describe("createBoardEditorRuntime", () => {
   it("fits the initial viewport to the mounted canvas", () => {
     const store = createBoardEditorStore({
@@ -1385,6 +1428,235 @@ describe("createBoardEditorRuntime", () => {
 
     expect(store.getState().ui.activeToolId).toBe("draw");
     expect(escapeEvent.preventDefault).toHaveBeenCalledTimes(1);
+
+    runtime.unmount();
+    vi.unstubAllGlobals();
+    globalThis.requestAnimationFrame = originalRequestAnimationFrame;
+    globalThis.cancelAnimationFrame = originalCancelAnimationFrame;
+  });
+
+  it("switches back to the default tool when Escape is pressed from editor chrome focus", () => {
+    const toolbarButton = new TestKeyboardElement();
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        frame: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      initialToolId: "draw",
+      tools: [
+        {
+          id: SELECT_TOOL_ID,
+          label: "Select",
+        },
+        {
+          id: "draw",
+          label: "Draw",
+        },
+        {
+          id: "measure",
+          label: "Measure",
+        },
+      ],
+    });
+    const runtime = createBoardEditorRuntime({ store });
+    const { canvas, document } = createKeyboardScopeCanvas();
+    const originalRequestAnimationFrame = globalThis.requestAnimationFrame;
+    const originalCancelAnimationFrame = globalThis.cancelAnimationFrame;
+    vi.stubGlobal("Node", TestKeyboardNode);
+    vi.stubGlobal("Element", TestKeyboardElement);
+    vi.stubGlobal(
+      "requestAnimationFrame",
+      vi.fn(() => 1),
+    );
+    vi.stubGlobal("cancelAnimationFrame", vi.fn());
+
+    runtime.mount(canvas);
+    store.getState().actions.setActiveTool("measure");
+
+    const keyDownHandler = vi
+      .mocked(document.addEventListener)
+      .mock.calls.find(([eventName]) => eventName === "keydown")?.[1] as
+      | ((event: KeyboardEvent) => void)
+      | undefined;
+
+    expect(keyDownHandler).toBeTypeOf("function");
+
+    const escapeEvent = {
+      key: "Escape",
+      defaultPrevented: false,
+      target: toolbarButton,
+      preventDefault: vi.fn(),
+    } as unknown as KeyboardEvent;
+
+    keyDownHandler?.(escapeEvent);
+
+    expect(store.getState().ui.activeToolId).toBe("draw");
+    expect(escapeEvent.preventDefault).toHaveBeenCalledTimes(1);
+
+    runtime.unmount();
+    vi.unstubAllGlobals();
+    globalThis.requestAnimationFrame = originalRequestAnimationFrame;
+    globalThis.cancelAnimationFrame = originalCancelAnimationFrame;
+  });
+
+  it("switches back to the default tool when Escape is pressed after secondary toolbar focus detaches", () => {
+    const detachedToolbarButton = new TestKeyboardElement();
+    detachedToolbarButton.insideEditor = false;
+    detachedToolbarButton.isConnected = false;
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        frame: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      initialToolId: "draw",
+      tools: [
+        {
+          id: SELECT_TOOL_ID,
+          label: "Select",
+        },
+        {
+          id: "draw",
+          label: "Draw",
+        },
+        {
+          id: "measure",
+          label: "Measure",
+        },
+      ],
+    });
+    const runtime = createBoardEditorRuntime({ store });
+    const { canvas, document } = createKeyboardScopeCanvas();
+    const originalRequestAnimationFrame = globalThis.requestAnimationFrame;
+    const originalCancelAnimationFrame = globalThis.cancelAnimationFrame;
+    vi.stubGlobal("Node", TestKeyboardNode);
+    vi.stubGlobal("Element", TestKeyboardElement);
+    vi.stubGlobal(
+      "requestAnimationFrame",
+      vi.fn(() => 1),
+    );
+    vi.stubGlobal("cancelAnimationFrame", vi.fn());
+
+    runtime.mount(canvas);
+    store.getState().actions.setActiveTool("measure");
+
+    const keyDownHandler = vi
+      .mocked(document.addEventListener)
+      .mock.calls.find(([eventName]) => eventName === "keydown")?.[1] as
+      | ((event: KeyboardEvent) => void)
+      | undefined;
+
+    expect(keyDownHandler).toBeTypeOf("function");
+
+    const escapeEvent = {
+      key: "Escape",
+      defaultPrevented: false,
+      target: detachedToolbarButton,
+      preventDefault: vi.fn(),
+    } as unknown as KeyboardEvent;
+
+    keyDownHandler?.(escapeEvent);
+
+    expect(store.getState().ui.activeToolId).toBe("draw");
+    expect(escapeEvent.preventDefault).toHaveBeenCalledTimes(1);
+
+    runtime.unmount();
+    vi.unstubAllGlobals();
+    globalThis.requestAnimationFrame = originalRequestAnimationFrame;
+    globalThis.cancelAnimationFrame = originalCancelAnimationFrame;
+  });
+
+  it("does not reset the active tool when Escape is pressed in floating overlay content", () => {
+    const floatingPopup = new TestKeyboardElement();
+    const floatingButton = new TestKeyboardElement();
+    floatingPopup.insideEditor = false;
+    floatingButton.insideEditor = false;
+    floatingButton.closestMatches.set("[data-tactical-board]", floatingPopup);
+    floatingButton.closestMatches.set("[data-board-editor-root]", null);
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        frame: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      },
+      initialToolId: "draw",
+      tools: [
+        {
+          id: SELECT_TOOL_ID,
+          label: "Select",
+        },
+        {
+          id: "draw",
+          label: "Draw",
+        },
+        {
+          id: "measure",
+          label: "Measure",
+        },
+      ],
+    });
+    const runtime = createBoardEditorRuntime({ store });
+    const { canvas, document } = createKeyboardScopeCanvas();
+    const originalRequestAnimationFrame = globalThis.requestAnimationFrame;
+    const originalCancelAnimationFrame = globalThis.cancelAnimationFrame;
+    vi.stubGlobal("Node", TestKeyboardNode);
+    vi.stubGlobal("Element", TestKeyboardElement);
+    vi.stubGlobal(
+      "requestAnimationFrame",
+      vi.fn(() => 1),
+    );
+    vi.stubGlobal("cancelAnimationFrame", vi.fn());
+
+    runtime.mount(canvas);
+    store.getState().actions.setActiveTool("measure");
+
+    const keyDownHandler = vi
+      .mocked(document.addEventListener)
+      .mock.calls.find(([eventName]) => eventName === "keydown")?.[1] as
+      | ((event: KeyboardEvent) => void)
+      | undefined;
+
+    expect(keyDownHandler).toBeTypeOf("function");
+
+    const escapeEvent = {
+      key: "Escape",
+      defaultPrevented: false,
+      target: floatingButton,
+      preventDefault: vi.fn(),
+    } as unknown as KeyboardEvent;
+
+    keyDownHandler?.(escapeEvent);
+
+    expect(store.getState().ui.activeToolId).toBe("measure");
+    expect(escapeEvent.preventDefault).not.toHaveBeenCalled();
 
     runtime.unmount();
     vi.unstubAllGlobals();
