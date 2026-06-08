@@ -785,7 +785,9 @@ export function createBoardEditorRuntime({
       return false;
     }
 
-    return Boolean(target.closest("input, textarea, select, [contenteditable]"));
+    return Boolean(
+      target.closest("input, textarea, select, [contenteditable]"),
+    );
   };
 
   const isFloatingKeyboardTarget = (target: EventTarget | null) => {
@@ -795,7 +797,7 @@ export function createBoardEditorRuntime({
 
     return Boolean(
       target.closest("[data-tactical-board]") &&
-        !target.closest("[data-board-editor-root]"),
+      !target.closest("[data-board-editor-root]"),
     );
   };
 
