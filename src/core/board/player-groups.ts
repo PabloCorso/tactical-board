@@ -269,19 +269,15 @@ export function getPlayerGroupRosterObjects(
   );
 }
 
-function getPlayerCaptionWithGroupStyle(
-  player: PlayerObject,
-  captionStyle: PlayerCaptionStyle | undefined,
-) {
+function getPlayerCaptionWithoutStyle(player: PlayerObject) {
   const captionText = player.props.caption?.text;
 
-  if (captionText === undefined && captionStyle === undefined) {
+  if (captionText === undefined) {
     return undefined;
   }
 
   return {
     text: captionText,
-    style: captionStyle ? { ...captionStyle } : undefined,
   };
 }
 
@@ -292,14 +288,14 @@ export function applyPlayerGroupStyleToPlayer(
   const style = resolvePlayerGroupStyle(group);
 
   return updatePlayerObject(player, {
-    color: style.color,
-    colors: style.colors,
-    appearanceId: style.appearanceId,
-    options: style.options,
-    asset: style.asset,
-    fontSize: style.fontSize,
+    color: undefined,
+    colors: undefined,
+    appearanceId: undefined,
+    options: undefined,
+    asset: undefined,
+    fontSize: undefined,
     size: { width: style.size, height: style.size },
-    caption: getPlayerCaptionWithGroupStyle(player, style.caption),
+    caption: getPlayerCaptionWithoutStyle(player),
   });
 }
 
@@ -307,15 +303,9 @@ function applyPlayerGroupStylePatchToPlayer(
   player: PlayerObject,
   patch: PlayerGroupStylePatch,
 ) {
-  const { caption, size, ...objectPatch } = patch;
-
   return updatePlayerObject(player, {
-    ...objectPatch,
-    ...("size" in patch && typeof size === "number"
-      ? { size: { width: size, height: size } }
-      : {}),
-    ...("caption" in patch
-      ? { caption: getPlayerCaptionWithGroupStyle(player, caption) }
+    ...("size" in patch && typeof patch.size === "number"
+      ? { size: { width: patch.size, height: patch.size } }
       : {}),
   });
 }
@@ -496,14 +486,7 @@ export function createPlayerFromPlayerGroup({
     position,
     groupId: group.id,
     label,
-    color: style.color,
-    colors: style.colors,
-    fontSize: style.fontSize,
     size: { width: style.size, height: style.size },
-    appearanceId: style.appearanceId,
-    options: style.options,
-    asset: style.asset,
-    caption: style.caption ? { style: style.caption } : undefined,
   });
 }
 

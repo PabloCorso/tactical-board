@@ -1,5 +1,5 @@
 import { useCallback, useRef } from "react";
-import type { BoardObject } from "../../../core/board/types";
+import type { Board, BoardObject } from "../../../core/board/types";
 import type { BoardSpaceProjection } from "../../../core/geometry/board-space-projection";
 import type { CanvasObjectRenderer } from "../../../core/rendering/canvas/types";
 
@@ -97,12 +97,15 @@ function renderToolIconCanvas<TObject extends BoardObject>({
     context.setTransform(1, 0, 0, 1, 0, 0);
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.scale(ratio, ratio);
+    const resolvedObject = resolveCurrentColorObject(
+      object,
+      getCanvasToolbarIconColor(canvas),
+    );
+
     renderer({
       context,
-      object: resolveCurrentColorObject(
-        object,
-        getCanvasToolbarIconColor(canvas),
-      ),
+      board: createToolIconBoard(resolvedObject),
+      object: resolvedObject,
       appearance: "default",
       requestRender: () => {
         if (frameId !== undefined || !scheduleFrame) {
@@ -156,6 +159,27 @@ function renderToolIconCanvas<TObject extends BoardObject>({
       cancelFrame(settleFrameId);
     }
     themeObserver?.disconnect();
+  };
+}
+
+function createToolIconBoard<TObject extends BoardObject>(
+  object: TObject,
+): Board {
+  return {
+    id: "tool-icon-board",
+    version: 1,
+    metadata: {},
+    frame: {
+      width: 1,
+      height: 1,
+    },
+    objects: {
+      byId: {
+        [object.id]: object,
+      },
+      order: [object.id],
+    },
+    style: {},
   };
 }
 

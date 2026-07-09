@@ -24,6 +24,7 @@ export type CanvasOverlayItem = CanvasRectOverlayItem | CanvasCustomOverlayItem;
 
 export interface CanvasObjectRenderInput {
   context: CanvasRenderingContext2D;
+  board: Board;
   object: BoardObject;
   appearance: "default" | "preview";
   requestRender: () => void;
@@ -36,6 +37,7 @@ export type CanvasObjectRenderer = (input: CanvasObjectRenderInput) => void;
 export type CanvasObjectRendererRegistry = Record<string, CanvasObjectRenderer>;
 
 export interface CanvasObjectHitTestInput {
+  board: Board;
   object: BoardObject;
   canvasPoint: { x: number; y: number };
   frameTransform: BoardSpaceProjection;

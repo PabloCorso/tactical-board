@@ -16,10 +16,13 @@
 - **Asset**: A serializable reference to visual media used by a Board Object or Theme Definition, resolved by the Host App or runtime before rendering.
 - **Catalog**: A Theme-provided collection of available board definitions that editor UI may expose to users.
 - **Definition**: A Theme-provided description of an available board thing such as a frame, equipment item, object kind, or visual skin.
-- **Player Group**: A board-level player grouping used to provide optional shared defaults for player instances (for example, group name, color strategy, label behavior, or size).
+- **Player Group**: A generic board-level player grouping used to provide optional inheritable defaults for Player instances (for example, group name, color strategy, label behavior, Player Appearance, or size). Sport-specific UI may call a Player Group a team, side, squad, or group, but Board state and reusable Board Library code use Player Group.
 - **Group Identity**: The optional player metadata key that links a Player to a Player Group.
 - **Player Group Order**: An optional ordered list of Player Group IDs used by the Coach Workflow to render groups consistently in UI surfaces.
 - **Player Group Preset**: A user-facing group entry in the Player Group toolbar, typically represented by a default color and optional style/name.
+- **Player Style Default**: A style value supplied by a Player Group and inherited by Players that belong to that group unless the Player overrides that value.
+- **Player Style Override**: A Player-owned style value that takes precedence over the matching Player Style Default for that Player only.
+- **Effective Player Style**: The resolved visual style used for rendering and editing a Player after combining built-in Player defaults, optional Player Group defaults, and Player-owned overrides.
 - **Player Appearance Color**: A named color role used by a Player Appearance, where built-in and custom appearances decide which roles they understand.
 - **Player Appearance Option**: A serializable configuration value for a Player Appearance that is neither its identity, colors, nor media asset.
 - **Player Appearance Catalog**: A Theme- or Host App-provided collection of available Player Appearances and their configuration metadata.
@@ -70,7 +73,11 @@
 - **React UI Copy** is localized through the React Adapter labels provider only when the copy is owned by React UI. Labels carried by **Tool** registrations, **Theme** definitions, frame variant options, equipment definitions, or Host App-provided presets remain owned by that data and should not be overwritten by the provider.
 - Built-in toolbar presets should prefer stable ids or values for behavior and resolve their display text at the React rendering boundary. If a Host App supplies a custom preset label or tooltip, that caller-owned copy takes precedence.
 - **Numeric player labels** are scoped to a Player Group when `groupId` is set, so labels can reuse across groups; players without a group use existing legacy color/global sequencing for backward compatibility.
-- A **Player Group** provides default styling and **Player Appearance** choices for its member **Players**, while an individual **Player** may override those defaults when a specific participant needs a different visual representation.
+- A **Player Group** provides **Player Style Defaults** and default **Player Appearance** choices for its member **Players**, while an individual **Player** may define **Player Style Overrides** when a specific participant needs a different visual representation.
+- **Player Style Overrides** are stored as ordinary optional Player props such as `color`, `colors`, `fontSize`, `appearanceId`, `options`, `asset`, or caption style. If one of those Player props is absent, the Player inherits the corresponding Player Group default when it has a Group Identity.
+- A **Player** does not require a **Group Identity**. Ungrouped Players use built-in or Theme-provided Player defaults plus their own Player Style Overrides.
+- **Player Group** is the durable Board state and Board Library term. **React UI Copy** may present the same concept as "team" in football or other team-sport workflows, or hide grouping entirely in workflows such as one-versus-one sports.
+- **Effective Player Style** should be resolved from defaults and overrides. Copying a Player Group's current style into each Player may be used as an implementation step, but it should not be treated as the long-term meaning of inheritance because it cannot distinguish inherited values from Player Style Overrides.
 - A **Player Appearance** is selected by a stable identity in board data, while the rendering behavior for that appearance belongs to a **Theme** or **Host App**.
 - A single player color remains the fallback for simple appearances, while richer **Player Appearances** may use any number of named **Player Appearance Colors**.
 - The Board model does not prescribe **Player Appearance Color** names; each **Player Appearance** may define the color roles its renderer understands.
@@ -84,10 +91,10 @@
 - **Player Appearances** own marker visuals and **Player Marker Label** rendering, while **Player Captions** use common player rendering behavior across appearances.
 - A **Player Group** may provide default **Player Caption** styling and placement, while each **Player** owns its caption text and may override those defaults.
 - A **Player Caption** is part of its **Player** for selection, hit testing, movement, and visible bounds.
-- In this v1 Coach Workflow, deleting a Player Group is a destructive action on its members: players assigned to that group are removed from the board alongside the group definition.
-- A board must always retain at least one Player Group; deleting the final remaining group is disallowed.
-- If a deletion request for the last remaining Player Group is made despite UI safeguards, it is treated as a no-op.
-- New boards should start with two Player Group Presets by default, each seeded from the first available colors in the shared color-order list used by the Color Picker.
+- In this v1 grouped Coach Workflow, deleting a Player Group is a destructive action on its members: players assigned to that group are removed from the board alongside the group definition.
+- In the current grouped Coach Workflow, the editor retains at least one visible Player Group; deleting the final remaining visible group is disallowed.
+- If a deletion request for the last remaining visible Player Group is made despite UI safeguards, it is treated as a no-op.
+- New grouped football-style boards should start with two Player Group Presets by default, each seeded from the first available colors in the shared color-order list used by the Color Picker.
 - Adding a Player Group Preset in v1 uses the next unused color from that same color-order list.
 - When all preset colors are already in use, new Player Group Presets fall back to the next color in the shared color-order sequence (wrapping as needed).
 

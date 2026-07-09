@@ -4,6 +4,7 @@ import { createToolApi } from "../../../core/editor/create-tool-api";
 import { createFootballBoard } from "../../sports/football/board/football-board";
 import { createFootballTools } from "../../sports/football/theme/football-tools";
 import { getBoardPlayerGroups } from "../../../core/board/player-groups";
+import { resolveEffectivePlayerStyle } from "../../../core/board/player-style";
 import {
   createPlayerObject,
   PLAYER_OBJECT_TYPE,
@@ -106,9 +107,14 @@ describe("applyPlayerGroupStylePatch", () => {
 
     expect(nextGroup?.style.appearanceId).toBe("football-shirt");
     expect(nextGroup?.style.options).toEqual({ pattern: "stripes" });
-    expect(member.props.appearanceId).toBe("football-shirt");
-    expect(member.props.colors).toEqual({ secondary: "#ffffff" });
-    expect(member.props.options).toEqual({ pattern: "stripes" });
+    expect(member.props.appearanceId).toBeUndefined();
+    expect(member.props.colors).toBeUndefined();
+    expect(member.props.options).toBeUndefined();
+    expect(resolveEffectivePlayerStyle(nextBoard, member)).toMatchObject({
+      appearanceId: "football-shirt",
+      colors: { secondary: "#ffffff" },
+      options: { pattern: "stripes" },
+    });
   });
 
   it("propagates size changes to members as square sizes", () => {
@@ -146,7 +152,10 @@ describe("movePlayerToGroup", () => {
     ] as PlayerObject;
 
     expect(moved.props.groupId).toBe(second.id);
-    expect(moved.props.color).toBe(second.style.color);
+    expect(moved.props.color).toBeUndefined();
+    expect(
+      resolveEffectivePlayerStyle(toolApi.getState().board, moved).color,
+    ).toBe(second.style.color);
     expect(moved.props.label).toBe("2");
   });
 });

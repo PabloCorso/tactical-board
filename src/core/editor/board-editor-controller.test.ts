@@ -4,6 +4,7 @@ import { createToolApi } from "./create-tool-api";
 import { createBoardSpaceProjection } from "../geometry/board-space-projection";
 import { createBoardEditorStore } from "../store/board-editor-store";
 import { createBoardPlayerGroup } from "../board/player-groups";
+import { resolveEffectivePlayerStyle } from "../board/player-style";
 import type { Board, BoardObject, Point } from "../board/types";
 import {
   createArrowObject,
@@ -724,13 +725,18 @@ describe("createBoardEditorController", () => {
       canvasRect,
     });
 
-    expect(store.getState().board.objects.byId["player-1"]).toMatchObject({
+    const player = store.getState().board.objects.byId[
+      "player-1"
+    ] as PlayerObject;
+
+    expect(player).toMatchObject({
       type: "player",
-      props: { color: "#1f6feb" },
+      props: { color: undefined },
     });
-    expect(store.getState().board.objects.byId["player-1"]?.props.label).toBe(
-      undefined,
-    );
+    expect(
+      resolveEffectivePlayerStyle(store.getState().board, player).color,
+    ).toBe("#1f6feb");
+    expect(player.props.label).toBe(undefined);
   });
 
   it("places players with appearance and caption defaults from the active group", () => {
@@ -790,30 +796,44 @@ describe("createBoardEditorController", () => {
       canvasRect,
     });
 
-    expect(store.getState().board.objects.byId["player-1"]).toMatchObject({
+    const player = store.getState().board.objects.byId[
+      "player-1"
+    ] as PlayerObject;
+    const effectiveStyle = resolveEffectivePlayerStyle(
+      store.getState().board,
+      player,
+    );
+
+    expect(player).toMatchObject({
       type: "player",
       props: {
         groupId: group.id,
-        color: "#1f6feb",
-        colors: {
-          shirt: "#1f6feb",
-          trim: "#ffffff",
-        },
-        appearanceId: "shirt",
-        options: {
-          sleeve: "short",
-        },
-        asset: {
-          src: "asset://home-kit",
-        },
-        caption: {
-          style: {
-            placement: "top",
-            distance: 0.75,
-            fontSize: 1,
-            color: "#0f172a",
-          },
-        },
+        color: undefined,
+        colors: undefined,
+        appearanceId: undefined,
+        options: undefined,
+        asset: undefined,
+        caption: undefined,
+      },
+    });
+    expect(effectiveStyle).toMatchObject({
+      color: "#1f6feb",
+      colors: {
+        shirt: "#1f6feb",
+        trim: "#ffffff",
+      },
+      appearanceId: "shirt",
+      options: {
+        sleeve: "short",
+      },
+      asset: {
+        src: "asset://home-kit",
+      },
+      caption: {
+        placement: "top",
+        distance: 0.75,
+        fontSize: 1,
+        color: "#0f172a",
       },
     });
   });
@@ -2666,6 +2686,7 @@ describe("createBoardEditorController", () => {
 
     renderer({
       context,
+      board: store.getState().board,
       object: equipment,
       appearance: "default",
       requestRender: vi.fn(),

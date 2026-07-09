@@ -1,4 +1,5 @@
 import type { PlayerObject } from "../objects/player-object";
+import { DEFAULT_PLAYER_FONT_SIZE } from "../objects/player-object";
 import type { Rect } from "../geometry/types";
 
 const DEFAULT_CAPTION_DISTANCE = 4;
@@ -28,7 +29,9 @@ export function getPlayerCaptionCanvasFontSize(
   projection: PlayerGeometryProjection,
 ) {
   const configuredFontSize =
-    player.props.caption?.style?.fontSize ?? player.props.fontSize;
+    player.props.caption?.style?.fontSize ??
+    player.props.fontSize ??
+    DEFAULT_PLAYER_FONT_SIZE;
 
   return Math.max(configuredFontSize * projection.scale, 6);
 }

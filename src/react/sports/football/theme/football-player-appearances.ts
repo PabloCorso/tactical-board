@@ -6,7 +6,10 @@ import {
 import type { PlayerAppearanceRenderer } from "../../../../core/tools/player-appearance";
 import { getContrastingPlayerLabelColor } from "../../../../core/tools/player-tool";
 import type { PlayerObject } from "../../../../core/objects/player-object";
-import { DEFAULT_PLAYER_FONT_SIZE } from "../../../../core/objects/player-object";
+import {
+  DEFAULT_PLAYER_COLOR,
+  DEFAULT_PLAYER_FONT_SIZE,
+} from "../../../../core/objects/player-object";
 import type {
   BoardThemePlayerAppearanceDefinition,
   BoardThemePlayerPresetDefinition,
@@ -621,7 +624,8 @@ export const renderFootballShirtPlayerAppearance: PlayerAppearanceRenderer = ({
   const shirtColor =
     player.props.colors?.shirt ??
     player.props.colors?.primary ??
-    player.props.color;
+    player.props.color ??
+    DEFAULT_PLAYER_COLOR;
 
   context.save();
   context.globalAlpha = appearance === "preview" ? 0.55 : 1;
@@ -693,7 +697,7 @@ export const renderFootballCirclePlayerAppearance: PlayerAppearanceRenderer = ({
   const width = getAbsoluteCanvasExtent(bounds.width);
   const height = getAbsoluteCanvasExtent(bounds.height);
   const radius = Math.min(width, height) / 2;
-  const fillColor = player.props.color;
+  const fillColor = player.props.color ?? DEFAULT_PLAYER_COLOR;
 
   context.save();
   context.globalAlpha = appearance === "preview" ? 0.55 : 1;
@@ -736,7 +740,7 @@ export const renderFootballRingedCirclePlayerAppearance: PlayerAppearanceRendere
     const height = getAbsoluteCanvasExtent(bounds.height);
     const radius = Math.min(width, height) / 2;
     const ringWidth = Math.max(radius * 0.22, 2);
-    const fillColor = player.props.color;
+    const fillColor = player.props.color ?? DEFAULT_PLAYER_COLOR;
 
     context.save();
     context.globalAlpha = appearance === "preview" ? 0.55 : 1;

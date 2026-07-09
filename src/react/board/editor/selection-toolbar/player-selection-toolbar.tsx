@@ -7,6 +7,10 @@ import {
   getBoardPlayerGroup,
   getBoardPlayerGroups,
 } from "../../../../core/board/player-groups";
+import {
+  resolveEffectivePlayerStyle,
+  updatePlayerStyle as updatePlayerStyleInBoard,
+} from "../../../../core/board/player-style";
 import { createToolApi } from "../../../../core/editor/create-tool-api";
 import { useBoardEditorContext } from "../../../adapter/editor/board-editor-context";
 import { useBoardEditorStore } from "../../../adapter/editor/use-board-editor-store";
@@ -60,15 +64,21 @@ export function BoardEditorPlayerSelectionToolbar({
   const toolApi = createToolApi(store);
   const playerGroups = getBoardPlayerGroups(board);
   const playerGroup = getBoardPlayerGroup(board, selectedObject.props.groupId);
+  const effectiveStyle = resolveEffectivePlayerStyle(board, selectedObject);
   const appearance = getThemePlayerAppearanceDefinitions(theme).find(
-    (candidate) =>
-      candidate.id ===
-      (selectedObject.props.appearanceId ?? playerGroup?.style.appearanceId),
+    (candidate) => candidate.id === effectiveStyle.appearanceId,
   );
 
   const updatePlayer = (input: Parameters<typeof updatePlayerObject>[1]) => {
     toolApi.updateObjects([selectedObject.id], (object) =>
       updatePlayerObject(object as PlayerObject, input),
+    );
+  };
+  const applyPlayerStylePatch = (
+    input: Parameters<typeof updatePlayerStyleInBoard>[1],
+  ) => {
+    toolApi.updateObjects([selectedObject.id], (object) =>
+      updatePlayerStyleInBoard(object as PlayerObject, input),
     );
   };
 
@@ -137,8 +147,8 @@ export function BoardEditorPlayerSelectionToolbar({
           popoverSide="top"
           content={
             <ColorPicker
-              value={selectedObject.props.color}
-              onChange={(value) => updatePlayer({ color: value })}
+              value={effectiveStyle.color}
+              onChange={(value) => applyPlayerStylePatch({ color: value })}
               chooseCustomColorLabel={labels.colorPicker.chooseCustomColor}
               defaultColors={[...DEFAULT_BOARD_COLORS]}
             />
@@ -146,9 +156,9 @@ export function BoardEditorPlayerSelectionToolbar({
           icon={
             <span
               className="border-tb-border-default inline-flex h-6 w-6 rounded-full border"
-              style={{ backgroundColor: selectedObject.props.color }}
+              style={{ backgroundColor: effectiveStyle.color }}
             >
-              <span className="sr-only">{selectedObject.props.color}</span>
+              <span className="sr-only">{effectiveStyle.color}</span>
             </span>
           }
         />
@@ -163,11 +173,11 @@ export function BoardEditorPlayerSelectionToolbar({
                 appearance={appearance}
                 labels={labels}
                 value={{
-                  color: selectedObject.props.color,
-                  colors: selectedObject.props.colors,
+                  color: effectiveStyle.color,
+                  colors: effectiveStyle.colors,
                 }}
                 onChange={(patch) =>
-                  updatePlayer({
+                  applyPlayerStylePatch({
                     ...(patch.color !== undefined
                       ? { color: patch.color }
                       : {}),
@@ -205,7 +215,7 @@ export function BoardEditorPlayerSelectionToolbar({
 
                         if (file) {
                           readUploadedAsset(file, (asset) =>
-                            updatePlayer({
+                            applyPlayerStylePatch({
                               appearanceId: "image",
                               asset,
                             }),
@@ -216,15 +226,15 @@ export function BoardEditorPlayerSelectionToolbar({
                       }}
                     />
                   </label>
-                  {selectedObject.props.asset ? (
+                  {effectiveStyle.asset ? (
                     <Button
                       variant="ghost"
                       size="sm"
                       className="h-7 px-2 text-xs"
                       onClick={() =>
-                        updatePlayer({
+                        applyPlayerStylePatch({
                           asset: undefined,
-                          appearanceId: playerGroup?.style.appearanceId,
+                          appearanceId: undefined,
                         })
                       }
                     >

@@ -42,6 +42,7 @@ describe("createBoardTools", () => {
 
     renderer?.({
       context: {} as CanvasRenderingContext2D,
+      board: store.getState().board,
       object: player,
       appearance: "default",
       requestRender: () => {},
@@ -52,7 +53,14 @@ describe("createBoardTools", () => {
 
     expect(appearanceRenderer).toHaveBeenCalledWith(
       expect.objectContaining({
-        player,
+        player: expect.objectContaining({
+          props: expect.objectContaining({
+            appearanceId: "football-shirt",
+            color: "#1f1f1f",
+            fontSize: 9.5,
+          }),
+          size: { width: 22, height: 22 },
+        }),
       }),
     );
   });

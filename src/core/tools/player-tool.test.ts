@@ -32,6 +32,22 @@ describe("createPlayerRenderer", () => {
 
     renderer({
       context: {} as CanvasRenderingContext2D,
+      board: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        frame: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {
+            [player.id]: player,
+          },
+          order: [player.id],
+        },
+        style: {},
+      },
       object: player,
       appearance: "default",
       requestRender: () => {},
@@ -40,8 +56,14 @@ describe("createPlayerRenderer", () => {
 
     expect(appearanceRenderer).toHaveBeenCalledWith(
       expect.objectContaining({
-        object: player,
-        player,
+        player: expect.objectContaining({
+          props: expect.objectContaining({
+            appearanceId: "shirt",
+            color: "#1f6feb",
+            fontSize: 9.5,
+          }),
+          size: { width: 22, height: 22 },
+        }),
       }),
     );
   });

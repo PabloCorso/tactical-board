@@ -2,6 +2,7 @@ export * from "./board/create-board";
 export * from "./board/board-content-bounds";
 export * from "./board/frame-object-remap";
 export * from "./board/object-order";
+export * from "./board/player-style";
 export type * from "./board/types";
 export * from "./colors/default-colors";
 export * from "./editor/board-editor-runtime";

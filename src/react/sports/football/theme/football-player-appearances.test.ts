@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
+import type { Board } from "../../../../core/board/types";
 import { createBoardSpaceProjection } from "../../../../core/geometry/board-space-projection";
-import { createPlayerObject } from "../../../../core/objects/player-object";
+import {
+  createPlayerObject,
+  type PlayerObject,
+} from "../../../../core/objects/player-object";
 import {
   renderFootballCirclePlayerAppearance,
   renderFootballShirtPlayerAppearance,
@@ -54,6 +58,25 @@ function createSpyContext() {
   };
 }
 
+function createPlayerAppearanceBoard(player: PlayerObject): Board {
+  return {
+    id: "player-appearance-board",
+    version: 1,
+    metadata: {},
+    frame: {
+      width: 100,
+      height: 50,
+    },
+    objects: {
+      byId: {
+        [player.id]: player,
+      },
+      order: [player.id],
+    },
+    style: {},
+  };
+}
+
 describe("renderFootballShirtPlayerAppearance", () => {
   it("renders the shirt as the marker without a circular backing", () => {
     const context = createSpyContext();
@@ -85,6 +108,7 @@ describe("renderFootballShirtPlayerAppearance", () => {
 
     renderFootballShirtPlayerAppearance({
       context,
+      board: createPlayerAppearanceBoard(player),
       object: player,
       player,
       appearance: "default",
@@ -149,6 +173,7 @@ describe("renderFootballCirclePlayerAppearance", () => {
 
     renderFootballCirclePlayerAppearance({
       context,
+      board: createPlayerAppearanceBoard(player),
       object: player,
       player,
       appearance: "default",
@@ -195,6 +220,7 @@ describe("renderFootballCirclePlayerAppearance", () => {
 
     renderFootballCirclePlayerAppearance({
       context,
+      board: createPlayerAppearanceBoard(player),
       object: player,
       player,
       appearance: "default",

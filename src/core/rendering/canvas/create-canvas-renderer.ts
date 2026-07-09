@@ -238,6 +238,7 @@ export function createCanvasRenderer(): CanvasRenderer {
         const renderer = objectRenderers[object.type];
         renderer?.({
           context,
+          board,
           object,
           appearance: "default",
           requestRender,
@@ -250,6 +251,7 @@ export function createCanvasRenderer(): CanvasRenderer {
         const renderer = objectRenderers[previewObject.type];
         renderer?.({
           context,
+          board,
           object: previewObject,
           appearance: "preview",
           requestRender,

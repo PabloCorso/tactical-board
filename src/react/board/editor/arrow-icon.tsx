@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import type { Point } from "../../../core/board/types";
+import type { Board, Point } from "../../../core/board/types";
 import type { BoardSpaceProjection } from "../../../core/geometry/board-space-projection";
 import {
   createArrowObject,
@@ -76,9 +76,11 @@ export function BoardEditorArrowIcon({
         width,
         height,
       );
+      const board = createArrowIconBoard(arrow);
 
       renderArrow({
         context,
+        board,
         object: arrow,
         appearance: "default",
         requestRender: () => {
@@ -144,6 +146,25 @@ export function BoardEditorArrowIcon({
       style={{ width, height, color: "var(--tb-toolbar-icon-primary)" }}
     />
   );
+}
+
+function createArrowIconBoard(arrow: ArrowObject): Board {
+  return {
+    id: "arrow-icon-board",
+    version: 1,
+    metadata: {},
+    frame: {
+      width: 1,
+      height: 1,
+    },
+    objects: {
+      byId: {
+        [arrow.id]: arrow,
+      },
+      order: [arrow.id],
+    },
+    style: {},
+  };
 }
 
 function getCanvasToolbarIconColor(canvas: HTMLCanvasElement) {

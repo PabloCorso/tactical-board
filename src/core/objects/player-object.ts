@@ -26,9 +26,9 @@ export interface PlayerTransformCapabilities {
 export interface PlayerObjectProps extends Record<string, unknown> {
   groupId?: string;
   label?: string;
-  color: string;
+  color?: string;
   colors?: Record<string, string>;
-  fontSize: number;
+  fontSize?: number;
   appearanceId?: string;
   options?: Record<string, unknown>;
   asset?: Asset;
@@ -94,9 +94,9 @@ function getCanonicalPlayerProps(input: PlayerCoreInput): PlayerObjectProps {
   return {
     groupId: input.groupId,
     label: input.label,
-    color: input.color ?? DEFAULT_PLAYER_COLOR,
+    color: input.color,
     colors: input.colors ? { ...input.colors } : undefined,
-    fontSize: input.fontSize ?? DEFAULT_PLAYER_FONT_SIZE,
+    fontSize: input.fontSize,
     appearanceId: input.appearanceId,
     options: input.options ? { ...input.options } : undefined,
     asset: input.asset ? { ...input.asset } : undefined,
@@ -121,7 +121,8 @@ function createCanonicalPlayerObject(
     ...base,
     position: clonePoint(input.position),
     rotation: normalizeRotation(input.rotation),
-    size: normalizePlayerSize(input.size),
+    size:
+      input.size === undefined ? undefined : normalizePlayerSize(input.size),
     props: getCanonicalPlayerProps(input),
   };
 }
@@ -152,12 +153,12 @@ export function updatePlayerObject(
     {
       position: input.position ?? object.position,
       rotation: input.rotation ?? object.rotation,
-      size: input.size ?? object.size,
+      size: getInputValue(input, "size", object.size),
       groupId: getInputValue(input, "groupId", object.props.groupId),
       label: getInputValue(input, "label", object.props.label),
-      color: input.color ?? object.props.color,
+      color: getInputValue(input, "color", object.props.color),
       colors: getInputValue(input, "colors", object.props.colors),
-      fontSize: input.fontSize ?? object.props.fontSize,
+      fontSize: getInputValue(input, "fontSize", object.props.fontSize),
       appearanceId: getInputValue(
         input,
         "appearanceId",

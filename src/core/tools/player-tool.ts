@@ -11,6 +11,7 @@ import { BoardEditorTool } from "./tool";
 import { defineObjectDefinition } from "../objects/types";
 import {
   createPlayerObject,
+  DEFAULT_PLAYER_COLOR,
   DEFAULT_PLAYER_FONT_SIZE,
   PLAYER_OBJECT_TYPE,
   type PlayerObject,
@@ -36,6 +37,7 @@ import {
   getPlayerLabelFontSize,
 } from "../rendering/canvas/object-render-scale";
 import type { Board } from "../board/types";
+import { getPlayerWithEffectiveStyle } from "../board/player-style";
 import {
   DEFAULT_PLAYER_APPEARANCE_ID,
   type PlayerAppearanceRendererRegistry,
@@ -305,13 +307,16 @@ function createPlayerPreviewObject({
       height: draftStyle.size,
     },
     groupId,
-    color: draftStyle.color,
-    colors: draftStyle.colors,
-    fontSize: draftStyle.fontSize,
-    appearanceId: draftStyle.appearanceId,
-    options: draftStyle.options,
-    asset: draftStyle.asset,
-    caption: draftStyle.caption ? { style: draftStyle.caption } : undefined,
+    color: groupId ? undefined : draftStyle.color,
+    colors: groupId ? undefined : draftStyle.colors,
+    fontSize: groupId ? undefined : draftStyle.fontSize,
+    appearanceId: groupId ? undefined : draftStyle.appearanceId,
+    options: groupId ? undefined : draftStyle.options,
+    asset: groupId ? undefined : draftStyle.asset,
+    caption:
+      !groupId && draftStyle.caption
+        ? { style: draftStyle.caption }
+        : undefined,
     label,
   });
 }
@@ -389,8 +394,8 @@ function renderPlayerAsset(
     return true;
   }
 
-  const { context, object, appearance, frameTransform, requestRender } = input;
-  const src = input.assetResolver?.getAssetSrc?.(asset, object) ?? asset.src;
+  const { context, appearance, frameTransform, requestRender } = input;
+  const src = input.assetResolver?.getAssetSrc?.(asset, player) ?? asset.src;
   const entry = getPlayerAssetImage(src, requestRender);
 
   if (!entry.loaded) {
@@ -447,7 +452,8 @@ export function renderPlayerMarker(
   const width = getAbsoluteCanvasExtent(bounds.width);
   const height = getAbsoluteCanvasExtent(bounds.height);
   const radius = Math.min(width, height) / 2;
-  const textColor = getContrastingTextColor(player.props.color);
+  const fillColor = player.props.color ?? DEFAULT_PLAYER_COLOR;
+  const textColor = getContrastingTextColor(fillColor);
   const canvasFontSize = getCanvasFontSizeForPlayerLabel(
     radius,
     player.props.fontSize ?? DEFAULT_PLAYER_FONT_SIZE,
@@ -459,7 +465,7 @@ export function renderPlayerMarker(
   context.translate(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
   context.rotate(((player.rotation ?? 0) * Math.PI) / 180);
 
-  context.fillStyle = player.props.color;
+  context.fillStyle = fillColor;
   context.beginPath();
   context.arc(0, 0, radius, 0, Math.PI * 2);
   context.fill();
@@ -513,13 +519,16 @@ export function createPlayerRenderer(
   appearanceRenderers: PlayerAppearanceRendererRegistry = {},
 ): CanvasObjectRenderer {
   return (input) => {
-    const player = input.object as PlayerObject;
+    const player = getPlayerWithEffectiveStyle(
+      input.board,
+      input.object as PlayerObject,
+    );
     const appearanceId =
       player.props.appearanceId ?? DEFAULT_PLAYER_APPEARANCE_ID;
     const appearanceRenderer = appearanceRenderers[appearanceId];
 
     if (appearanceRenderer) {
-      appearanceRenderer({ ...input, player });
+      appearanceRenderer({ ...input, object: player, player });
     } else {
       renderPlayerMarker(input, player);
     }
@@ -531,12 +540,13 @@ export function createPlayerRenderer(
 export const renderPlayer = createPlayerRenderer();
 
 function hitTestPlayer({
+  board,
   object,
   canvasPoint,
   frameTransform,
   minimumHitRadiusPx,
 }: CanvasObjectHitTestInput) {
-  const player = object as PlayerObject;
+  const player = getPlayerWithEffectiveStyle(board, object as PlayerObject);
   const center = frameTransform.boardToCanvas(player.position);
   const bounds = frameTransform.getObjectCanvasBounds(player);
   const radius = Math.max(

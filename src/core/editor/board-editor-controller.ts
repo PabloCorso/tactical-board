@@ -109,6 +109,7 @@ function getTargetObjectId(
 
     if (
       hitTester?.({
+        board: state.board,
         object,
         canvasPoint,
         frameTransform: projection,
