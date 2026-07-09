@@ -60,7 +60,7 @@ function BasketballBoardStory({
         <BoardEditorCanvas />
         <BoardEditorShapePolygonDone />
         <BoardEditorCanvasToolbar />
-        <BoardEditorSelectionToolbar />
+        <BoardEditorSelectionToolbar theme={basketballTheme} />
         <BoardEditorToolbarDockProvider>
           <BasketballToolbarDockExample />
         </BoardEditorToolbarDockProvider>

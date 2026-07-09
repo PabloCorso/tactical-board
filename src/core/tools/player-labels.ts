@@ -18,17 +18,28 @@ export function parsePlayerNumericLabel(label: unknown) {
 export function getNextNumericPlayerLabel(
   board: Pick<Board, "objects">,
   color: string,
+  groupId?: string,
 ) {
-  const colorKey = color.trim().toLowerCase();
   const highestCurrentLabel = Math.max(
     0,
     ...Object.values(board.objects.byId)
-      .filter(
-        (object) =>
-          object.type === PLAYER_OBJECT_TYPE &&
+      .filter((object) => {
+        if (object.type !== PLAYER_OBJECT_TYPE) {
+          return false;
+        }
+
+        if (groupId) {
+          return object.props.groupId === groupId;
+        }
+
+        const colorKey = color.trim().toLowerCase();
+
+        return (
+          object.props.groupId === undefined &&
           typeof object.props.color === "string" &&
-          object.props.color.trim().toLowerCase() === colorKey,
-      )
+          object.props.color.trim().toLowerCase() === colorKey
+        );
+      })
       .map((object) => parsePlayerNumericLabel(object.props.label))
       .filter((value): value is number => typeof value === "number"),
   );

@@ -3,6 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import {
   createFootballBoard,
   createFootballPitch,
+  FOOTBALL_PITCH_COLORS,
   getFootballPitchAspectRatio,
   type FootballPitchVariant,
   BoardViewerCanvas,
@@ -95,9 +96,27 @@ const boardCards = [
 ] as const;
 
 const cardDemoPlayers = [
-  { x: 14, y: 34, number: "1", label: "GK", color: BOARD_PLAYER_DEFAULT_COLORS[0]! },
-  { x: 42, y: 20, number: "10", label: "AM", color: BOARD_PLAYER_DEFAULT_COLORS[2]! },
-  { x: 72, y: 35, number: "9", label: "ST", color: BOARD_PLAYER_DEFAULT_COLORS[4]! },
+  {
+    x: 14,
+    y: 34,
+    number: "1",
+    label: "GK",
+    color: BOARD_PLAYER_DEFAULT_COLORS[0]!,
+  },
+  {
+    x: 42,
+    y: 20,
+    number: "10",
+    label: "AM",
+    color: BOARD_PLAYER_DEFAULT_COLORS[2]!,
+  },
+  {
+    x: 72,
+    y: 35,
+    number: "9",
+    label: "ST",
+    color: BOARD_PLAYER_DEFAULT_COLORS[4]!,
+  },
 ];
 
 function createCardBoardObjects() {
@@ -161,8 +180,11 @@ function TacticalBoardCardItem({ description, id, pitch, title }: BoardCard) {
     <Card className="shadow-sm">
       <CardContent className="gap-0 p-0">
         <div
-          className="relative w-full overflow-hidden rounded-t-xl bg-zinc-950"
-          style={{ aspectRatio: getFootballPitchAspectRatio(pitch) }}
+          className="relative w-full overflow-hidden rounded-t-xl"
+          style={{
+            aspectRatio: getFootballPitchAspectRatio(pitch),
+            backgroundColor: FOOTBALL_PITCH_COLORS.stripeDark,
+          }}
         >
           <BoardViewerCanvas
             board={board}

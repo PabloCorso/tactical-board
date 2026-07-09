@@ -39,6 +39,7 @@ import { BoardEditorTextSelectionToolbar } from "./text-selection-toolbar";
 import type { BoardEditorSelectionToolbarRenderer } from "./selection-toolbar-types";
 import { BoardEditorSelectionToolbarPositioner } from "./selection-toolbar-positioner";
 import { BoardEditorToolbar } from "../toolbar/editor-toolbar";
+import type { BoardTheme } from "../../theme/board-theme";
 
 const DEFAULT_SELECTION_TOOLBAR_RENDERERS: Record<
   string,
@@ -92,6 +93,7 @@ export function getSelectionToolbarAnchor(
 
 export type BoardEditorSelectionToolbarProps = {
   className?: string;
+  theme?: Pick<BoardTheme, "playerAppearances">;
 };
 
 export function shouldShowSelectionToolbar(
@@ -145,6 +147,7 @@ export function getSelectionBounds(
 
 export function BoardEditorSelectionToolbar({
   className,
+  theme,
 }: BoardEditorSelectionToolbarProps) {
   const store = useBoardEditorContext();
   const state = useBoardEditorStore(store, (currentState) => currentState);
@@ -235,6 +238,7 @@ export function BoardEditorSelectionToolbar({
     <ToolbarRenderer
       className={className}
       selectedObject={selectedObject}
+      theme={theme}
       toolbarLeft={anchor.left}
       toolbarTop={anchor.top}
       toolbarBottom={bounds.y + bounds.height + SELECTION_TOOLBAR_OFFSET_PX}

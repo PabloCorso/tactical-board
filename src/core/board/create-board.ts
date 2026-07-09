@@ -1,4 +1,5 @@
 import type { Board, Document } from "./types";
+import { normalizeBoardPlayerGroups } from "./player-groups";
 
 export function createDocument(input: Document): Document {
   return {
@@ -15,5 +16,10 @@ export function createDocument(input: Document): Document {
 // Compatibility helper kept for Board-facing callers.
 // Prefer createDocument for new core Editor Engine code.
 export function createBoard(input: Board): Board {
-  return createDocument(input) as Board;
+  const board = createDocument(input) as Board;
+
+  return {
+    ...board,
+    playerGroups: normalizeBoardPlayerGroups(board.playerGroups),
+  };
 }

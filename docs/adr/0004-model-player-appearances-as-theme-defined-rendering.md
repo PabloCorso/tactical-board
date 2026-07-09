@@ -1,0 +1,7 @@
+# Model player appearances as theme-defined rendering
+
+Player visuals will be modeled as **Player Appearances** selected by stable identities in board data, while the catalog of available appearances and their rendering behavior belongs to a Theme or Host App. Board data may store the selected appearance id, named color values, opaque appearance options, and sibling media assets, but it must not prescribe color-role names, option names, or renderer behavior; this keeps the open-source library sport-agnostic while allowing built-in appearances such as circles and shirts plus host-defined renderers for custom sports, pixel art, uploaded SVGs, and other product-specific needs.
+
+The current player circle remains the backward-compatible default appearance for players without an explicit appearance. Player Groups provide default appearance, color, asset, option, and caption styling for their members, while individual Players may override those defaults when a specific participant needs a different visual representation.
+
+Player text is split into a short **Player Marker Label** rendered as part of the appearance and a first-class **Player Caption** rendered outside the marker with simple placement such as top, right, bottom, or left. Captions are common player behavior rather than appearance-specific rendering, move with the player, and participate in selection, hit testing, and visible bounds so coaches do not need to manually position separate text objects for player names.

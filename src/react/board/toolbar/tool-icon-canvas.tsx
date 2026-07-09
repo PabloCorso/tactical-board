@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useCallback, useRef } from "react";
 import type { BoardObject } from "../../../core/board/types";
 import type { BoardSpaceProjection } from "../../../core/geometry/board-space-projection";
 import type { CanvasObjectRenderer } from "../../../core/rendering/canvas/types";
@@ -24,102 +24,145 @@ export function BoardToolIconCanvas<TObject extends BoardObject>({
   height = 24,
   createProjection = createCenteredObjectIconProjection,
 }: BoardToolIconCanvasProps<TObject>) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const cleanupRef = useRef<(() => void) | null>(null);
+  const setCanvasRef = useCallback(
+    (canvas: HTMLCanvasElement | null) => {
+      cleanupRef.current?.();
+      cleanupRef.current = null;
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-
-    if (!canvas) {
-      return;
-    }
-
-    let frameId = 0;
-    let settleFrameId = 0;
-
-    const draw = () => {
-      const context = canvas.getContext("2d");
-
-      if (!context) {
+      if (!canvas) {
         return;
       }
 
-      const ratio =
-        typeof window === "undefined" ? 1 : window.devicePixelRatio || 1;
-      canvas.width = Math.floor(width * ratio);
-      canvas.height = Math.floor(height * ratio);
-      context.setTransform(1, 0, 0, 1, 0, 0);
-      context.clearRect(0, 0, canvas.width, canvas.height);
-      context.scale(ratio, ratio);
-      renderer({
-        context,
-        object: resolveCurrentColorObject(
-          object,
-          getCanvasToolbarIconColor(canvas),
-        ),
-        appearance: "default",
-        requestRender: () => {
-          if (frameId !== 0) {
-            return;
-          }
-
-          frameId = window.requestAnimationFrame(() => {
-            frameId = 0;
-            draw();
-          });
-        },
-        frameTransform: createProjection(object, width, height),
+      cleanupRef.current = renderToolIconCanvas({
+        canvas,
+        createProjection,
+        height,
+        object,
+        renderer,
+        width,
       });
-    };
-
-    draw();
-    settleFrameId = window.requestAnimationFrame(draw);
-    const themeObserver =
-      typeof MutationObserver === "undefined"
-        ? undefined
-        : new MutationObserver(draw);
-    const tacticalBoardRoot = canvas.closest("[data-tactical-board]");
-
-    if (themeObserver) {
-      themeObserver.observe(document.documentElement, {
-        attributes: true,
-        attributeFilter: ["class", "style"],
-      });
-      themeObserver.observe(document.body, {
-        attributes: true,
-        attributeFilter: ["class", "style"],
-      });
-
-      if (tacticalBoardRoot) {
-        themeObserver.observe(tacticalBoardRoot, {
-          attributes: true,
-          attributeFilter: ["class", "style"],
-        });
-      }
-    }
-
-    return () => {
-      if (frameId !== 0) {
-        window.cancelAnimationFrame(frameId);
-      }
-      if (settleFrameId !== 0) {
-        window.cancelAnimationFrame(settleFrameId);
-      }
-      themeObserver?.disconnect();
-    };
-  }, [createProjection, height, object, renderer, width]);
+    },
+    [createProjection, height, object, renderer, width],
+  );
 
   return (
     <canvas
       aria-hidden="true"
       className={className}
-      ref={canvasRef}
+      ref={setCanvasRef}
       style={{ width, height, color: "var(--tb-toolbar-icon-primary)" }}
     />
   );
 }
 
+function renderToolIconCanvas<TObject extends BoardObject>({
+  canvas,
+  createProjection = createCenteredObjectIconProjection,
+  height = 24,
+  object,
+  renderer,
+  width = 24,
+}: BoardToolIconCanvasProps<TObject> & {
+  canvas: HTMLCanvasElement;
+}) {
+  let frameId: number | undefined;
+  let settleFrameId: number | undefined;
+  const scheduleFrame =
+    typeof window !== "undefined" &&
+    typeof window.requestAnimationFrame === "function"
+      ? window.requestAnimationFrame.bind(window)
+      : undefined;
+  const cancelFrame =
+    typeof window !== "undefined" &&
+    typeof window.cancelAnimationFrame === "function"
+      ? window.cancelAnimationFrame.bind(window)
+      : undefined;
+
+  const draw = () => {
+    if (!canvas) {
+      return;
+    }
+
+    const context = canvas.getContext("2d");
+
+    if (!context) {
+      return;
+    }
+
+    const ratio =
+      typeof window === "undefined" ? 1 : window.devicePixelRatio || 1;
+    canvas.width = Math.floor(width * ratio);
+    canvas.height = Math.floor(height * ratio);
+    context.setTransform(1, 0, 0, 1, 0, 0);
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.scale(ratio, ratio);
+    renderer({
+      context,
+      object: resolveCurrentColorObject(
+        object,
+        getCanvasToolbarIconColor(canvas),
+      ),
+      appearance: "default",
+      requestRender: () => {
+        if (frameId !== undefined || !scheduleFrame) {
+          return;
+        }
+
+        frameId = scheduleFrame(() => {
+          frameId = undefined;
+          draw();
+        });
+      },
+      frameTransform: createProjection(object, width, height),
+    });
+  };
+
+  draw();
+
+  if (scheduleFrame) {
+    settleFrameId = scheduleFrame(draw);
+  }
+
+  const themeObserver =
+    typeof MutationObserver === "undefined"
+      ? undefined
+      : new MutationObserver(draw);
+  const tacticalBoardRoot = canvas.closest("[data-tactical-board]");
+
+  if (themeObserver && typeof document !== "undefined") {
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class", "style"],
+    });
+    themeObserver.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class", "style"],
+    });
+
+    if (tacticalBoardRoot) {
+      themeObserver.observe(tacticalBoardRoot, {
+        attributes: true,
+        attributeFilter: ["class", "style"],
+      });
+    }
+  }
+
+  return () => {
+    if (frameId !== undefined && cancelFrame) {
+      cancelFrame(frameId);
+    }
+    if (settleFrameId !== undefined && cancelFrame) {
+      cancelFrame(settleFrameId);
+    }
+    themeObserver?.disconnect();
+  };
+}
+
 function getCanvasToolbarIconColor(canvas: HTMLCanvasElement) {
-  return window.getComputedStyle(canvas).color;
+  return typeof window === "undefined"
+    ? "currentColor"
+    : window.getComputedStyle(canvas).color;
 }
 
 function resolveCurrentColorObject<TObject extends BoardObject>(

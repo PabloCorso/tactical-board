@@ -16,6 +16,13 @@
 - **Asset**: A serializable reference to visual media used by a Board Object or Theme Definition, resolved by the Host App or runtime before rendering.
 - **Catalog**: A Theme-provided collection of available board definitions that editor UI may expose to users.
 - **Definition**: A Theme-provided description of an available board thing such as a frame, equipment item, object kind, or visual skin.
+- **Player Group**: A board-level player grouping used to provide optional shared defaults for player instances (for example, group name, color strategy, label behavior, or size).
+- **Group Identity**: The optional player metadata key that links a Player to a Player Group.
+- **Player Group Order**: An optional ordered list of Player Group IDs used by the Coach Workflow to render groups consistently in UI surfaces.
+- **Player Group Preset**: A user-facing group entry in the Player Group toolbar, typically represented by a default color and optional style/name.
+- **Player Appearance Color**: A named color role used by a Player Appearance, where built-in and custom appearances decide which roles they understand.
+- **Player Appearance Option**: A serializable configuration value for a Player Appearance that is neither its identity, colors, nor media asset.
+- **Player Appearance Catalog**: A Theme- or Host App-provided collection of available Player Appearances and their configuration metadata.
 - **Preset**: A reusable shortcut that creates or applies a preconfigured Board state, object, or style from one or more Definitions.
 - **Document Schema**: The explicit serialized JSON shape for a Document. The Editor Engine may offer validation helpers, while migration policy and persistence handling remain Host App responsibilities.
 - **Board Schema**: A board-specific profile of the Document Schema for tactical-board content.
@@ -44,6 +51,12 @@
 - **Selection Bounds**: The aggregate bounds of the current Selection when it is treated as one editable unit.
 - **Shape Skin**: A visual representation of a Shape that can change without changing the shape's meaning or serialized identity.
 - **Player**: A Board Object representing a player or participant on a Board; in the board layer, a Player is an object kind rather than a separate domain aggregate.
+- **Player Appearance**: A player-specific Shape Skin that controls how Players are visually represented, such as a circle, kit, patterned marker, pixel-art figure, or custom media.
+- **Player Appearance Color**: A named color role used by a Player Appearance, where built-in and custom appearances decide which roles they understand.
+- **Player Appearance Option**: A serializable configuration value for a Player Appearance that is neither its identity, colors, nor media asset.
+- **Player Appearance Catalog**: A Theme- or Host App-provided collection of available Player Appearances and their configuration metadata.
+- **Player Marker Label**: A short label rendered as part of a Player's marker or appearance, typically a number or compact role abbreviation.
+- **Player Caption**: Longer text associated with a Player and positioned around the player marker, typically used for names or readable role notes.
 - **Equipment Object**: A Board Object representing placeable training or game equipment whose name and visual appearance may be extended by a Theme or Host App.
 - **Shape Index**: The canonical internal storage shape for Shapes inside the Editor Engine: a map keyed by shape id plus a separate ordering list.
 - **Export Primitive**: A low-level Board Library capability that turns Board data into a portable representation, such as serialized JSON or a rendered image, without deciding where the result is stored or shared.
@@ -56,6 +69,27 @@
 - A **Host App** may compose custom save, export, or share controls with Board Library toolbar primitives instead of using a prescribed Board Library toolbar.
 - **React UI Copy** is localized through the React Adapter labels provider only when the copy is owned by React UI. Labels carried by **Tool** registrations, **Theme** definitions, frame variant options, equipment definitions, or Host App-provided presets remain owned by that data and should not be overwritten by the provider.
 - Built-in toolbar presets should prefer stable ids or values for behavior and resolve their display text at the React rendering boundary. If a Host App supplies a custom preset label or tooltip, that caller-owned copy takes precedence.
+- **Numeric player labels** are scoped to a Player Group when `groupId` is set, so labels can reuse across groups; players without a group use existing legacy color/global sequencing for backward compatibility.
+- A **Player Group** provides default styling and **Player Appearance** choices for its member **Players**, while an individual **Player** may override those defaults when a specific participant needs a different visual representation.
+- A **Player Appearance** is selected by a stable identity in board data, while the rendering behavior for that appearance belongs to a **Theme** or **Host App**.
+- A single player color remains the fallback for simple appearances, while richer **Player Appearances** may use any number of named **Player Appearance Colors**.
+- The Board model does not prescribe **Player Appearance Color** names; each **Player Appearance** may define the color roles its renderer understands.
+- A **Player Appearance Catalog** may define color-role metadata for editor controls, while **Players** and **Player Groups** store only the selected color values.
+- The Board model does not prescribe **Player Appearance Option** names; each **Player Appearance** may define the options its renderer understands.
+- A **Player Appearance** may use an **Asset**, but media remains a separate Board value so the same asset concept can serve objects, themes, and host-provided rendering.
+- A Player without an explicit **Player Appearance** uses the built-in circle appearance for backward-compatible rendering.
+- Built-in kit or marker patterns are modeled as distinct **Player Appearances** rather than as a required variant system in Board data.
+- A **Player Marker Label** belongs to the Player's visible marker, while a **Player Caption** is first-class player text placed outside the marker for readability.
+- A **Player Caption** uses a simple placement around the marker, such as top, right, bottom, or left, with optional distance from the marker.
+- **Player Appearances** own marker visuals and **Player Marker Label** rendering, while **Player Captions** use common player rendering behavior across appearances.
+- A **Player Group** may provide default **Player Caption** styling and placement, while each **Player** owns its caption text and may override those defaults.
+- A **Player Caption** is part of its **Player** for selection, hit testing, movement, and visible bounds.
+- In this v1 Coach Workflow, deleting a Player Group is a destructive action on its members: players assigned to that group are removed from the board alongside the group definition.
+- A board must always retain at least one Player Group; deleting the final remaining group is disallowed.
+- If a deletion request for the last remaining Player Group is made despite UI safeguards, it is treated as a no-op.
+- New boards should start with two Player Group Presets by default, each seeded from the first available colors in the shared color-order list used by the Color Picker.
+- Adding a Player Group Preset in v1 uses the next unused color from that same color-order list.
+- When all preset colors are already in use, new Player Group Presets fall back to the next color in the shared color-order sequence (wrapping as needed).
 
 ## Testing Policy
 

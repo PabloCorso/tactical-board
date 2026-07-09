@@ -34,10 +34,12 @@ export const FOOTBALL_FULL_PITCH_METRICS = {
   lineWidth: 0.4,
 };
 
+const FOOTBALL_PITCH_STRIPE_DARK = "#257e3f";
+const FOOTBALL_PITCH_STRIPE_LIGHT = "#2d8747";
+
 export const FOOTBALL_PITCH_COLORS = {
-  outer: "#177238",
-  stripeDark: "#257e3f",
-  stripeLight: "#2d8747",
+  stripeDark: FOOTBALL_PITCH_STRIPE_DARK,
+  stripeLight: FOOTBALL_PITCH_STRIPE_LIGHT,
   line: "#ffffff",
 };
 
@@ -732,7 +734,7 @@ export function createFootballPitch(
     return {
       width: metersToPixels(halfPitchFrameWidth),
       height: metersToPixels(halfPitchFrameHeight),
-      background: FOOTBALL_PITCH_COLORS.outer,
+      background: FOOTBALL_PITCH_COLORS.stripeDark,
       markings: [],
       markup: {
         sport: "football",
@@ -756,7 +758,7 @@ export function createFootballPitch(
     height: metersToPixels(
       shouldOrient && appliedOrientation !== 180 ? width : height,
     ),
-    background: FOOTBALL_PITCH_COLORS.outer,
+    background: FOOTBALL_PITCH_COLORS.stripeDark,
     markings: shouldOrient
       ? rotateFootballMarkings(
           markings,

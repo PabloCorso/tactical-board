@@ -22,6 +22,10 @@ import {
   renderRotateHandleIcon,
 } from "./selection-geometry";
 import { getPlayerBorderWidth } from "../rendering/canvas/object-render-scale";
+import {
+  getPlayerCaptionCanvasBounds,
+  getPlayerVisibleCanvasBounds,
+} from "./player-geometry";
 
 const PLAYER_SELECTION_PADDING_PX = 0.75;
 const PLAYER_RESIZE_HANDLE_RADIUS_PX = 4;
@@ -64,6 +68,22 @@ export function getPlayerSelectionOutlineCanvasPoints(
   >[0]["projection"],
   player: PlayerObject,
 ) {
+  const captionBounds = getPlayerCaptionCanvasBounds(player, projection);
+
+  if (captionBounds) {
+    const bounds = getPlayerVisibleCanvasBounds(player, projection);
+
+    return getExpandedCanvasRectPoints(
+      [
+        { x: bounds.x, y: bounds.y },
+        { x: bounds.x + bounds.width, y: bounds.y },
+        { x: bounds.x + bounds.width, y: bounds.y + bounds.height },
+        { x: bounds.x, y: bounds.y + bounds.height },
+      ],
+      getPlayerSelectionPaddingPx(projection, player),
+    );
+  }
+
   return getExpandedCanvasRectPoints(
     getRotatedRectBoardPoints({
       center: player.position,

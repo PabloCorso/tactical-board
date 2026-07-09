@@ -60,6 +60,9 @@ export interface ToolApi {
   deleteObjects: (ids: ObjectId[]) => void;
   sendObjectsToBack: (ids: ObjectId[]) => void;
   setFrame: (frame: BoardFrameConfig) => void;
+  updateBoard: (
+    updater: (board: BoardEditorState["board"]) => BoardEditorState["board"],
+  ) => void;
   updateObjects: (
     ids: ObjectId[],
     updater: (

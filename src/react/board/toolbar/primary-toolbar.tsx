@@ -42,7 +42,7 @@ export function BoardPrimaryToolbar({
     >
       <BoardEditorSelectToolControl />
       <BoardEditorHandToolControl />
-      <BoardEditorPlayerToolControl />
+      <BoardEditorPlayerToolControl adapters={adapters} />
       {showEquipment ? (
         <BoardEditorEquipmentToolControl adapters={adapters} theme={theme} />
       ) : null}

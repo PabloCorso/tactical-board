@@ -1,4 +1,10 @@
 import type { BoardEditorToolState } from "../editor/types";
+import {
+  createDefaultBoardPlayerGroups,
+  getBoardPlayerGroup,
+  getBoardPlayerGroups,
+  isBoardPlayerGroupAutoNumberingEnabled,
+} from "../board/player-groups";
 import type { ToolApi, ToolDefinition } from "./types";
 import { BoardEditorTool } from "./tool";
 import { defineObjectDefinition } from "../objects/types";
@@ -28,6 +34,17 @@ import {
   getPlayerBorderWidth,
   getPlayerLabelFontSize,
 } from "../rendering/canvas/object-render-scale";
+import type { Board } from "../board/types";
+import {
+  DEFAULT_PLAYER_APPEARANCE_ID,
+  type PlayerAppearanceRendererRegistry,
+} from "./player-appearance";
+import {
+  getPlayerCaptionCanvasBounds,
+  getPlayerCaptionCanvasFontSize,
+  getPlayerCaptionText,
+  hitTestPlayerCaption,
+} from "./player-geometry";
 
 export type PlayerToolLabelStrategy = "numeric-by-color" | "none";
 
@@ -107,11 +124,49 @@ export class PlayerTool extends BoardEditorTool implements ToolDefinition {
   }
 
   onActivate(api: ToolApi) {
+    const hasStoredDraftStyle = hasStoredPlayerDraftStyle(
+      api.getState().toolState[PLAYER_TOOL_ID],
+    );
     const currentState = getPlayerToolState(api.getState().toolState);
+    const board = api.getState().board;
+    const groups =
+      board.playerGroups && board.playerGroups.length > 0
+        ? getBoardPlayerGroups(board)
+        : [];
+    const selectedGroup = getBoardPlayerGroup(board, currentState.activeGroupId);
+    const activeGroup = selectedGroup ?? groups[0];
+    const activatedDraftStyle = this.getActivatedDraftStyle(
+      api.getState().toolState,
+    );
+    const groupDraftStyle = {
+      ...activatedDraftStyle,
+      color: activeGroup?.style.color ?? activatedDraftStyle.color,
+      colors: activeGroup?.style.colors ?? activatedDraftStyle.colors,
+      size: activeGroup?.style.size ?? activatedDraftStyle.size,
+      fontSize: activeGroup?.style.fontSize ?? activatedDraftStyle.fontSize,
+      appearanceId:
+        activeGroup?.style.appearanceId ?? activatedDraftStyle.appearanceId,
+      options: activeGroup?.style.options ?? activatedDraftStyle.options,
+      asset: activeGroup?.style.asset ?? activatedDraftStyle.asset,
+      caption: activeGroup?.style.caption ?? activatedDraftStyle.caption,
+    };
+    const shouldPreserveInitialDefault =
+      activeGroup &&
+      !selectedGroup &&
+      !hasStoredDraftStyle &&
+      this.defaults.length > 0 &&
+      isDefaultBoardPlayerGroup(activeGroup, 0);
+    const draftStyle = shouldPreserveInitialDefault
+      ? {
+          ...groupDraftStyle,
+          ...this.defaults[0].draftStyle,
+        }
+      : groupDraftStyle;
 
     api.setToolState(PLAYER_TOOL_ID, {
       ...currentState,
-      draftStyle: this.getActivatedDraftStyle(api.getState().toolState),
+      activeGroupId: activeGroup?.id,
+      draftStyle,
     });
   }
 
@@ -134,10 +189,7 @@ export class PlayerTool extends BoardEditorTool implements ToolDefinition {
     const state = api.getState();
     const playerState = getPlayerToolState(state.toolState);
     const playerId = createPlayerId(state.board.objects.byId);
-    const label =
-      this.labelStrategy === "numeric-by-color"
-        ? getNextNumericPlayerLabel(state.board, playerState.draftStyle.color)
-        : undefined;
+    const label = this.getNextPlayerLabel(state.board, playerState);
 
     clearSelection(api);
     api.addObjects([
@@ -145,6 +197,7 @@ export class PlayerTool extends BoardEditorTool implements ToolDefinition {
         id: playerId,
         point: event.point,
         draftStyle: playerState.draftStyle,
+        groupId: playerState.activeGroupId,
         label,
       }),
     ]);
@@ -156,20 +209,59 @@ export class PlayerTool extends BoardEditorTool implements ToolDefinition {
   ) {
     const state = api.getState();
     const playerState = getPlayerToolState(state.toolState);
-    const label =
-      this.labelStrategy === "numeric-by-color"
-        ? getNextNumericPlayerLabel(state.board, playerState.draftStyle.color)
-        : undefined;
+    const label = this.getNextPlayerLabel(state.board, playerState);
 
     api.setPreviewObjects([
       createPlayerPreviewObject({
         id: "player-preview",
         point: event.point,
         draftStyle: playerState.draftStyle,
+        groupId: playerState.activeGroupId,
         label,
       }),
     ]);
   }
+
+  private getNextPlayerLabel(
+    board: Pick<Board, "objects" | "playerGroups">,
+    playerState: PlayerToolState,
+  ) {
+    const activeGroup = getBoardPlayerGroup(board, playerState.activeGroupId);
+
+    if (
+      this.labelStrategy !== "numeric-by-color" ||
+      !isBoardPlayerGroupAutoNumberingEnabled(activeGroup)
+    ) {
+      return undefined;
+    }
+
+    return getNextNumericPlayerLabel(
+      board,
+      playerState.draftStyle.color,
+      playerState.activeGroupId,
+    );
+  }
+}
+
+function isDefaultBoardPlayerGroup(
+  group: NonNullable<ReturnType<typeof getBoardPlayerGroup>>,
+  index: number,
+) {
+  const defaultGroup = createDefaultBoardPlayerGroups(index + 1)[index];
+
+  return (
+    group.id === defaultGroup.id &&
+    group.name === defaultGroup.name &&
+    group.autoNumbering === defaultGroup.autoNumbering &&
+    group.style.color === defaultGroup.style.color &&
+    group.style.size === defaultGroup.style.size &&
+    group.style.fontSize === defaultGroup.style.fontSize &&
+    group.style.appearanceId === undefined &&
+    group.style.colors === undefined &&
+    group.style.options === undefined &&
+    group.style.asset === undefined &&
+    group.style.caption === undefined
+  );
 }
 
 function hasStoredPlayerDraftStyle(
@@ -186,11 +278,13 @@ function createPlayerPreviewObject({
   id,
   point,
   draftStyle,
+  groupId,
   label,
 }: {
   id: string;
   point: Parameters<NonNullable<ToolDefinition["onPointerMove"]>>[0]["point"];
   draftStyle: ReturnType<typeof getPlayerToolState>["draftStyle"];
+  groupId?: string;
   label?: string;
 }) {
   return createPlayerObject({
@@ -201,9 +295,20 @@ function createPlayerPreviewObject({
       width: draftStyle.size,
       height: draftStyle.size,
     },
+    groupId,
     color: draftStyle.color,
+    colors: draftStyle.colors,
+    fontSize: draftStyle.fontSize,
+    appearanceId: draftStyle.appearanceId,
+    options: draftStyle.options,
+    asset: draftStyle.asset,
+    caption: draftStyle.caption ? { style: draftStyle.caption } : undefined,
     label,
   });
+}
+
+export function getContrastingPlayerLabelColor(color: string) {
+  return getContrastingTextColor(color);
 }
 
 function getContrastingTextColor(color: string) {
@@ -303,8 +408,7 @@ function renderPlayerAsset(
   context.drawImage(entry.image, -width / 2, -height / 2, width, height);
 
   if (player.props.label) {
-    const labelOffsetY =
-      1 - getPlayerLabelVerticalOffset(frameTransform.scale);
+    const labelOffsetY = 1 - getPlayerLabelVerticalOffset(frameTransform.scale);
 
     context.fillStyle = "#ffffff";
     context.font = `700 ${canvasFontSize}px "ui-rounded", "SF Pro Display", sans-serif`;
@@ -320,9 +424,11 @@ function renderPlayerAsset(
   return true;
 }
 
-export function renderPlayer(input: CanvasObjectRenderInput) {
-  const { context, object, appearance, frameTransform } = input;
-  const player = object as PlayerObject;
+export function renderPlayerMarker(
+  input: CanvasObjectRenderInput,
+  player: PlayerObject,
+) {
+  const { context, appearance, frameTransform } = input;
 
   if (renderPlayerAsset(input, player)) {
     return;
@@ -354,8 +460,7 @@ export function renderPlayer(input: CanvasObjectRenderInput) {
   context.stroke();
 
   if (player.props.label) {
-    const labelOffsetY =
-      1 - getPlayerLabelVerticalOffset(frameTransform.scale);
+    const labelOffsetY = 1 - getPlayerLabelVerticalOffset(frameTransform.scale);
 
     context.fillStyle = textColor;
     context.font = `700 ${canvasFontSize}px "ui-rounded", "SF Pro Display", sans-serif`;
@@ -366,6 +471,55 @@ export function renderPlayer(input: CanvasObjectRenderInput) {
 
   context.restore();
 }
+
+function renderPlayerCaption(
+  input: CanvasObjectRenderInput,
+  player: PlayerObject,
+) {
+  const text = getPlayerCaptionText(player);
+  const bounds = getPlayerCaptionCanvasBounds(player, input.frameTransform);
+
+  if (!text || !bounds) {
+    return;
+  }
+
+  const { context, appearance } = input;
+  const fontSize = getPlayerCaptionCanvasFontSize(player, input.frameTransform);
+
+  context.save();
+  context.globalAlpha = appearance === "preview" ? PREVIEW_OPACITY : 1;
+  context.fillStyle = player.props.caption?.style?.color ?? "#111827";
+  context.font = `600 ${fontSize}px "ui-rounded", "SF Pro Display", sans-serif`;
+  context.textAlign = "center";
+  context.textBaseline = "middle";
+  context.fillText(
+    text,
+    bounds.x + bounds.width / 2,
+    bounds.y + bounds.height / 2,
+  );
+  context.restore();
+}
+
+export function createPlayerRenderer(
+  appearanceRenderers: PlayerAppearanceRendererRegistry = {},
+): CanvasObjectRenderer {
+  return (input) => {
+    const player = input.object as PlayerObject;
+    const appearanceId =
+      player.props.appearanceId ?? DEFAULT_PLAYER_APPEARANCE_ID;
+    const appearanceRenderer = appearanceRenderers[appearanceId];
+
+    if (appearanceRenderer) {
+      appearanceRenderer({ ...input, player });
+    } else {
+      renderPlayerMarker(input, player);
+    }
+
+    renderPlayerCaption(input, player);
+  };
+}
+
+export const renderPlayer = createPlayerRenderer();
 
 function hitTestPlayer({
   object,
@@ -382,6 +536,7 @@ function hitTestPlayer({
   );
 
   return (
-    Math.hypot(canvasPoint.x - center.x, canvasPoint.y - center.y) <= radius
+    Math.hypot(canvasPoint.x - center.x, canvasPoint.y - center.y) <= radius ||
+    hitTestPlayerCaption(player, frameTransform, canvasPoint)
   );
 }

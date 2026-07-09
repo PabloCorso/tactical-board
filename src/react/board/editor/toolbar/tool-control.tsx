@@ -82,6 +82,11 @@ export type BoardEditorEquipmentToolControlProps =
     theme?: Pick<BoardTheme, "objects">;
   };
 
+export type BoardEditorPlayerToolControlProps =
+  BoardEditorDefaultToolControlProps & {
+    adapters?: BoardThemeAdapters;
+  };
+
 export function BoardEditorSelectToolControl(
   props: BoardEditorDefaultToolControlProps,
 ) {
@@ -95,9 +100,14 @@ export function BoardEditorHandToolControl(
 }
 
 export function BoardEditorPlayerToolControl({
-  icon = <BoardPlayerToolIcon />,
+  adapters,
+  icon = (
+    <BoardPlayerToolIcon
+      appearanceRenderers={adapters?.playerAppearanceRenderers}
+    />
+  ),
   ...props
-}: BoardEditorDefaultToolControlProps) {
+}: BoardEditorPlayerToolControlProps) {
   return (
     <BoardEditorToolControl {...props} icon={icon} toolId={PLAYER_TOOL_ID} />
   );

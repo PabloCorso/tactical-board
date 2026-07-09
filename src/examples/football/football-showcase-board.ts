@@ -142,6 +142,8 @@ const playerShowcaseEntries = BOARD_PLAYER_DEFAULT_COLORS.map(
     const column = index % 4;
     const row = Math.floor(index / 4);
     const id = `player-showcase-${index + 1}`;
+    const usesImage = index === 0;
+    const usesShirt = index >= 4 && index < 8;
 
     return [
       id,
@@ -153,7 +155,30 @@ const playerShowcaseEntries = BOARD_PLAYER_DEFAULT_COLORS.map(
         }),
         size: index === 0 ? { width: 40, height: 40 } : undefined,
         color,
-        asset: index === 0 ? { src: playerOneImage } : undefined,
+        colors: usesShirt
+          ? {
+              shirt: color,
+              trim:
+                index % 2 === 0
+                  ? DEFAULT_BOARD_COLOR.white
+                  : DEFAULT_BOARD_COLOR.black,
+            }
+          : undefined,
+        appearanceId: usesImage
+          ? "image"
+          : usesShirt
+            ? "football-shirt"
+            : undefined,
+        asset: usesImage ? { src: playerOneImage } : undefined,
+        caption: {
+          text: index === 0 ? "Captain" : `Player ${index + 1}`,
+          style: {
+            placement: row === 0 ? "bottom" : "top",
+            distance: 4,
+            color: DEFAULT_BOARD_COLOR.black,
+            fontSize: 10,
+          },
+        },
         label: "1",
       }),
     ] as const;
@@ -212,7 +237,7 @@ const textShowcaseEntries = [
 const textShowcaseObjects = Object.fromEntries(textShowcaseEntries);
 const textShowcaseOrder = textShowcaseEntries.map(([id]) => id);
 
-export const footballShowcaseBoard = createFootballBoard({
+const footballShowcaseBaseBoard = createFootballBoard({
   id: "football-showcase-board",
   name: "Football Showcase",
   objects: {
@@ -232,3 +257,23 @@ export const footballShowcaseBoard = createFootballBoard({
     ],
   },
 });
+
+export const footballShowcaseBoard = {
+  ...footballShowcaseBaseBoard,
+  playerGroups: footballShowcaseBaseBoard.playerGroups?.map((group, index) =>
+    index === 1
+      ? {
+          ...group,
+          style: {
+            ...group.style,
+            colors: {
+              ...group.style.colors,
+              shirt: group.style.color ?? DEFAULT_BOARD_COLOR.blue,
+              trim: DEFAULT_BOARD_COLOR.white,
+            },
+            appearanceId: "football-shirt",
+          },
+        }
+      : group,
+  ),
+};

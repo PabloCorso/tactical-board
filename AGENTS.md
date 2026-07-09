@@ -17,4 +17,22 @@ This repo uses a single-context domain-doc layout. See `docs/agents/domain.md`.
 Do not start Storybook or other dev servers for visual testing unless explicitly
 asked. Assume the human runs Storybook and provides visual feedback.
 
-Use typecheck and tests for verification by default.
+Use typecheck for verification by default. Run existing relevant tests when they
+cover the changed behavior.
+
+### Testing philosophy
+
+Tests exist to move faster, not as ceremony.
+
+Add or extend tests only for critical flows, bug fixes, risky business logic, or
+when explicitly asked. Skip new tests for trivial helpers, presentational changes,
+and obvious glue.
+
+Default to no new tests unless the protected risk is clear and worth the
+maintenance cost. Before adding a test, name the risk it protects. Weak risk
+means no test.
+
+Prefer one useful flow or integration test over many narrow unit tests.
+
+Keep changes small and vertical. Avoid unrelated cleanup and premature
+abstractions.

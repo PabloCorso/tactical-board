@@ -1,6 +1,6 @@
 import * as React from "react";
-import { cn } from "#app/utils/misc";
-import { Icon, type IconProps } from "./icon.tsx";
+import { cn } from "./misc";
+import { Icon, type IconProps } from "./icon";
 
 export type InputProps = React.ComponentPropsWithRef<"input"> & {
   iconBefore?: IconProps["children"] | null;
@@ -27,10 +27,10 @@ export function Input({
     >
       <input
         className={cn(
-          "border-input bg-input text-primary transition-interactive flex h-10 w-full min-w-0 rounded-lg border px-3 text-base leading-5 outline-hidden md:text-sm",
-          "placeholder:text-placeholder hover:border-input-hover focus-visible:focus-ring",
+          "border-tb-border-default bg-tb-background-screen text-tb-text-primary transition-interactive flex h-10 w-full min-w-0 rounded-lg border px-3 text-base leading-5 outline-hidden md:text-sm",
+          "placeholder:text-tb-text-secondary hover:border-tb-neutral-soft-active focus-visible:focus-ring",
           "disabled:cursor-not-allowed disabled:opacity-40",
-          "aria-[invalid]:border-danger aria-[invalid]:[--focus-ring:var(--danger)]",
+          "aria-[invalid]:border-tb-danger aria-[invalid]:[--tb-focus-ring:var(--tb-danger)]",
           { "pl-9": iconBefore, "pr-9": iconAfter },
           className,
         )}
@@ -39,7 +39,7 @@ export function Input({
       {iconBefore && (
         <Icon
           size={iconSize}
-          className="text-tertiary pointer-events-none absolute top-1/2 left-3 flex -translate-y-1/2 items-center justify-center leading-none"
+          className="text-tb-text-tertiary pointer-events-none absolute top-1/2 left-3 flex -translate-y-1/2 items-center justify-center leading-none"
         >
           {iconBefore}
         </Icon>
@@ -47,7 +47,7 @@ export function Input({
       {iconAfter && (
         <Icon
           size={iconSize}
-          className="text-tertiary pointer-events-none absolute top-1/2 right-3 flex -translate-y-1/2 items-center justify-center leading-none"
+          className="text-tb-text-tertiary pointer-events-none absolute top-1/2 right-3 flex -translate-y-1/2 items-center justify-center leading-none"
         >
           {iconAfter}
         </Icon>

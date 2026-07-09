@@ -3,6 +3,7 @@ import type {
   BoardObject,
   BoardObjectSize,
   Point,
+  PlayerCaption,
 } from "../board/types";
 import { DEFAULT_BOARD_COLOR } from "../colors/default-colors";
 
@@ -23,10 +24,15 @@ export interface PlayerTransformCapabilities {
 }
 
 export interface PlayerObjectProps extends Record<string, unknown> {
+  groupId?: string;
   label?: string;
   color: string;
+  colors?: Record<string, string>;
   fontSize: number;
+  appearanceId?: string;
+  options?: Record<string, unknown>;
   asset?: Asset;
+  caption?: PlayerCaption;
   meta?: Record<string, unknown>;
   transformCapabilities: PlayerTransformCapabilities;
 }
@@ -37,13 +43,18 @@ export type PlayerObject = BoardObject & {
 };
 
 type PlayerCoreInput = {
+  groupId?: string;
   position: Point;
   rotation?: number;
   size?: Partial<BoardObjectSize>;
   label?: string;
   color?: string;
+  colors?: Record<string, string>;
   fontSize?: number;
+  appearanceId?: string;
+  options?: Record<string, unknown>;
   asset?: Asset;
+  caption?: PlayerCaption;
   meta?: Record<string, unknown>;
 };
 
@@ -69,12 +80,32 @@ function normalizePlayerSize(
   };
 }
 
+function getInputValue<T extends object, K extends keyof T>(
+  input: T,
+  key: K,
+  fallback: T[K],
+) {
+  return Object.prototype.hasOwnProperty.call(input, key)
+    ? input[key]
+    : fallback;
+}
+
 function getCanonicalPlayerProps(input: PlayerCoreInput): PlayerObjectProps {
   return {
+    groupId: input.groupId,
     label: input.label,
     color: input.color ?? DEFAULT_PLAYER_COLOR,
+    colors: input.colors ? { ...input.colors } : undefined,
     fontSize: input.fontSize ?? DEFAULT_PLAYER_FONT_SIZE,
+    appearanceId: input.appearanceId,
+    options: input.options ? { ...input.options } : undefined,
     asset: input.asset ? { ...input.asset } : undefined,
+    caption: input.caption
+      ? {
+          text: input.caption.text,
+          style: input.caption.style ? { ...input.caption.style } : undefined,
+        }
+      : undefined,
     meta: input.meta ? { ...input.meta } : undefined,
     transformCapabilities: {
       ...DEFAULT_PLAYER_TRANSFORM_CAPABILITIES,
@@ -122,11 +153,20 @@ export function updatePlayerObject(
       position: input.position ?? object.position,
       rotation: input.rotation ?? object.rotation,
       size: input.size ?? object.size,
-      label: input.label ?? object.props.label,
+      groupId: getInputValue(input, "groupId", object.props.groupId),
+      label: getInputValue(input, "label", object.props.label),
       color: input.color ?? object.props.color,
+      colors: getInputValue(input, "colors", object.props.colors),
       fontSize: input.fontSize ?? object.props.fontSize,
-      asset: input.asset ?? object.props.asset,
-      meta: input.meta ?? object.props.meta,
+      appearanceId: getInputValue(
+        input,
+        "appearanceId",
+        object.props.appearanceId,
+      ),
+      options: getInputValue(input, "options", object.props.options),
+      asset: getInputValue(input, "asset", object.props.asset),
+      caption: getInputValue(input, "caption", object.props.caption),
+      meta: getInputValue(input, "meta", object.props.meta),
     },
   );
 }

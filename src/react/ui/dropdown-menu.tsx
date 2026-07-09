@@ -62,7 +62,7 @@ export function DropdownMenuContent({
         <MenuPrimitive.Popup
           data-tactical-board
           className={cn(
-            "data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=inline-end]:slide-in-from-left-2 data-[side=inline-start]:slide-in-from-right-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 border-tb-border-default bg-tb-background-surface text-tb-text-primary z-50 box-border max-h-(--available-height) min-w-36 origin-(--transform-origin) overflow-x-hidden overflow-y-auto rounded-lg border p-2 shadow-lg duration-100 outline-none data-closed:overflow-hidden",
+            "data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=inline-end]:slide-in-from-left-2 data-[side=inline-start]:slide-in-from-right-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 border-tb-border-default bg-tb-background-surface text-tb-text-primary z-50 box-border max-h-(--available-height) min-w-36 origin-(--transform-origin) overflow-x-hidden overflow-y-auto rounded-lg border p-1 shadow-lg duration-100 outline-none data-closed:overflow-hidden",
             className,
           )}
           {...props}
@@ -99,7 +99,7 @@ export function DropdownMenuGroupLabel({
 
 export const menuItemVariants = cva(
   [
-    "group/menu-item relative flex min-h-10 w-full cursor-pointer items-center gap-2.5 rounded-md box-border px-3 py-2 text-sm outline-hidden transition-interactive select-none data-inset:pl-8",
+    "group/menu-item relative flex min-h-7 w-full cursor-pointer items-center gap-2 rounded-md box-border px-2 py-1 text-sm outline-hidden transition-interactive select-none data-inset:pl-7",
     "disabled:pointer-events-none disabled:opacity-40",
   ],
   {
@@ -227,7 +227,7 @@ export function DropdownMenuCheckboxItem({
   return (
     <MenuPrimitive.CheckboxItem
       data-inset={inset}
-      className={cn(menuItemVariants({ color }), "pr-8 pl-2", className)}
+      className={cn(menuItemVariants({ color }), "pr-7 pl-2", className)}
       checked={checked}
       {...props}
     >
@@ -260,7 +260,7 @@ export function DropdownMenuRadioItem({
       data-inset={inset}
       className={cn(
         menuItemVariants({ color: "neutral" }),
-        "pr-8 pl-2",
+        "pr-7 pl-2",
         className,
       )}
       {...props}

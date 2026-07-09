@@ -1,19 +1,9 @@
-import {
-  DEFAULT_BOARD_COLOR,
-  DEFAULT_BOARD_COLORS,
-} from "../../../core/colors/default-colors";
+import { BOARD_PLAYER_GROUP_COLOR_ORDER } from "../../../core/board/player-groups";
 import type { ArrowToolDefault } from "../../../core/tools/arrow-tool";
 import type { PlayerToolDefault } from "../../../core/tools/player-tool";
 import type { ShapeToolDefault } from "../../../core/tools/shape-tool";
 
-export const BOARD_PLAYER_DEFAULT_COLORS = [
-  DEFAULT_BOARD_COLOR.red,
-  DEFAULT_BOARD_COLOR.blue,
-  ...DEFAULT_BOARD_COLORS.slice(0, 11).filter(
-    (color) =>
-      color !== DEFAULT_BOARD_COLOR.red && color !== DEFAULT_BOARD_COLOR.blue,
-  ),
-];
+export const BOARD_PLAYER_DEFAULT_COLORS = [...BOARD_PLAYER_GROUP_COLOR_ORDER];
 
 export const BOARD_ARROW_DEFAULTS: Array<
   ArrowToolDefault & {

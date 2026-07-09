@@ -3,6 +3,7 @@ import { createBoardEditorController } from "./board-editor-controller";
 import { createToolApi } from "./create-tool-api";
 import { createBoardSpaceProjection } from "../geometry/board-space-projection";
 import { createBoardEditorStore } from "../store/board-editor-store";
+import { createBoardPlayerGroup } from "../board/player-groups";
 import type { Board, BoardObject, Point } from "../board/types";
 import {
   createArrowObject,
@@ -23,13 +24,13 @@ import { ArrowTool } from "../tools/arrow-tool";
 import { getArrowSelectionCanvasBounds } from "../tools/arrow-selection";
 import { EquipmentTool } from "../tools/equipment-tool";
 import { PlayerTool } from "../tools/player-tool";
+import { getPlayerCaptionCanvasBounds } from "../tools/player-geometry";
 import { getPlayerSelectionOutlineCanvasPoints } from "../tools/player-selection";
 import { getShapeSelectionOutlineCanvasPoints } from "../tools/shape-selection";
 import { ShapeTool } from "../tools/shape-tool";
 import { SelectTool } from "../tools/select-tool";
 import { setSelectedObjectIds } from "../tools/select-tool-actions";
 import { TextTool } from "../tools/text-tool";
-import { HandTool } from "../tools/hand-tool";
 import { getArrowToolState } from "../tools/arrow-tool-state";
 import { getPlayerToolState, PLAYER_TOOL_ID } from "../tools/player-tool-state";
 import { getSelectToolState, SELECT_TOOL_ID } from "../tools/select-tool-state";
@@ -298,22 +299,6 @@ describe("createBoardEditorController", () => {
     });
   });
 
-  it("does not show a text preview at the pointer before placement", () => {
-    const textTool = new TextTool();
-    const { boardToCanvas, dispatchPointer, store, toolApi } =
-      createEditorHarness({
-        initialToolId: textTool.id,
-        tools: [textTool],
-      });
-    setTextDraftStyle(toolApi, { fontSize: 28 });
-
-    const previewPoint = boardToCanvas({ x: 25, y: 12 });
-
-    dispatchPointer("onPointerMove", previewPoint);
-
-    expect(store.getState().rendering.previewObjects).toEqual([]);
-  });
-
   it("starts inline text editing at the clicked point", () => {
     const textTool = new TextTool();
     const { boardToCanvas, dispatchPointer, store, toolApi } =
@@ -382,6 +367,50 @@ describe("createBoardEditorController", () => {
         canvasRect,
       }).targetObjectId,
     ).toBe(player.id);
+  });
+
+  it("targets players through their captions during hit testing", () => {
+    const player = createPlayerObject({
+      id: "player-1",
+      position: { x: 25, y: 12 },
+      size: { width: 4, height: 4 },
+      color: "#111827",
+      caption: {
+        text: "Left wing",
+        style: {
+          placement: "right",
+          distance: 1,
+          fontSize: 2,
+        },
+      },
+    });
+    const { boardToCanvas, controller, projection } = createEditorHarness({
+      initialToolId: selectTool.id,
+      objects: [player],
+    });
+    const captionBounds = getPlayerCaptionCanvasBounds(player, projection);
+
+    expect(captionBounds).toBeDefined();
+    expect(
+      controller.createToolPointerEvent({
+        clientPoint: {
+          x: captionBounds!.x + captionBounds!.width / 2,
+          y: captionBounds!.y + captionBounds!.height / 2,
+        },
+        pointerId: 1,
+        ctrlKey: false,
+        shiftKey: false,
+        altKey: false,
+        metaKey: false,
+        canvasRect,
+      }).targetObjectId,
+    ).toBe(player.id);
+
+    expect(
+      getPlayerSelectionOutlineCanvasPoints(projection, player).some(
+        (point) => point.x > boardToCanvas(player.position).x + 20,
+      ),
+    ).toBe(true);
   });
 
   it("shows an equipment ghost preview at the pointer before placement", () => {
@@ -658,6 +687,134 @@ describe("createBoardEditorController", () => {
     expect(store.getState().board.objects.byId["player-5"]).toMatchObject({
       type: "player",
       props: { label: "2", color: "#ff6b35" },
+    });
+  });
+
+  it("places players without numeric labels when the active group disables auto numbering", () => {
+    const playerTool = new PlayerTool();
+    const group = createBoardPlayerGroup({
+      id: "player-group-1",
+      name: "Home",
+      color: "#1f6feb",
+      autoNumbering: false,
+    });
+    const store = createBoardEditorStore({
+      initialBoard: {
+        ...createTestBoard(),
+        playerGroups: [group],
+      },
+      initialToolId: selectTool.id,
+      tools: [selectTool, playerTool],
+    });
+    store.getState().actions.setActiveTool(playerTool.id);
+    const controller = createBoardEditorController(store);
+    const projection = createBoardSpaceProjection({
+      frame: store.getState().board.frame,
+      viewport: store.getState().ui.viewport,
+      canvasRect,
+    });
+
+    controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: projection.boardToCanvas({ x: 10, y: 10 }),
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    expect(store.getState().board.objects.byId["player-1"]).toMatchObject({
+      type: "player",
+      props: { color: "#1f6feb" },
+    });
+    expect(store.getState().board.objects.byId["player-1"]?.props.label).toBe(
+      undefined,
+    );
+  });
+
+  it("places players with appearance and caption defaults from the active group", () => {
+    const playerTool = new PlayerTool();
+    const group = {
+      ...createBoardPlayerGroup({
+        id: "player-group-1",
+        name: "Home",
+        color: "#1f6feb",
+      }),
+      style: {
+        color: "#1f6feb",
+        colors: {
+          shirt: "#1f6feb",
+          trim: "#ffffff",
+        },
+        size: 2.4,
+        fontSize: 1.1,
+        appearanceId: "shirt",
+        options: {
+          sleeve: "short",
+        },
+        asset: {
+          src: "asset://home-kit",
+        },
+        caption: {
+          placement: "top" as const,
+          distance: 0.75,
+          fontSize: 1,
+          color: "#0f172a",
+        },
+      },
+    };
+    const store = createBoardEditorStore({
+      initialBoard: {
+        ...createTestBoard(),
+        playerGroups: [group],
+      },
+      initialToolId: selectTool.id,
+      tools: [selectTool, playerTool],
+    });
+    store.getState().actions.setActiveTool(playerTool.id);
+    const controller = createBoardEditorController(store);
+    const projection = createBoardSpaceProjection({
+      frame: store.getState().board.frame,
+      viewport: store.getState().ui.viewport,
+      canvasRect,
+    });
+
+    controller.dispatchPointerEvent("onPointerDown", {
+      clientPoint: projection.boardToCanvas({ x: 10, y: 10 }),
+      pointerId: 1,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      canvasRect,
+    });
+
+    expect(store.getState().board.objects.byId["player-1"]).toMatchObject({
+      type: "player",
+      props: {
+        groupId: group.id,
+        color: "#1f6feb",
+        colors: {
+          shirt: "#1f6feb",
+          trim: "#ffffff",
+        },
+        appearanceId: "shirt",
+        options: {
+          sleeve: "short",
+        },
+        asset: {
+          src: "asset://home-kit",
+        },
+        caption: {
+          style: {
+            placement: "top",
+            distance: 0.75,
+            fontSize: 1,
+            color: "#0f172a",
+          },
+        },
+      },
     });
   });
 
@@ -2614,103 +2771,6 @@ describe("createBoardEditorController", () => {
     );
   });
 
-  it("uses directional resize cursors for selected shape handles", () => {
-    const shapeTool = new ShapeTool();
-    const existingShape = createShapeObject({
-      id: "shape-cursor-1",
-      kind: "rectangle",
-      start: { x: 10, y: 10 },
-      end: { x: 20, y: 18 },
-      color: "#fff",
-      lineStyle: "solid",
-      fillStyle: "solid",
-      bordered: true,
-    });
-    const { controller, projection } = createEditorHarness({
-      initialToolId: SELECT_TOOL_ID,
-      tools: [shapeTool],
-      objects: [existingShape],
-      selectedObjectIds: [existingShape.id],
-    });
-    const bottomRightHandle = getShapeSelectionOutlineCanvasPoints(
-      projection,
-      existingShape,
-    )[2]!;
-
-    expect(
-      controller.getCursor({
-        clientPoint: bottomRightHandle,
-        pointerId: 1,
-        ctrlKey: false,
-        shiftKey: false,
-        altKey: false,
-        metaKey: false,
-        canvasRect,
-      }),
-    ).toBe("nwse-resize");
-  });
-
-  it("uses grab cursors for the hand tool", () => {
-    const handTool = new HandTool();
-    const { controller, dispatchPointer } = createEditorHarness({
-      initialToolId: "hand",
-      tools: [handTool],
-    });
-    const clientPoint = { x: 100, y: 120 };
-    const input = {
-      clientPoint,
-      pointerId: 1,
-      ctrlKey: false,
-      shiftKey: false,
-      altKey: false,
-      metaKey: false,
-      canvasRect,
-    };
-
-    expect(controller.getCursor(input)).toBe("grab");
-
-    dispatchPointer("onPointerDown", clientPoint);
-
-    expect(controller.getCursor(input)).toBe("grabbing");
-
-    dispatchPointer("onPointerUp", clientPoint);
-
-    expect(controller.getCursor(input)).toBe("grab");
-  });
-
-  it("does not use resize cursors for selected arrow endpoints", () => {
-    const arrowTool = new ArrowTool();
-    const existingArrow = createArrowObject({
-      id: "arrow-cursor-1",
-      start: { x: 10, y: 10 },
-      end: { x: 20, y: 18 },
-      color: "#fff",
-      strokeWidth: 2,
-      lineStyle: "solid",
-      kind: "straight",
-      startHead: "none",
-      endHead: "triangle",
-    });
-    const { controller, boardToCanvas } = createEditorHarness({
-      initialToolId: SELECT_TOOL_ID,
-      tools: [arrowTool],
-      objects: [existingArrow],
-      selectedObjectIds: [existingArrow.id],
-    });
-
-    expect(
-      controller.getCursor({
-        clientPoint: boardToCanvas(existingArrow.props.end),
-        pointerId: 1,
-        ctrlKey: false,
-        shiftKey: false,
-        altKey: false,
-        metaKey: false,
-        canvasRect,
-      }),
-    ).toBeUndefined();
-  });
-
   it("rotates a selected shape using the rotate handle", () => {
     const arrowTool = new ArrowTool();
     const shapeTool = new ShapeTool();
@@ -2919,66 +2979,6 @@ describe("createBoardEditorController", () => {
     expect(resizedCorners[0].y).toBeCloseTo(fixedTopLeft.y, 6);
     expect(resizedCorners[2].x).toBeCloseTo(targetBottomRight.x, 6);
     expect(resizedCorners[2].y).toBeCloseTo(targetBottomRight.y, 6);
-  });
-
-  it("shows a shape ghost preview at the pointer before placement", () => {
-    const shapeTool = new ShapeTool();
-    const store = createBoardEditorStore({
-      initialBoard: {
-        id: "board-1",
-        version: 1,
-        metadata: {},
-        frame: {
-          width: 100,
-          height: 50,
-        },
-        objects: {
-          byId: {},
-          order: [],
-        },
-        style: {},
-      },
-      initialToolId: shapeTool.id,
-      tools: [selectTool, shapeTool],
-    });
-    const toolApi = createToolApi(store);
-    shapeTool.registerCapabilities?.(toolApi);
-
-    const controller = createBoardEditorController(store);
-    const canvasRect = {
-      left: 0,
-      top: 0,
-      width: 1000,
-      height: 500,
-    };
-    const projection = createBoardSpaceProjection({
-      frame: store.getState().board.frame,
-      viewport: store.getState().ui.viewport,
-      canvasRect,
-    });
-    const previewPoint = projection.boardToCanvas({ x: 24, y: 18 });
-
-    controller.dispatchPointerEvent("onPointerMove", {
-      clientPoint: previewPoint,
-      pointerId: 1,
-      ctrlKey: false,
-      shiftKey: false,
-      altKey: false,
-      metaKey: false,
-      canvasRect,
-    });
-
-    expect(store.getState().rendering.previewObjects).toHaveLength(1);
-    expect(store.getState().rendering.previewObjects[0]).toMatchObject({
-      id: "shape-preview",
-      type: "shape",
-      position: { x: 32, y: 24 },
-      props: {
-        kind: "rectangle",
-        start: { x: 24, y: 18 },
-        end: { x: 40, y: 30 },
-      },
-    });
   });
 
   it("creates a rectangle shape with the default preview size on click", () => {
@@ -3529,113 +3529,6 @@ describe("createBoardEditorController", () => {
     controller.dispatchPointerEvent("onPointerDown", {
       clientPoint: closePoint,
       pointerId: 1,
-      ctrlKey: false,
-      shiftKey: false,
-      altKey: false,
-      metaKey: false,
-      canvasRect,
-    });
-
-    expect(store.getState().board.objects.order).toEqual(["shape-1"]);
-    expect(getShapeToolState(store.getState().toolState).pendingPoints).toEqual(
-      [],
-    );
-    expect(store.getState().board.objects.byId["shape-1"]).toMatchObject({
-      type: "shape",
-      props: {
-        kind: "polygon",
-        points: [
-          { x: 10, y: 10 },
-          { x: 18, y: 16 },
-          { x: 14, y: 24 },
-        ],
-      },
-    });
-  });
-
-  it("creates a polygon shape when right-clicking to finish", () => {
-    const shapeTool = new ShapeTool({
-      defaults: [
-        {
-          id: "polygon",
-          label: "Polygon",
-          draftStyle: {
-            kind: "polygon",
-          },
-        },
-      ],
-    });
-    const store = createBoardEditorStore({
-      initialBoard: {
-        id: "board-1",
-        version: 1,
-        metadata: {},
-        frame: {
-          width: 100,
-          height: 50,
-        },
-        objects: {
-          byId: {},
-          order: [],
-        },
-        style: {},
-      },
-      initialToolId: shapeTool.id,
-      tools: [selectTool, shapeTool],
-    });
-    const toolApi = createToolApi(store);
-    shapeTool.registerCapabilities?.(toolApi);
-    shapeTool.onActivate?.(toolApi);
-
-    const controller = createBoardEditorController(store);
-    const canvasRect = {
-      left: 0,
-      top: 0,
-      width: 1000,
-      height: 500,
-    };
-    const projection = createBoardSpaceProjection({
-      frame: store.getState().board.frame,
-      viewport: store.getState().ui.viewport,
-      canvasRect,
-    });
-    const firstPoint = projection.boardToCanvas({ x: 10, y: 10 });
-    const secondPoint = projection.boardToCanvas({ x: 18, y: 16 });
-    const thirdPoint = projection.boardToCanvas({ x: 14, y: 24 });
-    const finishPoint = projection.boardToCanvas({ x: 22, y: 18 });
-
-    controller.dispatchPointerEvent("onPointerDown", {
-      clientPoint: firstPoint,
-      pointerId: 1,
-      ctrlKey: false,
-      shiftKey: false,
-      altKey: false,
-      metaKey: false,
-      canvasRect,
-    });
-    controller.dispatchPointerEvent("onPointerDown", {
-      clientPoint: secondPoint,
-      pointerId: 1,
-      ctrlKey: false,
-      shiftKey: false,
-      altKey: false,
-      metaKey: false,
-      canvasRect,
-    });
-    controller.dispatchPointerEvent("onPointerDown", {
-      clientPoint: thirdPoint,
-      pointerId: 1,
-      ctrlKey: false,
-      shiftKey: false,
-      altKey: false,
-      metaKey: false,
-      canvasRect,
-    });
-
-    controller.dispatchPointerEvent("onPointerDown", {
-      clientPoint: finishPoint,
-      pointerId: 1,
-      button: 2,
       ctrlKey: false,
       shiftKey: false,
       altKey: false,

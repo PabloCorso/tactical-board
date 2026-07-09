@@ -5,6 +5,7 @@ export {
   remapObjectToFrameSize,
 } from "../core/board/frame-object-remap";
 export type * from "../core/board/types";
+export * from "../core/board/player-formation";
 export type * from "../core/editor/types";
 export * from "./board/editor/arrow-icon";
 export * from "./board/editor/canvas-toolbar";

@@ -51,6 +51,31 @@ import { SHAPE_OBJECT_TYPE } from "../core/objects/shape-object";
 import { TEXT_OBJECT_TYPE } from "../core/objects/text-object";
 
 describe("React public frame", () => {
+  it("keeps football player groups on generic circle defaults", () => {
+    const board = createFootballBoard({ id: "football-player-groups" });
+
+    expect(board.playerGroups?.[0]?.style.appearanceId).toBeUndefined();
+    expect(board.playerGroups?.[0]?.style.colors).toBeUndefined();
+  });
+
+  it("exposes football player appearances through the theme", () => {
+    expect(
+      footballTheme.playerAppearances?.map((appearance) => appearance.id),
+    ).toEqual(["circle", "football-ringed-circle", "football-shirt", "image"]);
+    expect(footballThemeAdapters.playerAppearanceRenderers?.circle).toBeTypeOf(
+      "function",
+    );
+    expect(
+      footballThemeAdapters.playerAppearanceRenderers?.["football-shirt"],
+    ).toBeTypeOf("function");
+    expect(
+      footballThemeAdapters.playerAppearanceRenderers?.[
+        "football-ringed-circle"
+      ],
+    ).toBeTypeOf("function");
+    expect(footballTheme.playerPresets?.length).toBeGreaterThan(0);
+  });
+
   it("keeps the editor canvas focusable without the browser focus outline", () => {
     const board = createFootballBoard({ id: "canvas-focus-board" });
     const store = createBoardEditorStore({

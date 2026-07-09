@@ -145,7 +145,7 @@ export function MatchPlanEditor() {
         <BoardEditorCanvas />
         <BoardEditorShapePolygonDone />
         <BoardEditorCanvasToolbar />
-        <BoardEditorSelectionToolbar />
+        <BoardEditorSelectionToolbar theme={footballTheme} />
         <BoardEditorToolbarDockProvider>
           <BoardEditorToolbarDock>
             <BoardPrimaryToolbar
@@ -164,6 +164,10 @@ export function MatchPlanEditor() {
   );
 }
 ```
+
+Football theme data includes player appearance choices and renderers, so passing
+`footballTheme` to the selection toolbar enables per-player appearance,
+caption, and uploaded visual controls.
 
 Run `npm run storybook` and open `React/Board Editor/Football` for an interactive reference.
 The source examples in `src/stories/examples` are written as copyable host-app

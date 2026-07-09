@@ -335,6 +335,7 @@ export function createEditorStore({
             deleteObjects: actions.deleteObjects,
             sendObjectsToBack: actions.sendObjectsToBack,
             setFrame: actions.setFrame,
+            updateBoard: actions.updateBoard,
             updateObjects: actions.updateObjects,
             setPreviewObjects: actions.setPreviewObjects,
             clearPreviewObjects: actions.clearPreviewObjects,
@@ -629,6 +630,20 @@ export function createEditorStore({
             ...state.board,
             frame,
           };
+
+          return {
+            board: nextBoard,
+            history: recordHistoryForBoardChange(state),
+          };
+        });
+      },
+      updateBoard: (updater) => {
+        set((state) => {
+          const nextBoard = updater(state.board);
+
+          if (nextBoard === state.board) {
+            return state;
+          }
 
           return {
             board: nextBoard,

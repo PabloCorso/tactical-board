@@ -1,0 +1,100 @@
+import { useMemo } from "react";
+import { EQUIPMENT_OBJECT_TYPE } from "../../../core/objects/equipment-object";
+import {
+  createThemeObjectRenderer,
+  type BoardTheme,
+  type BoardThemeAdapters,
+} from "../theme/board-theme";
+import { getThemeEquipmentDefinitions } from "../theme/equipment-object-adapter";
+import { createToolApi } from "../../../core/editor/create-tool-api";
+import {
+  EQUIPMENT_TOOL_ID,
+  getEquipmentToolState,
+} from "../../../core/tools/equipment-tool-state";
+import {
+  BoardEditorToolbar,
+  BoardEditorToolbarButton,
+  type BoardEditorToolbarProps,
+} from "../editor/toolbar/editor-toolbar";
+import { useBoardEditorContext } from "../../adapter/editor/board-editor-context";
+import { useBoardEditorStore } from "../../adapter/editor/use-board-editor-store";
+import { useBoardEditorToolbarDockOptional } from "../editor/toolbar/editor-toolbar";
+import { BoardEquipmentDefinitionIcon } from "./tool-icons";
+import { setToolStatePatch } from "./secondary-toolbar-commands";
+
+export type BoardEditorEquipmentToolbarProps = Omit<
+  BoardEditorToolbarProps,
+  "children"
+> & {
+  adapters?: BoardThemeAdapters;
+  theme?: Pick<BoardTheme, "objects">;
+};
+
+export function BoardEditorEquipmentToolbar({
+  adapters,
+  theme,
+  orientation = "vertical",
+  ...toolbarProps
+}: BoardEditorEquipmentToolbarProps) {
+  const editorStore = useBoardEditorContext();
+  const toolbarDock = useBoardEditorToolbarDockOptional();
+  const toolApi = useMemo(() => createToolApi(editorStore), [editorStore]);
+  const toolState = useBoardEditorStore(
+    editorStore,
+    (state) => state.toolState,
+  );
+  const equipmentState = useMemo(
+    () => getEquipmentToolState(toolState),
+    [toolState],
+  );
+  const equipmentDefinitions = getThemeEquipmentDefinitions(theme);
+  const equipmentRenderer = useMemo(
+    () =>
+      createThemeObjectRenderer({
+        adapters,
+        theme,
+        type: EQUIPMENT_OBJECT_TYPE,
+      }),
+    [adapters, theme],
+  );
+
+  if (equipmentDefinitions.length === 0 || !equipmentRenderer) {
+    return null;
+  }
+
+  return (
+    <BoardEditorToolbar
+      {...toolbarProps}
+      orientation={orientation}
+      tooltipSide="right"
+    >
+      {equipmentDefinitions.map((definition) => (
+        <BoardEditorToolbarButton
+          aria-label={definition.label}
+          active={equipmentState.draftStyle.kind === definition.kind}
+          className="aspect-square px-0"
+          iconBefore={
+            <BoardEquipmentDefinitionIcon
+              definition={definition}
+              renderer={equipmentRenderer}
+              size={24}
+            />
+          }
+          key={definition.kind}
+          onClick={() => {
+            setToolStatePatch(toolApi, EQUIPMENT_TOOL_ID, equipmentState, {
+              draftStyle: {
+                ...equipmentState.draftStyle,
+                kind: definition.kind,
+              },
+            });
+            toolbarDock?.requestDismiss();
+          }}
+          iconSize="xl"
+          size="md"
+          tooltip={definition.label}
+        />
+      ))}
+    </BoardEditorToolbar>
+  );
+}

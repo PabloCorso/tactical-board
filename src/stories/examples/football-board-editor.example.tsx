@@ -9,6 +9,8 @@ import {
   BoardEditorSecondaryToolbar,
   BoardEditorSelectionToolbar,
   BoardEditorShapePolygonDone,
+  BoardEditorTeamPanel,
+  BoardEditorTeamPanelProvider,
   BoardEditorToolbarDock,
   BoardEditorToolbarDockProvider,
   BoardPrimaryToolbar,
@@ -17,6 +19,7 @@ import {
   createFootballPitch,
   createNextFootballPitchFrame,
   createFootballTools,
+  FootballTeamFormationSection,
   FOOTBALL_PITCH_OPTIONS,
   FOOTBALL_PITCH_TOOL_ID,
   footballTheme,
@@ -91,17 +94,25 @@ export function FootballBoardEditorExample({
   return (
     <BoardEditorProvider labels={labels} store={store}>
       <BoardEditor className={className}>
-        <BoardEditorCanvas />
-        <BoardEditorShapePolygonDone />
-        <BoardEditorCanvasToolbar />
-        <BoardEditorSelectionToolbar />
-        {renderHostToolbar?.()}
-        <BoardEditorToolbarDockProvider>
-          <FootballBoardEditorToolbarDock
-            pitchOptions={pitchOptions}
-            translateRotatePitchAction={translateRotatePitchAction}
-          />
-        </BoardEditorToolbarDockProvider>
+        <BoardEditorTeamPanelProvider>
+          <BoardEditorCanvas />
+          <BoardEditorShapePolygonDone />
+          <BoardEditorCanvasToolbar />
+          <BoardEditorSelectionToolbar theme={footballTheme} />
+          {renderHostToolbar?.()}
+          <BoardEditorToolbarDockProvider>
+            <FootballBoardEditorToolbarDock
+              pitchOptions={pitchOptions}
+              translateRotatePitchAction={translateRotatePitchAction}
+            />
+          </BoardEditorToolbarDockProvider>
+          <BoardEditorTeamPanel
+            adapters={footballThemeAdapters}
+            theme={footballTheme}
+          >
+            {(context) => <FootballTeamFormationSection {...context} />}
+          </BoardEditorTeamPanel>
+        </BoardEditorTeamPanelProvider>
       </BoardEditor>
     </BoardEditorProvider>
   );

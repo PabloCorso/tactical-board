@@ -6,7 +6,11 @@ import {
   type EquipmentDefinition,
 } from "../../../core/objects/equipment-object";
 import type { CanvasObjectRenderer } from "../../../core/rendering/canvas/types";
-import { createPlayerObject } from "../../../core/objects/player-object";
+import {
+  createPlayerObject,
+  DEFAULT_PLAYER_FONT_SIZE,
+  DEFAULT_PLAYER_SIZE,
+} from "../../../core/objects/player-object";
 import {
   createShapeObject,
   type ShapeKind,
@@ -15,7 +19,12 @@ import { BoardEditorArrowIcon } from "../editor/arrow-icon";
 import { useBoardEditorContext } from "../../adapter/editor/board-editor-context";
 import { cn } from "../../ui/misc";
 import { useBoardEditorStore } from "../../adapter/editor/use-board-editor-store";
-import { PlayerTool, renderPlayer } from "../../../core/tools/player-tool";
+import {
+  createPlayerRenderer,
+  PlayerTool,
+  renderPlayer,
+} from "../../../core/tools/player-tool";
+import type { PlayerAppearanceRendererRegistry } from "../../../core/tools/player-appearance";
 import { getNextNumericPlayerLabel } from "../../../core/tools/player-labels";
 import { ArrowTool } from "../../../core/tools/arrow-tool";
 import {
@@ -44,6 +53,8 @@ const THEME_AWARE_TOOL_ICON_COLORS = new Set<string>([
   DEFAULT_BOARD_COLOR.lightGray,
 ]);
 const EQUILATERAL_TRIANGLE_HEIGHT_RATIO = Math.sqrt(3) / 2;
+const PLAYER_ICON_FONT_SIZE_RATIO =
+  DEFAULT_PLAYER_FONT_SIZE / DEFAULT_PLAYER_SIZE;
 
 export function getThemeAwareToolIconColor(color: string | undefined) {
   if (!color) {
@@ -56,12 +67,14 @@ export function getThemeAwareToolIconColor(color: string | undefined) {
 }
 
 export function BoardPlayerDefaultIcon({
+  appearanceRenderers,
   draftStyle,
   label,
   className,
   width = 24,
   height = 24,
 }: {
+  appearanceRenderers?: PlayerAppearanceRendererRegistry;
   draftStyle: PlayerDraftStyle;
   label?: string;
   className?: string;
@@ -69,28 +82,59 @@ export function BoardPlayerDefaultIcon({
   height?: number;
 }) {
   const player = useMemo(
-    () =>
-      createPlayerObject({
-        id: "player-icon-preview",
-        position: { x: 0, y: 0 },
-        size: {
-          width: draftStyle.size,
-          height: draftStyle.size,
-        },
-        color: draftStyle.color,
-        label,
-      }),
+    () => createPlayerToolIconPreviewObject({ draftStyle, label }),
     [draftStyle, label],
+  );
+  const renderer = useMemo(
+    () =>
+      appearanceRenderers
+        ? createPlayerRenderer(appearanceRenderers)
+        : renderPlayer,
+    [appearanceRenderers],
   );
 
   return (
     <BoardToolIconCanvas
       object={player}
-      renderer={renderPlayer}
+      renderer={renderer}
       className={cn("h-6 w-6", className)}
       width={width}
       height={height}
     />
+  );
+}
+
+export function createPlayerToolIconPreviewObject({
+  draftStyle,
+  label,
+}: {
+  draftStyle: PlayerDraftStyle;
+  label?: string;
+}) {
+  const color =
+    getThemeAwareToolIconColor(draftStyle.color) ?? draftStyle.color;
+
+  return createPlayerObject({
+    id: "player-icon-preview",
+    position: { x: 0, y: 0 },
+    size: {
+      width: draftStyle.size,
+      height: draftStyle.size,
+    },
+    color,
+    colors: draftStyle.colors,
+    fontSize: getPlayerToolIconPreviewFontSize(draftStyle),
+    appearanceId: draftStyle.appearanceId,
+    options: draftStyle.options,
+    asset: draftStyle.asset,
+    label,
+  });
+}
+
+function getPlayerToolIconPreviewFontSize(draftStyle: PlayerDraftStyle) {
+  return Math.min(
+    draftStyle.fontSize,
+    draftStyle.size * PLAYER_ICON_FONT_SIZE_RATIO,
   );
 }
 
@@ -110,8 +154,10 @@ export function getPlayerToolIconDraftStyle(
 }
 
 export function BoardPlayerToolIcon({
+  appearanceRenderers,
   fallbackColor = DEFAULT_BOARD_COLOR.black,
 }: {
+  appearanceRenderers?: PlayerAppearanceRendererRegistry;
   fallbackColor?: string;
 } = {}) {
   const store = useBoardEditorContext();
@@ -131,12 +177,22 @@ export function BoardPlayerToolIcon({
     () =>
       playerTool instanceof PlayerTool &&
       playerTool.labelStrategy === "numeric-by-color"
-        ? getNextNumericPlayerLabel(board, color)
+        ? getNextNumericPlayerLabel(
+            board,
+            color,
+            getPlayerToolState(toolState).activeGroupId,
+          )
         : undefined,
-    [board, color, playerTool],
+    [board, color, playerTool, toolState],
   );
 
-  return <BoardPlayerDefaultIcon draftStyle={draftStyle} label={label} />;
+  return (
+    <BoardPlayerDefaultIcon
+      appearanceRenderers={appearanceRenderers}
+      draftStyle={draftStyle}
+      label={label}
+    />
+  );
 }
 
 export function BoardArrowDefaultIcon({

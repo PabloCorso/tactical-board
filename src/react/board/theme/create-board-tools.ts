@@ -4,6 +4,7 @@ import {
 } from "../../../core/tools/arrow-tool";
 import { HandTool } from "../../../core/tools/hand-tool";
 import {
+  createPlayerRenderer,
   PlayerTool,
   type PlayerToolDefault,
 } from "../../../core/tools/player-tool";
@@ -55,6 +56,7 @@ export function createBoardTools({
     new HandTool(),
     new PlayerTool({
       defaults: defaults.players ?? BOARD_PLAYER_DEFAULTS,
+      renderer: createPlayerRenderer(adapters?.playerAppearanceRenderers),
     }),
     ...objectAdapterTools,
     new TextTool(),

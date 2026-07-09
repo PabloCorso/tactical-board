@@ -41,7 +41,12 @@ export type BoardEditorLabels = {
       run: string;
       screen: string;
     };
+    addPlayerGroup: string;
+    autoNumberSequencing: string;
+    editPlayerGroup: string;
+    playerGroup: string;
     playerColor: string;
+    teamName: string;
     shapeDefaults: {
       diamond: string;
       oval: string;
@@ -49,6 +54,42 @@ export type BoardEditorLabels = {
       rectangle: string;
       triangle: string;
     };
+  };
+  teamPanel: {
+    title: string;
+    applyFormation: string;
+    autoNumbering: string;
+    captionDefaults: string;
+    close: string;
+    confirmDeleteTeam: (playerCount: number) => string;
+    deleteTeam: string;
+    formation: string;
+    formationPlacement: string;
+    kit: string;
+    playerName: string;
+    playerNumber: string;
+    playerSize: string;
+    roster: string;
+    rosterEmpty: string;
+    selectPlayerOnBoard: string;
+    teamName: string;
+    teamSection: string;
+    uploadImage: string;
+  };
+  playerAppearance: {
+    appearance: string;
+    caption: string;
+    captionColor: string;
+    captionDistance: string;
+    captionPlacement: string;
+    captionPlacementValue: {
+      bottom: string;
+      left: string;
+      right: string;
+      top: string;
+    };
+    replaceVisual: string;
+    visual: string;
   };
   selectionToolbar: {
     arrowBodyOption: (label: string) => string;
@@ -80,6 +121,11 @@ export type BoardEditorLabels = {
     };
     playerColor: string;
     playerLabel: string;
+    playerPhotoRemove: string;
+    playerPhotoUpload: string;
+    playerStyle: string;
+    playerTeam: string;
+    resetToTeamStyle: string;
     shapeBorderOption: (label: string) => string;
     shapeBorderStyle: string;
     shapeBorderValue: {
@@ -134,7 +180,12 @@ export const BOARD_EDITOR_DEFAULT_LABELS: BoardEditorLabels = {
       run: "Run",
       screen: "Screen",
     },
+    addPlayerGroup: "Add player group",
+    autoNumberSequencing: "Auto-number players",
+    editPlayerGroup: "Team properties",
+    playerGroup: "Player group",
     playerColor: "Player color",
+    teamName: "Team name",
     shapeDefaults: {
       diamond: "Diamond",
       oval: "Oval",
@@ -142,6 +193,47 @@ export const BOARD_EDITOR_DEFAULT_LABELS: BoardEditorLabels = {
       rectangle: "Rectangle",
       triangle: "Triangle",
     },
+  },
+  teamPanel: {
+    title: "Team properties",
+    applyFormation: "Place players",
+    autoNumbering: "Auto-number players",
+    captionDefaults: "Name captions",
+    close: "Close team panel",
+    confirmDeleteTeam: (playerCount) =>
+      playerCount > 0
+        ? `Delete team and its ${playerCount} player${
+            playerCount === 1 ? "" : "s"
+          }?`
+        : "Delete team?",
+    deleteTeam: "Delete team",
+    formation: "Formation",
+    formationPlacement: "Placement",
+    kit: "Appearance",
+    playerName: "Player name",
+    playerNumber: "Player number",
+    playerSize: "Player size",
+    roster: "Players",
+    rosterEmpty: "No players yet. Pick this team and tap the board to add.",
+    selectPlayerOnBoard: "Select player on board",
+    teamName: "Team name",
+    teamSection: "Team",
+    uploadImage: "Upload image",
+  },
+  playerAppearance: {
+    appearance: "Appearance",
+    caption: "Caption",
+    captionColor: "Caption color",
+    captionDistance: "Caption gap",
+    captionPlacement: "Caption position",
+    captionPlacementValue: {
+      bottom: "Bottom",
+      left: "Left",
+      right: "Right",
+      top: "Top",
+    },
+    replaceVisual: "Replace",
+    visual: "Visual",
   },
   selectionToolbar: {
     arrowBodyOption: (label) => `Arrow body ${label}`,
@@ -174,6 +266,11 @@ export const BOARD_EDITOR_DEFAULT_LABELS: BoardEditorLabels = {
     },
     playerColor: "Player color",
     playerLabel: "Player label",
+    playerPhotoRemove: "Remove photo",
+    playerPhotoUpload: "Upload photo",
+    playerStyle: "Player style",
+    playerTeam: "Team",
+    resetToTeamStyle: "Reset to team style",
     shapeBorderOption: (label) => `Shape border ${label}`,
     shapeBorderStyle: "Shape border style",
     shapeBorderValue: {

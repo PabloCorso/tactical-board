@@ -7,6 +7,11 @@ import {
   FOOTBALL_EQUIPMENT_DEFINITIONS,
   FOOTBALL_EQUIPMENT_RENDERERS,
 } from "../equipment";
+import {
+  FOOTBALL_PLAYER_APPEARANCES,
+  FOOTBALL_PLAYER_APPEARANCE_RENDERERS,
+  FOOTBALL_PLAYER_PRESETS,
+} from "./football-player-appearances";
 
 export const footballTheme = {
   id: "football",
@@ -16,6 +21,8 @@ export const footballTheme = {
     createFootballPitch("half-pitch"),
     createFootballPitch("reduced-space"),
   ],
+  playerAppearances: FOOTBALL_PLAYER_APPEARANCES,
+  playerPresets: FOOTBALL_PLAYER_PRESETS,
   objects: FOOTBALL_EQUIPMENT_DEFINITIONS.map((definition) => ({
     type: EQUIPMENT_OBJECT_TYPE,
     kind: definition.kind,
@@ -36,6 +43,7 @@ export const footballTheme = {
 
 export const footballThemeAdapters = {
   objectAdapters: [createEquipmentObjectAdapter(FOOTBALL_EQUIPMENT_RENDERERS)],
+  playerAppearanceRenderers: FOOTBALL_PLAYER_APPEARANCE_RENDERERS,
 };
 
 export const resolvedFootballTheme = resolveBoardTheme({

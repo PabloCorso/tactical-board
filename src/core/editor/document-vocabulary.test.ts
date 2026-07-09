@@ -97,10 +97,12 @@ describe("Document and Shape compatibility vocabulary", () => {
     ]);
   });
 
-  it("serializes preferred Document and compatibility Board data identically", () => {
-    expect(serializeDocument(createDocument(document))).toBe(
-      serializeBoard(createBoard(document)),
-    );
+  it("keeps board-specific player groups out of generic document serialization", () => {
+    const serializedDocument = serializeDocument(createDocument(document));
+    const serializedBoard = serializeBoard(createBoard(document));
+
+    expect(serializedDocument).not.toContain("playerGroups");
+    expect(serializedBoard).toContain("playerGroups");
   });
 
   it("keeps generic Document background separate from board frame defaults", () => {

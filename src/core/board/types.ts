@@ -26,6 +26,38 @@ export interface Asset {
   src: string;
 }
 
+export type PlayerCaptionPlacement = "top" | "right" | "bottom" | "left";
+
+export interface PlayerCaptionStyle {
+  placement?: PlayerCaptionPlacement;
+  distance?: number;
+  color?: string;
+  fontSize?: number;
+}
+
+export interface PlayerCaption {
+  text?: string;
+  style?: PlayerCaptionStyle;
+}
+
+export interface PlayerGroupStyle {
+  color?: string;
+  colors?: Record<string, string>;
+  size?: number;
+  fontSize?: number;
+  appearanceId?: string;
+  options?: Record<string, unknown>;
+  asset?: Asset;
+  caption?: PlayerCaptionStyle;
+}
+
+export interface PlayerGroup {
+  id: string;
+  name?: string;
+  autoNumbering?: boolean;
+  style: PlayerGroupStyle;
+}
+
 export interface DocumentMetadata {
   name?: string;
   description?: string;
@@ -131,4 +163,5 @@ export type BoardFrameConfig = BoardFrameDefault;
 
 export interface Board extends Omit<Document, "frame"> {
   frame: BoardFrameDefault;
+  playerGroups?: PlayerGroup[];
 }

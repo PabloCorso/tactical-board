@@ -3,19 +3,30 @@ import * as React from "react";
 import { cn } from "./misc";
 import { floatingContentClassName } from "./floating-content";
 
-export type PopoverProps = PopoverPrimitive.Root.Props;
+export type PopoverProps = React.ComponentProps<typeof PopoverPrimitive.Root>;
 
 export const Popover = PopoverPrimitive.Root;
 
 export type PopoverTriggerProps = Omit<
-  PopoverPrimitive.Trigger.Props,
+  React.ComponentProps<typeof PopoverPrimitive.Trigger>,
   "children" | "render"
 > & {
-  children: PopoverPrimitive.Trigger.Props["render"];
+  children: React.ReactElement;
 };
 
 export function PopoverTrigger({ children, ...props }: PopoverTriggerProps) {
   return <PopoverPrimitive.Trigger render={children} {...props} />;
+}
+
+export type PopoverCloseProps = Omit<
+  React.ComponentProps<typeof PopoverPrimitive.Close>,
+  "children" | "render"
+> & {
+  children: React.ReactElement;
+};
+
+export function PopoverClose({ children, ...props }: PopoverCloseProps) {
+  return <PopoverPrimitive.Close render={children} {...props} />;
 }
 
 export type PopoverContentProps = PopoverPrimitive.Popup.Props &
@@ -29,10 +40,12 @@ export type PopoverContentProps = PopoverPrimitive.Popup.Props &
     | "sideOffset"
   > & {
     portalContainer?: PopoverPrimitive.Portal.Props["container"];
+    positionerClassName?: string;
   };
 
 export function PopoverContent({
   className,
+  positionerClassName,
   align = "center",
   alignOffset = 0,
   collisionPadding = 8,
@@ -51,12 +64,12 @@ export function PopoverContent({
         positionMethod={positionMethod}
         side={side}
         sideOffset={sideOffset}
-        className="isolate z-50"
+        className={cn("isolate z-50", positionerClassName)}
       >
         <PopoverPrimitive.Popup
           data-tactical-board
           className={floatingContentClassName(
-            "border-tb-border-default bg-tb-background-surface text-tb-text-primary z-50 flex max-h-(--available-height) w-72 flex-col gap-2.5 overflow-x-hidden overflow-y-auto rounded-lg border p-2.5 text-sm shadow-lg outline-hidden",
+            "border-tb-border-default bg-tb-background-surface text-tb-text-primary z-50 flex max-h-(--available-height) w-72 flex-col overflow-x-hidden overflow-y-auto rounded-lg border p-1 text-sm shadow-lg outline-hidden",
             className,
           )}
           {...props}

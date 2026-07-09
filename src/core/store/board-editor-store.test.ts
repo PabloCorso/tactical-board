@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { createBoard } from "../board/create-board";
 import { createBoardEditorStore } from "./board-editor-store";
 import {
   ARROW_TOOL_ID,
@@ -871,6 +872,91 @@ describe("createBoardEditorStore", () => {
       color: "#1f6feb",
       size: 2.4,
     });
+  });
+
+  it("preserves the first player default over normalized fallback player groups", () => {
+    const playerTool = new PlayerTool({
+      defaults: [
+        {
+          id: "custom",
+          draftStyle: {
+            color: "#22c55e",
+            size: 3.2,
+          },
+        },
+      ],
+    });
+    const store = createBoardEditorStore({
+      initialBoard: createBoard({
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        frame: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      }),
+      initialToolId: SELECT_TOOL_ID,
+      tools: [selectTool, playerTool],
+    });
+
+    store.getState().actions.setActiveTool(PLAYER_TOOL_ID);
+
+    const playerState = getPlayerToolState(store.getState().toolState);
+
+    expect(playerState.activeGroupId).toBe("player-group-1");
+    expect(playerState.draftStyle).toEqual({
+      ...DEFAULT_PLAYER_TOOL_STATE.draftStyle,
+      color: "#22c55e",
+      size: 3.2,
+    });
+  });
+
+  it("uses the explicitly active player group over the first player default", () => {
+    const playerTool = new PlayerTool({
+      defaults: [
+        {
+          id: "custom",
+          draftStyle: {
+            color: "#22c55e",
+          },
+        },
+      ],
+    });
+    const store = createBoardEditorStore({
+      initialBoard: createBoard({
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        frame: {
+          width: 100,
+          height: 50,
+        },
+        objects: {
+          byId: {},
+          order: [],
+        },
+        style: {},
+      }),
+      initialToolId: SELECT_TOOL_ID,
+      tools: [selectTool, playerTool],
+    });
+
+    store.getState().actions.setToolState(PLAYER_TOOL_ID, {
+      activeGroupId: "player-group-1",
+      draftStyle: DEFAULT_PLAYER_TOOL_STATE.draftStyle,
+    });
+    store.getState().actions.setActiveTool(PLAYER_TOOL_ID);
+
+    const playerState = getPlayerToolState(store.getState().toolState);
+
+    expect(playerState.activeGroupId).toBe("player-group-1");
+    expect(playerState.draftStyle.color).toBe("#ff5a36");
   });
 
   it("duplicates objects without changing select tool state", () => {

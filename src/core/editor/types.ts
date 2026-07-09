@@ -82,6 +82,7 @@ export interface BoardEditorActions {
   undo: () => void;
   redo: () => void;
   setFrame: (frame: BoardFrameConfig) => void;
+  updateBoard: (updater: (board: Board) => Board) => void;
   addObjects: (objects: BoardObject[]) => void;
   bringObjectsToFront: (objectIds: ObjectId[]) => void;
   duplicateObjects: (objectIds: ObjectId[]) => ObjectId[];
