@@ -12,7 +12,7 @@ import {
 } from "@phosphor-icons/react";
 import {
   getBoardPlayerGroups,
-  getPlayerGroupMemberObjects,
+  getPlayerGroupRosterObjects,
   isBoardPlayerGroupAutoNumberingEnabled,
 } from "../../../core/board/player-groups";
 import type { Board, PlayerGroup } from "../../../core/board/types";
@@ -20,7 +20,6 @@ import {
   updatePlayerObject,
   type PlayerObject,
 } from "../../../core/objects/player-object";
-import { parsePlayerNumericLabel } from "../../../core/tools/player-labels";
 import { createToolApi } from "../../../core/editor/create-tool-api";
 import type { ToolApi } from "../../../core/tools/types";
 import { useBoardEditorContext } from "../../adapter/editor/board-editor-context";
@@ -86,9 +85,7 @@ const TEAM_PANEL_APPEARANCE_MODE_IDS = [
   "football-shirt",
   TEAM_PANEL_IMAGE_APPEARANCE_ID,
 ];
-const LEGACY_FOOTBALL_RINGED_CIRCLE_APPEARANCE_ID = "football-ringed-circle";
 const CIRCLE_APPEARANCE_ID = "circle";
-const LEGACY_RING_PATTERN = "ring";
 
 /** Consistent section chrome for Team panel content, including host sections. */
 export function BoardEditorTeamPanelSection({
@@ -116,32 +113,18 @@ export function BoardEditorTeamPanelSection({
 }
 
 function getTeamPanelAppearanceModeId(appearanceId: string | undefined) {
-  if (!appearanceId) {
-    return CIRCLE_APPEARANCE_ID;
-  }
-
-  if (appearanceId === LEGACY_FOOTBALL_RINGED_CIRCLE_APPEARANCE_ID) {
-    return CIRCLE_APPEARANCE_ID;
-  }
-
-  return appearanceId;
+  return appearanceId ?? CIRCLE_APPEARANCE_ID;
 }
 
 function getTeamPanelStyleValue(
   group: PlayerGroup,
 ): PlayerAppearanceFieldValue {
-  const appearanceId = getTeamPanelAppearanceModeId(group.style.appearanceId);
-  const options =
-    group.style.appearanceId === LEGACY_FOOTBALL_RINGED_CIRCLE_APPEARANCE_ID
-      ? { ...group.style.options, pattern: LEGACY_RING_PATTERN }
-      : group.style.options;
-
   return {
     color: group.style.color ?? "#111827",
     colors: group.style.colors,
     fontSize: group.style.fontSize,
-    appearanceId,
-    options,
+    appearanceId: getTeamPanelAppearanceModeId(group.style.appearanceId),
+    options: group.style.options,
     asset: group.style.asset,
     caption: group.style.caption,
   };
@@ -196,32 +179,6 @@ function getTeamAppearanceChangePatch({
         },
       }
     : nextPatch;
-}
-
-function normalizeLegacyRingedCirclePatch({
-  current,
-  patch,
-}: {
-  current: PlayerGroup;
-  patch: Partial<PlayerAppearanceFieldValue>;
-}): Partial<PlayerAppearanceFieldValue> {
-  if (
-    current.style.appearanceId !==
-      LEGACY_FOOTBALL_RINGED_CIRCLE_APPEARANCE_ID ||
-    patch.appearanceId
-  ) {
-    return patch;
-  }
-
-  return {
-    appearanceId: CIRCLE_APPEARANCE_ID,
-    options: {
-      pattern: LEGACY_RING_PATTERN,
-      ...current.style.options,
-      ...patch.options,
-    },
-    ...patch,
-  };
 }
 
 function getVisibleColorAppearance({
@@ -500,18 +457,7 @@ function TeamPanelBody({
 }) {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
-  const members = [...getPlayerGroupMemberObjects(board, group.id)].sort(
-    (a, b) => {
-      const aLabel = parsePlayerNumericLabel(a.props.label);
-      const bLabel = parsePlayerNumericLabel(b.props.label);
-
-      if (aLabel !== undefined && bLabel !== undefined) {
-        return aLabel - bLabel;
-      }
-
-      return aLabel !== undefined ? -1 : bLabel !== undefined ? 1 : 0;
-    },
-  );
+  const members = getPlayerGroupRosterObjects(board, group.id);
   const appearances = getThemePlayerAppearanceDefinitions(theme);
   const selectedAppearance =
     appearances.find(
@@ -530,10 +476,7 @@ function TeamPanelBody({
     applyPlayerGroupStylePatch(
       toolApi,
       group.id,
-      normalizeLegacyRingedCirclePatch({
-        current: group,
-        patch,
-      }) as PlayerGroupStylePatch,
+      patch as PlayerGroupStylePatch,
     );
   };
   const updateMember = (

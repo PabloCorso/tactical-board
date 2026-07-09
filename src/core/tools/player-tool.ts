@@ -4,6 +4,7 @@ import {
   getBoardPlayerGroup,
   getBoardPlayerGroups,
   isBoardPlayerGroupAutoNumberingEnabled,
+  resolvePlayerGroupStyle,
 } from "../board/player-groups";
 import type { ToolApi, ToolDefinition } from "./types";
 import { BoardEditorTool } from "./tool";
@@ -133,23 +134,31 @@ export class PlayerTool extends BoardEditorTool implements ToolDefinition {
       board.playerGroups && board.playerGroups.length > 0
         ? getBoardPlayerGroups(board)
         : [];
-    const selectedGroup = getBoardPlayerGroup(board, currentState.activeGroupId);
+    const selectedGroup = getBoardPlayerGroup(
+      board,
+      currentState.activeGroupId,
+    );
     const activeGroup = selectedGroup ?? groups[0];
     const activatedDraftStyle = this.getActivatedDraftStyle(
       api.getState().toolState,
     );
-    const groupDraftStyle = {
-      ...activatedDraftStyle,
-      color: activeGroup?.style.color ?? activatedDraftStyle.color,
-      colors: activeGroup?.style.colors ?? activatedDraftStyle.colors,
-      size: activeGroup?.style.size ?? activatedDraftStyle.size,
-      fontSize: activeGroup?.style.fontSize ?? activatedDraftStyle.fontSize,
-      appearanceId:
-        activeGroup?.style.appearanceId ?? activatedDraftStyle.appearanceId,
-      options: activeGroup?.style.options ?? activatedDraftStyle.options,
-      asset: activeGroup?.style.asset ?? activatedDraftStyle.asset,
-      caption: activeGroup?.style.caption ?? activatedDraftStyle.caption,
-    };
+    const activeGroupStyle = activeGroup
+      ? resolvePlayerGroupStyle(activeGroup)
+      : undefined;
+    const groupDraftStyle = activeGroupStyle
+      ? {
+          ...activatedDraftStyle,
+          color: activeGroupStyle.color,
+          colors: activeGroupStyle.colors ?? activatedDraftStyle.colors,
+          size: activeGroupStyle.size,
+          fontSize: activeGroupStyle.fontSize,
+          appearanceId:
+            activeGroupStyle.appearanceId ?? activatedDraftStyle.appearanceId,
+          options: activeGroupStyle.options ?? activatedDraftStyle.options,
+          asset: activeGroupStyle.asset ?? activatedDraftStyle.asset,
+          caption: activeGroupStyle.caption ?? activatedDraftStyle.caption,
+        }
+      : activatedDraftStyle;
     const shouldPreserveInitialDefault =
       activeGroup &&
       !selectedGroup &&

@@ -1,37 +1,30 @@
-import type {
-  Asset,
-  PlayerCaptionStyle,
-  PlayerGroup,
-  Point,
-} from "../../../core/board/types";
+import type { PlayerGroup } from "../../../core/board/types";
 import {
   appendPlayerGroup,
+  createPlayerGroupFormationPlan,
   createBoardPlayerGroup,
   createBoardPlayerGroupId,
   getBoardPlayerGroup,
   getBoardPlayerGroups,
   getDefaultBoardPlayerGroupName,
   getNextBoardPlayerGroupColor,
-  getPlayerGroupMemberObjects,
-  isBoardPlayerGroupAutoNumberingEnabled,
+  movePlayerToGroupInBoard,
   removePlayerGroup,
+  resetPlayerStyleToGroupInBoard,
+  resolvePlayerGroupStyle,
   setPlayerGroupAutoNumbering,
   setPlayerGroupName,
+  updatePlayerGroupStyle,
+  type PlayerGroupStylePatch,
 } from "../../../core/board/player-groups";
-import {
-  getFormationPositions,
-  type FormationLayout,
-  type FormationPlacement,
+import type {
+  FormationLayout,
+  FormationPlacement,
 } from "../../../core/board/player-formation";
 import {
-  createPlayerObject,
   updatePlayerObject,
   type PlayerObject,
 } from "../../../core/objects/player-object";
-import {
-  parsePlayerNumericLabel,
-  getNextNumericPlayerLabel,
-} from "../../../core/tools/player-labels";
 import {
   DEFAULT_PLAYER_TOOL_STATE,
   getPlayerToolState,
@@ -45,6 +38,8 @@ import {
   setToolStatePatch,
 } from "../toolbar/secondary-toolbar-commands";
 
+export type { PlayerGroupStylePatch } from "../../../core/board/player-groups";
+
 type TeamToolApi = Pick<
   ToolApi,
   | "addObjects"
@@ -57,29 +52,19 @@ type TeamToolApi = Pick<
   | "updateObjects"
 >;
 
-export type PlayerGroupStylePatch = Partial<{
-  color: string;
-  colors: Record<string, string> | undefined;
-  size: number;
-  fontSize: number;
-  appearanceId: string | undefined;
-  options: Record<string, unknown> | undefined;
-  asset: Asset | undefined;
-  caption: PlayerCaptionStyle | undefined;
-}>;
-
 export function getPlayerGroupDraftStyle(group: PlayerGroup): PlayerDraftStyle {
+  const style = resolvePlayerGroupStyle(group);
+
   return {
     ...DEFAULT_PLAYER_TOOL_STATE.draftStyle,
-    color: group.style.color ?? DEFAULT_PLAYER_TOOL_STATE.draftStyle.color,
-    colors: group.style.colors,
-    size: group.style.size ?? DEFAULT_PLAYER_TOOL_STATE.draftStyle.size,
-    fontSize:
-      group.style.fontSize ?? DEFAULT_PLAYER_TOOL_STATE.draftStyle.fontSize,
-    appearanceId: group.style.appearanceId,
-    options: group.style.options,
-    asset: group.style.asset,
-    caption: group.style.caption,
+    color: style.color,
+    colors: style.colors,
+    size: style.size,
+    fontSize: style.fontSize,
+    appearanceId: style.appearanceId,
+    options: style.options,
+    asset: style.asset,
+    caption: style.caption,
   };
 }
 
@@ -122,38 +107,9 @@ export function applyPlayerGroupStylePatch(
   patch: PlayerGroupStylePatch,
 ) {
   withHistoryBatch(toolApi, () => {
-    toolApi.updateBoard((board) => ({
-      ...board,
-      playerGroups: getBoardPlayerGroups(board).map((group) =>
-        group.id === groupId
-          ? { ...group, style: { ...group.style, ...patch } }
-          : group,
-      ),
-    }));
-
-    const memberIds = getPlayerGroupMemberObjects(
-      toolApi.getState().board,
-      groupId,
-    ).map((object) => object.id);
-
-    if (memberIds.length > 0) {
-      const { caption, size, ...objectPatch } = patch;
-
-      toolApi.updateObjects(memberIds, (object) => {
-        const player = object as PlayerObject;
-
-        return updatePlayerObject(player, {
-          ...objectPatch,
-          ...("size" in patch && typeof size === "number"
-            ? { size: { width: size, height: size } }
-            : {}),
-          ...("caption" in patch
-            ? { caption: { ...player.props.caption, style: caption } }
-            : {}),
-        });
-      });
-    }
-
+    toolApi.updateBoard((board) =>
+      updatePlayerGroupStyle(board, groupId, patch),
+    );
     syncActiveGroupDraftStyle(toolApi, groupId);
   });
 }
@@ -261,42 +217,9 @@ export function movePlayerToGroup(
   playerId: string,
   groupId: string,
 ) {
-  const board = toolApi.getState().board;
-  const group = getBoardPlayerGroup(board, groupId);
-
-  if (!group) {
-    return;
-  }
-
-  const nextLabel = isBoardPlayerGroupAutoNumberingEnabled(group)
-    ? getNextNumericPlayerLabel(board, group.style.color ?? "", groupId)
-    : undefined;
-
-  toolApi.updateObjects([playerId], (object) => {
-    const player = object as PlayerObject;
-
-    if (player.props.groupId === groupId) {
-      return player;
-    }
-
-    return updatePlayerObject(player, {
-      groupId,
-      color: group.style.color ?? player.props.color,
-      colors: group.style.colors,
-      appearanceId: group.style.appearanceId,
-      options: group.style.options,
-      asset: group.style.asset,
-      fontSize: group.style.fontSize,
-      size: group.style.size
-        ? { width: group.style.size, height: group.style.size }
-        : undefined,
-      ...(nextLabel ? { label: nextLabel } : {}),
-      caption: {
-        ...player.props.caption,
-        style: group.style.caption,
-      },
-    });
-  });
+  toolApi.updateBoard((board) =>
+    movePlayerToGroupInBoard(board, playerId, groupId),
+  );
 }
 
 /**
@@ -307,67 +230,9 @@ export function resetPlayerStyleToGroup(
   toolApi: TeamToolApi,
   playerId: string,
 ) {
-  toolApi.updateObjects([playerId], (object) => {
-    const player = object as PlayerObject;
-    const group = getBoardPlayerGroup(
-      toolApi.getState().board,
-      player.props.groupId,
-    );
-
-    if (!group) {
-      return player;
-    }
-
-    return updatePlayerObject(player, {
-      color: group.style.color ?? player.props.color,
-      colors: group.style.colors,
-      appearanceId: group.style.appearanceId,
-      options: group.style.options,
-      asset: group.style.asset,
-      fontSize: group.style.fontSize,
-      size: group.style.size
-        ? { width: group.style.size, height: group.style.size }
-        : undefined,
-      caption: {
-        ...player.props.caption,
-        style: group.style.caption,
-      },
-    });
-  });
-}
-
-function sortMembersByNumericLabel(members: PlayerObject[]) {
-  return [...members].sort((a, b) => {
-    const aLabel = parsePlayerNumericLabel(a.props.label);
-    const bLabel = parsePlayerNumericLabel(b.props.label);
-
-    if (aLabel !== undefined && bLabel !== undefined) {
-      return aLabel - bLabel;
-    }
-
-    if (aLabel !== undefined) {
-      return -1;
-    }
-
-    if (bLabel !== undefined) {
-      return 1;
-    }
-
-    return 0;
-  });
-}
-
-function createFormationPlayerId(existingIds: Set<string>) {
-  let index = 1;
-
-  while (existingIds.has(`player-${index}`)) {
-    index += 1;
-  }
-
-  const id = `player-${index}`;
-  existingIds.add(id);
-
-  return id;
+  toolApi.updateBoard((board) =>
+    resetPlayerStyleToGroupInBoard(board, playerId),
+  );
 }
 
 /**
@@ -388,32 +253,20 @@ export function applyFormationToPlayerGroup(
   },
 ) {
   const board = toolApi.getState().board;
-  const group = getBoardPlayerGroup(board, groupId);
-
-  if (!group) {
-    return;
-  }
-
-  const positions = getFormationPositions({
-    frame: board.frame,
+  const plan = createPlayerGroupFormationPlan(board, {
+    groupId,
     layout,
     placement,
   });
-  const members = sortMembersByNumericLabel(
-    getPlayerGroupMemberObjects(board, groupId),
-  );
-  const autoNumbering = isBoardPlayerGroupAutoNumberingEnabled(group);
+
+  if (!plan) {
+    return;
+  }
 
   withHistoryBatch(toolApi, () => {
-    const positionById = new Map<string, Point>();
-
-    members.slice(0, positions.length).forEach((member, index) => {
-      positionById.set(member.id, positions[index]);
-    });
-
-    if (positionById.size > 0) {
-      toolApi.updateObjects([...positionById.keys()], (object) => {
-        const position = positionById.get(object.id);
+    if (plan.positionById.size > 0) {
+      toolApi.updateObjects([...plan.positionById.keys()], (object) => {
+        const position = plan.positionById.get(object.id);
 
         return position
           ? updatePlayerObject(object as PlayerObject, { position })
@@ -421,35 +274,6 @@ export function applyFormationToPlayerGroup(
       });
     }
 
-    if (members.length >= positions.length) {
-      return;
-    }
-
-    const existingIds = new Set(Object.keys(board.objects.byId));
-    const usedNumbers = members
-      .map((member) => parsePlayerNumericLabel(member.props.label))
-      .filter((value): value is number => typeof value === "number");
-    let nextNumber = Math.max(0, ...usedNumbers) + 1;
-    const draftStyle = getPlayerGroupDraftStyle(group);
-    const createdPlayers = positions.slice(members.length).map((position) => {
-      const label = autoNumbering ? String(nextNumber++) : undefined;
-
-      return createPlayerObject({
-        id: createFormationPlayerId(existingIds),
-        position,
-        groupId,
-        label,
-        color: draftStyle.color,
-        colors: draftStyle.colors,
-        fontSize: draftStyle.fontSize,
-        size: { width: draftStyle.size, height: draftStyle.size },
-        appearanceId: draftStyle.appearanceId,
-        options: draftStyle.options,
-        asset: draftStyle.asset,
-        caption: draftStyle.caption ? { style: draftStyle.caption } : undefined,
-      });
-    });
-
-    toolApi.addObjects(createdPlayers);
+    toolApi.addObjects(plan.createdPlayers);
   });
 }

@@ -40,7 +40,7 @@ export function ColorPicker({
     return (
       <label
         className={cn(
-          "focus-within:focus-ring border-tb-border-default bg-tb-background-screen hover:bg-tb-neutral-soft flex h-8 min-w-0 cursor-pointer items-center gap-2 rounded-lg border px-2 transition-interactive",
+          "focus-within:focus-ring border-tb-border-default bg-tb-background-screen hover:bg-tb-neutral-soft transition-interactive flex h-8 min-w-0 cursor-pointer items-center gap-2 rounded-lg border px-2",
           className,
         )}
         aria-label={chooseCustomColorLabel}

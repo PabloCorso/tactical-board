@@ -1,10 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type {
-  Board,
-  BoardObject,
-  Document,
-  Shape,
-} from "../board/types";
+import type { Board, BoardObject, Document, Shape } from "../board/types";
 import { createBoard, createDocument } from "../board/create-board";
 import {
   createBoardEditorStore,
@@ -102,5 +97,4 @@ describe("Document and Shape compatibility vocabulary", () => {
     expect(serializedDocument).not.toContain("playerGroups");
     expect(serializedBoard).toContain("playerGroups");
   });
-
 });

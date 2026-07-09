@@ -7,7 +7,7 @@ export function Switch({ className, children, ...props }: SwitchProps) {
   return (
     <SwitchPrimitive.Root
       className={cn(
-        "focus-visible:focus-ring bg-tb-neutral-soft relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border border-transparent transition-interactive",
+        "focus-visible:focus-ring bg-tb-neutral-soft transition-interactive relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border border-transparent",
         "hover:bg-tb-neutral-soft-hover active:bg-tb-neutral-soft-active data-[checked]:bg-tb-accent data-[checked]:hover:bg-tb-accent-hover data-[checked]:active:bg-tb-accent-active",
         "disabled:cursor-not-allowed disabled:opacity-40",
         className,
