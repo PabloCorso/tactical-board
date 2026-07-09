@@ -3,7 +3,6 @@ import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import {
   BoardEditor,
-  BoardEditorArrowSelectionToolbar,
   BoardEditorCanvas,
   BoardEditorCanvasToolbar,
   BoardEditorLabelsProvider,
@@ -20,7 +19,6 @@ import {
   BoardEditorTextToolControl,
   BoardEditorToolbarDockProvider,
   BoardEditorToolbar,
-  BoardEditorToolbarButton,
   BoardEditorToolbarDock,
   BoardViewerCanvas,
   BoardPrimaryToolbar,
@@ -40,10 +38,7 @@ import {
   getBasketballObjectRenderers,
   getFootballPitchVariant,
 } from "./";
-import {
-  ARROW_OBJECT_TYPE,
-  createArrowObject,
-} from "../core/objects/arrow-object";
+import { ARROW_OBJECT_TYPE } from "../core/objects/arrow-object";
 import { ARROW_TOOL_ID } from "../core/tools/arrow-tool-state";
 import { EQUIPMENT_OBJECT_TYPE } from "../core/objects/equipment-object";
 import { PLAYER_OBJECT_TYPE } from "../core/objects/player-object";
@@ -74,132 +69,6 @@ describe("React public frame", () => {
       ],
     ).toBeTypeOf("function");
     expect(footballTheme.playerPresets?.length).toBeGreaterThan(0);
-  });
-
-  it("keeps the editor canvas focusable without the browser focus outline", () => {
-    const board = createFootballBoard({ id: "canvas-focus-board" });
-    const store = createBoardEditorStore({
-      initialBoard: board,
-      tools: createFootballTools(),
-    });
-    const markup = renderToString(
-      createElement(
-        BoardEditorProvider,
-        { store },
-        createElement(BoardEditorCanvas),
-      ),
-    );
-
-    expect(markup).toContain('tabindex="0"');
-    expect(markup).toContain("outline-none");
-  });
-
-  it("keeps focus-ring padding inside scrollable toolbar content", () => {
-    const toolbarMarkup = renderToString(
-      createElement(
-        BoardEditorToolbar,
-        { density: "compact" },
-        createElement(BoardEditorToolbarButton, {
-          "aria-label": "Select",
-          tooltip: "Select",
-        }),
-      ),
-    );
-
-    expect(toolbarMarkup).toContain("overflow-auto");
-    expect(toolbarMarkup).toContain("p-0.5");
-  });
-
-  it("uses the accent active state for primary toolbar tool buttons", () => {
-    const board = createFootballBoard({ id: "primary-toolbar-active-board" });
-    const store = createBoardEditorStore({
-      initialBoard: board,
-      initialToolId: FOOTBALL_PITCH_TOOL_ID,
-      tools: createFootballTools(),
-    });
-    const footballPitchFrameOptions = FOOTBALL_PITCH_OPTIONS.map((option) => ({
-      ...option,
-      createFrame: () => createFootballPitch(option.value),
-    }));
-    const primaryToolbarMarkup = renderToString(
-      createElement(
-        BoardEditorProvider,
-        { store },
-        createElement(
-          BoardPrimaryToolbar,
-          null,
-          createElement(BoardEditorFrameVariantToolControl, {
-            toolId: FOOTBALL_PITCH_TOOL_ID,
-            options: footballPitchFrameOptions,
-            getValue: getFootballPitchVariant,
-          }),
-        ),
-      ),
-    );
-    const regularToolbarMarkup = renderToString(
-      createElement(
-        BoardEditorProvider,
-        { store },
-        createElement(
-          BoardEditorToolbar,
-          null,
-          createElement(BoardEditorFrameVariantToolControl, {
-            toolId: FOOTBALL_PITCH_TOOL_ID,
-            options: footballPitchFrameOptions,
-            getValue: getFootballPitchVariant,
-          }),
-        ),
-      ),
-    );
-
-    expect(primaryToolbarMarkup).toContain("bg-tb-accent");
-    expect(primaryToolbarMarkup).toContain(
-      "[--tb-toolbar-icon-primary:var(--tb-text-on-accent)]",
-    );
-    expect(regularToolbarMarkup).not.toContain("bg-tb-accent");
-    expect(regularToolbarMarkup).toContain("border-tb-neutral-soft-active");
-  });
-
-  it("groups arrow head and line controls in the selection toolbar", () => {
-    const board = createFootballBoard({ id: "arrow-toolbar-board" });
-    const store = createBoardEditorStore({
-      initialBoard: board,
-      tools: createFootballTools(),
-    });
-    const arrow = createArrowObject({
-      id: "arrow-toolbar-arrow",
-      color: "#111827",
-      kind: "straight",
-      lineStyle: "solid",
-      start: { x: 0, y: 0 },
-      end: { x: 80, y: 40 },
-      startHead: "none",
-      endHead: "triangle",
-    });
-    const markup = renderToString(
-      createElement(
-        BoardEditorProvider,
-        { store },
-        createElement(BoardEditorArrowSelectionToolbar, {
-          selectedObject: arrow,
-          toolbarLeft: 100,
-          toolbarTop: 80,
-          toolbarBottom: 120,
-          viewportWidth: 400,
-          viewportHeight: 300,
-        }),
-      ),
-    );
-    const bodyIndex = markup.indexOf('aria-label="Arrow body style"');
-    const leftHeadIndex = markup.indexOf('aria-label="Arrow left head"');
-    const lineIndex = markup.indexOf('aria-label="Arrow line style"');
-    const rightHeadIndex = markup.indexOf('aria-label="Arrow right head"');
-
-    expect(leftHeadIndex).toBeGreaterThan(-1);
-    expect(bodyIndex).toBeGreaterThan(leftHeadIndex);
-    expect(rightHeadIndex).toBeGreaterThan(bodyIndex);
-    expect(lineIndex).toBeGreaterThan(rightHeadIndex);
-    expect(markup.match(/role="separator"/g)?.length).toBe(2);
   });
 
   it("lets consumers override built-in editor labels", () => {

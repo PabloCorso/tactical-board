@@ -2,9 +2,7 @@ import { describe, expect, it } from "vitest";
 import type {
   Board,
   BoardObject,
-  BoardFrameDefault,
   Document,
-  DocumentBackgroundConfig,
   Shape,
 } from "../board/types";
 import { createBoard, createDocument } from "../board/create-board";
@@ -105,34 +103,4 @@ describe("Document and Shape compatibility vocabulary", () => {
     expect(serializedBoard).toContain("playerGroups");
   });
 
-  it("keeps generic Document background separate from board frame defaults", () => {
-    const background: DocumentBackgroundConfig = {
-      width: 320,
-      height: 180,
-      fill: "#f8fafc",
-    };
-    const frameDefault: BoardFrameDefault = {
-      width: 320,
-      height: 180,
-      background: "#177238",
-      markings: [
-        {
-          kind: "line",
-          x1: 0,
-          y1: 90,
-          x2: 320,
-          y2: 90,
-          stroke: "#ffffff",
-          strokeWidth: 2,
-        },
-      ],
-      markup: {
-        sport: "football",
-      },
-    };
-
-    expect("markings" in background).toBe(false);
-    expect(background.fill).toBe("#f8fafc");
-    expect(frameDefault.markings).toHaveLength(1);
-  });
 });

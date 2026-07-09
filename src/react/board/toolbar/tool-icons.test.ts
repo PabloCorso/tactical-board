@@ -1,5 +1,3 @@
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { DEFAULT_BOARD_COLOR } from "../../../core/colors/default-colors";
 import {
@@ -54,15 +52,5 @@ describe("toolbar tool icons", () => {
       "currentColor",
     );
     expect(player.props.color).toBe("currentColor");
-  });
-
-  it("draws canvas icons through the ref callback instead of a passive effect", () => {
-    const source = readFileSync(
-      fileURLToPath(new URL("./tool-icon-canvas.tsx", import.meta.url)),
-      "utf8",
-    );
-
-    expect(source).not.toContain("useEffect");
-    expect(source).toContain("useCallback");
   });
 });

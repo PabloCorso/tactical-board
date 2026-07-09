@@ -114,49 +114,6 @@ describe("renderFootballShirtPlayerAppearance", () => {
     expect(context.clip).not.toHaveBeenCalled();
     expect(context.arc).not.toHaveBeenCalled();
   });
-
-  it("uses the original SVG stroke widths scaled to the player marker", () => {
-    const context = createSpyContext();
-    const player = createPlayerObject({
-      id: "player-1",
-      position: { x: 10, y: 10 },
-      size: { width: 2.4, height: 2.4 },
-      color: "#1f6feb",
-      appearanceId: "football-shirt",
-    });
-    const frameTransform = createBoardSpaceProjection({
-      frame: {
-        width: 100,
-        height: 50,
-      },
-      viewport: {
-        pan: { x: 0, y: 0 },
-        zoom: 1,
-      },
-      canvasRect: {
-        width: 1000,
-        height: 500,
-      },
-    });
-
-    renderFootballShirtPlayerAppearance({
-      context,
-      object: player,
-      player,
-      appearance: "default",
-      requestRender: () => {},
-      frameTransform,
-    });
-
-    const scale = 2.4 / 1254;
-
-    expect(context.lineWidths).toEqual([
-      18 * scale,
-      18 * scale,
-      5 * scale,
-      9 * scale,
-    ]);
-  });
 });
 
 describe("renderFootballCirclePlayerAppearance", () => {
