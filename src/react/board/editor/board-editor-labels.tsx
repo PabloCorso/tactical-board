@@ -183,8 +183,8 @@ export const BOARD_EDITOR_DEFAULT_LABELS: BoardEditorLabels = {
       run: "Run",
       screen: "Screen",
     },
-    addPlayerGroup: "Add player group",
-    playerGroup: "Player group",
+    addPlayerGroup: "Add team",
+    playerGroup: "Team",
     playerColor: "Player color",
     shapeDefaults: {
       diamond: "Diamond",
@@ -195,7 +195,7 @@ export const BOARD_EDITOR_DEFAULT_LABELS: BoardEditorLabels = {
     },
   },
   teamPanel: {
-    backToPlayerGroups: "Back to player groups",
+    backToPlayerGroups: "Back to teams",
     title: "Team properties",
     applyFormation: "Place players",
     autoNumbering: "Auto-number players",

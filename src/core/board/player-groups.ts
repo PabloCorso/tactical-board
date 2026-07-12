@@ -74,7 +74,7 @@ export function createBoardPlayerGroupId(
 }
 
 export function getDefaultBoardPlayerGroupName(index: number) {
-  return `Group ${index + 1}`;
+  return `Team ${index + 1}`;
 }
 
 export function createBoardPlayerGroup(input: {
