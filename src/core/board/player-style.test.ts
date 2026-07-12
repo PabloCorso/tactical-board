@@ -120,8 +120,8 @@ describe("resolveEffectivePlayerStyle", () => {
       resolveEffectivePlayerStyle(createStyleBoard([]), player),
     ).toMatchObject({
       color: "#f97316",
-      size: 22,
-      fontSize: 9.5,
+      size: 24,
+      fontSize: 12,
     });
   });
 
@@ -167,6 +167,7 @@ describe("getPlayerWithEffectiveStyle", () => {
         color: "#1f6feb",
         size: 26,
         fontSize: 11,
+        labelColor: "#ff00ff",
         caption: { placement: "bottom" as const, distance: 2 },
       },
     };
@@ -182,6 +183,7 @@ describe("getPlayerWithEffectiveStyle", () => {
     );
 
     expect(effectivePlayer.props.color).toBe("#1f6feb");
+    expect(effectivePlayer.props.labelColor).toBe("#ff00ff");
     expect(effectivePlayer.size).toEqual({ width: 26, height: 26 });
     expect(effectivePlayer.props.caption).toEqual({
       text: "Alex",

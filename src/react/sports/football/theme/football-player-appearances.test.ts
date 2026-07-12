@@ -141,6 +141,67 @@ describe("renderFootballShirtPlayerAppearance", () => {
 });
 
 describe("renderFootballCirclePlayerAppearance", () => {
+  it("uses an explicit player label color", () => {
+    const context = createSpyContext();
+    const player = createPlayerObject({
+      id: "player-label-color",
+      position: { x: 10, y: 10 },
+      label: "8",
+      labelColor: "#ff00ff",
+      size: { width: 2.4, height: 2.4 },
+      color: "#1f6feb",
+      appearanceId: "circle",
+    });
+    const frameTransform = createBoardSpaceProjection({
+      frame: { width: 100, height: 50 },
+      viewport: { pan: { x: 0, y: 0 }, zoom: 1 },
+      canvasRect: { width: 1000, height: 500 },
+    });
+
+    renderFootballCirclePlayerAppearance({
+      context,
+      board: createPlayerAppearanceBoard(player),
+      object: player,
+      player,
+      appearance: "default",
+      requestRender: () => {},
+      frameTransform,
+    });
+
+    expect(context.fillStyles.at(-1)).toBe("#ff00ff");
+  });
+
+  it("contrasts an automatic label against the secondary stripe at its center", () => {
+    const context = createSpyContext();
+    const player = createPlayerObject({
+      id: "striped-player-label",
+      position: { x: 10, y: 10 },
+      label: "8",
+      size: { width: 2.4, height: 2.4 },
+      color: "#111827",
+      colors: { secondary: "#ffffff" },
+      appearanceId: "circle",
+      options: { pattern: "stripes" },
+    });
+    const frameTransform = createBoardSpaceProjection({
+      frame: { width: 100, height: 50 },
+      viewport: { pan: { x: 0, y: 0 }, zoom: 1 },
+      canvasRect: { width: 1000, height: 500 },
+    });
+
+    renderFootballCirclePlayerAppearance({
+      context,
+      board: createPlayerAppearanceBoard(player),
+      object: player,
+      player,
+      appearance: "default",
+      requestRender: () => {},
+      frameTransform,
+    });
+
+    expect(context.fillStyles.at(-1)).toBe("#111827");
+  });
+
   it("renders circle stripes inside the circular marker", () => {
     const context = createSpyContext();
     const player = createPlayerObject({
@@ -186,50 +247,5 @@ describe("renderFootballCirclePlayerAppearance", () => {
     expect(context.fillRect).toHaveBeenCalled();
     expect(context.fillStyles).toContain("#1f6feb");
     expect(context.fillStyles).toContain("#ffffff");
-  });
-
-  it("renders the ring pattern as a circle stroke", () => {
-    const context = createSpyContext();
-    const player = createPlayerObject({
-      id: "player-1",
-      position: { x: 10, y: 10 },
-      size: { width: 2.4, height: 2.4 },
-      color: "#1f6feb",
-      colors: {
-        secondary: "#ffffff",
-      },
-      appearanceId: "circle",
-      options: {
-        pattern: "ring",
-      },
-    });
-    const frameTransform = createBoardSpaceProjection({
-      frame: {
-        width: 100,
-        height: 50,
-      },
-      viewport: {
-        pan: { x: 0, y: 0 },
-        zoom: 1,
-      },
-      canvasRect: {
-        width: 1000,
-        height: 500,
-      },
-    });
-
-    renderFootballCirclePlayerAppearance({
-      context,
-      board: createPlayerAppearanceBoard(player),
-      object: player,
-      player,
-      appearance: "default",
-      requestRender: () => {},
-      frameTransform,
-    });
-
-    expect(context.clip).not.toHaveBeenCalled();
-    expect(context.stroke).toHaveBeenCalledTimes(2);
-    expect(context.fillRect).not.toHaveBeenCalled();
   });
 });

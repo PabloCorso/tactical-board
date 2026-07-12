@@ -16,12 +16,10 @@ import type {
 } from "../../../board/theme/board-theme";
 
 export const FOOTBALL_SHIRT_APPEARANCE_ID = "football-shirt";
-export const FOOTBALL_RINGED_CIRCLE_APPEARANCE_ID = "football-ringed-circle";
 export const FOOTBALL_SECONDARY_COLOR_ROLE = "secondary";
 
 export type FootballCirclePattern =
   | "solid"
-  | "ring"
   | "stripes"
   | "hoops"
   | "halves"
@@ -320,7 +318,6 @@ function getFootballCirclePattern(player: PlayerObject): FootballCirclePattern {
   const pattern = player.props.options?.pattern;
 
   switch (pattern) {
-    case "ring":
     case "stripes":
     case "hoops":
     case "halves":
@@ -388,17 +385,6 @@ function drawFootballCirclePattern({
   radius: number;
 }) {
   if (pattern === "solid") {
-    return;
-  }
-
-  if (pattern === "ring") {
-    const ringWidth = Math.max(radius * 0.22, 2);
-
-    context.strokeStyle = patternColor;
-    context.lineWidth = ringWidth;
-    context.beginPath();
-    context.arc(0, 0, radius - ringWidth / 2, 0, Math.PI * 2);
-    context.stroke();
     return;
   }
 
@@ -472,6 +458,15 @@ function getFootballSecondaryColor(player: PlayerObject) {
   );
 }
 
+function getAutomaticMarkerLabelColor(
+  player: PlayerObject,
+  backgroundColor: string,
+) {
+  return (
+    player.props.labelColor ?? getContrastingPlayerLabelColor(backgroundColor)
+  );
+}
+
 export const FOOTBALL_PLAYER_APPEARANCES: BoardThemePlayerAppearanceDefinition[] =
   [
     {
@@ -491,7 +486,6 @@ export const FOOTBALL_PLAYER_APPEARANCES: BoardThemePlayerAppearanceDefinition[]
           defaultValue: "solid",
           choices: [
             { value: "solid", label: "Solid" },
-            { value: "ring", label: "Ring" },
             { value: "stripes", label: "Stripes" },
             { value: "hoops", label: "Hoops" },
             { value: "halves", label: "Halves" },
@@ -505,22 +499,6 @@ export const FOOTBALL_PLAYER_APPEARANCES: BoardThemePlayerAppearanceDefinition[]
         },
         options: {
           pattern: "solid",
-        },
-      },
-    },
-    {
-      id: FOOTBALL_RINGED_CIRCLE_APPEARANCE_ID,
-      label: "Ringed circle",
-      colors: [
-        {
-          id: FOOTBALL_SECONDARY_COLOR_ROLE,
-          label: "Ring color",
-          defaultValue: DEFAULT_SECONDARY_COLOR,
-        },
-      ],
-      defaultProps: {
-        colors: {
-          [FOOTBALL_SECONDARY_COLOR_ROLE]: DEFAULT_SECONDARY_COLOR,
         },
       },
     },
@@ -568,12 +546,6 @@ export const FOOTBALL_PLAYER_PRESETS: BoardThemePlayerPresetDefinition[] = [
     id: "circle",
     label: "Circle",
     appearanceId: "circle",
-  },
-  {
-    id: "ringed-circle",
-    label: "Ringed circle",
-    appearanceId: FOOTBALL_RINGED_CIRCLE_APPEARANCE_ID,
-    colors: { [FOOTBALL_SECONDARY_COLOR_ROLE]: DEFAULT_SECONDARY_COLOR },
   },
   {
     id: "shirt",
@@ -677,7 +649,12 @@ export const renderFootballShirtPlayerAppearance: PlayerAppearanceRenderer = ({
   context.shadowColor = "rgba(0, 0, 0, 0.45)";
   context.shadowBlur = 2;
   drawPlayerMarkerLabel({
-    color: getContrastingPlayerLabelColor(shirtColor),
+    color: getAutomaticMarkerLabelColor(
+      player,
+      getFootballShirtPattern(player) === "solid"
+        ? shirtColor
+        : getFootballSecondaryColor(player),
+    ),
     context,
     fontSize: labelFontSize,
     offsetY: height * 0.11,
@@ -723,7 +700,12 @@ export const renderFootballCirclePlayerAppearance: PlayerAppearanceRenderer = ({
   context.stroke();
 
   drawPlayerMarkerLabel({
-    color: getContrastingPlayerLabelColor(fillColor),
+    color: getAutomaticMarkerLabelColor(
+      player,
+      getFootballCirclePattern(player) === "solid"
+        ? fillColor
+        : getFootballSecondaryColor(player),
+    ),
     context,
     fontSize: getMarkerLabelFontSize(player, radius, frameTransform.scale),
     offsetY: 1,
@@ -733,54 +715,7 @@ export const renderFootballCirclePlayerAppearance: PlayerAppearanceRenderer = ({
   context.restore();
 };
 
-export const renderFootballRingedCirclePlayerAppearance: PlayerAppearanceRenderer =
-  ({ appearance, context, frameTransform, player }) => {
-    const bounds = frameTransform.getObjectCanvasBounds(player);
-    const width = getAbsoluteCanvasExtent(bounds.width);
-    const height = getAbsoluteCanvasExtent(bounds.height);
-    const radius = Math.min(width, height) / 2;
-    const ringWidth = Math.max(radius * 0.22, 2);
-    const fillColor = player.props.color ?? DEFAULT_PLAYER_COLOR;
-
-    context.save();
-    context.globalAlpha = appearance === "preview" ? 0.55 : 1;
-    context.translate(
-      bounds.x + bounds.width / 2,
-      bounds.y + bounds.height / 2,
-    );
-    context.rotate(((player.rotation ?? 0) * Math.PI) / 180);
-
-    context.fillStyle = fillColor;
-    context.beginPath();
-    context.arc(0, 0, radius, 0, Math.PI * 2);
-    context.fill();
-
-    context.strokeStyle = getFootballSecondaryColor(player);
-    context.lineWidth = ringWidth;
-    context.beginPath();
-    context.arc(0, 0, radius - ringWidth / 2, 0, Math.PI * 2);
-    context.stroke();
-
-    context.strokeStyle = "#000000";
-    context.lineWidth = getPlayerBorderWidth(radius);
-    context.beginPath();
-    context.arc(0, 0, radius, 0, Math.PI * 2);
-    context.stroke();
-
-    drawPlayerMarkerLabel({
-      color: getContrastingPlayerLabelColor(fillColor),
-      context,
-      fontSize: getMarkerLabelFontSize(player, radius, frameTransform.scale),
-      offsetY: 1,
-      player,
-    });
-
-    context.restore();
-  };
-
 export const FOOTBALL_PLAYER_APPEARANCE_RENDERERS = {
   circle: renderFootballCirclePlayerAppearance,
   [FOOTBALL_SHIRT_APPEARANCE_ID]: renderFootballShirtPlayerAppearance,
-  [FOOTBALL_RINGED_CIRCLE_APPEARANCE_ID]:
-    renderFootballRingedCirclePlayerAppearance,
 } satisfies Record<string, PlayerAppearanceRenderer>;

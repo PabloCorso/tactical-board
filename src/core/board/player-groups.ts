@@ -37,6 +37,7 @@ export type PlayerGroupStylePatch = Partial<{
   colors: Record<string, string> | undefined;
   size: number;
   fontSize: number;
+  labelColor: string | undefined;
   appearanceId: string | undefined;
   options: Record<string, unknown> | undefined;
   asset: Asset | undefined;
@@ -48,6 +49,7 @@ export type ResolvedPlayerGroupStyle = {
   colors?: Record<string, string>;
   size: number;
   fontSize: number;
+  labelColor?: string;
   appearanceId?: string;
   options?: Record<string, unknown>;
   asset?: Asset;
@@ -116,6 +118,7 @@ export function resolvePlayerGroupStyle(
     colors: group.style.colors ? { ...group.style.colors } : undefined,
     size: group.style.size ?? DEFAULT_PLAYER_SIZE,
     fontSize: group.style.fontSize ?? DEFAULT_PLAYER_FONT_SIZE,
+    labelColor: group.style.labelColor,
     appearanceId: group.style.appearanceId,
     options: group.style.options ? { ...group.style.options } : undefined,
     asset: group.style.asset ? { ...group.style.asset } : undefined,
@@ -194,6 +197,7 @@ export function normalizeBoardPlayerGroups(
         ],
       size: group.style.size ?? DEFAULT_PLAYER_SIZE,
       fontSize: group.style.fontSize ?? DEFAULT_PLAYER_FONT_SIZE,
+      labelColor: group.style.labelColor,
       colors: group.style.colors ? { ...group.style.colors } : undefined,
       appearanceId: group.style.appearanceId,
       options: group.style.options ? { ...group.style.options } : undefined,

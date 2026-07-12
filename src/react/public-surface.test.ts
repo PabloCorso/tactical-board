@@ -3,25 +3,36 @@ import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import {
   BoardEditor,
+  BoardEditorArrowToolbar,
   BoardEditorCanvas,
   BoardEditorCanvasToolbar,
   BoardEditorLabelsProvider,
+  BoardEditorEquipmentToolbar,
   BoardEditorEquipmentToolControl,
   BoardEditorFrameVariantDefaultsToolbar,
   BoardEditorFrameVariantToolControl,
   BoardEditorHandToolControl,
   BoardEditorPlayerToolControl,
+  BoardEditorPlayerGroupToolbar,
   BoardEditorProvider,
   BoardEditorSecondaryToolbar,
+  BoardEditorSecondaryToolbars,
   BoardEditorSelectionToolbar,
   BoardEditorShapePolygonDone,
+  BoardEditorShapeToolbar,
   BoardEditorSelectToolControl,
+  BoardEditorTeamPanelContent,
+  BoardEditorTeamPanelDock,
+  BoardEditorTeamPanelProvider,
   BoardEditorTextToolControl,
   BoardEditorToolbarDockProvider,
   BoardEditorToolbar,
   BoardEditorToolbarDock,
   BoardViewerCanvas,
   BoardPrimaryToolbar,
+  TeamPanelCaptionSection,
+  TeamPanelDeleteSection,
+  TeamPanelPlayerLabelSection,
   BOARD_ARROW_DEFAULTS,
   basketballTheme,
   createBasketballBoard,
@@ -56,17 +67,12 @@ describe("React public frame", () => {
   it("exposes football player appearances through the theme", () => {
     expect(
       footballTheme.playerAppearances?.map((appearance) => appearance.id),
-    ).toEqual(["circle", "football-ringed-circle", "football-shirt", "image"]);
+    ).toEqual(["circle", "football-shirt", "image"]);
     expect(footballThemeAdapters.playerAppearanceRenderers?.circle).toBeTypeOf(
       "function",
     );
     expect(
       footballThemeAdapters.playerAppearanceRenderers?.["football-shirt"],
-    ).toBeTypeOf("function");
-    expect(
-      footballThemeAdapters.playerAppearanceRenderers?.[
-        "football-ringed-circle"
-      ],
     ).toBeTypeOf("function");
     expect(footballTheme.playerPresets?.length).toBeGreaterThan(0);
   });
@@ -153,20 +159,24 @@ describe("React public frame", () => {
             label: "Custom select",
           }),
         ),
-        createElement(BoardEditorSecondaryToolbar, {
-          arrowDefaults: [
+        createElement(BoardEditorPlayerGroupToolbar),
+        createElement(BoardEditorEquipmentToolbar),
+        createElement(BoardEditorArrowToolbar, {
+          defaults: [
             {
               ...BOARD_ARROW_DEFAULTS[1],
               label: "Custom run",
             },
           ],
         }),
+        createElement(BoardEditorShapeToolbar),
       ),
     );
 
     expect(markup).toContain('aria-label="Registered select"');
     expect(markup).toContain('aria-label="Custom select"');
     expect(markup).toContain('aria-label="Custom run"');
+    expect(markup).not.toContain('aria-label="Add player group"');
   });
 
   it("exports the simple and composable football modules", () => {
@@ -255,6 +265,57 @@ describe("React public frame", () => {
     ).not.toThrow();
   });
 
+  it("lets consumers compose the player group panel section order", () => {
+    const store = createBoardEditorStore({
+      initialBoard: createFootballBoard({ id: "composable-team-panel" }),
+      tools: createFootballTools(),
+    });
+
+    const markup = renderToString(
+      createElement(
+        BoardEditorProvider,
+        { store },
+        createElement(
+          BoardEditorTeamPanelProvider,
+          { defaultOpen: true },
+          createElement(
+            BoardEditorTeamPanelDock,
+            null,
+            createElement(
+              BoardEditorTeamPanelContent,
+              null,
+              createElement(TeamPanelPlayerLabelSection),
+              createElement(TeamPanelCaptionSection),
+              createElement(TeamPanelDeleteSection),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(markup.indexOf(">Label<")).toBeLessThan(markup.indexOf(">Caption<"));
+  });
+
+  it("renders the active player toolbar without a team panel provider", () => {
+    const store = createBoardEditorStore({
+      initialBoard: createBasketballBoard({ id: "player-toolbar-no-panel" }),
+      initialToolId: "player",
+      tools: createBasketballTools(),
+    });
+
+    expect(() =>
+      renderToString(
+        createElement(
+          BoardEditorProvider,
+          { store },
+          createElement(BoardEditorSecondaryToolbars, {
+            theme: basketballTheme,
+          }),
+        ),
+      ),
+    ).not.toThrow();
+  });
+
   it("exports the simple and composable basketball modules", () => {
     const board = createBasketballBoard({ id: "public-basketball-board" });
     const store = createBoardEditorStore({
@@ -301,7 +362,7 @@ describe("React public frame", () => {
                 createElement(BoardPrimaryToolbar, {
                   theme: basketballTheme,
                 }),
-                createElement(BoardEditorSecondaryToolbar, {
+                createElement(BoardEditorSecondaryToolbars, {
                   theme: basketballTheme,
                 }),
               ),

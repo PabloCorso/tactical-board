@@ -42,11 +42,8 @@ export type BoardEditorLabels = {
       screen: string;
     };
     addPlayerGroup: string;
-    autoNumberSequencing: string;
-    editPlayerGroup: string;
     playerGroup: string;
     playerColor: string;
-    teamName: string;
     shapeDefaults: {
       diamond: string;
       oval: string;
@@ -56,21 +53,24 @@ export type BoardEditorLabels = {
     };
   };
   teamPanel: {
+    backToPlayerGroups: string;
     title: string;
     applyFormation: string;
     autoNumbering: string;
     captionDefaults: string;
     close: string;
-    confirmDeleteTeam: (playerCount: number) => string;
+    confirmDeleteTeam: string;
     deleteTeam: string;
     formation: string;
     formationPlacement: string;
     kit: string;
     playerName: string;
+    playerLabel: string;
     playerNumber: string;
     playerSize: string;
+    resetPlayerLabel: string;
+    resetPlayerSize: string;
     roster: string;
-    rosterEmpty: string;
     selectPlayerOnBoard: string;
     teamName: string;
     teamSection: string;
@@ -82,6 +82,9 @@ export type BoardEditorLabels = {
     captionColor: string;
     captionDistance: string;
     captionPlacement: string;
+    captionSize: string;
+    labelColor: string;
+    labelSize: string;
     captionPlacementValue: {
       bottom: string;
       left: string;
@@ -181,11 +184,8 @@ export const BOARD_EDITOR_DEFAULT_LABELS: BoardEditorLabels = {
       screen: "Screen",
     },
     addPlayerGroup: "Add player group",
-    autoNumberSequencing: "Auto-number players",
-    editPlayerGroup: "Team properties",
     playerGroup: "Player group",
     playerColor: "Player color",
-    teamName: "Team name",
     shapeDefaults: {
       diamond: "Diamond",
       oval: "Oval",
@@ -195,26 +195,24 @@ export const BOARD_EDITOR_DEFAULT_LABELS: BoardEditorLabels = {
     },
   },
   teamPanel: {
+    backToPlayerGroups: "Back to player groups",
     title: "Team properties",
     applyFormation: "Place players",
     autoNumbering: "Auto-number players",
-    captionDefaults: "Name captions",
+    captionDefaults: "Caption",
     close: "Close team panel",
-    confirmDeleteTeam: (playerCount) =>
-      playerCount > 0
-        ? `Delete team and its ${playerCount} player${
-            playerCount === 1 ? "" : "s"
-          }?`
-        : "Delete team?",
+    confirmDeleteTeam: "Are you sure?",
     deleteTeam: "Delete team",
     formation: "Formation",
     formationPlacement: "Placement",
     kit: "Appearance",
     playerName: "Player name",
+    playerLabel: "Label",
     playerNumber: "Player number",
-    playerSize: "Player size",
+    playerSize: "Size",
+    resetPlayerLabel: "Reset player label",
+    resetPlayerSize: "Reset player size",
     roster: "Players",
-    rosterEmpty: "No players yet. Pick this team and tap the board to add.",
     selectPlayerOnBoard: "Select player on board",
     teamName: "Team name",
     teamSection: "Team",
@@ -223,9 +221,12 @@ export const BOARD_EDITOR_DEFAULT_LABELS: BoardEditorLabels = {
   playerAppearance: {
     appearance: "Appearance",
     caption: "Caption",
-    captionColor: "Caption color",
-    captionDistance: "Caption gap",
-    captionPlacement: "Caption position",
+    captionColor: "Color",
+    captionDistance: "Gap",
+    captionPlacement: "Position",
+    captionSize: "Size",
+    labelColor: "Color",
+    labelSize: "Size",
     captionPlacementValue: {
       bottom: "Bottom",
       left: "Left",

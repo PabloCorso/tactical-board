@@ -61,6 +61,7 @@ export function getPlayerGroupDraftStyle(group: PlayerGroup): PlayerDraftStyle {
     colors: style.colors,
     size: style.size,
     fontSize: style.fontSize,
+    labelColor: style.labelColor,
     appearanceId: style.appearanceId,
     options: style.options,
     asset: style.asset,

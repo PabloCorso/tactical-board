@@ -13,6 +13,7 @@ export type EffectivePlayerStyle = {
   colors?: Record<string, string>;
   size: number;
   fontSize: number;
+  labelColor?: string;
   appearanceId?: string;
   options?: Record<string, unknown>;
   asset?: Asset;
@@ -24,6 +25,7 @@ export type PlayerStylePatch = Partial<{
   colors: Record<string, string>;
   size: number;
   fontSize: number;
+  labelColor: string;
   appearanceId: string;
   options: Record<string, unknown>;
   asset: Asset;
@@ -52,6 +54,9 @@ function getPlayerStyleLayer(player: PlayerObject): PlayerStylePatch {
   }
   if (player.props.fontSize !== undefined) {
     layer.fontSize = player.props.fontSize;
+  }
+  if (player.props.labelColor !== undefined) {
+    layer.labelColor = player.props.labelColor;
   }
   if (player.props.appearanceId !== undefined) {
     layer.appearanceId = player.props.appearanceId;
@@ -90,6 +95,9 @@ function applyPlayerStyleLayer(
   }
   if (Object.prototype.hasOwnProperty.call(layer, "fontSize")) {
     next.fontSize = layer.fontSize ?? DEFAULT_PLAYER_FONT_SIZE;
+  }
+  if (Object.prototype.hasOwnProperty.call(layer, "labelColor")) {
+    next.labelColor = layer.labelColor;
   }
   if (Object.prototype.hasOwnProperty.call(layer, "appearanceId")) {
     next.appearanceId = layer.appearanceId;
@@ -131,6 +139,7 @@ export function getPlayerWithEffectiveStyle(
     colors: style.colors,
     size: { width: style.size, height: style.size },
     fontSize: style.fontSize,
+    labelColor: style.labelColor,
     appearanceId: style.appearanceId,
     options: style.options,
     asset: style.asset,
@@ -155,6 +164,7 @@ export function updatePlayerStyle(
       ? { size: { width: patch.size, height: patch.size } }
       : {}),
     ...("fontSize" in patch ? { fontSize: patch.fontSize } : {}),
+    ...("labelColor" in patch ? { labelColor: patch.labelColor } : {}),
     ...("appearanceId" in patch ? { appearanceId: patch.appearanceId } : {}),
     ...("options" in patch ? { options: patch.options } : {}),
     ...("asset" in patch ? { asset: patch.asset } : {}),

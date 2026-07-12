@@ -28,15 +28,16 @@ function getAppearance(id: string) {
 
 describe("getPlayerPresetChangePatch", () => {
   it("carries shared color roles across preset switches", () => {
-    const preset = getPreset("ringed-circle");
+    const preset = getPreset("shirt-stripes");
     const patch = getPlayerPresetChangePatch({
       current: { colors: { secondary: "#fbbf24" } },
       preset,
       appearance: getAppearance(preset.appearanceId),
     });
 
-    expect(patch.appearanceId).toBe("football-ringed-circle");
+    expect(patch.appearanceId).toBe("football-shirt");
     expect(patch.colors).toEqual({ secondary: "#fbbf24" });
+    expect(patch.options).toEqual({ pattern: "stripes" });
     expect(patch.asset).toBeUndefined();
   });
 

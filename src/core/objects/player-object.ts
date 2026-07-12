@@ -8,8 +8,8 @@ import type {
 import { DEFAULT_BOARD_COLOR } from "../colors/default-colors";
 
 export const PLAYER_OBJECT_TYPE = "player";
-export const DEFAULT_PLAYER_SIZE = 22;
-export const DEFAULT_PLAYER_FONT_SIZE = 9.5;
+export const DEFAULT_PLAYER_SIZE = 8 * 3;
+export const DEFAULT_PLAYER_FONT_SIZE = 12;
 export const DEFAULT_PLAYER_COLOR = DEFAULT_BOARD_COLOR.black;
 export const DEFAULT_PLAYER_TRANSFORM_CAPABILITIES = {
   move: true,
@@ -29,6 +29,7 @@ export interface PlayerObjectProps extends Record<string, unknown> {
   color?: string;
   colors?: Record<string, string>;
   fontSize?: number;
+  labelColor?: string;
   appearanceId?: string;
   options?: Record<string, unknown>;
   asset?: Asset;
@@ -51,6 +52,7 @@ type PlayerCoreInput = {
   color?: string;
   colors?: Record<string, string>;
   fontSize?: number;
+  labelColor?: string;
   appearanceId?: string;
   options?: Record<string, unknown>;
   asset?: Asset;
@@ -97,6 +99,7 @@ function getCanonicalPlayerProps(input: PlayerCoreInput): PlayerObjectProps {
     color: input.color,
     colors: input.colors ? { ...input.colors } : undefined,
     fontSize: input.fontSize,
+    labelColor: input.labelColor,
     appearanceId: input.appearanceId,
     options: input.options ? { ...input.options } : undefined,
     asset: input.asset ? { ...input.asset } : undefined,
@@ -159,6 +162,7 @@ export function updatePlayerObject(
       color: getInputValue(input, "color", object.props.color),
       colors: getInputValue(input, "colors", object.props.colors),
       fontSize: getInputValue(input, "fontSize", object.props.fontSize),
+      labelColor: getInputValue(input, "labelColor", object.props.labelColor),
       appearanceId: getInputValue(
         input,
         "appearanceId",

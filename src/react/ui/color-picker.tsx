@@ -18,9 +18,27 @@ export type ColorPickerProps = {
   label?: string;
   chooseCustomColorLabel?: string;
   defaultColors?: string[];
-  variant?: "palette" | "compact";
   className?: string;
 };
+
+export function ColorSwatch({
+  value,
+  className,
+}: {
+  value: string;
+  className?: string;
+}) {
+  return (
+    <span
+      className={cn(
+        "border-tb-border-default inline-flex h-4 w-4 shrink-0 rounded-full border",
+        className,
+      )}
+      style={{ backgroundColor: value }}
+      aria-hidden="true"
+    />
+  );
+}
 
 export function ColorPicker({
   value,
@@ -28,43 +46,12 @@ export function ColorPicker({
   chooseCustomColorLabel = "Choose custom color",
   label,
   defaultColors = [...DEFAULT_BOARD_COLORS],
-  variant = "palette",
   className,
 }: ColorPickerProps) {
   const normalizedValue = normalizeColor(value);
   const isDefaultColor = defaultColors.some(
     (color) => normalizeColor(color) === normalizedValue,
   );
-
-  if (variant === "compact") {
-    return (
-      <label
-        className={cn(
-          "focus-within:focus-ring border-tb-border-default bg-tb-background-screen hover:bg-tb-neutral-soft transition-interactive flex h-8 min-w-0 cursor-pointer items-center gap-2 rounded-lg border px-2",
-          className,
-        )}
-        aria-label={chooseCustomColorLabel}
-      >
-        <span
-          className="border-tb-border-default h-4 w-4 shrink-0 rounded-full border"
-          style={{ backgroundColor: value }}
-          aria-hidden="true"
-        />
-        {label ? (
-          <span className="text-tb-text-primary truncate text-xs font-medium">
-            {label}
-          </span>
-        ) : null}
-        <input
-          type="color"
-          value={value}
-          aria-label={chooseCustomColorLabel}
-          className="sr-only"
-          onChange={(event) => onChange(event.target.value)}
-        />
-      </label>
-    );
-  }
 
   return (
     <div className={cn("flex min-w-52 flex-col gap-3", className)}>

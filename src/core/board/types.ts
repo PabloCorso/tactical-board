@@ -45,6 +45,7 @@ export interface PlayerGroupStyle {
   colors?: Record<string, string>;
   size?: number;
   fontSize?: number;
+  labelColor?: string;
   appearanceId?: string;
   options?: Record<string, unknown>;
   asset?: Asset;
@@ -69,6 +70,13 @@ export interface DocumentStyleRef {
   skinIds?: Partial<Record<ShapeType, SkinId>>;
 }
 
+export type DocumentMeasurementUnit = "meter";
+
+export interface DocumentMeasurement {
+  unit: DocumentMeasurementUnit;
+  unitsPerUnit: number;
+}
+
 export interface Shape {
   id: ShapeId;
   type: ShapeType;
@@ -88,6 +96,7 @@ export interface DocumentBackgroundConfig {
   width: number;
   height: number;
   fill?: string;
+  measurement?: DocumentMeasurement;
 }
 
 export type BoardFrameOrientation = 0 | 90 | 180 | 270;

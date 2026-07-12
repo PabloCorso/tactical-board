@@ -13,6 +13,7 @@ export type PlayerDraftStyle = {
   colors?: Record<string, string>;
   size: number;
   fontSize: number;
+  labelColor?: string;
   appearanceId?: string;
   options?: Record<string, unknown>;
   asset?: Asset;

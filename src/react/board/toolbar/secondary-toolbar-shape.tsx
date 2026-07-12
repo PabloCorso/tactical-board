@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import type { ShapeToolDefault } from "../../../core/tools/shape-tool";
+import { BOARD_SHAPE_DEFAULTS } from "../theme/board-tool-defaults";
 import {
   SHAPE_TOOL_ID,
   getShapeToolState,
@@ -22,14 +23,36 @@ export type BoardEditorShapeToolbarProps = Omit<
   BoardEditorToolbarProps,
   "children"
 > & {
-  defaults: ShapeToolDefault[];
+  defaults?: readonly ShapeToolDefault[];
 };
 
-export function BoardEditorShapeToolbar({
+export function BoardEditorShapeToolbar(props: BoardEditorShapeToolbarProps) {
+  const editorStore = useBoardEditorContext();
+  const active = useBoardEditorStore(
+    editorStore,
+    (state) => state.ui.activeToolId === SHAPE_TOOL_ID,
+  );
+  const defaults = props.defaults ?? BOARD_SHAPE_DEFAULTS;
+
+  if (!active || defaults.length === 0) {
+    return null;
+  }
+
+  return <BoardEditorShapeToolbarContent {...props} defaults={defaults} />;
+}
+
+type BoardEditorShapeToolbarContentProps = Omit<
+  BoardEditorShapeToolbarProps,
+  "defaults"
+> & {
+  defaults: readonly ShapeToolDefault[];
+};
+
+function BoardEditorShapeToolbarContent({
   defaults,
   orientation = "vertical",
   ...toolbarProps
-}: BoardEditorShapeToolbarProps) {
+}: BoardEditorShapeToolbarContentProps) {
   const labels = useBoardEditorLabels();
   const editorStore = useBoardEditorContext();
   const toolbarDock = useBoardEditorToolbarDockOptional();
@@ -39,10 +62,6 @@ export function BoardEditorShapeToolbar({
     (state) => state.toolState,
   );
   const shapeState = useMemo(() => getShapeToolState(toolState), [toolState]);
-
-  if (defaults.length === 0) {
-    return null;
-  }
 
   return (
     <BoardEditorToolbar

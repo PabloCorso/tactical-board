@@ -1,4 +1,4 @@
-import { useMemo, type ReactNode } from "react";
+import { useMemo } from "react";
 import {
   BoardEditor,
   BoardEditorCanvas,
@@ -6,10 +6,11 @@ import {
   BoardEditorFrameVariantDefaultsToolbar,
   BoardEditorFrameVariantToolControl,
   BoardEditorProvider,
-  BoardEditorSecondaryToolbar,
+  BoardEditorSecondaryToolbars,
   BoardEditorSelectionToolbar,
   BoardEditorShapePolygonDone,
-  BoardEditorTeamPanel,
+  BoardEditorTeamPanelDrawer,
+  BoardEditorTeamPanelContent,
   BoardEditorTeamPanelProvider,
   BoardEditorToolbarDock,
   BoardEditorToolbarDockProvider,
@@ -19,7 +20,11 @@ import {
   createFootballPitch,
   createNextFootballPitchFrame,
   createFootballTools,
+  FootballTeamPanelAppearance,
   FootballTeamFormationSection,
+  TeamPanelCaptionSection,
+  TeamPanelPlayerLabelSection,
+  TeamPanelDeleteSection,
   FOOTBALL_PITCH_OPTIONS,
   FOOTBALL_PITCH_TOOL_ID,
   footballTheme,
@@ -44,7 +49,6 @@ export type FootballBoardEditorExampleProps = {
   initialBoard?: Board;
   labels?: BoardEditorLabelOverrides;
   navigationMode?: BoardEditorNavigationMode;
-  renderHostToolbar?: () => ReactNode;
   translatePitchLabel?: (
     value: FootballPitchVariant,
     defaultLabel: string,
@@ -65,6 +69,18 @@ type FootballBoardEditorToolbarDockProps = {
   translateRotatePitchAction?: FootballBoardEditorExampleProps["translateRotatePitchAction"];
 };
 
+function FootballPlayerGroupPanelContent() {
+  return (
+    <BoardEditorTeamPanelContent>
+      <FootballTeamPanelAppearance />
+      <TeamPanelPlayerLabelSection />
+      <TeamPanelCaptionSection />
+      <FootballTeamFormationSection />
+      <TeamPanelDeleteSection />
+    </BoardEditorTeamPanelContent>
+  );
+}
+
 export function FootballBoardEditorExample({
   boardId = "draft-board",
   boardName = "Draft board",
@@ -72,7 +88,6 @@ export function FootballBoardEditorExample({
   initialBoard,
   labels,
   navigationMode,
-  renderHostToolbar,
   translatePitchLabel,
   translateRotatePitchAction,
 }: FootballBoardEditorExampleProps = {}) {
@@ -99,19 +114,16 @@ export function FootballBoardEditorExample({
           <BoardEditorShapePolygonDone />
           <BoardEditorCanvasToolbar />
           <BoardEditorSelectionToolbar theme={footballTheme} />
-          {renderHostToolbar?.()}
+
           <BoardEditorToolbarDockProvider>
             <FootballBoardEditorToolbarDock
               pitchOptions={pitchOptions}
               translateRotatePitchAction={translateRotatePitchAction}
             />
           </BoardEditorToolbarDockProvider>
-          <BoardEditorTeamPanel
-            adapters={footballThemeAdapters}
-            theme={footballTheme}
-          >
-            {(context) => <FootballTeamFormationSection {...context} />}
-          </BoardEditorTeamPanel>
+          <BoardEditorTeamPanelDrawer>
+            <FootballPlayerGroupPanelContent />
+          </BoardEditorTeamPanelDrawer>
         </BoardEditorTeamPanelProvider>
       </BoardEditor>
     </BoardEditorProvider>
@@ -220,10 +232,12 @@ function FootballBoardEditorToolbarDock({
             options={pitchOptions}
             toolId={FOOTBALL_PITCH_TOOL_ID}
           />
-          <BoardEditorSecondaryToolbar
+          <BoardEditorSecondaryToolbars
             adapters={footballThemeAdapters}
             theme={footballTheme}
-          />
+          >
+            <FootballPlayerGroupPanelContent />
+          </BoardEditorSecondaryToolbars>
         </>
       ) : null}
     </BoardEditorToolbarDock>

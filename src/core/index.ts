@@ -10,6 +10,7 @@ export * from "./editor/create-tool-api";
 export type * from "./editor/types";
 export * from "./editor/viewport-utils";
 export * from "./geometry/board-space-projection";
+export * from "./geometry/document-measurement";
 export {
   createBoardFrameTransform,
   type BoardFrameTransform,

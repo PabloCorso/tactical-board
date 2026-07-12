@@ -38,7 +38,7 @@
 - **Editor Engine**: The framework-independent core that defines Document state, editing operations, geometry contracts, object dispatch, and serialization rules. The Editor Engine does not own React UI concerns or canvas drawing details.
 - **React Adapter**: The React integration layer that subscribes to the Editor Store, wires DOM input to Tools, and renders editor UI without owning canonical Document state.
 - **Document Background**: The generic base visual and coordinate setup for a Document.
-- **Document Unit**: The declared measurement unit for a Document coordinate space, such as pixels or meters. The Editor Engine uses it for scale and conversion without assigning domain meaning to the unit.
+- **Document Unit**: The optional measurement declaration on a Document Background. It identifies the real-world unit represented by the coordinate space and the number of document units per measurement unit. Football frames declare meters at 8 document units per meter. The Editor Engine provides conversion helpers without assigning sport-specific meaning to the unit; documents without a declaration remain valid but have no real-world measurement contract.
 - **Board Frame**: The bounded board area that defines coordinate size, base visuals, and optional domain markings such as field or court lines.
 - **Board Library**: The reusable board editor library developed in this repository. It must be embeddable across multiple Host Apps while supporting sport-specific workflows such as tactics, game plans, and practice drills.
 - **Canvas Renderer**: The rendering layer that paints Document or Board state to HTML canvas for editing and read-only display. It consumes Editor Engine data rather than defining editing rules itself.

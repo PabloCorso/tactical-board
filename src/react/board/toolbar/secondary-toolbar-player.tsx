@@ -1,5 +1,5 @@
-import { Fragment, type ReactElement, useMemo } from "react";
-import { PencilSimpleIcon, XIcon } from "@phosphor-icons/react";
+import { Fragment, type ReactNode, useMemo } from "react";
+import { PencilSimpleIcon } from "@phosphor-icons/react";
 import {
   getBoardPlayerGroups,
   isBoardPlayerGroupAutoNumberingEnabled,
@@ -24,50 +24,52 @@ import { useBoardEditorLabels } from "../editor/board-editor-labels";
 import { BoardPlayerDefaultIcon } from "./tool-icons";
 import { setToolStatePatch } from "./secondary-toolbar-commands";
 import { Button } from "../../ui/button";
-import { InlineTextField } from "../../ui/inline-text-field";
-import {
-  Popover,
-  PopoverClose,
-  PopoverContent,
-  PopoverHeader,
-  PopoverTitle,
-  PopoverTrigger,
-} from "../../ui/popover";
-import { Switch } from "../../ui/switch";
 import { cn } from "../../ui/misc";
-import type { PlayerGroup } from "../../../core/board/types";
-import type { BoardTheme, BoardThemeAdapters } from "../theme/board-theme";
-import {
-  PlayerAppearanceFields,
-  type PlayerAppearanceFieldValue,
-} from "../player/player-appearance-fields";
+import { useMediaQuery } from "../../ui/use-media-query";
+import type { BoardThemeAdapters } from "../theme/board-theme";
 import {
   addPlayerGroupCommand,
-  applyPlayerGroupStylePatch,
   getPlayerGroupDraftStyle,
-  renamePlayerGroup,
-  setPlayerGroupAutoNumberingCommand,
-  type PlayerGroupStylePatch,
 } from "../team/player-team-commands";
 import { useBoardEditorTeamPanelOptional } from "../team/team-panel-context";
+import { BoardEditorTeamPanelDock } from "../team/team-panel";
 
 export { getPlayerGroupDraftStyle } from "../team/player-team-commands";
 
-export type BoardEditorPlayerToolbarProps = Omit<
+export type BoardEditorPlayerGroupToolbarProps = Omit<
   BoardEditorToolbarProps,
   "children"
 > & {
   adapters?: BoardThemeAdapters;
-  theme?: Pick<BoardTheme, "playerAppearances">;
+  children?: ReactNode;
 };
 
-export function BoardEditorPlayerGroupToolbar({
+/** @deprecated Use BoardEditorPlayerGroupToolbarProps. */
+export type BoardEditorPlayerToolbarProps = BoardEditorPlayerGroupToolbarProps;
+
+export function BoardEditorPlayerGroupToolbar(
+  props: BoardEditorPlayerGroupToolbarProps,
+) {
+  const editorStore = useBoardEditorContext();
+  const active = useBoardEditorStore(
+    editorStore,
+    (state) => state.ui.activeToolId === PLAYER_TOOL_ID,
+  );
+
+  if (!active) {
+    return null;
+  }
+
+  return <BoardEditorPlayerGroupToolbarContent {...props} />;
+}
+
+function BoardEditorPlayerGroupToolbarContent({
   adapters,
+  children,
   contentClassName,
   orientation = "vertical",
-  theme,
   ...toolbarProps
-}: BoardEditorPlayerToolbarProps) {
+}: BoardEditorPlayerGroupToolbarProps) {
   const labels = useBoardEditorLabels();
   const editorStore = useBoardEditorContext();
   const toolbarDock = useBoardEditorToolbarDockOptional();
@@ -82,6 +84,7 @@ export function BoardEditorPlayerGroupToolbar({
     editorStore,
     (state) => state.toolRegistry,
   );
+  const isSmallScreen = useMediaQuery("(max-width: 640px)");
 
   const playerState = getPlayerToolState(toolState);
   const playerTool = toolRegistry.definitions[PLAYER_TOOL_ID];
@@ -89,6 +92,10 @@ export function BoardEditorPlayerGroupToolbar({
   const usesNumericLabels =
     playerTool instanceof PlayerTool &&
     playerTool.labelStrategy === "numeric-by-color";
+
+  if (teamPanel?.open && !isSmallScreen) {
+    return <BoardEditorTeamPanelDock>{children}</BoardEditorTeamPanelDock>;
+  }
 
   return (
     <BoardEditorToolbar
@@ -110,24 +117,30 @@ export function BoardEditorPlayerGroupToolbar({
         const buttonLabel = group.name ?? labels.secondaryToolbar.playerGroup;
         const isActive = playerState.activeGroupId === group.id;
 
-        const selectGroup = () => {
+        const activateGroup = () => {
           setToolStatePatch(toolApi, PLAYER_TOOL_ID, playerState, {
             activeGroupId: group.id,
             draftStyle,
           });
+        };
 
+        const selectGroup = () => {
+          activateGroup();
           toolbarDock?.requestDismiss();
         };
 
-        const editButton = (
+        const openGroupPanel = () => {
+          activateGroup();
+          teamPanel?.openTeamPanel();
+        };
+
+        const editButton = teamPanel ? (
           <Button
             variant={isActive ? "secondary" : "ghost"}
             size="sm"
             className={cn("h-6 w-full min-w-0 justify-between px-1.5")}
             aria-label={buttonLabel}
-            onClick={
-              teamPanel ? () => teamPanel.openTeamPanel(group.id) : undefined
-            }
+            onClick={openGroupPanel}
           >
             <span className="text-tb-text-primary truncate text-left text-xs leading-4">
               {buttonLabel}
@@ -136,40 +149,12 @@ export function BoardEditorPlayerGroupToolbar({
               <PencilSimpleIcon />
             </span>
           </Button>
-        );
+        ) : null;
 
         return (
           <Fragment key={group.id}>
             <div className={cn("relative flex w-20 min-w-0 flex-col gap-0.5")}>
-              {teamPanel ? (
-                editButton
-              ) : (
-                <PlayerGroupEditPopover
-                  appearanceRenderers={adapters?.playerAppearanceRenderers}
-                  group={group}
-                  labels={labels}
-                  theme={theme}
-                  onAutoNumberingChange={(autoNumbering) =>
-                    setPlayerGroupAutoNumberingCommand(
-                      toolApi,
-                      group.id,
-                      autoNumbering,
-                    )
-                  }
-                  onAppearanceChange={(patch) =>
-                    applyPlayerGroupStylePatch(
-                      toolApi,
-                      group.id,
-                      patch as PlayerGroupStylePatch,
-                    )
-                  }
-                  onNameChange={(name) =>
-                    renamePlayerGroup(toolApi, group.id, name)
-                  }
-                >
-                  {editButton}
-                </PlayerGroupEditPopover>
-              )}
+              {editButton}
 
               <Button
                 variant={isActive ? "secondary" : "ghost"}
@@ -214,97 +199,5 @@ export function BoardEditorPlayerGroupToolbar({
         tooltip={labels.secondaryToolbar.addPlayerGroup}
       />
     </BoardEditorToolbar>
-  );
-}
-
-function PlayerGroupEditPopover({
-  appearanceRenderers,
-  group,
-  labels,
-  theme,
-  children,
-  onAutoNumberingChange,
-  onAppearanceChange,
-  onNameChange,
-}: {
-  appearanceRenderers?: BoardThemeAdapters["playerAppearanceRenderers"];
-  group: PlayerGroup;
-  labels: ReturnType<typeof useBoardEditorLabels>;
-  theme?: Pick<BoardTheme, "playerAppearances">;
-  children: ReactElement;
-  onAutoNumberingChange: (value: boolean) => void;
-  onAppearanceChange: (patch: Partial<PlayerAppearanceFieldValue>) => void;
-  onNameChange: (value: string) => void;
-}) {
-  const editLabel = labels.secondaryToolbar.editPlayerGroup;
-  const nameLabel = labels.secondaryToolbar.teamName;
-  const autoNumberingLabel = labels.secondaryToolbar.autoNumberSequencing;
-
-  return (
-    <Popover>
-      <PopoverTrigger>{children}</PopoverTrigger>
-      <PopoverContent
-        side="right"
-        sideOffset={6}
-        initialFocus={false}
-        className="w-56 gap-1.5 p-2"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <PopoverHeader className="gap-1">
-          <div className="flex h-7 items-center justify-between gap-2">
-            <PopoverTitle className="sr-only">{editLabel}</PopoverTitle>
-            <InlineTextField
-              value={group.name ?? ""}
-              aria-label={nameLabel}
-              placeholder={labels.secondaryToolbar.playerGroup}
-              containerClassName="min-w-0 flex-1"
-              className="w-full max-w-full text-sm"
-              mirrorClassName="text-sm"
-              onCommit={onNameChange}
-            />
-            <PopoverClose>
-              <Button
-                variant="ghost"
-                size="sm"
-                iconOnly
-                aria-label={`Close ${editLabel}`}
-                className="text-tb-text-secondary h-6 w-6 rounded-md"
-                iconBefore={<XIcon />}
-                iconSize="xs"
-              />
-            </PopoverClose>
-          </div>
-        </PopoverHeader>
-
-        <div className="flex flex-col gap-1.5">
-          <PlayerAppearanceFields
-            appearanceRenderers={appearanceRenderers}
-            labels={labels}
-            theme={theme}
-            value={{
-              color: group.style.color ?? "#111827",
-              colors: group.style.colors,
-              fontSize: group.style.fontSize,
-              appearanceId: group.style.appearanceId,
-              options: group.style.options,
-              asset: group.style.asset,
-              caption: group.style.caption,
-            }}
-            onChange={onAppearanceChange}
-          />
-
-          <div className="flex h-7 items-center justify-between gap-3">
-            <span className="text-tb-text-secondary text-xs font-medium">
-              {autoNumberingLabel}
-            </span>
-            <Switch
-              checked={isBoardPlayerGroupAutoNumberingEnabled(group)}
-              aria-label={autoNumberingLabel}
-              onCheckedChange={onAutoNumberingChange}
-            />
-          </div>
-        </div>
-      </PopoverContent>
-    </Popover>
   );
 }

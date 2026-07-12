@@ -22,7 +22,11 @@ import {
 import { BoardEditorSelectionToolbarPositioner } from "./selection-toolbar-positioner";
 import { BoardEditorSelectionActionsMenu } from "./selection-actions-menu";
 import type { BoardEditorSelectionToolbarRendererProps } from "./selection-toolbar-types";
-import { ColorPicker, DEFAULT_BOARD_COLORS } from "../../../ui/color-picker";
+import {
+  ColorPicker,
+  ColorSwatch,
+  DEFAULT_BOARD_COLORS,
+} from "../../../ui/color-picker";
 import { Button } from "../../../ui/button";
 import { Input } from "../../../ui/input";
 import {
@@ -154,12 +158,7 @@ export function BoardEditorPlayerSelectionToolbar({
             />
           }
           icon={
-            <span
-              className="border-tb-border-default inline-flex h-6 w-6 rounded-full border"
-              style={{ backgroundColor: effectiveStyle.color }}
-            >
-              <span className="sr-only">{effectiveStyle.color}</span>
-            </span>
+            <ColorSwatch value={effectiveStyle.color} className="h-6 w-6" />
           }
         />
         <BoardEditorToolbarPopoverButton

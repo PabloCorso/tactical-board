@@ -7,7 +7,7 @@ import {
   BoardEditorCanvas,
   BoardEditorCanvasToolbar,
   BoardEditorProvider,
-  BoardEditorSecondaryToolbar,
+  BoardEditorSecondaryToolbars,
   BoardEditorSelectionToolbar,
   BoardEditorShapePolygonDone,
   BoardEditorToolbarDock,
@@ -34,7 +34,7 @@ function BasketballToolbarDockExample() {
         <BoardPrimaryToolbar theme={basketballTheme} />
       </div>
       {toolbarDock.secondaryToolbarOpen ? (
-        <BoardEditorSecondaryToolbar theme={basketballTheme} />
+        <BoardEditorSecondaryToolbars theme={basketballTheme} />
       ) : null}
     </BoardEditorToolbarDock>
   );

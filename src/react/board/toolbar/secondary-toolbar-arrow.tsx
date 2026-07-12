@@ -4,6 +4,7 @@ import {
   getArrowToolState,
 } from "../../../core/tools/arrow-tool-state";
 import type { ArrowToolDefault } from "../../../core/tools/arrow-tool";
+import { BOARD_ARROW_DEFAULTS } from "../theme/board-tool-defaults";
 import {
   BoardEditorToolbar,
   BoardEditorToolbarButton,
@@ -22,14 +23,36 @@ export type BoardEditorArrowToolbarProps = Omit<
   BoardEditorToolbarProps,
   "children"
 > & {
-  defaults: ArrowToolDefault[];
+  defaults?: readonly ArrowToolDefault[];
 };
 
-export function BoardEditorArrowToolbar({
+export function BoardEditorArrowToolbar(props: BoardEditorArrowToolbarProps) {
+  const editorStore = useBoardEditorContext();
+  const active = useBoardEditorStore(
+    editorStore,
+    (state) => state.ui.activeToolId === ARROW_TOOL_ID,
+  );
+  const defaults = props.defaults ?? BOARD_ARROW_DEFAULTS;
+
+  if (!active || defaults.length === 0) {
+    return null;
+  }
+
+  return <BoardEditorArrowToolbarContent {...props} defaults={defaults} />;
+}
+
+type BoardEditorArrowToolbarContentProps = Omit<
+  BoardEditorArrowToolbarProps,
+  "defaults"
+> & {
+  defaults: readonly ArrowToolDefault[];
+};
+
+function BoardEditorArrowToolbarContent({
   defaults,
   orientation = "vertical",
   ...toolbarProps
-}: BoardEditorArrowToolbarProps) {
+}: BoardEditorArrowToolbarContentProps) {
   const labels = useBoardEditorLabels();
   const editorStore = useBoardEditorContext();
   const toolbarDock = useBoardEditorToolbarDockOptional();
@@ -39,10 +62,6 @@ export function BoardEditorArrowToolbar({
     (state) => state.toolState,
   );
   const arrowState = useMemo(() => getArrowToolState(toolState), [toolState]);
-
-  if (defaults.length === 0) {
-    return null;
-  }
 
   return (
     <BoardEditorToolbar

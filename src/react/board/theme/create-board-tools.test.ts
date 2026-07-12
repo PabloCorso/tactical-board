@@ -57,9 +57,9 @@ describe("createBoardTools", () => {
           props: expect.objectContaining({
             appearanceId: "football-shirt",
             color: "#1f1f1f",
-            fontSize: 9.5,
+            fontSize: 12,
           }),
-          size: { width: 22, height: 22 },
+          size: { width: 24, height: 24 },
         }),
       }),
     );

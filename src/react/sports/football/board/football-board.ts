@@ -8,7 +8,11 @@ import type {
   BoardStyleRef,
   ObjectIndex,
 } from "../../../../core/board/types";
-import { metersToPixels } from "./football-units";
+import {
+  DEFAULT_FOOTBALL_PLAYER_SIZE,
+  FOOTBALL_MEASUREMENT,
+  metersToPixels,
+} from "./football-units";
 
 export type FootballPitchVariant =
   | "full-pitch"
@@ -734,6 +738,7 @@ export function createFootballPitch(
     return {
       width: metersToPixels(halfPitchFrameWidth),
       height: metersToPixels(halfPitchFrameHeight),
+      measurement: FOOTBALL_MEASUREMENT,
       background: FOOTBALL_PITCH_COLORS.stripeDark,
       markings: [],
       markup: {
@@ -758,6 +763,7 @@ export function createFootballPitch(
     height: metersToPixels(
       shouldOrient && appliedOrientation !== 180 ? width : height,
     ),
+    measurement: FOOTBALL_MEASUREMENT,
     background: FOOTBALL_PITCH_COLORS.stripeDark,
     markings: shouldOrient
       ? rotateFootballMarkings(
@@ -796,7 +802,7 @@ export function createFootballBoard({
   style = {},
   frame,
 }: CreateFootballBoardOptions = {}): Board {
-  return createBoard({
+  const board = createBoard({
     id,
     version: 1,
     metadata: {
@@ -810,4 +816,15 @@ export function createFootballBoard({
     objects,
     style,
   });
+
+  return {
+    ...board,
+    playerGroups: board.playerGroups?.map((group) => ({
+      ...group,
+      style: {
+        ...group.style,
+        size: DEFAULT_FOOTBALL_PLAYER_SIZE,
+      },
+    })),
+  };
 }

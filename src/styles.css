@@ -159,3 +159,21 @@
   transition-timing-function: var(--default-transition-timing-function);
   transition-duration: var(--default-transition-duration);
 }
+
+@utility tb-dock-panel-enter {
+  @media (prefers-reduced-motion: no-preference) {
+    animation: tb-dock-panel-enter 150ms ease-out both;
+  }
+}
+
+@keyframes tb-dock-panel-enter {
+  from {
+    opacity: 0;
+    transform: translateX(-0.25rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

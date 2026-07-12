@@ -154,6 +154,8 @@ export class PlayerTool extends BoardEditorTool implements ToolDefinition {
           colors: activeGroupStyle.colors ?? activatedDraftStyle.colors,
           size: activeGroupStyle.size,
           fontSize: activeGroupStyle.fontSize,
+          labelColor:
+            activeGroupStyle.labelColor ?? activatedDraftStyle.labelColor,
           appearanceId:
             activeGroupStyle.appearanceId ?? activatedDraftStyle.appearanceId,
           options: activeGroupStyle.options ?? activatedDraftStyle.options,
@@ -267,6 +269,7 @@ function isDefaultBoardPlayerGroup(
     group.style.color === defaultGroup.style.color &&
     group.style.size === defaultGroup.style.size &&
     group.style.fontSize === defaultGroup.style.fontSize &&
+    group.style.labelColor === undefined &&
     group.style.appearanceId === undefined &&
     group.style.colors === undefined &&
     group.style.options === undefined &&
@@ -310,6 +313,7 @@ function createPlayerPreviewObject({
     color: groupId ? undefined : draftStyle.color,
     colors: groupId ? undefined : draftStyle.colors,
     fontSize: groupId ? undefined : draftStyle.fontSize,
+    labelColor: groupId ? undefined : draftStyle.labelColor,
     appearanceId: groupId ? undefined : draftStyle.appearanceId,
     options: groupId ? undefined : draftStyle.options,
     asset: groupId ? undefined : draftStyle.asset,
@@ -453,7 +457,8 @@ export function renderPlayerMarker(
   const height = getAbsoluteCanvasExtent(bounds.height);
   const radius = Math.min(width, height) / 2;
   const fillColor = player.props.color ?? DEFAULT_PLAYER_COLOR;
-  const textColor = getContrastingTextColor(fillColor);
+  const textColor =
+    player.props.labelColor ?? getContrastingTextColor(fillColor);
   const canvasFontSize = getCanvasFontSizeForPlayerLabel(
     radius,
     player.props.fontSize ?? DEFAULT_PLAYER_FONT_SIZE,

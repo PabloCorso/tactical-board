@@ -12,7 +12,7 @@ import { BoardEditorSelectionToolbarPositioner } from "./selection-toolbar-posit
 import { BoardEditorSelectionActionsMenu } from "./selection-actions-menu";
 import type { BoardEditorSelectionToolbarRendererProps } from "./selection-toolbar-types";
 import { ColorPicker, DEFAULT_BOARD_COLORS } from "../../../ui/color-picker";
-import { Input } from "../../../ui/input";
+import { NumberInput } from "../../../ui/number-input";
 import { useBoardEditorLabels } from "../board-editor-labels";
 
 export function BoardEditorTextSelectionToolbar({
@@ -49,15 +49,13 @@ export function BoardEditorTextSelectionToolbar({
       viewportHeight={viewportHeight}
     >
       <BoardEditorToolbar className={className}>
-        <Input
+        <NumberInput
           aria-label={labels.selectionToolbar.textSize}
           className="border-tb-border-default bg-tb-background-screen text-tb-text-primary h-10 w-12 px-2 text-center text-sm font-medium md:text-sm"
           min={12}
           max={144}
           onBlur={() => setFontSizeAnchor(null)}
-          onChange={(event) =>
-            updateText({ fontSize: Number(event.target.value) || 12 })
-          }
+          onValueChange={(fontSize) => updateText({ fontSize })}
           onFocus={() =>
             setFontSizeAnchor({
               left: toolbarLeft,
@@ -65,7 +63,6 @@ export function BoardEditorTextSelectionToolbar({
               bottom: toolbarBottom,
             })
           }
-          type="number"
           value={selectedObject.props.fontSize}
           wrapperProps={{ className: "h-10 w-auto" }}
         />

@@ -60,9 +60,9 @@ describe("createPlayerRenderer", () => {
           props: expect.objectContaining({
             appearanceId: "shirt",
             color: "#1f6feb",
-            fontSize: 9.5,
+            fontSize: 12,
           }),
-          size: { width: 22, height: 22 },
+          size: { width: 24, height: 24 },
         }),
       }),
     );

@@ -118,7 +118,7 @@ import {
   BoardEditorCanvas,
   BoardEditorCanvasToolbar,
   BoardEditorProvider,
-  BoardEditorSecondaryToolbar,
+  BoardEditorSecondaryToolbars,
   BoardEditorSelectionToolbar,
   BoardEditorShapePolygonDone,
   BoardEditorToolbarDock,
@@ -153,7 +153,7 @@ export function MatchPlanEditor() {
               showEquipment
               theme={footballTheme}
             />
-            <BoardEditorSecondaryToolbar
+            <BoardEditorSecondaryToolbars
               adapters={footballThemeAdapters}
               theme={footballTheme}
             />
@@ -181,6 +181,27 @@ Host apps can compose their own toolbar around the exported toolbar primitives.
 Use the library for editor state, rendering, serialization, and visual controls;
 keep product-specific actions such as save, upload, deep links, WhatsApp links,
 native share sheets, and analytics in the host app.
+
+The built-in secondary toolbars are also exported individually. Each one knows
+its Tool ID and renders only while that Tool is active, so specialized inputs
+stay local to the toolbar that consumes them:
+
+```tsx
+<>
+  <BoardEditorPlayerGroupToolbar theme={footballTheme}>
+    <BoardEditorTeamPanelContent>
+      <TeamPanelDefaultsSection />
+      <HostPlayerGroupAppearanceSection />
+      <TeamPanelRosterSection />
+      <HostPlayerGroupWorkflowSection />
+      <TeamPanelDeleteSection />
+    </BoardEditorTeamPanelContent>
+  </BoardEditorPlayerGroupToolbar>
+  <BoardEditorEquipmentToolbar theme={footballTheme} />
+  <BoardEditorArrowToolbar defaults={hostArrowDefaults} />
+  <BoardEditorShapeToolbar density="compact" />
+</>
+```
 
 ```tsx
 import {

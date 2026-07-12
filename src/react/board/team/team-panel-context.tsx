@@ -2,16 +2,17 @@ import {
   createContext,
   type PropsWithChildren,
   useContext,
+  useEffect,
   useMemo,
   useState,
 } from "react";
+import { PLAYER_TOOL_ID } from "../../../core/tools/player-tool-state";
+import { useBoardEditorContext } from "../../adapter/editor/board-editor-context";
 
 export type BoardEditorTeamPanelContextValue = {
   open: boolean;
-  activeGroupId?: string;
-  openTeamPanel: (groupId?: string) => void;
+  openTeamPanel: () => void;
   closeTeamPanel: () => void;
-  setActiveGroupId: (groupId: string) => void;
 };
 
 const BoardEditorTeamPanelContext =
@@ -25,26 +26,27 @@ export function BoardEditorTeamPanelProvider({
   children,
   defaultOpen = false,
 }: BoardEditorTeamPanelProviderProps) {
+  const editorStore = useBoardEditorContext();
   const [open, setOpen] = useState(defaultOpen);
-  const [activeGroupId, setActiveGroupId] = useState<string | undefined>(
-    undefined,
-  );
+
+  useEffect(() => {
+    return editorStore.subscribe((state, previousState) => {
+      if (
+        previousState.ui.activeToolId === PLAYER_TOOL_ID &&
+        state.ui.activeToolId !== PLAYER_TOOL_ID
+      ) {
+        setOpen(false);
+      }
+    });
+  }, [editorStore]);
 
   const value = useMemo<BoardEditorTeamPanelContextValue>(
     () => ({
       open,
-      activeGroupId,
-      openTeamPanel: (groupId) => {
-        if (groupId) {
-          setActiveGroupId(groupId);
-        }
-
-        setOpen(true);
-      },
+      openTeamPanel: () => setOpen(true),
       closeTeamPanel: () => setOpen(false),
-      setActiveGroupId,
     }),
-    [activeGroupId, open],
+    [open],
   );
 
   return (

@@ -9,6 +9,7 @@ import { TEXT_TOOL_ID } from "../../../../core/tools/text-tool-state";
 import { useMemo } from "react";
 import { useBoardEditorStore } from "../../../adapter/editor/use-board-editor-store";
 import { useBoardEditorContext } from "../../../adapter/editor/board-editor-context";
+import { useBoardEditorTeamPanelOptional } from "../../team/team-panel-context";
 import {
   createThemeObjectRenderer,
   type BoardTheme,
@@ -31,6 +32,7 @@ export type BoardEditorToolControlProps = {
   icon?: IconRender;
   className?: string;
   activeVariant?: "outline" | "accent";
+  onClick?: () => void;
 };
 
 export function BoardEditorToolControl({
@@ -39,6 +41,7 @@ export function BoardEditorToolControl({
   icon,
   className,
   activeVariant,
+  onClick,
 }: BoardEditorToolControlProps) {
   const store = useBoardEditorContext();
   const activeToolId = useBoardEditorStore(
@@ -65,7 +68,10 @@ export function BoardEditorToolControl({
       aria-label={resolvedLabel}
       className={className}
       iconBefore={resolvedIcon}
-      onClick={() => actions.setActiveTool(toolId)}
+      onClick={() => {
+        actions.setActiveTool(toolId);
+        onClick?.();
+      }}
       tooltip={resolvedLabel}
     />
   );
@@ -106,10 +112,21 @@ export function BoardEditorPlayerToolControl({
       appearanceRenderers={adapters?.playerAppearanceRenderers}
     />
   ),
+  onClick,
   ...props
 }: BoardEditorPlayerToolControlProps) {
+  const teamPanel = useBoardEditorTeamPanelOptional();
+
   return (
-    <BoardEditorToolControl {...props} icon={icon} toolId={PLAYER_TOOL_ID} />
+    <BoardEditorToolControl
+      {...props}
+      icon={icon}
+      toolId={PLAYER_TOOL_ID}
+      onClick={() => {
+        onClick?.();
+        teamPanel?.closeTeamPanel();
+      }}
+    />
   );
 }
 

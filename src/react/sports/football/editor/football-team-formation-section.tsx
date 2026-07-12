@@ -1,6 +1,5 @@
 import { useState } from "react";
-import type { BoardEditorTeamPanelSectionContext } from "../../../board/team/team-panel";
-import { BoardEditorTeamPanelSection } from "../../../board/team/team-panel";
+import { useBoardEditorTeamPanelActiveGroup } from "../../../board/team/team-panel";
 import { applyFormationToPlayerGroup } from "../../../board/team/player-team-commands";
 import { useBoardEditorLabels } from "../../../board/editor/board-editor-labels";
 import { Button } from "../../../ui/button";
@@ -15,11 +14,14 @@ import {
   getFootballFormationPlacementOptions,
   type FootballFormationDefinition,
 } from "../theme/football-formations";
+import {
+  TeamPanelSection,
+  TeamPanelSectionTitle,
+} from "#app/react/board/team/team-panel-section.tsx";
 
-export type FootballTeamFormationSectionProps =
-  BoardEditorTeamPanelSectionContext & {
-    formations?: FootballFormationDefinition[];
-  };
+export type FootballTeamFormationSectionProps = {
+  formations?: FootballFormationDefinition[];
+};
 
 /**
  * Football-specific Team panel section: pick a formation and place the team
@@ -27,13 +29,11 @@ export type FootballTeamFormationSectionProps =
  * offer halves and whole-pitch directions, half-pitches aim at their goal.
  */
 export function FootballTeamFormationSection({
-  board,
-  group,
-  groupIndex,
-  toolApi,
   formations = FOOTBALL_FORMATIONS,
 }: FootballTeamFormationSectionProps) {
   const labels = useBoardEditorLabels();
+  const { board, group, groupIndex, toolApi } =
+    useBoardEditorTeamPanelActiveGroup();
   const placementOptions = getFootballFormationPlacementOptions(board.frame);
   const [formationId, setFormationId] = useState(formations[0]?.id ?? "");
   const [placementId, setPlacementId] = useState(
@@ -52,7 +52,10 @@ export function FootballTeamFormationSection({
   }
 
   return (
-    <BoardEditorTeamPanelSection title={labels.teamPanel.formation}>
+    <TeamPanelSection>
+      <TeamPanelSectionTitle>
+        {labels.teamPanel.formation}
+      </TeamPanelSectionTitle>
       <div className="flex items-center gap-1.5">
         <Select
           value={formationId}
@@ -64,7 +67,7 @@ export function FootballTeamFormationSection({
         >
           <SelectTrigger
             aria-label={labels.teamPanel.formation}
-            className="h-7 min-w-0 flex-1 rounded-md px-2 text-sm"
+            className="h-6 min-w-0 flex-1 rounded-md px-2 text-sm"
           >
             {() => formation?.label ?? ""}
           </SelectTrigger>
@@ -88,7 +91,7 @@ export function FootballTeamFormationSection({
         >
           <SelectTrigger
             aria-label={labels.teamPanel.formationPlacement}
-            className="h-7 rounded-md px-2 text-sm"
+            className="h-6 rounded-md px-2 text-sm"
           >
             {() => placement?.label ?? ""}
           </SelectTrigger>
@@ -117,6 +120,6 @@ export function FootballTeamFormationSection({
       >
         {labels.teamPanel.applyFormation}
       </Button>
-    </BoardEditorTeamPanelSection>
+    </TeamPanelSection>
   );
 }

@@ -1,9 +1,19 @@
 import type { Point, Size } from "../../../../core/board/types";
+import type { DocumentMeasurement } from "../../../../core/board/types";
+import { measurementToDocumentUnits } from "../../../../core/geometry/document-measurement";
 
-export const FOOTBALL_PIXELS_PER_METER = 8;
+export const FOOTBALL_UNITS_PER_METER = 8;
+export const DEFAULT_FOOTBALL_PLAYER_SIZE = 30;
+export const FOOTBALL_MEASUREMENT = {
+  unit: "meter",
+  unitsPerUnit: FOOTBALL_UNITS_PER_METER,
+} as const satisfies DocumentMeasurement;
+
+/** @deprecated Use FOOTBALL_UNITS_PER_METER. */
+export const FOOTBALL_PIXELS_PER_METER = FOOTBALL_UNITS_PER_METER;
 
 export function metersToPixels(value: number) {
-  return value * FOOTBALL_PIXELS_PER_METER;
+  return measurementToDocumentUnits(value, FOOTBALL_MEASUREMENT);
 }
 
 export function pointMetersToPixels(point: Point): Point {

@@ -30,7 +30,23 @@ export type BoardEditorEquipmentToolbarProps = Omit<
   theme?: Pick<BoardTheme, "objects">;
 };
 
-export function BoardEditorEquipmentToolbar({
+export function BoardEditorEquipmentToolbar(
+  props: BoardEditorEquipmentToolbarProps,
+) {
+  const editorStore = useBoardEditorContext();
+  const active = useBoardEditorStore(
+    editorStore,
+    (state) => state.ui.activeToolId === EQUIPMENT_TOOL_ID,
+  );
+
+  if (!active) {
+    return null;
+  }
+
+  return <BoardEditorEquipmentToolbarContent {...props} />;
+}
+
+function BoardEditorEquipmentToolbarContent({
   adapters,
   theme,
   orientation = "vertical",
