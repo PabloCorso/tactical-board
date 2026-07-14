@@ -9,7 +9,7 @@ export function TeamPanelSection({
 }: TeamPanelSectionProps) {
   return (
     <section
-      className={cn("py-2.6 flex flex-col gap-2 p-3", className)}
+      className={cn("py-2.6 flex flex-col gap-2 p-2.5", className)}
       {...props}
     >
       {children}

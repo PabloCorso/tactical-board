@@ -36,9 +36,24 @@ type FootballShirtSvgPathCommand =
   | readonly ["M", number, number]
   | readonly ["C", number, number, number, number, number, number];
 
-const FOOTBALL_SHIRT_SVG_VIEWBOX_SIZE = 1254;
-const FOOTBALL_SHIRT_SVG_VIEWBOX_CENTER = FOOTBALL_SHIRT_SVG_VIEWBOX_SIZE / 2;
 const FOOTBALL_SHIRT_OUTER_STROKE_WIDTH = 18;
+// The source SVG uses a 1254 × 1254 viewbox, but the visible shirt only uses
+// this region. Scaling the viewbox made that unused space behave like padding
+// inside the player's configured size.
+const FOOTBALL_SHIRT_VISIBLE_BOUNDS = {
+  x: 72,
+  y: 84,
+  width: 1113,
+  height: 1007,
+} as const;
+const FOOTBALL_SHIRT_VISIBLE_CENTER = {
+  x:
+    FOOTBALL_SHIRT_VISIBLE_BOUNDS.x +
+    FOOTBALL_SHIRT_VISIBLE_BOUNDS.width / 2,
+  y:
+    FOOTBALL_SHIRT_VISIBLE_BOUNDS.y +
+    FOOTBALL_SHIRT_VISIBLE_BOUNDS.height / 2,
+} as const;
 
 const FOOTBALL_SHIRT_BODY_PATH = [
   ["M", 940, 490],
@@ -231,9 +246,9 @@ function drawFootballShirtSvgPath(
   options: { beginPath?: boolean } = {},
 ) {
   const x = (value: number) =>
-    (value - FOOTBALL_SHIRT_SVG_VIEWBOX_CENTER) * scale;
+    (value - FOOTBALL_SHIRT_VISIBLE_CENTER.x) * scale;
   const y = (value: number) =>
-    (value - FOOTBALL_SHIRT_SVG_VIEWBOX_CENTER) * scale;
+    (value - FOOTBALL_SHIRT_VISIBLE_CENTER.y) * scale;
 
   if (options.beginPath !== false) {
     context.beginPath();
@@ -271,6 +286,38 @@ function strokeFootballShirtSvgPath({
   context.stroke();
 }
 
+function appendReversedFootballShirtSvgPath(
+  context: CanvasRenderingContext2D,
+  commands: readonly FootballShirtSvgPathCommand[],
+  scale: number,
+) {
+  const x = (value: number) =>
+    (value - FOOTBALL_SHIRT_VISIBLE_CENTER.x) * scale;
+  const y = (value: number) =>
+    (value - FOOTBALL_SHIRT_VISIBLE_CENTER.y) * scale;
+
+  for (let index = commands.length - 1; index > 0; index -= 1) {
+    const command = commands[index];
+    const previous = commands[index - 1];
+
+    if (command[0] !== "C") {
+      continue;
+    }
+
+    const previousX = previous[0] === "M" ? previous[1] : previous[5];
+    const previousY = previous[0] === "M" ? previous[2] : previous[6];
+
+    context.bezierCurveTo(
+      x(command[3]),
+      y(command[4]),
+      x(command[1]),
+      y(command[2]),
+      x(previousX),
+      y(previousY),
+    );
+  }
+}
+
 function buildFootballShirtShapePath(
   context: CanvasRenderingContext2D,
   scale: number,
@@ -279,9 +326,12 @@ function buildFootballShirtShapePath(
   drawFootballShirtSvgPath(context, FOOTBALL_SHIRT_TOP_PATH, scale, {
     beginPath: false,
   });
-  drawFootballShirtSvgPath(context, FOOTBALL_SHIRT_BODY_PATH, scale, {
-    beginPath: false,
-  });
+  appendReversedFootballShirtSvgPath(
+    context,
+    FOOTBALL_SHIRT_BODY_PATH,
+    scale,
+  );
+  context.closePath();
 }
 
 function fillViewBoxRect(
@@ -293,8 +343,8 @@ function fillViewBoxRect(
   height: number,
 ) {
   context.fillRect(
-    (x - FOOTBALL_SHIRT_SVG_VIEWBOX_CENTER) * scale,
-    (y - FOOTBALL_SHIRT_SVG_VIEWBOX_CENTER) * scale,
+    (x - FOOTBALL_SHIRT_VISIBLE_CENTER.x) * scale,
+    (y - FOOTBALL_SHIRT_VISIBLE_CENTER.y) * scale,
     width * scale,
     height * scale,
   );
@@ -360,7 +410,7 @@ function drawFootballShirtPattern({
     fillViewBoxRect(
       context,
       scale,
-      FOOTBALL_SHIRT_SVG_VIEWBOX_CENTER,
+      FOOTBALL_SHIRT_VISIBLE_CENTER.x,
       60,
       600,
       1140,
@@ -592,7 +642,8 @@ export const renderFootballShirtPlayerAppearance: PlayerAppearanceRenderer = ({
   const bounds = frameTransform.getObjectCanvasBounds(player);
   const width = getAbsoluteCanvasExtent(bounds.width);
   const height = getAbsoluteCanvasExtent(bounds.height);
-  const scale = Math.min(width, height) / FOOTBALL_SHIRT_SVG_VIEWBOX_SIZE;
+  const scaleX = width / FOOTBALL_SHIRT_VISIBLE_BOUNDS.width;
+  const scaleY = height / FOOTBALL_SHIRT_VISIBLE_BOUNDS.height;
   const shirtColor =
     player.props.colors?.shirt ??
     player.props.colors?.primary ??
@@ -603,14 +654,16 @@ export const renderFootballShirtPlayerAppearance: PlayerAppearanceRenderer = ({
   context.globalAlpha = appearance === "preview" ? 0.55 : 1;
   context.translate(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
   context.rotate(((player.rotation ?? 0) * Math.PI) / 180);
+  context.save();
+  context.scale(scaleX, scaleY);
   context.fillStyle = shirtColor;
-  buildFootballShirtShapePath(context, scale);
+  buildFootballShirtShapePath(context, 1);
   context.fill();
   drawFootballShirtPattern({
     context,
     pattern: getFootballShirtPattern(player),
     patternColor: getFootballSecondaryColor(player),
-    scale,
+    scale: 1,
   });
   context.strokeStyle = "#000000";
   context.lineCap = "round";
@@ -618,27 +671,28 @@ export const renderFootballShirtPlayerAppearance: PlayerAppearanceRenderer = ({
   strokeFootballShirtSvgPath({
     commands: FOOTBALL_SHIRT_BODY_PATH,
     context,
-    scale,
+    scale: 1,
     strokeWidth: FOOTBALL_SHIRT_OUTER_STROKE_WIDTH,
   });
   strokeFootballShirtSvgPath({
     commands: FOOTBALL_SHIRT_TOP_PATH,
     context,
-    scale,
+    scale: 1,
     strokeWidth: FOOTBALL_SHIRT_OUTER_STROKE_WIDTH,
   });
   strokeFootballShirtSvgPath({
     commands: FOOTBALL_SHIRT_NECK_PATH,
     context,
-    scale,
+    scale: 1,
     strokeWidth: 5,
   });
   strokeFootballShirtSvgPath({
     commands: FOOTBALL_SHIRT_COLLAR_PATH,
     context,
-    scale,
+    scale: 1,
     strokeWidth: 9,
   });
+  context.restore();
 
   const labelFontSize = getMarkerLabelFontSize(
     player,

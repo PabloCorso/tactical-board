@@ -1,12 +1,13 @@
 import type { ComponentType } from "react";
 import type { BoardObject } from "../../../../core/board/types";
-import type { BoardTheme } from "../../theme/board-theme";
+import type { BoardTheme, BoardThemeAdapters } from "../../theme/board-theme";
 
 export interface BoardEditorSelectionToolbarRendererProps<
   TObject extends BoardObject = BoardObject,
 > {
   className?: string;
   selectedObject: TObject;
+  adapters?: Pick<BoardThemeAdapters, "playerAppearanceRenderers">;
   theme?: Pick<BoardTheme, "playerAppearances">;
   toolbarLeft: number;
   toolbarTop: number;

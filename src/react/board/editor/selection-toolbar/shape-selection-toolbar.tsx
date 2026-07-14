@@ -15,12 +15,17 @@ import {
 } from "../toolbar/editor-toolbar";
 import { BoardEditorSelectionToolbarPositioner } from "./selection-toolbar-positioner";
 import type { BoardEditorSelectionToolbarRendererProps } from "./selection-toolbar-types";
-import { ColorPicker, DEFAULT_BOARD_COLORS } from "../../../ui/color-picker";
+import {
+  ColorPicker,
+  ColorSwatch,
+  DEFAULT_BOARD_COLORS,
+} from "../../../ui/color-picker";
 import { LineStyleIcon } from "./line-style-icon";
 import {
   useBoardEditorLabels,
   type BoardEditorLabels,
 } from "../board-editor-labels";
+import { BoardEditorStrokeWidthControl } from "./stroke-width-control";
 
 const LINE_STYLE_OPTIONS: Array<{
   value: ShapeLineStyle;
@@ -198,7 +203,10 @@ export function BoardEditorShapeSelectionToolbar({
       viewportWidth={viewportWidth}
       viewportHeight={viewportHeight}
     >
-      <BoardEditorToolbar className={className}>
+      <BoardEditorToolbar
+        aria-label={labels.selectionToolbar.shapeProperties}
+        className={className}
+      >
         <BoardEditorToolbarPopoverButton
           ariaLabel={labels.selectionToolbar.shapeColor}
           tooltip={labels.selectionToolbar.color}
@@ -212,12 +220,10 @@ export function BoardEditorShapeSelectionToolbar({
             />
           }
           icon={
-            <span
-              className="border-tb-border-default inline-flex h-6 w-6 rounded-full border"
-              style={{ backgroundColor: selectedObject.props.color }}
-            >
-              <span className="sr-only">{selectedObject.props.color}</span>
-            </span>
+            <ColorSwatch
+              value={selectedObject.props.color}
+              className="size-6"
+            />
           }
         />
 
@@ -238,6 +244,14 @@ export function BoardEditorShapeSelectionToolbar({
             />
           }
         />
+
+        {selectedObject.props.bordered ? (
+          <BoardEditorStrokeWidthControl
+            label={labels.selectionToolbar.strokeWidth}
+            value={selectedObject.props.strokeWidth}
+            onChange={(strokeWidth) => updateShapeProps({ strokeWidth })}
+          />
+        ) : null}
 
         <BoardEditorToolbarPopoverButton
           ariaLabel={labels.selectionToolbar.shapeFillStyle}

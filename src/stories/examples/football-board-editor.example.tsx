@@ -113,7 +113,10 @@ export function FootballBoardEditorExample({
           <BoardEditorCanvas />
           <BoardEditorShapePolygonDone />
           <BoardEditorCanvasToolbar />
-          <BoardEditorSelectionToolbar theme={footballTheme} />
+          <BoardEditorSelectionToolbar
+            adapters={footballThemeAdapters}
+            theme={footballTheme}
+          />
 
           <BoardEditorToolbarDockProvider>
             <FootballBoardEditorToolbarDock

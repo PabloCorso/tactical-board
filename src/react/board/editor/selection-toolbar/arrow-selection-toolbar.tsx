@@ -18,13 +18,18 @@ import {
 } from "../toolbar/editor-toolbar";
 import { BoardEditorSelectionToolbarPositioner } from "./selection-toolbar-positioner";
 import type { BoardEditorSelectionToolbarRendererProps } from "./selection-toolbar-types";
-import { ColorPicker, DEFAULT_BOARD_COLORS } from "../../../ui/color-picker";
+import {
+  ColorPicker,
+  ColorSwatch,
+  DEFAULT_BOARD_COLORS,
+} from "../../../ui/color-picker";
 import type { IconRender } from "../../../ui/icon";
 import { LineStyleIcon } from "./line-style-icon";
 import {
   useBoardEditorLabels,
   type BoardEditorLabels,
 } from "../board-editor-labels";
+import { BoardEditorStrokeWidthControl } from "./stroke-width-control";
 
 const BODY_STYLE_OPTIONS: Array<{
   value: ArrowKind;
@@ -223,7 +228,10 @@ export function BoardEditorArrowSelectionToolbar({
       viewportWidth={viewportWidth}
       viewportHeight={viewportHeight}
     >
-      <BoardEditorToolbar className={className}>
+      <BoardEditorToolbar
+        aria-label={labels.selectionToolbar.arrowProperties}
+        className={className}
+      >
         <BoardEditorToolbarPopoverButton
           ariaLabel={labels.selectionToolbar.arrowLeftHead}
           tooltip={labels.selectionToolbar.arrowLeftHead}
@@ -288,6 +296,12 @@ export function BoardEditorArrowSelectionToolbar({
           }
         />
 
+        <BoardEditorStrokeWidthControl
+          label={labels.selectionToolbar.strokeWidth}
+          value={selectedObject.props.strokeWidth}
+          onChange={(strokeWidth) => updateArrowProps({ strokeWidth })}
+        />
+
         <BoardEditorToolbarPopoverButton
           ariaLabel={labels.selectionToolbar.arrowColor}
           tooltip={labels.selectionToolbar.color}
@@ -300,12 +314,10 @@ export function BoardEditorArrowSelectionToolbar({
             />
           }
           icon={
-            <span
-              className="border-tb-border-default inline-flex h-6 w-6 rounded-full border"
-              style={{ backgroundColor: selectedObject.props.color }}
-            >
-              <span className="sr-only">{selectedObject.props.color}</span>
-            </span>
+            <ColorSwatch
+              value={selectedObject.props.color}
+              className="size-6"
+            />
           }
         />
 

@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { DotsThreeVerticalIcon } from "@phosphor-icons/react";
 import type { ObjectId } from "../../../../core/board/types";
 import {
@@ -25,10 +26,12 @@ import {
 import { useBoardEditorLabels } from "../board-editor-labels";
 
 export type BoardEditorSelectionActionsMenuProps = {
+  children?: ReactNode;
   selectedObjectIds: ObjectId[];
 };
 
 export function BoardEditorSelectionActionsMenu({
+  children,
   selectedObjectIds,
 }: BoardEditorSelectionActionsMenuProps) {
   const labels = useBoardEditorLabels();
@@ -64,8 +67,8 @@ export function BoardEditorSelectionActionsMenu({
         )}
       </DropdownMenuTrigger>
       <DropdownMenuContent
-        align="start"
-        side="bottom"
+        align="end"
+        side="top"
         sideOffset={8}
         portalContainer={floatingPortal.container}
         positionMethod={floatingPortal.positionMethod}
@@ -73,9 +76,7 @@ export function BoardEditorSelectionActionsMenu({
         <DropdownMenuItem onClick={handleDuplicate}>
           {labels.selectionActions.duplicate}
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => deleteSelectedObjects(toolApi)}>
-          {labels.selectionActions.delete}
-        </DropdownMenuItem>
+        {children}
         <DropdownMenuSeparator />
         <DropdownMenuItem
           disabled={!canBringToFront}
@@ -88,6 +89,13 @@ export function BoardEditorSelectionActionsMenu({
           onClick={() => toolApi.sendObjectsToBack(selectedObjectIds)}
         >
           {labels.selectionActions.sendToBack}
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          color="danger"
+          onClick={() => deleteSelectedObjects(toolApi)}
+        >
+          {labels.selectionActions.delete}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

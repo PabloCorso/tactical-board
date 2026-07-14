@@ -18,6 +18,7 @@ function createSpyContext() {
     restore: vi.fn(),
     translate: vi.fn(),
     rotate: vi.fn(),
+    scale: vi.fn(),
     beginPath: vi.fn(),
     bezierCurveTo: vi.fn(),
     closePath: vi.fn(),
@@ -116,23 +117,20 @@ describe("renderFootballShirtPlayerAppearance", () => {
       frameTransform,
     });
 
-    const scale = 2.4 / 1254;
-
-    expect(context.moveTo).toHaveBeenCalledTimes(6);
-    expect(context.moveTo).toHaveBeenCalledWith(
-      (940 - 627) * scale,
-      (490 - 627) * scale,
-    );
+    expect(context.moveTo).toHaveBeenCalledTimes(5);
+    expect(context.scale).toHaveBeenCalledWith(2.4 / 1113, 2.4 / 1007);
+    expect(context.moveTo).toHaveBeenCalledWith(940 - 628.5, 490 - 587.5);
     expect(context.bezierCurveTo).toHaveBeenCalledWith(
-      (941.727722 - 627) * scale,
-      (492.0466 - 627) * scale,
-      (942.110046 - 627) * scale,
-      (494.233582 - 627) * scale,
-      (940.484863 - 627) * scale,
-      (496.489105 - 627) * scale,
+      941.727722 - 628.5,
+      492.0466 - 587.5,
+      942.110046 - 628.5,
+      494.233582 - 587.5,
+      940.484863 - 628.5,
+      496.489105 - 587.5,
     );
     expect(context.stroke).toHaveBeenCalledTimes(4);
     expect(context.fill).toHaveBeenCalledTimes(1);
+    expect(context.closePath).toHaveBeenCalledTimes(1);
     expect(context.fillStyles).toEqual(["#1f6feb"]);
     expect(context.fillRect).not.toHaveBeenCalled();
     expect(context.clip).not.toHaveBeenCalled();

@@ -95,6 +95,7 @@ export type BoardEditorLabels = {
     visual: string;
   };
   selectionToolbar: {
+    arrowProperties: string;
     arrowBodyOption: (label: string) => string;
     arrowBodyStyle: string;
     arrowColor: string;
@@ -114,7 +115,10 @@ export type BoardEditorLabels = {
       wavy: string;
     };
     border: string;
+    captionText: string;
     color: string;
+    customPlayerStyle: string;
+    equipmentProperties: string;
     equipmentColor: string;
     fillStyle: string;
     lineStyle: string;
@@ -124,10 +128,15 @@ export type BoardEditorLabels = {
     };
     playerColor: string;
     playerLabel: string;
+    playerProperties: string;
     playerPhotoRemove: string;
     playerPhotoUpload: string;
     playerStyle: string;
     playerTeam: string;
+    labelText: string;
+    resetAppearanceStyle: string;
+    resetCaptionStyle: string;
+    resetLabelStyle: string;
     resetToTeamStyle: string;
     shapeBorderOption: (label: string) => string;
     shapeBorderStyle: string;
@@ -139,14 +148,20 @@ export type BoardEditorLabels = {
     shapeFillOption: (label: string) => string;
     shapeFillStyle: string;
     shapeLineStyle: string;
+    shapeProperties: string;
     shapeFillValue: {
       none: string;
       solid: string;
       stripes: string;
     };
     shapeLineOption: (label: string) => string;
+    strokeWidth: string;
     textColor: string;
+    textProperties: string;
     textSize: string;
+    selectionProperties: string;
+    usingDefaultStyle: string;
+    usingTeamStyle: (teamName: string) => string;
   };
   textEditor: {
     ariaLabel: string;
@@ -237,6 +252,7 @@ export const BOARD_EDITOR_DEFAULT_LABELS: BoardEditorLabels = {
     visual: "Visual",
   },
   selectionToolbar: {
+    arrowProperties: "Arrow properties",
     arrowBodyOption: (label) => `Arrow body ${label}`,
     arrowBodyStyle: "Arrow body style",
     arrowColor: "Arrow color",
@@ -257,7 +273,10 @@ export const BOARD_EDITOR_DEFAULT_LABELS: BoardEditorLabels = {
       wavy: "Wavy",
     },
     border: "Border",
+    captionText: "Caption text",
     color: "Color",
+    customPlayerStyle: "Customized for this player",
+    equipmentProperties: "Equipment properties",
     equipmentColor: "Equipment color",
     fillStyle: "Fill style",
     lineStyle: "Line style",
@@ -267,10 +286,15 @@ export const BOARD_EDITOR_DEFAULT_LABELS: BoardEditorLabels = {
     },
     playerColor: "Player color",
     playerLabel: "Player label",
+    playerProperties: "Player properties",
     playerPhotoRemove: "Remove photo",
     playerPhotoUpload: "Upload photo",
     playerStyle: "Player style",
     playerTeam: "Team",
+    labelText: "Label text",
+    resetAppearanceStyle: "Reset appearance",
+    resetCaptionStyle: "Reset caption style",
+    resetLabelStyle: "Reset label style",
     resetToTeamStyle: "Reset to team style",
     shapeBorderOption: (label) => `Shape border ${label}`,
     shapeBorderStyle: "Shape border style",
@@ -282,14 +306,20 @@ export const BOARD_EDITOR_DEFAULT_LABELS: BoardEditorLabels = {
     shapeFillOption: (label) => `Shape style ${label}`,
     shapeFillStyle: "Shape fill style",
     shapeLineStyle: "Shape line style",
+    shapeProperties: "Shape properties",
     shapeFillValue: {
       none: "None",
       solid: "Solid",
       stripes: "Stripes",
     },
     shapeLineOption: (label) => `Shape line style ${label}`,
+    strokeWidth: "Stroke width",
     textColor: "Text color",
+    textProperties: "Text properties",
     textSize: "Text size",
+    selectionProperties: "Selection actions",
+    usingDefaultStyle: "Using the default style",
+    usingTeamStyle: (teamName) => `Using ${teamName} style`,
   },
   textEditor: {
     ariaLabel: "Text editor",

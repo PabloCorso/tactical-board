@@ -65,9 +65,8 @@ const BoardEditorToolbarFloatingPortalContext =
 const BoardEditorToolbarDockContext =
   createContext<BoardEditorToolbarDockContextValue | null>(null);
 
-export type BoardEditorToolbarProps = PropsWithChildren & {
+export type BoardEditorToolbarProps = ComponentPropsWithRef<"aside"> & {
   activeVariant?: BoardEditorToolbarButtonActiveVariant;
-  className?: string;
   contentClassName?: string;
   density?: "default" | "compact";
   orientation?: BoardEditorToolbarOrientation;
@@ -169,12 +168,14 @@ export function BoardEditorToolbar({
   density = "default",
   orientation = "horizontal",
   tooltipSide = "top",
+  ...props
 }: BoardEditorToolbarProps) {
   return (
     <BoardEditorToolbarContext.Provider
       value={{ activeVariant, orientation, tooltipSide }}
     >
       <aside
+        {...props}
         role="toolbar"
         aria-orientation={orientation}
         className={cn(
@@ -319,19 +320,27 @@ export function BoardEditorToolbarSeparator({
 }
 
 export type BoardEditorToolbarPopoverButtonProps = {
+  active?: boolean;
   ariaLabel: string;
+  className?: string;
   tooltip?: string;
   icon: IconRender;
   content: ReactNode;
+  popoverAlign?: PopoverContentProps["align"];
+  popoverContentClassName?: string;
   showCaret?: boolean;
   popoverSide?: PopoverContentProps["side"];
 };
 
 export function BoardEditorToolbarPopoverButton({
+  active = false,
   ariaLabel,
+  className,
   tooltip,
   icon,
   content,
+  popoverAlign = "center",
+  popoverContentClassName,
   showCaret = true,
   popoverSide = "bottom",
 }: BoardEditorToolbarPopoverButtonProps) {
@@ -344,9 +353,10 @@ export function BoardEditorToolbarPopoverButton({
         <TooltipTrigger>
           <PopoverTrigger>
             <Button
-              variant="ghost"
+              variant={active ? "secondary" : "ghost"}
               aria-label={ariaLabel}
-              className="px-2"
+              aria-pressed={active || undefined}
+              className={cn("px-2", className)}
               iconBefore={icon}
               iconAfter={
                 showCaret ? (
@@ -367,12 +377,12 @@ export function BoardEditorToolbarPopoverButton({
         </TooltipContent>
       </Tooltip>
       <PopoverContent
-        align="center"
+        align={popoverAlign}
         side={popoverSide}
         sideOffset={8}
         portalContainer={floatingPortal.container}
         positionMethod={floatingPortal.positionMethod}
-        className="w-auto min-w-max gap-0.5 p-1"
+        className={cn("w-auto min-w-max gap-0.5 p-1", popoverContentClassName)}
       >
         {content}
       </PopoverContent>
@@ -380,10 +390,12 @@ export function BoardEditorToolbarPopoverButton({
   );
 }
 
-export type BoardEditorToolbarOptionButtonProps = {
+export type BoardEditorToolbarOptionButtonProps = Omit<
+  ButtonProps,
+  "children" | "iconBefore" | "size" | "variant"
+> & {
   active: boolean;
   ariaLabel: string;
-  onClick: () => void;
   icon: IconRender;
 };
 
@@ -391,16 +403,23 @@ export function BoardEditorToolbarOptionButton({
   active,
   ariaLabel,
   icon,
+  className,
+  ...props
 }: BoardEditorToolbarOptionButtonProps) {
   return (
     <Button
       variant={active ? "secondary" : "ghost"}
       aria-label={ariaLabel}
       aria-pressed={active}
-      className={cn({ "border-tb-neutral-soft-active": active })}
+      className={cn(
+        "rounded-lg",
+        { "border-tb-neutral-soft-active": active },
+        className,
+      )}
       iconBefore={icon}
       iconSize="xl"
       size="md"
+      {...props}
     />
   );
 }

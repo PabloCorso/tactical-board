@@ -39,7 +39,8 @@ import { BoardEditorTextSelectionToolbar } from "./text-selection-toolbar";
 import type { BoardEditorSelectionToolbarRenderer } from "./selection-toolbar-types";
 import { BoardEditorSelectionToolbarPositioner } from "./selection-toolbar-positioner";
 import { BoardEditorToolbar } from "../toolbar/editor-toolbar";
-import type { BoardTheme } from "../../theme/board-theme";
+import type { BoardTheme, BoardThemeAdapters } from "../../theme/board-theme";
+import { useBoardEditorLabels } from "../board-editor-labels";
 
 const DEFAULT_SELECTION_TOOLBAR_RENDERERS: Record<
   string,
@@ -92,6 +93,7 @@ export function getSelectionToolbarAnchor(
 }
 
 export type BoardEditorSelectionToolbarProps = {
+  adapters?: Pick<BoardThemeAdapters, "playerAppearanceRenderers">;
   className?: string;
   theme?: Pick<BoardTheme, "playerAppearances">;
 };
@@ -146,9 +148,11 @@ export function getSelectionBounds(
 }
 
 export function BoardEditorSelectionToolbar({
+  adapters,
   className,
   theme,
 }: BoardEditorSelectionToolbarProps) {
+  const labels = useBoardEditorLabels();
   const store = useBoardEditorContext();
   const state = useBoardEditorStore(store, (currentState) => currentState);
   const selectState = getSelectToolState(state.toolState);
@@ -203,7 +207,10 @@ export function BoardEditorSelectionToolbar({
         viewportWidth={state.ui.canvasRect.width}
         viewportHeight={state.ui.canvasRect.height}
       >
-        <BoardEditorToolbar className={className}>
+        <BoardEditorToolbar
+          aria-label={labels.selectionToolbar.selectionProperties}
+          className={className}
+        >
           <BoardEditorSelectionActionsMenu
             selectedObjectIds={selectedObjects.map((object) => object.id)}
           />
@@ -237,6 +244,7 @@ export function BoardEditorSelectionToolbar({
   return (
     <ToolbarRenderer
       className={className}
+      adapters={adapters}
       selectedObject={selectedObject}
       theme={theme}
       toolbarLeft={anchor.left}
