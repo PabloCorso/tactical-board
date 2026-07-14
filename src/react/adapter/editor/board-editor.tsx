@@ -32,6 +32,7 @@ import {
   type BoardEditorLabelOverrides,
 } from "../../board/editor/board-editor-labels";
 import { cn } from "../../ui/misc";
+import { TooltipProvider } from "../../ui/tooltip";
 export { BoardEditorCanvasToolbar } from "../../board/editor/canvas-toolbar";
 export { BoardEditorShapePolygonDone } from "../../board/editor/shape-polygon-done";
 
@@ -59,9 +60,11 @@ export function BoardEditorProvider({
 }: BoardEditorProviderProps) {
   return (
     <BoardEditorContext.Provider value={store}>
-      <BoardEditorLabelsProvider labels={labels}>
-        {children}
-      </BoardEditorLabelsProvider>
+      <TooltipProvider delay={250}>
+        <BoardEditorLabelsProvider labels={labels}>
+          {children}
+        </BoardEditorLabelsProvider>
+      </TooltipProvider>
     </BoardEditorContext.Provider>
   );
 }

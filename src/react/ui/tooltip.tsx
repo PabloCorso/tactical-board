@@ -37,7 +37,8 @@ export function TooltipContent({
   collisionPadding = 8,
   positionMethod = "fixed",
   side = "top",
-  sideOffset = 6,
+  sideOffset = 11,
+  children,
   className,
   ...props
 }: TooltipContentProps) {
@@ -59,7 +60,10 @@ export function TooltipContent({
             className,
           )}
           {...props}
-        />
+        >
+          <TooltipArrow />
+          {children}
+        </TooltipPrimitive.Popup>
       </TooltipPrimitive.Positioner>
     </TooltipPrimitive.Portal>
   );
@@ -70,7 +74,15 @@ export type TooltipArrowProps = TooltipPrimitive.Arrow.Props;
 export function TooltipArrow({ className, ...props }: TooltipArrowProps) {
   return (
     <TooltipPrimitive.Arrow
-      className={cn("bg-tb-neutral h-2 w-2 rotate-45 rounded-[1px]", className)}
+      className={cn(
+        "relative block h-[6px] w-3 overflow-clip",
+        "data-[side=top]:-bottom-[6px] data-[side=top]:rotate-180",
+        "data-[side=bottom]:-top-[6px] data-[side=bottom]:rotate-0",
+        "data-[side=left]:-right-[9px] data-[side=left]:rotate-90",
+        "data-[side=right]:-left-[9px] data-[side=right]:-rotate-90",
+        "before:bg-tb-neutral before:absolute before:bottom-0 before:left-1/2 before:block before:size-[calc(6px*sqrt(2))] before:-translate-x-1/2 before:translate-y-1/2 before:rotate-45 before:content-['']",
+        className,
+      )}
       {...props}
     />
   );
