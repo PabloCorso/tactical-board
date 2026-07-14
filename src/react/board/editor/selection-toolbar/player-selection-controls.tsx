@@ -4,10 +4,10 @@ import {
   PaletteIcon,
   TextTIcon,
 } from "@phosphor-icons/react";
+import type { ReactNode } from "react";
 import type { PlayerCaptionStyle } from "../../../../core/board/types";
 import { Button } from "../../../ui/button";
 import { Input } from "../../../ui/input";
-import { PopoverTitle } from "../../../ui/popover";
 import type {
   BoardThemePlayerAppearanceDefinition,
   PlayerAppearanceRendererRegistry,
@@ -19,10 +19,13 @@ import { PlayerCaptionFields } from "../../player/player-caption-fields";
 import { PlayerLabelFields } from "../../player/player-label-fields";
 import type { BoardEditorLabels } from "../board-editor-labels";
 import {
-  BoardEditorToolbarPopover,
-  BoardEditorToolbarPopoverContent,
-  BoardEditorToolbarPopoverTrigger,
-} from "../toolbar/editor-toolbar";
+  BoardEditorSelectionToolbarPopover,
+  BoardEditorSelectionToolbarPopoverContent,
+  BoardEditorSelectionToolbarPopoverDescription,
+  BoardEditorSelectionToolbarPopoverHeader,
+  BoardEditorSelectionToolbarPopoverTitle,
+  BoardEditorSelectionToolbarPopoverTrigger,
+} from "./selection-toolbar-popover";
 
 export type PlayerLabelSelectionControlProps = {
   customized: boolean;
@@ -48,8 +51,8 @@ export function PlayerLabelSelectionControl({
   teamName,
 }: PlayerLabelSelectionControlProps) {
   return (
-    <BoardEditorToolbarPopover>
-      <BoardEditorToolbarPopoverTrigger
+    <BoardEditorSelectionToolbarPopover>
+      <BoardEditorSelectionToolbarPopoverTrigger
         aria-label={labels.selectionToolbar.playerLabel}
         tooltip={labels.selectionToolbar.playerLabel}
       >
@@ -60,44 +63,41 @@ export function PlayerLabelSelectionControl({
         ) : (
           <HashStraightIcon />
         )}
-      </BoardEditorToolbarPopoverTrigger>
-      <BoardEditorToolbarPopoverContent
-        className="w-60 min-w-0"
-        side="top"
-        sideOffset={8}
-      >
-        <div className="flex flex-col gap-3 p-1">
-          <PlayerPopoverHeader
-            customized={customized}
-            title={labels.selectionToolbar.playerLabel}
-            teamName={teamName}
-            labels={labels}
+      </BoardEditorSelectionToolbarPopoverTrigger>
+      <BoardEditorSelectionToolbarPopoverContent className="w-60 min-w-0 gap-3">
+        <PlayerPopoverHeader
+          customized={customized}
+          teamName={teamName}
+          labels={labels}
+        >
+          <BoardEditorSelectionToolbarPopoverTitle>
+            {labels.selectionToolbar.playerLabel}
+          </BoardEditorSelectionToolbarPopoverTitle>
+        </PlayerPopoverHeader>
+        <label className="flex flex-col gap-0.5">
+          <span className="text-tb-text-secondary text-xs font-medium">
+            {labels.selectionToolbar.labelText}
+          </span>
+          <Input
+            aria-label={labels.selectionToolbar.labelText}
+            className="h-8 rounded-md px-2 text-sm font-medium md:text-sm"
+            onChange={(event) => onChange(event.currentTarget.value)}
+            value={label ?? ""}
           />
-          <label className="flex flex-col gap-0.5">
-            <span className="text-tb-text-secondary text-xs font-medium">
-              {labels.selectionToolbar.labelText}
-            </span>
-            <Input
-              aria-label={labels.selectionToolbar.labelText}
-              className="h-8 rounded-md px-2 text-sm font-medium md:text-sm"
-              onChange={(event) => onChange(event.currentTarget.value)}
-              value={label ?? ""}
-            />
-          </label>
-          <PlayerLabelFields
-            labels={labels}
-            value={{ color: labelColor, fontSize }}
-            onChange={onStyleChange}
+        </label>
+        <PlayerLabelFields
+          labels={labels}
+          value={{ color: labelColor, fontSize }}
+          onChange={onStyleChange}
+        />
+        {customized ? (
+          <ResetStyleButton
+            label={labels.selectionToolbar.resetLabelStyle}
+            onClick={onReset}
           />
-          {customized ? (
-            <ResetStyleButton
-              label={labels.selectionToolbar.resetLabelStyle}
-              onClick={onReset}
-            />
-          ) : null}
-        </div>
-      </BoardEditorToolbarPopoverContent>
-    </BoardEditorToolbarPopover>
+        ) : null}
+      </BoardEditorSelectionToolbarPopoverContent>
+    </BoardEditorSelectionToolbarPopover>
   );
 }
 
@@ -123,50 +123,47 @@ export function PlayerCaptionSelectionControl({
   text,
 }: PlayerCaptionSelectionControlProps) {
   return (
-    <BoardEditorToolbarPopover>
-      <BoardEditorToolbarPopoverTrigger
+    <BoardEditorSelectionToolbarPopover>
+      <BoardEditorSelectionToolbarPopoverTrigger
         aria-label={labels.playerAppearance.caption}
         tooltip={labels.playerAppearance.caption}
       >
         <TextTIcon />
-      </BoardEditorToolbarPopoverTrigger>
-      <BoardEditorToolbarPopoverContent
-        className="w-64 min-w-0"
-        side="top"
-        sideOffset={8}
-      >
-        <div className="flex flex-col gap-3 p-1">
-          <PlayerPopoverHeader
-            customized={customized}
-            title={labels.playerAppearance.caption}
-            teamName={teamName}
-            labels={labels}
+      </BoardEditorSelectionToolbarPopoverTrigger>
+      <BoardEditorSelectionToolbarPopoverContent className="w-64 min-w-0 gap-3">
+        <PlayerPopoverHeader
+          customized={customized}
+          teamName={teamName}
+          labels={labels}
+        >
+          <BoardEditorSelectionToolbarPopoverTitle>
+            {labels.playerAppearance.caption}
+          </BoardEditorSelectionToolbarPopoverTitle>
+        </PlayerPopoverHeader>
+        <label className="flex flex-col gap-0.5">
+          <span className="text-tb-text-secondary text-xs font-medium">
+            {labels.selectionToolbar.captionText}
+          </span>
+          <Input
+            aria-label={labels.selectionToolbar.captionText}
+            className="h-8 rounded-md px-2 text-sm font-medium md:text-sm"
+            onChange={(event) => onTextChange(event.currentTarget.value)}
+            value={text ?? ""}
           />
-          <label className="flex flex-col gap-0.5">
-            <span className="text-tb-text-secondary text-xs font-medium">
-              {labels.selectionToolbar.captionText}
-            </span>
-            <Input
-              aria-label={labels.selectionToolbar.captionText}
-              className="h-8 rounded-md px-2 text-sm font-medium md:text-sm"
-              onChange={(event) => onTextChange(event.currentTarget.value)}
-              value={text ?? ""}
-            />
-          </label>
-          <PlayerCaptionFields
-            caption={caption}
-            labels={labels}
-            onChange={onChange}
+        </label>
+        <PlayerCaptionFields
+          caption={caption}
+          labels={labels}
+          onChange={onChange}
+        />
+        {customized ? (
+          <ResetStyleButton
+            label={labels.selectionToolbar.resetCaptionStyle}
+            onClick={onReset}
           />
-          {customized ? (
-            <ResetStyleButton
-              label={labels.selectionToolbar.resetCaptionStyle}
-              onClick={onReset}
-            />
-          ) : null}
-        </div>
-      </BoardEditorToolbarPopoverContent>
-    </BoardEditorToolbarPopover>
+        ) : null}
+      </BoardEditorSelectionToolbarPopoverContent>
+    </BoardEditorSelectionToolbarPopover>
   );
 }
 
@@ -194,8 +191,8 @@ export function PlayerAppearanceSelectionControl({
   value,
 }: PlayerAppearanceSelectionControlProps) {
   return (
-    <BoardEditorToolbarPopover>
-      <BoardEditorToolbarPopoverTrigger
+    <BoardEditorSelectionToolbarPopover>
+      <BoardEditorSelectionToolbarPopoverTrigger
         aria-label={labels.playerAppearance.appearance}
         tooltip={labels.playerAppearance.appearance}
       >
@@ -212,71 +209,64 @@ export function PlayerAppearanceSelectionControl({
         ) : (
           <PaletteIcon />
         )}
-      </BoardEditorToolbarPopoverTrigger>
-      <BoardEditorToolbarPopoverContent
-        className="w-72 min-w-0"
-        side="top"
-        sideOffset={8}
-      >
-        <div className="flex flex-col gap-2">
-          <div className="px-2 pt-1">
-            <PlayerPopoverHeader
-              customized={customized}
-              title={labels.playerAppearance.appearance}
-              teamName={teamName}
-              labels={labels}
-            />
-          </div>
-          <PlayerAppearanceFields
-            appearanceRenderers={appearanceRenderers}
-            appearances={appearances}
-            labels={labels}
-            value={value}
-            onChange={onChange}
+      </BoardEditorSelectionToolbarPopoverTrigger>
+      <BoardEditorSelectionToolbarPopoverContent className="w-72 min-w-0 gap-3">
+        <PlayerPopoverHeader
+          customized={customized}
+          teamName={teamName}
+          labels={labels}
+        >
+          <BoardEditorSelectionToolbarPopoverTitle>
+            {labels.playerAppearance.appearance}
+          </BoardEditorSelectionToolbarPopoverTitle>
+        </PlayerPopoverHeader>
+        <PlayerAppearanceFields
+          appearanceRenderers={appearanceRenderers}
+          appearances={appearances}
+          labels={labels}
+          value={value}
+          onChange={onChange}
+        />
+        {customized ? (
+          <ResetStyleButton
+            label={labels.selectionToolbar.resetAppearanceStyle}
+            onClick={onReset}
           />
-          {customized ? (
-            <div className="px-1 pb-1">
-              <ResetStyleButton
-                label={labels.selectionToolbar.resetAppearanceStyle}
-                onClick={onReset}
-              />
-            </div>
-          ) : null}
-        </div>
-      </BoardEditorToolbarPopoverContent>
-    </BoardEditorToolbarPopover>
+        ) : null}
+      </BoardEditorSelectionToolbarPopoverContent>
+    </BoardEditorSelectionToolbarPopover>
   );
 }
 
 type PlayerPopoverHeaderProps = {
+  children: ReactNode;
   customized: boolean;
   labels: BoardEditorLabels;
-  title: string;
   teamName?: string;
 };
 
 function PlayerPopoverHeader({
+  children,
   customized,
   labels,
-  title,
   teamName,
 }: PlayerPopoverHeaderProps) {
   return (
-    <div className="flex min-w-0 items-start justify-between gap-3">
-      <div className="min-w-0">
-        <PopoverTitle className="text-sm font-semibold">{title}</PopoverTitle>
-        <p className="text-tb-text-tertiary truncate text-xs">
+    <BoardEditorSelectionToolbarPopoverHeader className="flex-row items-start justify-between gap-3">
+      <div className="flex min-w-0 flex-col gap-0.5">
+        {children}
+        <BoardEditorSelectionToolbarPopoverDescription className="truncate">
           {customized
             ? labels.selectionToolbar.customPlayerStyle
             : teamName
               ? labels.selectionToolbar.usingTeamStyle(teamName)
               : labels.selectionToolbar.usingDefaultStyle}
-        </p>
+        </BoardEditorSelectionToolbarPopoverDescription>
       </div>
       {customized ? (
-        <span className="bg-tb-accent mt-1 size-1.5 shrink-0 rounded-full" />
+        <span className="bg-tb-accent size-1.5 shrink-0 self-center rounded-full" />
       ) : null}
-    </div>
+    </BoardEditorSelectionToolbarPopoverHeader>
   );
 }
 

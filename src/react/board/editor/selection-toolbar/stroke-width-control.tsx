@@ -1,10 +1,10 @@
 import { NumberInput } from "../../../ui/number-input";
-import { PopoverTitle } from "../../../ui/popover";
 import {
-  BoardEditorToolbarPopover,
-  BoardEditorToolbarPopoverContent,
-  BoardEditorToolbarPopoverTrigger,
-} from "../toolbar/editor-toolbar";
+  BoardEditorSelectionToolbarPopover,
+  BoardEditorSelectionToolbarPopoverContent,
+  BoardEditorSelectionToolbarPopoverTitle,
+  BoardEditorSelectionToolbarPopoverTrigger,
+} from "./selection-toolbar-popover";
 
 export type BoardEditorStrokeWidthControlProps = {
   label: string;
@@ -18,36 +18,35 @@ export function BoardEditorStrokeWidthControl({
   value,
 }: BoardEditorStrokeWidthControlProps) {
   return (
-    <BoardEditorToolbarPopover>
-      <BoardEditorToolbarPopoverTrigger aria-label={label} tooltip={label}>
-        <StrokeWidthIcon value={value} />
-      </BoardEditorToolbarPopoverTrigger>
-      <BoardEditorToolbarPopoverContent
-        className="w-48 min-w-0"
-        side="top"
-        sideOffset={8}
+    <BoardEditorSelectionToolbarPopover>
+      <BoardEditorSelectionToolbarPopoverTrigger
+        aria-label={label}
+        tooltip={label}
       >
-        <div className="flex flex-col gap-2 p-1">
-          <PopoverTitle className="text-sm font-semibold">{label}</PopoverTitle>
-          <label className="flex items-center justify-between gap-3">
-            <span className="text-tb-text-secondary text-xs font-medium">
-              {label}
-            </span>
-            <NumberInput
-              aria-label={label}
-              className="border-tb-border-default bg-tb-background-screen text-tb-text-primary h-7 w-20 rounded-md px-2 text-sm md:text-sm"
-              min={0.25}
-              max={12}
-              step={0.25}
-              value={value}
-              onValueChange={(nextValue) =>
-                onChange(Math.min(12, Math.max(0.25, nextValue)))
-              }
-            />
-          </label>
-        </div>
-      </BoardEditorToolbarPopoverContent>
-    </BoardEditorToolbarPopover>
+        <StrokeWidthIcon value={value} />
+      </BoardEditorSelectionToolbarPopoverTrigger>
+      <BoardEditorSelectionToolbarPopoverContent className="w-48 min-w-0">
+        <BoardEditorSelectionToolbarPopoverTitle>
+          {label}
+        </BoardEditorSelectionToolbarPopoverTitle>
+        <label className="flex items-center justify-between gap-3">
+          <span className="text-tb-text-secondary text-xs font-medium">
+            {label}
+          </span>
+          <NumberInput
+            aria-label={label}
+            className="border-tb-border-default bg-tb-background-screen text-tb-text-primary h-7 w-20 rounded-md px-2 text-sm md:text-sm"
+            min={0.25}
+            max={12}
+            step={0.25}
+            value={value}
+            onValueChange={(nextValue) =>
+              onChange(Math.min(12, Math.max(0.25, nextValue)))
+            }
+          />
+        </label>
+      </BoardEditorSelectionToolbarPopoverContent>
+    </BoardEditorSelectionToolbarPopover>
   );
 }
 

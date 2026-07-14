@@ -69,7 +69,7 @@ export function PopoverContent({
         <PopoverPrimitive.Popup
           data-tactical-board
           className={floatingContentClassName(
-            "border-tb-border-default bg-tb-background-surface text-tb-text-primary z-50 flex max-h-(--available-height) w-72 flex-col overflow-x-hidden overflow-y-auto rounded-lg border p-1 text-sm shadow-lg outline-hidden",
+            "border-tb-border-default bg-tb-background-surface text-tb-text-primary z-50 flex max-h-(--available-height) w-72 flex-col gap-2 overflow-x-hidden overflow-y-auto rounded-lg border p-2 text-sm shadow-lg outline-hidden",
             className,
           )}
           {...props}
@@ -90,7 +90,7 @@ export type PopoverTitleProps = PopoverPrimitive.Title.Props;
 export function PopoverTitle({ className, ...props }: PopoverTitleProps) {
   return (
     <PopoverPrimitive.Title
-      className={cn("font-medium", className)}
+      className={cn("m-0 font-medium", className)}
       {...props}
     />
   );
@@ -104,7 +104,7 @@ export function PopoverDescription({
 }: PopoverDescriptionProps) {
   return (
     <PopoverPrimitive.Description
-      className={cn("text-tb-text-secondary", className)}
+      className={cn("text-tb-text-secondary m-0", className)}
       {...props}
     />
   );

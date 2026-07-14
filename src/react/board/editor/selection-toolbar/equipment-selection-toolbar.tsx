@@ -7,9 +7,6 @@ import { createToolApi } from "../../../../core/editor/create-tool-api";
 import { useBoardEditorContext } from "../../../adapter/editor/board-editor-context";
 import {
   BoardEditorToolbar,
-  BoardEditorToolbarPopover,
-  BoardEditorToolbarPopoverContent,
-  BoardEditorToolbarPopoverTrigger,
   BoardEditorToolbarSeparator,
 } from "../toolbar/editor-toolbar";
 import { BoardEditorSelectionToolbarPositioner } from "./selection-toolbar-positioner";
@@ -22,6 +19,11 @@ import {
 } from "../../../ui/color-picker";
 import { DEFAULT_BOARD_COLOR } from "../../../../core/colors/default-colors";
 import { useBoardEditorLabels } from "../board-editor-labels";
+import {
+  BoardEditorSelectionToolbarPopover,
+  BoardEditorSelectionToolbarPopoverContent,
+  BoardEditorSelectionToolbarPopoverTrigger,
+} from "./selection-toolbar-popover";
 
 export function BoardEditorEquipmentSelectionToolbar({
   className,
@@ -64,22 +66,22 @@ export function BoardEditorEquipmentSelectionToolbar({
         controlSize="sm"
       >
         {capabilities.color ? (
-          <BoardEditorToolbarPopover>
-            <BoardEditorToolbarPopoverTrigger
+          <BoardEditorSelectionToolbarPopover>
+            <BoardEditorSelectionToolbarPopoverTrigger
               aria-label={labels.selectionToolbar.equipmentColor}
               tooltip={labels.selectionToolbar.color}
             >
               <ColorSwatch value={color} className="size-6" />
-            </BoardEditorToolbarPopoverTrigger>
-            <BoardEditorToolbarPopoverContent side="top" sideOffset={8}>
+            </BoardEditorSelectionToolbarPopoverTrigger>
+            <BoardEditorSelectionToolbarPopoverContent>
               <ColorPicker
                 value={color}
                 onChange={(value) => updateEquipment({ color: value })}
                 chooseCustomColorLabel={labels.colorPicker.chooseCustomColor}
                 defaultColors={[...DEFAULT_BOARD_COLORS]}
               />
-            </BoardEditorToolbarPopoverContent>
-          </BoardEditorToolbarPopover>
+            </BoardEditorSelectionToolbarPopoverContent>
+          </BoardEditorSelectionToolbarPopover>
         ) : null}
         {capabilities.color ? <BoardEditorToolbarSeparator /> : null}
         <BoardEditorSelectionActionsMenu

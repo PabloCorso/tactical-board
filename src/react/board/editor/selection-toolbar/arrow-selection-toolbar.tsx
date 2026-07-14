@@ -14,9 +14,6 @@ import {
   BoardEditorToolbar,
   BoardEditorToolbarGroup,
   BoardEditorToolbarOptionButton,
-  BoardEditorToolbarPopover,
-  BoardEditorToolbarPopoverContent,
-  BoardEditorToolbarPopoverTrigger,
   BoardEditorToolbarSeparator,
 } from "../toolbar/editor-toolbar";
 import { BoardEditorSelectionToolbarPositioner } from "./selection-toolbar-positioner";
@@ -33,6 +30,11 @@ import {
   type BoardEditorLabels,
 } from "../board-editor-labels";
 import { BoardEditorStrokeWidthControl } from "./stroke-width-control";
+import {
+  BoardEditorSelectionToolbarPopover,
+  BoardEditorSelectionToolbarPopoverContent,
+  BoardEditorSelectionToolbarPopoverTrigger,
+} from "./selection-toolbar-popover";
 
 const BODY_STYLE_OPTIONS: Array<{
   value: ArrowKind;
@@ -237,77 +239,77 @@ export function BoardEditorArrowSelectionToolbar({
         controlSize="sm"
       >
         <BoardEditorToolbarGroup>
-          <BoardEditorToolbarPopover>
-            <BoardEditorToolbarPopoverTrigger
+          <BoardEditorSelectionToolbarPopover>
+            <BoardEditorSelectionToolbarPopoverTrigger
               aria-label={labels.selectionToolbar.arrowLeftHead}
               tooltip={labels.selectionToolbar.arrowLeftHead}
             >
               {getHeadStyleIcon(selectedObject.props.startHead, "start")}
-            </BoardEditorToolbarPopoverTrigger>
-            <BoardEditorToolbarPopoverContent side="top" sideOffset={8}>
+            </BoardEditorSelectionToolbarPopoverTrigger>
+            <BoardEditorSelectionToolbarPopoverContent>
               <ArrowHeadPopoverContent
                 labels={labels}
                 headStyle={selectedObject.props.startHead}
                 side="start"
                 onSelect={(value) => updateArrowProps({ startHead: value })}
               />
-            </BoardEditorToolbarPopoverContent>
-          </BoardEditorToolbarPopover>
+            </BoardEditorSelectionToolbarPopoverContent>
+          </BoardEditorSelectionToolbarPopover>
 
-          <BoardEditorToolbarPopover>
-            <BoardEditorToolbarPopoverTrigger
+          <BoardEditorSelectionToolbarPopover>
+            <BoardEditorSelectionToolbarPopoverTrigger
               aria-label={labels.selectionToolbar.arrowBodyStyle}
               tooltip={labels.selectionToolbar.arrowBodyStyle}
             >
               {getBodyStyleIcon(selectedObject.props.kind)}
-            </BoardEditorToolbarPopoverTrigger>
-            <BoardEditorToolbarPopoverContent side="top" sideOffset={8}>
+            </BoardEditorSelectionToolbarPopoverTrigger>
+            <BoardEditorSelectionToolbarPopoverContent>
               <ArrowBodyPopoverContent
                 labels={labels}
                 selectedObject={selectedObject}
                 onSelect={updateBodyStyle}
               />
-            </BoardEditorToolbarPopoverContent>
-          </BoardEditorToolbarPopover>
+            </BoardEditorSelectionToolbarPopoverContent>
+          </BoardEditorSelectionToolbarPopover>
 
-          <BoardEditorToolbarPopover>
-            <BoardEditorToolbarPopoverTrigger
+          <BoardEditorSelectionToolbarPopover>
+            <BoardEditorSelectionToolbarPopoverTrigger
               aria-label={labels.selectionToolbar.arrowRightHead}
               tooltip={labels.selectionToolbar.arrowRightHead}
             >
               {getHeadStyleIcon(selectedObject.props.endHead, "end")}
-            </BoardEditorToolbarPopoverTrigger>
-            <BoardEditorToolbarPopoverContent side="top" sideOffset={8}>
+            </BoardEditorSelectionToolbarPopoverTrigger>
+            <BoardEditorSelectionToolbarPopoverContent>
               <ArrowHeadPopoverContent
                 labels={labels}
                 headStyle={selectedObject.props.endHead}
                 side="end"
                 onSelect={(value) => updateArrowProps({ endHead: value })}
               />
-            </BoardEditorToolbarPopoverContent>
-          </BoardEditorToolbarPopover>
+            </BoardEditorSelectionToolbarPopoverContent>
+          </BoardEditorSelectionToolbarPopover>
         </BoardEditorToolbarGroup>
 
         <BoardEditorToolbarSeparator />
 
         <BoardEditorToolbarGroup>
-          <BoardEditorToolbarPopover>
-            <BoardEditorToolbarPopoverTrigger
+          <BoardEditorSelectionToolbarPopover>
+            <BoardEditorSelectionToolbarPopoverTrigger
               aria-label={labels.selectionToolbar.arrowLineStyle}
               tooltip={labels.selectionToolbar.lineStyle}
             >
               <LineStyleIcon
                 dashed={selectedObject.props.lineStyle === "dashed"}
               />
-            </BoardEditorToolbarPopoverTrigger>
-            <BoardEditorToolbarPopoverContent side="top" sideOffset={8}>
+            </BoardEditorSelectionToolbarPopoverTrigger>
+            <BoardEditorSelectionToolbarPopoverContent>
               <ArrowLineStylePopoverContent
                 labels={labels}
                 lineStyle={selectedObject.props.lineStyle}
                 onSelect={(value) => updateArrowProps({ lineStyle: value })}
               />
-            </BoardEditorToolbarPopoverContent>
-          </BoardEditorToolbarPopover>
+            </BoardEditorSelectionToolbarPopoverContent>
+          </BoardEditorSelectionToolbarPopover>
 
           <BoardEditorStrokeWidthControl
             label={labels.selectionToolbar.strokeWidth}
@@ -315,8 +317,8 @@ export function BoardEditorArrowSelectionToolbar({
             onChange={(strokeWidth) => updateArrowProps({ strokeWidth })}
           />
 
-          <BoardEditorToolbarPopover>
-            <BoardEditorToolbarPopoverTrigger
+          <BoardEditorSelectionToolbarPopover>
+            <BoardEditorSelectionToolbarPopoverTrigger
               aria-label={labels.selectionToolbar.arrowColor}
               tooltip={labels.selectionToolbar.color}
             >
@@ -324,15 +326,15 @@ export function BoardEditorArrowSelectionToolbar({
                 value={selectedObject.props.color}
                 className="size-6"
               />
-            </BoardEditorToolbarPopoverTrigger>
-            <BoardEditorToolbarPopoverContent side="top" sideOffset={8}>
+            </BoardEditorSelectionToolbarPopoverTrigger>
+            <BoardEditorSelectionToolbarPopoverContent>
               <ArrowColorPopoverContent
                 color={selectedObject.props.color}
                 labels={labels}
                 onSelect={(value) => updateArrowProps({ color: value })}
               />
-            </BoardEditorToolbarPopoverContent>
-          </BoardEditorToolbarPopover>
+            </BoardEditorSelectionToolbarPopoverContent>
+          </BoardEditorSelectionToolbarPopover>
         </BoardEditorToolbarGroup>
 
         <BoardEditorToolbarSeparator />

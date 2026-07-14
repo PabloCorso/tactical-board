@@ -16,6 +16,7 @@ export * from "./board/editor/selection-toolbar/arrow-selection-toolbar";
 export * from "./board/editor/selection-toolbar/equipment-selection-toolbar";
 export * from "./board/editor/selection-toolbar/player-selection-toolbar";
 export * from "./board/editor/selection-toolbar/selection-toolbar-positioner";
+export * from "./board/editor/selection-toolbar/selection-toolbar-popover";
 export * from "./board/editor/selection-toolbar/shape-selection-toolbar";
 export * from "./board/editor/selection-toolbar/text-selection-toolbar";
 export type * from "./board/editor/selection-toolbar/selection-toolbar-types";

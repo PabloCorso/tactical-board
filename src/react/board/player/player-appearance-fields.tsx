@@ -2,7 +2,7 @@ import {
   ArrowCounterClockwiseIcon,
   UploadSimpleIcon,
 } from "@phosphor-icons/react";
-import type { ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import type { Asset } from "../../../core/board/types";
 import {
   type BoardThemePlayerAppearanceDefinition,
@@ -31,7 +31,10 @@ import {
 const MIN_PLAYER_SIZE = 12;
 const MAX_PLAYER_SIZE = 80;
 
-export type PlayerAppearanceFieldsProps = {
+export type PlayerAppearanceFieldsProps = Omit<
+  ComponentProps<"div">,
+  "onChange"
+> & {
   appearanceRenderers?: PlayerAppearanceRendererRegistry;
   appearances?: BoardThemePlayerAppearanceDefinition[];
   labels: ReturnType<typeof useBoardEditorLabels>;
@@ -42,9 +45,11 @@ export type PlayerAppearanceFieldsProps = {
 export function PlayerAppearanceFields({
   appearanceRenderers,
   appearances: appearanceDefinitions,
+  className,
   labels,
   onChange,
   value,
+  ...props
 }: PlayerAppearanceFieldsProps) {
   const appearances = getThemePlayerAppearanceDefinitions({
     playerAppearances: appearanceDefinitions,
@@ -56,7 +61,10 @@ export function PlayerAppearanceFields({
   const size = value.size ?? DEFAULT_PLAYER_SIZE;
 
   return (
-    <div className="flex w-full min-w-0 flex-col gap-3 p-1">
+    <div
+      {...props}
+      className={cn("flex w-full min-w-0 flex-col gap-3", className)}
+    >
       <div className="flex flex-col gap-1.5">
         <PlayerAppearanceFieldLabel>
           {labels.playerAppearance.appearance}
