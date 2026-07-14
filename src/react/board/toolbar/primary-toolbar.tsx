@@ -10,6 +10,7 @@ import {
 } from "../editor/toolbar/tool-control";
 import {
   BoardEditorToolbar,
+  BoardEditorToolbarGroup,
   BoardEditorToolbarSeparator,
   type BoardEditorToolbarProps,
 } from "../editor/toolbar/editor-toolbar";
@@ -40,19 +41,21 @@ export function BoardPrimaryToolbar({
       orientation={orientation}
       tooltipSide="right"
     >
-      <BoardEditorSelectToolControl />
-      <BoardEditorHandToolControl />
-      <BoardEditorPlayerToolControl adapters={adapters} />
-      {showEquipment ? (
-        <BoardEditorEquipmentToolControl adapters={adapters} theme={theme} />
-      ) : null}
-      <BoardEditorTextToolControl />
-      <BoardEditorArrowToolControl />
-      <BoardEditorShapeToolControl />
+      <BoardEditorToolbarGroup>
+        <BoardEditorSelectToolControl />
+        <BoardEditorHandToolControl />
+        <BoardEditorPlayerToolControl adapters={adapters} />
+        {showEquipment ? (
+          <BoardEditorEquipmentToolControl adapters={adapters} theme={theme} />
+        ) : null}
+        <BoardEditorTextToolControl />
+        <BoardEditorArrowToolControl />
+        <BoardEditorShapeToolControl />
+      </BoardEditorToolbarGroup>
       {children ? (
         <>
           <BoardEditorToolbarSeparator />
-          {children}
+          <BoardEditorToolbarGroup>{children}</BoardEditorToolbarGroup>
         </>
       ) : null}
     </BoardEditorToolbar>

@@ -188,9 +188,9 @@ stay local to the toolbar that consumes them:
 
 ```tsx
 <>
-  <BoardEditorPlayerGroupToolbar theme={footballTheme}>
+  <BoardEditorPlayerGroupToolbar adapters={footballThemeAdapters}>
     <BoardEditorTeamPanelContent>
-      <TeamPanelDefaultsSection />
+      <TeamPanelPlayerLabelSection />
       <HostPlayerGroupAppearanceSection />
       <TeamPanelRosterSection />
       <HostPlayerGroupWorkflowSection />

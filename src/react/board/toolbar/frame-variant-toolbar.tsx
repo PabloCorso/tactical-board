@@ -15,8 +15,8 @@ import {
   BoardEditorToolbarButton,
   BoardEditorToolbarSeparator,
   type BoardEditorToolbarProps,
-  useBoardEditorToolbarDockOptional,
 } from "../editor/toolbar/editor-toolbar";
+import { useBoardEditorToolbarDockOptional } from "../editor/toolbar/toolbar-dock";
 import type { IconRender } from "../../ui/icon";
 
 export type BoardEditorFrameVariantRenderContext<

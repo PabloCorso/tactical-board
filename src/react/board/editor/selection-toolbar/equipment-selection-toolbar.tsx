@@ -7,7 +7,9 @@ import { createToolApi } from "../../../../core/editor/create-tool-api";
 import { useBoardEditorContext } from "../../../adapter/editor/board-editor-context";
 import {
   BoardEditorToolbar,
-  BoardEditorToolbarPopoverButton,
+  BoardEditorToolbarPopover,
+  BoardEditorToolbarPopoverContent,
+  BoardEditorToolbarPopoverTrigger,
   BoardEditorToolbarSeparator,
 } from "../toolbar/editor-toolbar";
 import { BoardEditorSelectionToolbarPositioner } from "./selection-toolbar-positioner";
@@ -61,20 +63,22 @@ export function BoardEditorEquipmentSelectionToolbar({
         className={className}
       >
         {capabilities.color ? (
-          <BoardEditorToolbarPopoverButton
-            ariaLabel={labels.selectionToolbar.equipmentColor}
-            tooltip={labels.selectionToolbar.color}
-            popoverSide="top"
-            content={
+          <BoardEditorToolbarPopover>
+            <BoardEditorToolbarPopoverTrigger
+              aria-label={labels.selectionToolbar.equipmentColor}
+              tooltip={labels.selectionToolbar.color}
+            >
+              <ColorSwatch value={color} className="size-6" />
+            </BoardEditorToolbarPopoverTrigger>
+            <BoardEditorToolbarPopoverContent side="top" sideOffset={8}>
               <ColorPicker
                 value={color}
                 onChange={(value) => updateEquipment({ color: value })}
                 chooseCustomColorLabel={labels.colorPicker.chooseCustomColor}
                 defaultColors={[...DEFAULT_BOARD_COLORS]}
               />
-            }
-            icon={<ColorSwatch value={color} className="size-6" />}
-          />
+            </BoardEditorToolbarPopoverContent>
+          </BoardEditorToolbarPopover>
         ) : null}
         {capabilities.color ? <BoardEditorToolbarSeparator /> : null}
         <BoardEditorSelectionActionsMenu

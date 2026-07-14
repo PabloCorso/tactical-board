@@ -15,7 +15,6 @@ import {
   BoardEditorPlayerToolControl,
   BoardEditorPlayerGroupToolbar,
   BoardEditorProvider,
-  BoardEditorSecondaryToolbar,
   BoardEditorSecondaryToolbars,
   BoardEditorSelectionToolbar,
   BoardEditorShapePolygonDone,
@@ -28,6 +27,10 @@ import {
   BoardEditorToolbarDockProvider,
   BoardEditorToolbar,
   BoardEditorToolbarDock,
+  BoardEditorToolbarGroup,
+  BoardEditorToolbarPopover,
+  BoardEditorToolbarPopoverContent,
+  BoardEditorToolbarPopoverTrigger,
   BoardViewerCanvas,
   BoardPrimaryToolbar,
   TeamPanelCaptionSection,
@@ -111,6 +114,50 @@ describe("React public frame", () => {
 
     expect(markup).toContain('aria-label="Alejar"');
     expect(markup).toContain('aria-label="Player"');
+  });
+
+  it("composes toolbar families while tool controls retain button props", () => {
+    const store = createBoardEditorStore({
+      initialBoard: createFootballBoard({ id: "composable-toolbar" }),
+      tools: createFootballTools(),
+    });
+
+    const markup = renderToString(
+      createElement(
+        BoardEditorProvider,
+        { store },
+        createElement(
+          BoardEditorToolbar,
+          null,
+          createElement(
+            BoardEditorToolbarGroup,
+            { "aria-label": "Tools" },
+            createElement(BoardEditorSelectToolControl, {
+              disabled: true,
+              title: "Select tool",
+            }),
+            createElement(
+              BoardEditorToolbarPopover,
+              null,
+              createElement(BoardEditorToolbarPopoverTrigger, {
+                "aria-label": "Style",
+                children: createElement("span", null, "S"),
+              }),
+              createElement(
+                BoardEditorToolbarPopoverContent,
+                null,
+                createElement("div", null, "Style options"),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(markup).toContain('role="group"');
+    expect(markup).toContain('title="Select tool"');
+    expect(markup).toContain("disabled");
+    expect(markup).toContain('aria-label="Style"');
   });
 
   it("preserves caller-owned tool and preset labels", () => {
@@ -245,7 +292,7 @@ describe("React public frame", () => {
                   options: footballPitchFrameOptions,
                   getValue: getFootballPitchVariant,
                 }),
-                createElement(BoardEditorSecondaryToolbar, {
+                createElement(BoardEditorSecondaryToolbars, {
                   adapters: footballThemeAdapters,
                   theme: footballTheme,
                 }),

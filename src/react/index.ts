@@ -24,6 +24,7 @@ export * from "./board/editor/toolbar/tool-control";
 export * from "./board/editor/board-editor-labels";
 export * from "./board/editor/toolbar/default-tool-icons";
 export * from "./board/editor/toolbar/editor-toolbar";
+export * from "./board/editor/toolbar/toolbar-dock";
 export * from "./adapter/viewer/board-viewer";
 export * from "./board/toolbar/frame-variant-toolbar";
 export * from "./sports/basketball";

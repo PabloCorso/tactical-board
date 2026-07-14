@@ -3,7 +3,7 @@ import type { BoardThemePlayerAppearanceDefinition } from "../theme/board-theme"
 import {
   getPlayerAppearanceChangePatch,
   getPlayerAppearanceFieldChangePatch,
-} from "./player-appearance-fields";
+} from "./player-appearance-utils";
 
 describe("getPlayerAppearanceChangePatch", () => {
   it("clears stale appearance-specific props before applying defaults", () => {

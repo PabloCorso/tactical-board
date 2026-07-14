@@ -13,15 +13,15 @@ import {
 } from "../../../core/tools/player-tool-state";
 import { useBoardEditorContext } from "../../adapter/editor/board-editor-context";
 import {
-  useBoardEditorToolbarDockOptional,
   BoardEditorToolbar,
   BoardEditorToolbarButton,
   BoardEditorToolbarSeparator,
   type BoardEditorToolbarProps,
 } from "../editor/toolbar/editor-toolbar";
+import { useBoardEditorToolbarDockOptional } from "../editor/toolbar/toolbar-dock";
 import { useBoardEditorStore } from "../../adapter/editor/use-board-editor-store";
 import { useBoardEditorLabels } from "../editor/board-editor-labels";
-import { BoardPlayerDefaultIcon } from "./tool-icons";
+import { BoardPlayerDefaultIcon } from "./player-tool-icons";
 import { setToolStatePatch } from "./secondary-toolbar-commands";
 import { Button } from "../../ui/button";
 import { cn } from "../../ui/misc";
@@ -43,9 +43,6 @@ export type BoardEditorPlayerGroupToolbarProps = Omit<
   adapters?: BoardThemeAdapters;
   children?: ReactNode;
 };
-
-/** @deprecated Use BoardEditorPlayerGroupToolbarProps. */
-export type BoardEditorPlayerToolbarProps = BoardEditorPlayerGroupToolbarProps;
 
 export function BoardEditorPlayerGroupToolbar(
   props: BoardEditorPlayerGroupToolbarProps,

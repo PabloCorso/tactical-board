@@ -12,10 +12,8 @@ import {
 } from "../../../../core/tools/select-tool-actions";
 import { useBoardEditorStore } from "../../../adapter/editor/use-board-editor-store";
 import { useBoardEditorContext } from "../../../adapter/editor/board-editor-context";
-import {
-  BoardEditorToolbarButton,
-  useBoardEditorToolbarFloatingPortal,
-} from "../toolbar/editor-toolbar";
+import { BoardEditorToolbarButton } from "../toolbar/editor-toolbar";
+import { useBoardEditorToolbarFloatingPortal } from "../toolbar/toolbar-dock";
 import {
   DropdownMenu,
   DropdownMenuContent,

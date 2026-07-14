@@ -9,8 +9,11 @@ import { BoardEditorSelectionActionsMenu } from "./selection-actions-menu";
 import { useBoardEditorContext } from "../../../adapter/editor/board-editor-context";
 import {
   BoardEditorToolbar,
+  BoardEditorToolbarGroup,
   BoardEditorToolbarOptionButton,
-  BoardEditorToolbarPopoverButton,
+  BoardEditorToolbarPopover,
+  BoardEditorToolbarPopoverContent,
+  BoardEditorToolbarPopoverTrigger,
   BoardEditorToolbarSeparator,
 } from "../toolbar/editor-toolbar";
 import { BoardEditorSelectionToolbarPositioner } from "./selection-toolbar-positioner";
@@ -207,81 +210,85 @@ export function BoardEditorShapeSelectionToolbar({
         aria-label={labels.selectionToolbar.shapeProperties}
         className={className}
       >
-        <BoardEditorToolbarPopoverButton
-          ariaLabel={labels.selectionToolbar.shapeColor}
-          tooltip={labels.selectionToolbar.color}
-          popoverSide="top"
-          content={
-            <ColorPicker
-              value={selectedObject.props.color}
-              onChange={(value) => updateShapeProps({ color: value })}
-              chooseCustomColorLabel={labels.colorPicker.chooseCustomColor}
-              defaultColors={[...DEFAULT_BOARD_COLORS]}
-            />
-          }
-          icon={
-            <ColorSwatch
-              value={selectedObject.props.color}
-              className="size-6"
-            />
-          }
-        />
+        <BoardEditorToolbarGroup>
+          <BoardEditorToolbarPopover>
+            <BoardEditorToolbarPopoverTrigger
+              aria-label={labels.selectionToolbar.shapeColor}
+              tooltip={labels.selectionToolbar.color}
+            >
+              <ColorSwatch
+                value={selectedObject.props.color}
+                className="size-6"
+              />
+            </BoardEditorToolbarPopoverTrigger>
+            <BoardEditorToolbarPopoverContent side="top" sideOffset={8}>
+              <ColorPicker
+                value={selectedObject.props.color}
+                onChange={(value) => updateShapeProps({ color: value })}
+                chooseCustomColorLabel={labels.colorPicker.chooseCustomColor}
+                defaultColors={[...DEFAULT_BOARD_COLORS]}
+              />
+            </BoardEditorToolbarPopoverContent>
+          </BoardEditorToolbarPopover>
 
-        <BoardEditorToolbarPopoverButton
-          ariaLabel={labels.selectionToolbar.shapeLineStyle}
-          tooltip={labels.selectionToolbar.lineStyle}
-          popoverSide="top"
-          content={
-            <ShapeLineStylePopoverContent
-              labels={labels}
-              lineStyle={selectedObject.props.lineStyle}
-              onSelect={(value) => updateShapeProps({ lineStyle: value })}
-            />
-          }
-          icon={
-            <LineStyleIcon
-              dashed={selectedObject.props.lineStyle === "dashed"}
-            />
-          }
-        />
+          <BoardEditorToolbarPopover>
+            <BoardEditorToolbarPopoverTrigger
+              aria-label={labels.selectionToolbar.shapeLineStyle}
+              tooltip={labels.selectionToolbar.lineStyle}
+            >
+              <LineStyleIcon
+                dashed={selectedObject.props.lineStyle === "dashed"}
+              />
+            </BoardEditorToolbarPopoverTrigger>
+            <BoardEditorToolbarPopoverContent side="top" sideOffset={8}>
+              <ShapeLineStylePopoverContent
+                labels={labels}
+                lineStyle={selectedObject.props.lineStyle}
+                onSelect={(value) => updateShapeProps({ lineStyle: value })}
+              />
+            </BoardEditorToolbarPopoverContent>
+          </BoardEditorToolbarPopover>
 
-        {selectedObject.props.bordered ? (
-          <BoardEditorStrokeWidthControl
-            label={labels.selectionToolbar.strokeWidth}
-            value={selectedObject.props.strokeWidth}
-            onChange={(strokeWidth) => updateShapeProps({ strokeWidth })}
-          />
-        ) : null}
-
-        <BoardEditorToolbarPopoverButton
-          ariaLabel={labels.selectionToolbar.shapeFillStyle}
-          tooltip={labels.selectionToolbar.fillStyle}
-          popoverSide="top"
-          content={
-            <ShapeFillPopoverContent
-              labels={labels}
-              value={selectedObject.props.fillStyle}
-              onSelect={(value) => updateShapeProps({ fillStyle: value })}
+          {selectedObject.props.bordered ? (
+            <BoardEditorStrokeWidthControl
+              label={labels.selectionToolbar.strokeWidth}
+              value={selectedObject.props.strokeWidth}
+              onChange={(strokeWidth) => updateShapeProps({ strokeWidth })}
             />
-          }
-          icon={<ShapeFillStyleIcon value={selectedObject.props.fillStyle} />}
-        />
+          ) : null}
 
-        <BoardEditorToolbarPopoverButton
-          ariaLabel={labels.selectionToolbar.shapeBorderStyle}
-          tooltip={labels.selectionToolbar.border}
-          popoverSide="top"
-          content={
-            <ShapeBorderPopoverContent
-              labels={labels}
-              value={selectedObject.props.bordered}
-              onSelect={(value) => updateShapeProps({ bordered: value })}
-            />
-          }
-          icon={
-            <ShapeBorderStyleIcon bordered={selectedObject.props.bordered} />
-          }
-        />
+          <BoardEditorToolbarPopover>
+            <BoardEditorToolbarPopoverTrigger
+              aria-label={labels.selectionToolbar.shapeFillStyle}
+              tooltip={labels.selectionToolbar.fillStyle}
+            >
+              <ShapeFillStyleIcon value={selectedObject.props.fillStyle} />
+            </BoardEditorToolbarPopoverTrigger>
+            <BoardEditorToolbarPopoverContent side="top" sideOffset={8}>
+              <ShapeFillPopoverContent
+                labels={labels}
+                value={selectedObject.props.fillStyle}
+                onSelect={(value) => updateShapeProps({ fillStyle: value })}
+              />
+            </BoardEditorToolbarPopoverContent>
+          </BoardEditorToolbarPopover>
+
+          <BoardEditorToolbarPopover>
+            <BoardEditorToolbarPopoverTrigger
+              aria-label={labels.selectionToolbar.shapeBorderStyle}
+              tooltip={labels.selectionToolbar.border}
+            >
+              <ShapeBorderStyleIcon bordered={selectedObject.props.bordered} />
+            </BoardEditorToolbarPopoverTrigger>
+            <BoardEditorToolbarPopoverContent side="top" sideOffset={8}>
+              <ShapeBorderPopoverContent
+                labels={labels}
+                value={selectedObject.props.bordered}
+                onSelect={(value) => updateShapeProps({ bordered: value })}
+              />
+            </BoardEditorToolbarPopoverContent>
+          </BoardEditorToolbarPopover>
+        </BoardEditorToolbarGroup>
 
         <BoardEditorToolbarSeparator />
         <BoardEditorSelectionActionsMenu

@@ -4,10 +4,8 @@ import {
   DEFAULT_PLAYER_FONT_SIZE,
   DEFAULT_PLAYER_SIZE,
 } from "../../../core/objects/player-object";
-import {
-  createPlayerToolIconPreviewObject,
-  getThemeAwareToolIconColor,
-} from "./tool-icons";
+import { createPlayerToolIconPreviewObject } from "./player-tool-icons";
+import { getThemeAwareToolIconColor } from "./tool-icon-color";
 
 describe("toolbar tool icons", () => {
   it("caps player preview label font size to the marker size ratio", () => {

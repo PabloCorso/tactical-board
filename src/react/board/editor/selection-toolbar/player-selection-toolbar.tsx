@@ -1,10 +1,4 @@
 import {
-  ArrowCounterClockwiseIcon,
-  HashStraightIcon,
-  PaletteIcon,
-  TextTIcon,
-} from "@phosphor-icons/react";
-import {
   DEFAULT_PLAYER_SIZE,
   updatePlayerObject,
   type PlayerObject,
@@ -25,14 +19,12 @@ import { useBoardEditorContext } from "../../../adapter/editor/board-editor-cont
 import { useBoardEditorStore } from "../../../adapter/editor/use-board-editor-store";
 import {
   BoardEditorToolbar,
-  BoardEditorToolbarPopoverButton,
+  BoardEditorToolbarGroup,
   BoardEditorToolbarSeparator,
 } from "../toolbar/editor-toolbar";
 import { BoardEditorSelectionToolbarPositioner } from "./selection-toolbar-positioner";
 import { BoardEditorSelectionActionsMenu } from "./selection-actions-menu";
 import type { BoardEditorSelectionToolbarRendererProps } from "./selection-toolbar-types";
-import { Button } from "../../../ui/button";
-import { Input } from "../../../ui/input";
 import {
   Select,
   SelectContent,
@@ -40,19 +32,17 @@ import {
   SelectTrigger,
 } from "../../../ui/select";
 import { DropdownMenuItem } from "../../../ui/dropdown-menu";
-import { PopoverTitle } from "../../../ui/popover";
 import { useBoardEditorLabels } from "../board-editor-labels";
-import {
-  PlayerAppearanceFields,
-  PlayerAppearancePreview,
-} from "../../player/player-appearance-fields";
-import { PlayerLabelFields } from "../../player/player-label-fields";
-import { PlayerCaptionFields } from "../../player/player-caption-fields";
 import { getThemePlayerAppearanceDefinitions } from "../../theme/board-theme";
 import {
   movePlayerToGroup,
   resetPlayerStyleToGroup,
 } from "../../team/player-team-commands";
+import {
+  PlayerAppearanceSelectionControl,
+  PlayerCaptionSelectionControl,
+  PlayerLabelSelectionControl,
+} from "./player-selection-controls";
 
 export function BoardEditorPlayerSelectionToolbar({
   adapters,
@@ -173,170 +163,67 @@ export function BoardEditorPlayerSelectionToolbar({
           </>
         ) : null}
 
-        <BoardEditorToolbarPopoverButton
-          ariaLabel={labels.selectionToolbar.playerLabel}
-          tooltip={labels.selectionToolbar.playerLabel}
-          popoverSide="top"
-          popoverContentClassName="w-60 min-w-0"
-          icon={
-            selectedObject.props.label ? (
-              <span className="flex size-6 items-center justify-center text-xs font-semibold tabular-nums">
-                {selectedObject.props.label.slice(0, 3)}
-              </span>
-            ) : (
-              <HashStraightIcon />
-            )
-          }
-          content={
-            <div className="flex flex-col gap-3 p-1">
-              <PlayerPopoverHeader
-                customized={hasLabelStyleOverride}
-                title={labels.selectionToolbar.playerLabel}
-                teamName={playerGroup?.name}
-              />
-              <label className="flex flex-col gap-0.5">
-                <span className="text-tb-text-secondary text-xs font-medium">
-                  {labels.selectionToolbar.labelText}
-                </span>
-                <Input
-                  aria-label={labels.selectionToolbar.labelText}
-                  className="h-8 rounded-md px-2 text-sm font-medium md:text-sm"
-                  onChange={(event) =>
-                    updatePlayer({ label: event.currentTarget.value })
-                  }
-                  value={selectedObject.props.label ?? ""}
-                />
-              </label>
-              <PlayerLabelFields
-                labels={labels}
-                value={{ color: labelColor, fontSize: effectiveStyle.fontSize }}
-                onChange={(patch) =>
-                  applyPlayerStylePatch({
-                    ...(patch.color !== undefined
-                      ? { labelColor: patch.color }
-                      : {}),
-                    ...(patch.fontSize !== undefined
-                      ? { fontSize: patch.fontSize }
-                      : {}),
-                  })
-                }
-              />
-              {hasLabelStyleOverride ? (
-                <ResetStyleButton
-                  label={labels.selectionToolbar.resetLabelStyle}
-                  onClick={() =>
-                    applyPlayerStylePatch({
-                      fontSize: undefined,
-                      labelColor: undefined,
-                    })
-                  }
-                />
-              ) : null}
-            </div>
-          }
-        />
-
-        <BoardEditorToolbarPopoverButton
-          ariaLabel={labels.playerAppearance.caption}
-          tooltip={labels.playerAppearance.caption}
-          popoverSide="top"
-          popoverContentClassName="w-64 min-w-0"
-          icon={<TextTIcon />}
-          content={
-            <div className="flex flex-col gap-3 p-1">
-              <PlayerPopoverHeader
-                customized={hasCaptionStyleOverride}
-                title={labels.playerAppearance.caption}
-                teamName={playerGroup?.name}
-              />
-              <label className="flex flex-col gap-0.5">
-                <span className="text-tb-text-secondary text-xs font-medium">
-                  {labels.selectionToolbar.captionText}
-                </span>
-                <Input
-                  aria-label={labels.selectionToolbar.captionText}
-                  className="h-8 rounded-md px-2 text-sm font-medium md:text-sm"
-                  onChange={(event) =>
-                    updatePlayer({
-                      caption: {
-                        ...selectedObject.props.caption,
-                        text: event.currentTarget.value,
-                      },
-                    })
-                  }
-                  value={selectedObject.props.caption?.text ?? ""}
-                />
-              </label>
-              <PlayerCaptionFields
-                caption={effectiveStyle.caption ?? {}}
-                labels={labels}
-                onChange={(caption) => applyPlayerStylePatch({ caption })}
-              />
-              {hasCaptionStyleOverride ? (
-                <ResetStyleButton
-                  label={labels.selectionToolbar.resetCaptionStyle}
-                  onClick={() => applyPlayerStylePatch({ caption: undefined })}
-                />
-              ) : null}
-            </div>
-          }
-        />
+        <BoardEditorToolbarGroup>
+          <PlayerLabelSelectionControl
+            customized={hasLabelStyleOverride}
+            fontSize={effectiveStyle.fontSize}
+            label={selectedObject.props.label}
+            labelColor={labelColor}
+            labels={labels}
+            teamName={playerGroup?.name}
+            onChange={(label) => updatePlayer({ label })}
+            onStyleChange={(patch) =>
+              applyPlayerStylePatch({
+                ...(patch.color !== undefined
+                  ? { labelColor: patch.color }
+                  : {}),
+                ...(patch.fontSize !== undefined
+                  ? { fontSize: patch.fontSize }
+                  : {}),
+              })
+            }
+            onReset={() =>
+              applyPlayerStylePatch({
+                fontSize: undefined,
+                labelColor: undefined,
+              })
+            }
+          />
+          <PlayerCaptionSelectionControl
+            caption={effectiveStyle.caption ?? {}}
+            customized={hasCaptionStyleOverride}
+            labels={labels}
+            teamName={playerGroup?.name}
+            text={selectedObject.props.caption?.text}
+            onChange={(caption) => applyPlayerStylePatch({ caption })}
+            onTextChange={(text) =>
+              updatePlayer({
+                caption: { ...selectedObject.props.caption, text },
+              })
+            }
+            onReset={() => applyPlayerStylePatch({ caption: undefined })}
+          />
+        </BoardEditorToolbarGroup>
 
         <BoardEditorToolbarSeparator />
 
-        <BoardEditorToolbarPopoverButton
-          ariaLabel={labels.playerAppearance.appearance}
-          tooltip={labels.playerAppearance.appearance}
-          popoverSide="top"
-          popoverContentClassName="w-72 min-w-0"
-          icon={
-            appearance ? (
-              <PlayerAppearancePreview
-                appearanceRenderers={adapters?.playerAppearanceRenderers}
-                appearance={appearance}
-                asset={effectiveStyle.asset}
-                color={effectiveStyle.color}
-                colors={effectiveStyle.colors}
-                options={effectiveStyle.options}
-                className="size-6 rounded-md"
-              />
-            ) : (
-              <PaletteIcon />
-            )
-          }
-          content={
-            <div className="flex flex-col gap-2">
-              <div className="px-2 pt-1">
-                <PlayerPopoverHeader
-                  customized={hasAppearanceOverride}
-                  title={labels.playerAppearance.appearance}
-                  teamName={playerGroup?.name}
-                />
-              </div>
-              <PlayerAppearanceFields
-                appearanceRenderers={adapters?.playerAppearanceRenderers}
-                appearances={theme?.playerAppearances}
-                labels={labels}
-                value={{
-                  color: effectiveStyle.color,
-                  colors: effectiveStyle.colors,
-                  size: effectiveStyle.size,
-                  appearanceId: effectiveStyle.appearanceId,
-                  options: effectiveStyle.options,
-                  asset: effectiveStyle.asset,
-                }}
-                onChange={applyPlayerStylePatch}
-              />
-              {hasAppearanceOverride ? (
-                <div className="px-1 pb-1">
-                  <ResetStyleButton
-                    label={labels.selectionToolbar.resetAppearanceStyle}
-                    onClick={resetAppearance}
-                  />
-                </div>
-              ) : null}
-            </div>
-          }
+        <PlayerAppearanceSelectionControl
+          appearance={appearance}
+          appearanceRenderers={adapters?.playerAppearanceRenderers}
+          appearances={theme?.playerAppearances}
+          customized={hasAppearanceOverride}
+          labels={labels}
+          teamName={playerGroup?.name}
+          value={{
+            color: effectiveStyle.color,
+            colors: effectiveStyle.colors,
+            size: effectiveStyle.size,
+            appearanceId: effectiveStyle.appearanceId,
+            options: effectiveStyle.options,
+            asset: effectiveStyle.asset,
+          }}
+          onChange={applyPlayerStylePatch}
+          onReset={resetAppearance}
         />
 
         <BoardEditorToolbarSeparator />
@@ -355,56 +242,5 @@ export function BoardEditorPlayerSelectionToolbar({
         </BoardEditorSelectionActionsMenu>
       </BoardEditorToolbar>
     </BoardEditorSelectionToolbarPositioner>
-  );
-}
-
-function PlayerPopoverHeader({
-  customized,
-  title,
-  teamName,
-}: {
-  customized: boolean;
-  title: string;
-  teamName?: string;
-}) {
-  const labels = useBoardEditorLabels();
-
-  return (
-    <div className="flex min-w-0 items-start justify-between gap-3">
-      <div className="min-w-0">
-        <PopoverTitle className="text-sm font-semibold">{title}</PopoverTitle>
-        <p className="text-tb-text-tertiary truncate text-xs">
-          {customized
-            ? labels.selectionToolbar.customPlayerStyle
-            : teamName
-              ? labels.selectionToolbar.usingTeamStyle(teamName)
-              : labels.selectionToolbar.usingDefaultStyle}
-        </p>
-      </div>
-      {customized ? (
-        <span className="bg-tb-accent mt-1 size-1.5 shrink-0 rounded-full" />
-      ) : null}
-    </div>
-  );
-}
-
-function ResetStyleButton({
-  label,
-  onClick,
-}: {
-  label: string;
-  onClick: () => void;
-}) {
-  return (
-    <Button
-      variant="ghost"
-      size="sm"
-      className="text-tb-text-secondary h-7 justify-start px-2 text-xs"
-      iconBefore={<ArrowCounterClockwiseIcon />}
-      iconSize="sm"
-      onClick={onClick}
-    >
-      {label}
-    </Button>
   );
 }

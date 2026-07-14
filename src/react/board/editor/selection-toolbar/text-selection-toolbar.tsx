@@ -4,7 +4,10 @@ import { updateTextObjectFromAnchor } from "../../../../core/tools/text-editing"
 import { useBoardEditorContext } from "../../../adapter/editor/board-editor-context";
 import {
   BoardEditorToolbar,
-  BoardEditorToolbarPopoverButton,
+  BoardEditorToolbarGroup,
+  BoardEditorToolbarPopover,
+  BoardEditorToolbarPopoverContent,
+  BoardEditorToolbarPopoverTrigger,
   BoardEditorToolbarSeparator,
 } from "../toolbar/editor-toolbar";
 import { BoardEditorSelectionToolbarPositioner } from "./selection-toolbar-positioner";
@@ -47,57 +50,62 @@ export function BoardEditorTextSelectionToolbar({
         aria-label={labels.selectionToolbar.textProperties}
         className={className}
       >
-        <BoardEditorToolbarPopoverButton
-          ariaLabel={labels.selectionToolbar.textSize}
-          tooltip={labels.selectionToolbar.textSize}
-          popoverSide="top"
-          popoverContentClassName="w-48 min-w-0"
-          icon={
-            <span className="flex size-6 items-center justify-center text-xs font-semibold tabular-nums">
-              {selectedObject.props.fontSize}
-            </span>
-          }
-          content={
-            <div className="flex flex-col gap-2 p-1">
-              <PopoverTitle className="text-sm font-semibold">
-                {labels.selectionToolbar.textSize}
-              </PopoverTitle>
-              <label className="flex items-center justify-between gap-3">
-                <span className="text-tb-text-secondary text-xs font-medium">
+        <BoardEditorToolbarGroup>
+          <BoardEditorToolbarPopover>
+            <BoardEditorToolbarPopoverTrigger
+              aria-label={labels.selectionToolbar.textSize}
+              tooltip={labels.selectionToolbar.textSize}
+            >
+              <span className="flex size-6 items-center justify-center text-xs font-semibold tabular-nums">
+                {selectedObject.props.fontSize}
+              </span>
+            </BoardEditorToolbarPopoverTrigger>
+            <BoardEditorToolbarPopoverContent
+              className="w-48 min-w-0"
+              side="top"
+              sideOffset={8}
+            >
+              <div className="flex flex-col gap-2 p-1">
+                <PopoverTitle className="text-sm font-semibold">
                   {labels.selectionToolbar.textSize}
-                </span>
-                <NumberInput
-                  aria-label={labels.selectionToolbar.textSize}
-                  className="border-tb-border-default bg-tb-background-screen text-tb-text-primary h-7 w-20 rounded-md px-2 text-sm md:text-sm"
-                  min={12}
-                  max={144}
-                  onValueChange={(fontSize) => updateText({ fontSize })}
-                  value={selectedObject.props.fontSize}
-                />
-              </label>
-            </div>
-          }
-        />
+                </PopoverTitle>
+                <label className="flex items-center justify-between gap-3">
+                  <span className="text-tb-text-secondary text-xs font-medium">
+                    {labels.selectionToolbar.textSize}
+                  </span>
+                  <NumberInput
+                    aria-label={labels.selectionToolbar.textSize}
+                    className="border-tb-border-default bg-tb-background-screen text-tb-text-primary h-7 w-20 rounded-md px-2 text-sm md:text-sm"
+                    min={12}
+                    max={144}
+                    onValueChange={(fontSize) => updateText({ fontSize })}
+                    value={selectedObject.props.fontSize}
+                  />
+                </label>
+              </div>
+            </BoardEditorToolbarPopoverContent>
+          </BoardEditorToolbarPopover>
 
-        <BoardEditorToolbarPopoverButton
-          ariaLabel={labels.selectionToolbar.textColor}
-          tooltip={labels.selectionToolbar.color}
-          popoverSide="top"
-          content={
-            <ColorPicker
-              value={selectedObject.props.color}
-              onChange={(value) => updateText({ color: value })}
-              chooseCustomColorLabel={labels.colorPicker.chooseCustomColor}
-              defaultColors={[...DEFAULT_BOARD_COLORS]}
-            />
-          }
-          icon={
-            <ColorSwatch
-              value={selectedObject.props.color}
-              className="size-6"
-            />
-          }
-        />
+          <BoardEditorToolbarPopover>
+            <BoardEditorToolbarPopoverTrigger
+              aria-label={labels.selectionToolbar.textColor}
+              tooltip={labels.selectionToolbar.color}
+            >
+              <ColorSwatch
+                value={selectedObject.props.color}
+                className="size-6"
+              />
+            </BoardEditorToolbarPopoverTrigger>
+            <BoardEditorToolbarPopoverContent side="top" sideOffset={8}>
+              <ColorPicker
+                value={selectedObject.props.color}
+                onChange={(value) => updateText({ color: value })}
+                chooseCustomColorLabel={labels.colorPicker.chooseCustomColor}
+                defaultColors={[...DEFAULT_BOARD_COLORS]}
+              />
+            </BoardEditorToolbarPopoverContent>
+          </BoardEditorToolbarPopover>
+        </BoardEditorToolbarGroup>
         <BoardEditorToolbarSeparator />
         <BoardEditorSelectionActionsMenu
           selectedObjectIds={[selectedObject.id]}

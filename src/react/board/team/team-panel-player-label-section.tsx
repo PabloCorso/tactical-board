@@ -90,6 +90,3 @@ export function TeamPanelPlayerLabelSection(
     </TeamPanelSection>
   );
 }
-
-/** @deprecated Use TeamPanelPlayerLabelSection. */
-export const TeamPanelDefaultsSection = TeamPanelPlayerLabelSection;

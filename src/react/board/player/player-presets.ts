@@ -5,7 +5,7 @@ import type {
 } from "../theme/board-theme";
 import { getThemePlayerAppearanceDefinitions } from "../theme/board-theme";
 import { DEFAULT_PLAYER_APPEARANCE_ID } from "../../../core/tools/player-appearance";
-import type { PlayerAppearanceFieldValue } from "./player-appearance-fields";
+import type { PlayerAppearanceFieldValue } from "./player-appearance-utils";
 
 export function getPlayerPresetAppearance(
   theme: Pick<BoardTheme, "playerAppearances"> | undefined,

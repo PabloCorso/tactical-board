@@ -1,14 +1,9 @@
 import {
   createContext,
+  type ComponentProps,
   type ComponentPropsWithRef,
-  forwardRef,
-  type PropsWithChildren,
-  type Ref,
-  type RefCallback,
   type ReactNode,
   useContext,
-  useMemo,
-  useState,
 } from "react";
 import { CaretDownIcon } from "@phosphor-icons/react";
 import { cn } from "../../../ui/misc";
@@ -26,13 +21,9 @@ import {
   TooltipTrigger,
   type TooltipContentProps,
 } from "../../../ui/tooltip";
+import { useBoardEditorToolbarFloatingPortal } from "./toolbar-dock";
 
 export type BoardEditorToolbarOrientation = "horizontal" | "vertical";
-export type BoardEditorToolbarDockPlacement =
-  | "top"
-  | "right"
-  | "bottom"
-  | "left";
 
 type BoardEditorToolbarContextValue = {
   activeVariant: BoardEditorToolbarButtonActiveVariant;
@@ -40,30 +31,9 @@ type BoardEditorToolbarContextValue = {
   tooltipSide: TooltipContentProps["side"];
 };
 
-type BoardEditorToolbarFloatingPortalContextValue = {
-  container: HTMLElement | null;
-  positionMethod: PopoverContentProps["positionMethod"];
-};
-
-type BoardEditorToolbarDockContextValue = {
-  secondaryToolbarOpen: boolean;
-  openSecondaryToolbar: () => void;
-  closeSecondaryToolbar: () => void;
-  requestDismiss: () => void;
-};
-
 const BoardEditorToolbarContext = createContext<BoardEditorToolbarContextValue>(
   { activeVariant: "outline", orientation: "horizontal", tooltipSide: "top" },
 );
-
-const BoardEditorToolbarFloatingPortalContext =
-  createContext<BoardEditorToolbarFloatingPortalContextValue>({
-    container: null,
-    positionMethod: "fixed",
-  });
-
-const BoardEditorToolbarDockContext =
-  createContext<BoardEditorToolbarDockContextValue | null>(null);
 
 export type BoardEditorToolbarProps = ComponentPropsWithRef<"aside"> & {
   activeVariant?: BoardEditorToolbarButtonActiveVariant;
@@ -72,93 +42,6 @@ export type BoardEditorToolbarProps = ComponentPropsWithRef<"aside"> & {
   orientation?: BoardEditorToolbarOrientation;
   tooltipSide?: TooltipContentProps["side"];
 };
-
-export type BoardEditorToolbarDockProps = PropsWithChildren & {
-  className?: string;
-  contentClassName?: string;
-  placement?: BoardEditorToolbarDockPlacement;
-};
-
-export type BoardEditorToolbarDockProviderProps = PropsWithChildren & {
-  defaultSecondaryToolbarOpen?: boolean;
-  dismissSecondaryToolbarOnSelect?: boolean;
-};
-
-export function BoardEditorToolbarFloatingPortalProvider({
-  children,
-  container,
-  positionMethod,
-}: PropsWithChildren<BoardEditorToolbarFloatingPortalContextValue>) {
-  return (
-    <BoardEditorToolbarFloatingPortalContext.Provider
-      value={{ container, positionMethod }}
-    >
-      {children}
-    </BoardEditorToolbarFloatingPortalContext.Provider>
-  );
-}
-
-export function useBoardEditorToolbarFloatingPortal() {
-  return useContext(BoardEditorToolbarFloatingPortalContext);
-}
-
-export function BoardEditorToolbarDockProvider({
-  children,
-  defaultSecondaryToolbarOpen = true,
-  dismissSecondaryToolbarOnSelect = true,
-}: BoardEditorToolbarDockProviderProps) {
-  const [secondaryToolbarOpen, setSecondaryToolbarOpen] = useState(
-    defaultSecondaryToolbarOpen,
-  );
-  const value = useMemo<BoardEditorToolbarDockContextValue>(
-    () => ({
-      secondaryToolbarOpen,
-      openSecondaryToolbar: () => setSecondaryToolbarOpen(true),
-      closeSecondaryToolbar: () => setSecondaryToolbarOpen(false),
-      requestDismiss: () => {
-        if (dismissSecondaryToolbarOnSelect) {
-          setSecondaryToolbarOpen(false);
-        }
-      },
-    }),
-    [dismissSecondaryToolbarOnSelect, secondaryToolbarOpen],
-  );
-
-  return (
-    <BoardEditorToolbarDockContext.Provider value={value}>
-      {children}
-    </BoardEditorToolbarDockContext.Provider>
-  );
-}
-
-export function useBoardEditorToolbarDock() {
-  const value = useContext(BoardEditorToolbarDockContext);
-
-  if (!value) {
-    throw new Error(
-      "useBoardEditorToolbarDock must be used within BoardEditorToolbarDockProvider",
-    );
-  }
-
-  return value;
-}
-
-export function useBoardEditorToolbarDockOptional() {
-  return useContext(BoardEditorToolbarDockContext);
-}
-
-function setRef<T>(ref: Ref<T> | undefined, value: T | null) {
-  if (!ref) {
-    return;
-  }
-
-  if (typeof ref === "function") {
-    ref(value);
-    return;
-  }
-
-  ref.current = value;
-}
 
 export function BoardEditorToolbar({
   activeVariant = "outline",
@@ -200,44 +83,32 @@ export function BoardEditorToolbar({
   );
 }
 
-export const BoardEditorToolbarDock = forwardRef<
-  HTMLDivElement,
-  BoardEditorToolbarDockProps
->(function BoardEditorToolbarDock(
-  { children, className, contentClassName, placement = "left" },
-  forwardedRef,
-) {
-  const ref: RefCallback<HTMLDivElement> = (element) => {
-    setRef(forwardedRef, element);
-  };
-  const placementClassName = {
-    bottom: "inset-x-4 bottom-4 justify-center",
-    left: "inset-y-4 left-2 items-center",
-    right: "inset-y-4 right-4 items-center",
-    top: "inset-x-4 top-4 justify-center",
-  } satisfies Record<BoardEditorToolbarDockPlacement, string>;
+export type BoardEditorToolbarGroupProps = ComponentPropsWithRef<"div"> & {
+  orientation?: BoardEditorToolbarOrientation;
+};
+
+export function BoardEditorToolbarGroup({
+  orientation: orientationProp,
+  className,
+  ...props
+}: BoardEditorToolbarGroupProps) {
+  const { orientation: toolbarOrientation } = useContext(
+    BoardEditorToolbarContext,
+  );
+  const orientation = orientationProp ?? toolbarOrientation;
 
   return (
     <div
-      data-placement={placement}
-      ref={ref}
+      role="group"
       className={cn(
-        "pointer-events-none absolute flex min-h-0 min-w-0",
-        placementClassName[placement],
+        "flex min-w-0 items-center gap-0.5",
+        orientation === "vertical" && "flex-col",
         className,
       )}
-    >
-      <div
-        className={cn(
-          "pointer-events-none flex max-h-full min-h-0 max-w-full min-w-0 items-center gap-2",
-          contentClassName,
-        )}
-      >
-        {children}
-      </div>
-    </div>
+      {...props}
+    />
   );
-});
+}
 
 export type BoardEditorToolbarButtonActiveVariant = "outline" | "accent";
 
@@ -319,74 +190,89 @@ export function BoardEditorToolbarSeparator({
   );
 }
 
-export type BoardEditorToolbarPopoverButtonProps = {
-  active?: boolean;
-  ariaLabel: string;
-  className?: string;
-  tooltip?: string;
-  icon: IconRender;
-  content: ReactNode;
-  popoverAlign?: PopoverContentProps["align"];
-  popoverContentClassName?: string;
+export type BoardEditorToolbarPopoverProps = ComponentProps<typeof Popover>;
+
+export function BoardEditorToolbarPopover(
+  props: BoardEditorToolbarPopoverProps,
+) {
+  return <Popover {...props} />;
+}
+
+export type BoardEditorToolbarPopoverTriggerProps = Omit<
+  BoardEditorToolbarButtonProps,
+  "children" | "iconAfter" | "iconBefore" | "tooltip"
+> & {
+  children: IconRender;
   showCaret?: boolean;
-  popoverSide?: PopoverContentProps["side"];
+  tooltip?: ReactNode | false;
 };
 
-export function BoardEditorToolbarPopoverButton({
+export function BoardEditorToolbarPopoverTrigger({
   active = false,
-  ariaLabel,
+  "aria-label": ariaLabel,
+  children,
   className,
-  tooltip,
-  icon,
-  content,
-  popoverAlign = "center",
-  popoverContentClassName,
   showCaret = true,
-  popoverSide = "bottom",
-}: BoardEditorToolbarPopoverButtonProps) {
+  tooltip,
+  ...props
+}: BoardEditorToolbarPopoverTriggerProps) {
   const { tooltipSide } = useContext(BoardEditorToolbarContext);
+  const tooltipContent = tooltip === false ? null : (tooltip ?? ariaLabel);
+  const trigger = (
+    <PopoverTrigger>
+      <BoardEditorToolbarButton
+        {...props}
+        active={active}
+        aria-label={ariaLabel}
+        aria-pressed={active || undefined}
+        className={cn("px-2", className)}
+        iconBefore={children}
+        iconAfter={
+          showCaret ? (
+            <CaretDownIcon
+              aria-hidden="true"
+              className="text-tb-text-secondary"
+            />
+          ) : undefined
+        }
+        iconSize="xl"
+        iconAfterSize="sm"
+        size="md"
+        tooltip={false}
+      />
+    </PopoverTrigger>
+  );
+
+  if (!tooltipContent) {
+    return trigger;
+  }
+
+  return (
+    <Tooltip>
+      <TooltipTrigger>{trigger}</TooltipTrigger>
+      <TooltipContent side={tooltipSide}>{tooltipContent}</TooltipContent>
+    </Tooltip>
+  );
+}
+
+export type BoardEditorToolbarPopoverContentProps = Omit<
+  PopoverContentProps,
+  "portalContainer" | "positionMethod"
+>;
+
+export function BoardEditorToolbarPopoverContent({
+  className,
+  ...props
+}: BoardEditorToolbarPopoverContentProps) {
   const floatingPortal = useBoardEditorToolbarFloatingPortal();
 
   return (
-    <Popover>
-      <Tooltip>
-        <TooltipTrigger>
-          <PopoverTrigger>
-            <Button
-              variant={active ? "secondary" : "ghost"}
-              aria-label={ariaLabel}
-              aria-pressed={active || undefined}
-              className={cn("px-2", className)}
-              iconBefore={icon}
-              iconAfter={
-                showCaret ? (
-                  <CaretDownIcon
-                    aria-hidden="true"
-                    className="text-tb-text-secondary"
-                  />
-                ) : undefined
-              }
-              iconSize="xl"
-              iconAfterSize="sm"
-              size="md"
-            />
-          </PopoverTrigger>
-        </TooltipTrigger>
-        <TooltipContent side={tooltipSide}>
-          {tooltip || ariaLabel}
-        </TooltipContent>
-      </Tooltip>
-      <PopoverContent
-        align={popoverAlign}
-        side={popoverSide}
-        sideOffset={8}
-        portalContainer={floatingPortal.container}
-        positionMethod={floatingPortal.positionMethod}
-        className={cn("w-auto min-w-max gap-0.5 p-1", popoverContentClassName)}
-      >
-        {content}
-      </PopoverContent>
-    </Popover>
+    <PopoverContent
+      {...props}
+      portalContainer={floatingPortal.container}
+      positionMethod={floatingPortal.positionMethod}
+      className={cn("w-auto min-w-max gap-0.5 p-1", className)}
+    />
   );
 }
 

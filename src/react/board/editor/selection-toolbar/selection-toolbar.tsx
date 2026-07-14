@@ -95,6 +95,7 @@ export function getSelectionToolbarAnchor(
 export type BoardEditorSelectionToolbarProps = {
   adapters?: Pick<BoardThemeAdapters, "playerAppearanceRenderers">;
   className?: string;
+  renderers?: Record<string, BoardEditorSelectionToolbarRenderer>;
   theme?: Pick<BoardTheme, "playerAppearances">;
 };
 
@@ -150,6 +151,7 @@ export function getSelectionBounds(
 export function BoardEditorSelectionToolbar({
   adapters,
   className,
+  renderers,
   theme,
 }: BoardEditorSelectionToolbarProps) {
   const labels = useBoardEditorLabels();
@@ -224,6 +226,7 @@ export function BoardEditorSelectionToolbar({
   }
 
   const ToolbarRenderer =
+    renderers?.[selectedObject.type] ??
     DEFAULT_SELECTION_TOOLBAR_RENDERERS[selectedObject.type];
   if (!ToolbarRenderer) {
     return null;

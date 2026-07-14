@@ -9,7 +9,7 @@ import { useDoubleCheck } from "../../ui/use-double-check";
 import { Input } from "../../ui/input";
 import { cn } from "../../ui/misc";
 import { useBoardEditorLabels } from "../editor/board-editor-labels";
-import type { PlayerAppearanceFieldValue } from "../player/player-appearance-fields";
+import type { PlayerAppearanceFieldValue } from "../player/player-appearance-utils";
 import { PlayerCaptionFields } from "../player/player-caption-fields";
 import {
   applyPlayerGroupStylePatch,

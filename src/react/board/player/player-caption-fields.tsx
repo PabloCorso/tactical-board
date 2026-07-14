@@ -82,9 +82,7 @@ export function PlayerCaptionFields({
             aria-label={captionDistanceLabel}
             className="border-tb-border-default bg-tb-background-screen text-tb-text-primary h-6 rounded-md p-1.5 py-0 text-sm md:text-sm"
             value={caption.distance ?? 4}
-            onValueChange={(distance) =>
-              onChange({ ...caption, distance })
-            }
+            onValueChange={(distance) => onChange({ ...caption, distance })}
           />
         </label>
       </div>
@@ -100,9 +98,7 @@ export function PlayerCaptionFields({
             aria-label={captionSizeLabel}
             className="border-tb-border-default bg-tb-background-screen text-tb-text-primary h-6 rounded-md p-1.5 py-0 text-sm md:text-sm"
             value={caption.fontSize ?? DEFAULT_PLAYER_FONT_SIZE}
-            onValueChange={(fontSize) =>
-              onChange({ ...caption, fontSize })
-            }
+            onValueChange={(fontSize) => onChange({ ...caption, fontSize })}
           />
         </label>
 

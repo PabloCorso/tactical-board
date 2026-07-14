@@ -47,12 +47,8 @@ const FOOTBALL_SHIRT_VISIBLE_BOUNDS = {
   height: 1007,
 } as const;
 const FOOTBALL_SHIRT_VISIBLE_CENTER = {
-  x:
-    FOOTBALL_SHIRT_VISIBLE_BOUNDS.x +
-    FOOTBALL_SHIRT_VISIBLE_BOUNDS.width / 2,
-  y:
-    FOOTBALL_SHIRT_VISIBLE_BOUNDS.y +
-    FOOTBALL_SHIRT_VISIBLE_BOUNDS.height / 2,
+  x: FOOTBALL_SHIRT_VISIBLE_BOUNDS.x + FOOTBALL_SHIRT_VISIBLE_BOUNDS.width / 2,
+  y: FOOTBALL_SHIRT_VISIBLE_BOUNDS.y + FOOTBALL_SHIRT_VISIBLE_BOUNDS.height / 2,
 } as const;
 
 const FOOTBALL_SHIRT_BODY_PATH = [
@@ -326,11 +322,7 @@ function buildFootballShirtShapePath(
   drawFootballShirtSvgPath(context, FOOTBALL_SHIRT_TOP_PATH, scale, {
     beginPath: false,
   });
-  appendReversedFootballShirtSvgPath(
-    context,
-    FOOTBALL_SHIRT_BODY_PATH,
-    scale,
-  );
+  appendReversedFootballShirtSvgPath(context, FOOTBALL_SHIRT_BODY_PATH, scale);
   context.closePath();
 }
 

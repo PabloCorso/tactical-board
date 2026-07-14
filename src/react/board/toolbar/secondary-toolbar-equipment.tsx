@@ -18,8 +18,8 @@ import {
 } from "../editor/toolbar/editor-toolbar";
 import { useBoardEditorContext } from "../../adapter/editor/board-editor-context";
 import { useBoardEditorStore } from "../../adapter/editor/use-board-editor-store";
-import { useBoardEditorToolbarDockOptional } from "../editor/toolbar/editor-toolbar";
-import { BoardEquipmentDefinitionIcon } from "./tool-icons";
+import { useBoardEditorToolbarDockOptional } from "../editor/toolbar/toolbar-dock";
+import { BoardEquipmentDefinitionIcon } from "./equipment-tool-icons";
 import { setToolStatePatch } from "./secondary-toolbar-commands";
 
 export type BoardEditorEquipmentToolbarProps = Omit<

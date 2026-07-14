@@ -1,6 +1,10 @@
 import { NumberInput } from "../../../ui/number-input";
 import { PopoverTitle } from "../../../ui/popover";
-import { BoardEditorToolbarPopoverButton } from "../toolbar/editor-toolbar";
+import {
+  BoardEditorToolbarPopover,
+  BoardEditorToolbarPopoverContent,
+  BoardEditorToolbarPopoverTrigger,
+} from "../toolbar/editor-toolbar";
 
 export type BoardEditorStrokeWidthControlProps = {
   label: string;
@@ -14,13 +18,15 @@ export function BoardEditorStrokeWidthControl({
   value,
 }: BoardEditorStrokeWidthControlProps) {
   return (
-    <BoardEditorToolbarPopoverButton
-      ariaLabel={label}
-      tooltip={label}
-      popoverSide="top"
-      popoverContentClassName="w-48 min-w-0"
-      icon={<StrokeWidthIcon value={value} />}
-      content={
+    <BoardEditorToolbarPopover>
+      <BoardEditorToolbarPopoverTrigger aria-label={label} tooltip={label}>
+        <StrokeWidthIcon value={value} />
+      </BoardEditorToolbarPopoverTrigger>
+      <BoardEditorToolbarPopoverContent
+        className="w-48 min-w-0"
+        side="top"
+        sideOffset={8}
+      >
         <div className="flex flex-col gap-2 p-1">
           <PopoverTitle className="text-sm font-semibold">{label}</PopoverTitle>
           <label className="flex items-center justify-between gap-3">
@@ -40,8 +46,8 @@ export function BoardEditorStrokeWidthControl({
             />
           </label>
         </div>
-      }
-    />
+      </BoardEditorToolbarPopoverContent>
+    </BoardEditorToolbarPopover>
   );
 }
 

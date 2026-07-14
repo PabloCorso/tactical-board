@@ -3,21 +3,15 @@ import {
   UploadSimpleIcon,
 } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
-import type { Asset, PlayerCaptionStyle } from "../../../core/board/types";
+import type { Asset } from "../../../core/board/types";
 import {
   type BoardThemePlayerAppearanceDefinition,
   type PlayerAppearanceRendererRegistry,
 } from "../theme/board-theme";
 import { getThemePlayerAppearanceDefinitions } from "../theme/board-theme";
-import { createPlayerObject } from "../../../core/objects/player-object";
 import { DEFAULT_PLAYER_SIZE } from "../../../core/objects/player-object";
 import { DEFAULT_PLAYER_APPEARANCE_ID } from "../../../core/tools/player-appearance";
-import {
-  createPlayerRenderer,
-  renderPlayer,
-} from "../../../core/tools/player-tool";
 import { cn } from "../../ui/misc";
-import { BoardToolIconCanvas } from "../toolbar/tool-icon-canvas";
 import { Button } from "../../ui/button";
 import { Slider } from "../../ui/slider";
 import {
@@ -28,27 +22,11 @@ import {
 } from "../../ui/select";
 import type { useBoardEditorLabels } from "../editor/board-editor-labels";
 import { PlayerAppearanceColorFields } from "./player-appearance-color-fields";
-
-export {
-  PlayerAppearanceBaseColorField,
-  PlayerAppearanceColorFields,
-  PlayerAppearanceColorPicker,
-  PlayerAppearanceRoleColorFields,
-  type PlayerAppearanceColorPatch,
-  type PlayerAppearanceColorValue,
-} from "./player-appearance-color-fields";
-
-export type PlayerAppearanceFieldValue = {
-  color: string;
-  colors?: Record<string, string>;
-  size?: number;
-  fontSize?: number;
-  labelColor?: string;
-  appearanceId?: string;
-  options?: Record<string, unknown>;
-  asset?: Asset;
-  caption?: PlayerCaptionStyle;
-};
+import { PlayerAppearancePreview } from "./player-appearance-preview";
+import {
+  getPlayerAppearanceFieldChangePatch,
+  type PlayerAppearanceFieldValue,
+} from "./player-appearance-utils";
 
 const MIN_PLAYER_SIZE = 12;
 const MAX_PLAYER_SIZE = 80;
@@ -315,10 +293,7 @@ function appearanceButtonClassName(active: boolean) {
   );
 }
 
-export function readUploadedAsset(
-  file: File,
-  onChange: (asset: Asset) => void,
-) {
+function readUploadedAsset(file: File, onChange: (asset: Asset) => void) {
   const reader = new FileReader();
 
   reader.onload = () => {
@@ -328,113 +303,4 @@ export function readUploadedAsset(
   };
 
   reader.readAsDataURL(file);
-}
-
-export function getPlayerAppearanceChangePatch(
-  appearance: BoardThemePlayerAppearanceDefinition,
-  patch: Partial<PlayerAppearanceFieldValue> = {},
-): Partial<PlayerAppearanceFieldValue> {
-  return {
-    colors: undefined,
-    options: undefined,
-    asset: undefined,
-    ...(appearance.defaultProps ?? {}),
-    ...patch,
-    appearanceId: appearance.id,
-  };
-}
-
-export function getPlayerAppearanceFieldChangePatch(
-  appearance: BoardThemePlayerAppearanceDefinition,
-  current: PlayerAppearanceFieldValue,
-) {
-  const colors = Object.fromEntries(
-    (appearance.colors ?? []).map((role) => [
-      role.id,
-      current.colors?.[role.id] ??
-        appearance.defaultProps?.colors?.[role.id] ??
-        role.defaultValue ??
-        current.color,
-    ]),
-  );
-  const options = Object.fromEntries(
-    (appearance.options ?? []).map((option) => [
-      option.id,
-      current.options?.[option.id] ??
-        appearance.defaultProps?.options?.[option.id] ??
-        option.defaultValue,
-    ]),
-  );
-
-  return getPlayerAppearanceChangePatch(appearance, {
-    colors: Object.keys(colors).length > 0 ? colors : undefined,
-    options: Object.keys(options).length > 0 ? options : undefined,
-  });
-}
-
-export function PlayerAppearancePreview({
-  appearanceRenderers,
-  asset,
-  appearance,
-  className,
-  color,
-  colors,
-  options,
-}: {
-  appearanceRenderers?: PlayerAppearanceRendererRegistry;
-  asset?: Asset;
-  appearance: BoardThemePlayerAppearanceDefinition;
-  className?: string;
-  color: string;
-  colors?: Record<string, string>;
-  options?: Record<string, unknown>;
-}) {
-  if (appearance.id === "image") {
-    if (asset?.src) {
-      return (
-        <span
-          className={cn(
-            "border-tb-border-default bg-tb-background-screen h-9 w-9 overflow-hidden rounded-md border bg-cover bg-center",
-            className,
-          )}
-          style={{ backgroundImage: `url("${asset.src}")` }}
-        />
-      );
-    }
-
-    return (
-      <span
-        className={cn(
-          "border-tb-border-default bg-tb-background-screen flex h-9 w-9 items-center justify-center rounded-md border",
-          className,
-        )}
-      >
-        <UploadSimpleIcon className="text-tb-text-secondary size-4" />
-      </span>
-    );
-  }
-
-  const player = createPlayerObject({
-    id: `player-appearance-preview-${appearance.id}`,
-    position: { x: 0, y: 0 },
-    size: { width: 2.4, height: 2.4 },
-    color,
-    colors,
-    appearanceId: appearance.id,
-    asset,
-    options,
-  });
-  const renderer = appearanceRenderers
-    ? createPlayerRenderer(appearanceRenderers)
-    : renderPlayer;
-
-  return (
-    <BoardToolIconCanvas
-      object={player}
-      renderer={renderer}
-      className={cn("h-9 w-9 shrink-0", className)}
-      width={36}
-      height={36}
-    />
-  );
 }

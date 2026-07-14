@@ -1,6 +1,6 @@
 import { type PropsWithChildren, useCallback, useState } from "react";
 import { useIsomorphicLayoutEffect } from "../../../adapter/editor/use-isomorphic-layout-effect";
-import { BoardEditorToolbarFloatingPortalProvider } from "../toolbar/editor-toolbar";
+import { BoardEditorToolbarFloatingPortalProvider } from "../toolbar/toolbar-dock";
 
 const VIEWPORT_PADDING_PX = 10;
 

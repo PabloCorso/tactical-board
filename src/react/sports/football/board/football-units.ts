@@ -9,9 +9,6 @@ export const FOOTBALL_MEASUREMENT = {
   unitsPerUnit: FOOTBALL_UNITS_PER_METER,
 } as const satisfies DocumentMeasurement;
 
-/** @deprecated Use FOOTBALL_UNITS_PER_METER. */
-export const FOOTBALL_PIXELS_PER_METER = FOOTBALL_UNITS_PER_METER;
-
 export function metersToPixels(value: number) {
   return measurementToDocumentUnits(value, FOOTBALL_MEASUREMENT);
 }

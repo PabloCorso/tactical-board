@@ -16,23 +16,25 @@ import {
   type BoardThemeAdapters,
 } from "../../theme/board-theme";
 import { getThemeEquipmentDefinitions } from "../../theme/equipment-object-adapter";
-import {
-  BoardArrowToolIcon,
-  BoardEquipmentToolIcon,
-  BoardPlayerToolIcon,
-  BoardShapeToolIcon,
-} from "../../toolbar/tool-icons";
+import { BoardArrowToolIcon } from "../../toolbar/arrow-tool-icons";
+import { BoardEquipmentToolIcon } from "../../toolbar/equipment-tool-icons";
+import { BoardPlayerToolIcon } from "../../toolbar/player-tool-icons";
+import { BoardShapeToolIcon } from "../../toolbar/shape-tool-icons";
 import { getDefaultToolIcon } from "./default-tool-icons";
-import { BoardEditorToolbarButton } from "./editor-toolbar";
+import {
+  BoardEditorToolbarButton,
+  type BoardEditorToolbarButtonProps,
+} from "./editor-toolbar";
 import type { IconRender } from "../../../ui/icon";
 
-export type BoardEditorToolControlProps = {
+export type BoardEditorToolControlProps = Omit<
+  BoardEditorToolbarButtonProps,
+  "active" | "iconBefore"
+> & {
   toolId: ToolId;
   label?: string;
   icon?: IconRender;
-  className?: string;
-  activeVariant?: "outline" | "accent";
-  onClick?: () => void;
+  onActivate?: (toolId: ToolId) => void;
 };
 
 export function BoardEditorToolControl({
@@ -41,7 +43,10 @@ export function BoardEditorToolControl({
   icon,
   className,
   activeVariant,
+  onActivate,
   onClick,
+  tooltip,
+  ...props
 }: BoardEditorToolControlProps) {
   const store = useBoardEditorContext();
   const activeToolId = useBoardEditorStore(
@@ -63,16 +68,18 @@ export function BoardEditorToolControl({
 
   return (
     <BoardEditorToolbarButton
+      {...props}
       active={activeToolId === toolId}
       activeVariant={activeVariant}
       aria-label={resolvedLabel}
       className={className}
       iconBefore={resolvedIcon}
-      onClick={() => {
+      onClick={(event) => {
         actions.setActiveTool(toolId);
-        onClick?.();
+        onActivate?.(toolId);
+        onClick?.(event);
       }}
-      tooltip={resolvedLabel}
+      tooltip={tooltip ?? resolvedLabel}
     />
   );
 }
@@ -112,7 +119,7 @@ export function BoardEditorPlayerToolControl({
       appearanceRenderers={adapters?.playerAppearanceRenderers}
     />
   ),
-  onClick,
+  onActivate,
   ...props
 }: BoardEditorPlayerToolControlProps) {
   const teamPanel = useBoardEditorTeamPanelOptional();
@@ -122,9 +129,9 @@ export function BoardEditorPlayerToolControl({
       {...props}
       icon={icon}
       toolId={PLAYER_TOOL_ID}
-      onClick={() => {
-        onClick?.();
+      onActivate={(toolId) => {
         teamPanel?.closeTeamPanel();
+        onActivate?.(toolId);
       }}
     />
   );
