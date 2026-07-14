@@ -123,6 +123,7 @@ export function BoardEditorPlayerSelectionToolbar({
       <BoardEditorToolbar
         aria-label={labels.selectionToolbar.playerProperties}
         className={className}
+        controlSize="sm"
       >
         {playerGroups.length > 1 ? (
           <>
@@ -136,7 +137,7 @@ export function BoardEditorPlayerSelectionToolbar({
             >
               <SelectTrigger
                 aria-label={labels.selectionToolbar.playerTeam}
-                className="h-10 w-auto max-w-32 rounded-lg px-3 text-sm"
+                className="h-8 w-auto max-w-32 rounded-lg px-2.5 text-xs"
               >
                 {() => (
                   <span className="truncate">

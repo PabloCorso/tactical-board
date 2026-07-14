@@ -49,6 +49,7 @@ export function BoardEditorTextSelectionToolbar({
       <BoardEditorToolbar
         aria-label={labels.selectionToolbar.textProperties}
         className={className}
+        controlSize="sm"
       >
         <BoardEditorToolbarGroup>
           <BoardEditorToolbarPopover>

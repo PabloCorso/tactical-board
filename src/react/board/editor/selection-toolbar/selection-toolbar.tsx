@@ -212,6 +212,7 @@ export function BoardEditorSelectionToolbar({
         <BoardEditorToolbar
           aria-label={labels.selectionToolbar.selectionProperties}
           className={className}
+          controlSize="sm"
         >
           <BoardEditorSelectionActionsMenu
             selectedObjectIds={selectedObjects.map((object) => object.id)}

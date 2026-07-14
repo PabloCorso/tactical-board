@@ -209,6 +209,7 @@ export function BoardEditorShapeSelectionToolbar({
       <BoardEditorToolbar
         aria-label={labels.selectionToolbar.shapeProperties}
         className={className}
+        controlSize="sm"
       >
         <BoardEditorToolbarGroup>
           <BoardEditorToolbarPopover>

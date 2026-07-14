@@ -27,17 +27,24 @@ export type BoardEditorToolbarOrientation = "horizontal" | "vertical";
 
 type BoardEditorToolbarContextValue = {
   activeVariant: BoardEditorToolbarButtonActiveVariant;
+  controlSize: NonNullable<ButtonProps["size"]>;
   orientation: BoardEditorToolbarOrientation;
   tooltipSide: TooltipContentProps["side"];
 };
 
 const BoardEditorToolbarContext = createContext<BoardEditorToolbarContextValue>(
-  { activeVariant: "outline", orientation: "horizontal", tooltipSide: "top" },
+  {
+    activeVariant: "outline",
+    controlSize: "md",
+    orientation: "horizontal",
+    tooltipSide: "top",
+  },
 );
 
 export type BoardEditorToolbarProps = ComponentPropsWithRef<"aside"> & {
   activeVariant?: BoardEditorToolbarButtonActiveVariant;
   contentClassName?: string;
+  controlSize?: NonNullable<ButtonProps["size"]>;
   density?: "default" | "compact";
   orientation?: BoardEditorToolbarOrientation;
   tooltipSide?: TooltipContentProps["side"];
@@ -48,6 +55,7 @@ export function BoardEditorToolbar({
   children,
   className,
   contentClassName,
+  controlSize = "md",
   density = "default",
   orientation = "horizontal",
   tooltipSide = "top",
@@ -55,7 +63,7 @@ export function BoardEditorToolbar({
 }: BoardEditorToolbarProps) {
   return (
     <BoardEditorToolbarContext.Provider
-      value={{ activeVariant, orientation, tooltipSide }}
+      value={{ activeVariant, controlSize, orientation, tooltipSide }}
     >
       <aside
         {...props}
@@ -125,17 +133,22 @@ export function BoardEditorToolbarButton({
   tooltip,
   iconSize = "xl",
   className,
+  size: sizeProp,
   ...props
 }: BoardEditorToolbarButtonProps) {
-  const { activeVariant: toolbarActiveVariant, tooltipSide } = useContext(
-    BoardEditorToolbarContext,
-  );
+  const {
+    activeVariant: toolbarActiveVariant,
+    controlSize,
+    tooltipSide,
+  } = useContext(BoardEditorToolbarContext);
   const activeVariant = activeVariantProp ?? toolbarActiveVariant;
+  const size = sizeProp ?? controlSize;
   const tooltipContent = tooltip === false ? null : (tooltip ?? ariaLabel);
   const useAccentActiveState = active && activeVariant === "accent";
   const button = (
     <Button
       variant={useAccentActiveState ? "primary" : active ? "outline" : "ghost"}
+      size={size}
       iconSize={iconSize}
       iconClassName="text-[var(--tb-toolbar-icon-primary)]"
       className={cn(
@@ -237,7 +250,6 @@ export function BoardEditorToolbarPopoverTrigger({
         }
         iconSize="xl"
         iconAfterSize="sm"
-        size="md"
         tooltip={false}
       />
     </PopoverTrigger>
@@ -292,6 +304,8 @@ export function BoardEditorToolbarOptionButton({
   className,
   ...props
 }: BoardEditorToolbarOptionButtonProps) {
+  const { controlSize } = useContext(BoardEditorToolbarContext);
+
   return (
     <Button
       variant={active ? "secondary" : "ghost"}
@@ -304,7 +318,7 @@ export function BoardEditorToolbarOptionButton({
       )}
       iconBefore={icon}
       iconSize="xl"
-      size="md"
+      size={controlSize}
       {...props}
     />
   );

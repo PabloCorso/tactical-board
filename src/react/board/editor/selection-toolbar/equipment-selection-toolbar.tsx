@@ -61,6 +61,7 @@ export function BoardEditorEquipmentSelectionToolbar({
       <BoardEditorToolbar
         aria-label={labels.selectionToolbar.equipmentProperties}
         className={className}
+        controlSize="sm"
       >
         {capabilities.color ? (
           <BoardEditorToolbarPopover>
