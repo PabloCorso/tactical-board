@@ -1,5 +1,5 @@
-import { Fragment, type ReactNode, useMemo } from "react";
-import { PencilSimpleIcon } from "@phosphor-icons/react";
+import { type ReactNode, useMemo } from "react";
+import { PencilSimpleIcon, PlusIcon } from "@phosphor-icons/react";
 import {
   getBoardPlayerGroups,
   isBoardPlayerGroupAutoNumberingEnabled,
@@ -15,7 +15,6 @@ import { useBoardEditorContext } from "../../adapter/editor/board-editor-context
 import {
   BoardEditorToolbar,
   BoardEditorToolbarButton,
-  BoardEditorToolbarSeparator,
   type BoardEditorToolbarProps,
 } from "../editor/toolbar/editor-toolbar";
 import { useBoardEditorToolbarDockOptional } from "../editor/toolbar/toolbar-dock";
@@ -97,11 +96,11 @@ function BoardEditorPlayerGroupToolbarContent({
   return (
     <BoardEditorToolbar
       {...toolbarProps}
-      contentClassName={cn("items-center gap-0.5", contentClassName)}
+      contentClassName={cn("items-center w-20 gap-1.5", contentClassName)}
       orientation={orientation}
       tooltipSide="right"
     >
-      {playerGroups.map((group, index) => {
+      {playerGroups.map((group) => {
         const color = group.style.color ?? playerState.draftStyle.color;
         const label =
           usesNumericLabels &&
@@ -131,63 +130,51 @@ function BoardEditorPlayerGroupToolbarContent({
           teamPanel?.openTeamPanel();
         };
 
-        const editButton = teamPanel ? (
-          <Button
-            variant={isActive ? "secondary" : "ghost"}
-            size="sm"
-            className={cn("h-6 w-full min-w-0 justify-between px-1.5")}
-            aria-label={buttonLabel}
-            onClick={openGroupPanel}
-          >
-            <span className="text-tb-text-primary truncate text-left text-xs leading-4">
-              {buttonLabel}
-            </span>
-            <span className="text-tb-text-secondary" aria-hidden="true">
-              <PencilSimpleIcon />
-            </span>
-          </Button>
-        ) : null;
-
         return (
-          <Fragment key={group.id}>
-            <div className={cn("relative flex w-20 min-w-0 flex-col gap-0.5")}>
-              {editButton}
-
+          <div key={group.id} className="flex w-full flex-col">
+            {teamPanel ? (
               <Button
-                variant={isActive ? "secondary" : "ghost"}
-                size="md"
-                className="h-11 min-h-0 w-full px-0"
+                variant="ghost"
+                size="sm"
+                className="h-5 w-full min-w-0 items-center justify-between px-1.5"
                 aria-label={buttonLabel}
-                onClick={selectGroup}
+                onClick={openGroupPanel}
               >
-                <BoardPlayerDefaultIcon
-                  appearanceRenderers={adapters?.playerAppearanceRenderers}
-                  draftStyle={draftStyle}
-                  label={label}
-                  className="h-9 w-9 shrink-0"
-                  width={30}
-                  height={30}
+                <span className="text-tb-text-primary truncate text-left text-xs leading-4">
+                  {buttonLabel}
+                </span>
+                <PencilSimpleIcon
+                  className="text-tb-text-secondary"
+                  aria-hidden="true"
                 />
               </Button>
-            </div>
-            {index < playerGroups.length - 1 ? (
-              <BoardEditorToolbarSeparator className="my-0" />
             ) : null}
-          </Fragment>
+
+            <BoardEditorToolbarButton
+              active={isActive}
+              size="md"
+              className="min-h-0 w-full"
+              aria-label={buttonLabel}
+              onClick={selectGroup}
+            >
+              <BoardPlayerDefaultIcon
+                appearanceRenderers={adapters?.playerAppearanceRenderers}
+                draftStyle={draftStyle}
+                label={label}
+                className="h-9 w-9 shrink-0"
+                width={30}
+                height={30}
+              />
+            </BoardEditorToolbarButton>
+          </div>
         );
       })}
 
-      {playerGroups.length > 0 ? (
-        <BoardEditorToolbarSeparator className="my-0" />
-      ) : null}
       <BoardEditorToolbarButton
         aria-label={labels.secondaryToolbar.addPlayerGroup}
-        className="h-11 w-20"
-        iconBefore={
-          <span className="text-lg leading-none" aria-hidden="true">
-            +
-          </span>
-        }
+        className="w-full"
+        iconBefore={<PlusIcon />}
+        iconBeforeSize="sm"
         onClick={() => {
           addPlayerGroupCommand(toolApi);
         }}
