@@ -67,11 +67,13 @@ const spanishEditorLabels = {
   },
   secondaryToolbar: {
     arrowDefaults: {
+      cross: "Centro",
+      curvedRun: "Carrera curva",
       dribble: "Conduccion",
       line: "Linea",
-      loftedPass: "Pase elevado",
+      pass: "Pase",
       run: "Carrera",
-      screen: "Bloqueo",
+      shot: "Tiro",
     },
     playerColor: "Color del jugador",
     shapeDefaults: {

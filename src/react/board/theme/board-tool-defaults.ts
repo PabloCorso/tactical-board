@@ -7,50 +7,55 @@ export const BOARD_PLAYER_DEFAULT_COLORS = [...BOARD_PLAYER_GROUP_COLOR_ORDER];
 
 export const BOARD_ARROW_DEFAULTS: Array<
   ArrowToolDefault & {
-    variant: "line" | "straight-solid" | "wavy" | "curved-solid" | "double";
+    variant: "straight" | "line" | "wavy" | "curved" | "double";
   }
 > = [
   {
-    id: "run",
-    variant: "straight-solid",
+    id: "arrow-straight",
+    variant: "straight",
     draftStyle: {
       kind: "straight",
+      lineStyle: "solid",
       startHead: "none",
       endHead: "triangle",
     },
   },
   {
-    id: "line",
+    id: "arrow-line",
     variant: "line",
     draftStyle: {
       kind: "straight",
+      lineStyle: "solid",
       startHead: "none",
       endHead: "none",
     },
   },
   {
-    id: "dribble",
+    id: "arrow-wavy",
     variant: "wavy",
     draftStyle: {
       kind: "wavy",
+      lineStyle: "solid",
       startHead: "none",
       endHead: "triangle",
     },
   },
   {
-    id: "lofted-pass",
-    variant: "curved-solid",
+    id: "arrow-curved",
+    variant: "curved",
     draftStyle: {
       kind: "curved",
+      lineStyle: "solid",
       startHead: "none",
       endHead: "triangle",
     },
   },
   {
-    id: "screen",
+    id: "arrow-double",
     variant: "double",
     draftStyle: {
       kind: "double",
+      lineStyle: "solid",
       startHead: "none",
       endHead: "triangle",
     },

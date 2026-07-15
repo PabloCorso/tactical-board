@@ -25,12 +25,6 @@ import {
 import { BoardEditorSelectionToolbarPositioner } from "./selection-toolbar-positioner";
 import { BoardEditorSelectionActionsMenu } from "./selection-actions-menu";
 import type { BoardEditorSelectionToolbarRendererProps } from "./selection-toolbar-types";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-} from "../../../ui/select";
 import { DropdownMenuItem } from "../../../ui/dropdown-menu";
 import { useBoardEditorLabels } from "../board-editor-labels";
 import { getThemePlayerAppearanceDefinitions } from "../../theme/board-theme";
@@ -43,6 +37,7 @@ import {
   PlayerCaptionSelectionControl,
   PlayerLabelSelectionControl,
 } from "./player-selection-controls";
+import { PlayerTeamSelectionControl } from "./player-team-selection-control";
 
 export function BoardEditorPlayerSelectionToolbar({
   adapters,
@@ -127,39 +122,13 @@ export function BoardEditorPlayerSelectionToolbar({
       >
         {playerGroups.length > 1 ? (
           <>
-            <Select
+            <PlayerTeamSelectionControl
+              playerGroups={playerGroups}
               value={selectedObject.props.groupId ?? ""}
               onValueChange={(value) => {
-                if (typeof value === "string" && value) {
-                  movePlayerToGroup(toolApi, selectedObject.id, value);
-                }
+                movePlayerToGroup(toolApi, selectedObject.id, value);
               }}
-            >
-              <SelectTrigger
-                aria-label={labels.selectionToolbar.playerTeam}
-                className="h-8 w-auto max-w-32 rounded-lg px-2.5 text-xs"
-              >
-                {() => (
-                  <span className="truncate">
-                    {playerGroup?.name ?? labels.selectionToolbar.playerTeam}
-                  </span>
-                )}
-              </SelectTrigger>
-              <SelectContent>
-                {playerGroups.map((group) => (
-                  <SelectItem key={group.id} value={group.id}>
-                    <span className="flex min-w-0 items-center gap-2">
-                      <span
-                        aria-hidden="true"
-                        className="border-tb-border-default size-3 shrink-0 rounded-full border"
-                        style={{ backgroundColor: group.style.color }}
-                      />
-                      <span className="truncate">{group.name}</span>
-                    </span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            />
             <BoardEditorToolbarSeparator />
           </>
         ) : null}
@@ -171,7 +140,6 @@ export function BoardEditorPlayerSelectionToolbar({
             label={selectedObject.props.label}
             labelColor={labelColor}
             labels={labels}
-            teamName={playerGroup?.name}
             onChange={(label) => updatePlayer({ label })}
             onStyleChange={(patch) =>
               applyPlayerStylePatch({
@@ -194,7 +162,6 @@ export function BoardEditorPlayerSelectionToolbar({
             caption={effectiveStyle.caption ?? {}}
             customized={hasCaptionStyleOverride}
             labels={labels}
-            teamName={playerGroup?.name}
             text={selectedObject.props.caption?.text}
             onChange={(caption) => applyPlayerStylePatch({ caption })}
             onTextChange={(text) =>
@@ -214,7 +181,6 @@ export function BoardEditorPlayerSelectionToolbar({
           appearances={theme?.playerAppearances}
           customized={hasAppearanceOverride}
           labels={labels}
-          teamName={playerGroup?.name}
           value={{
             color: effectiveStyle.color,
             colors: effectiveStyle.colors,

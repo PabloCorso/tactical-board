@@ -4,6 +4,7 @@ export * from "./editor/football-object-renderers";
 export * from "./editor/football-team-panel-appearance";
 export * from "./editor/football-team-formation-section";
 export * from "./equipment";
+export * from "./theme/football-arrow-defaults";
 export * from "./theme/football-formations";
 export * from "./theme/football-pitch-icons";
 export * from "./theme/football-player-appearances";

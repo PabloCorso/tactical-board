@@ -5,7 +5,6 @@ import {
   type ReactNode,
   useContext,
 } from "react";
-import { CaretDownIcon } from "@phosphor-icons/react";
 import { cn } from "../../../ui/misc";
 import { Button, type ButtonProps } from "../../../ui/button";
 import type { IconRender } from "../../../ui/icon";
@@ -216,7 +215,6 @@ export type BoardEditorToolbarPopoverTriggerProps = Omit<
   "children" | "iconAfter" | "iconBefore" | "tooltip"
 > & {
   children: IconRender;
-  showCaret?: boolean;
   tooltip?: ReactNode | false;
 };
 
@@ -224,8 +222,6 @@ export function BoardEditorToolbarPopoverTrigger({
   active = false,
   "aria-label": ariaLabel,
   children,
-  className,
-  showCaret = true,
   tooltip,
   ...props
 }: BoardEditorToolbarPopoverTriggerProps) {
@@ -238,18 +234,8 @@ export function BoardEditorToolbarPopoverTrigger({
         active={active}
         aria-label={ariaLabel}
         aria-pressed={active || undefined}
-        className={cn("px-2", className)}
         iconBefore={children}
-        iconAfter={
-          showCaret ? (
-            <CaretDownIcon
-              aria-hidden="true"
-              className="text-tb-text-secondary"
-            />
-          ) : undefined
-        }
         iconSize="xl"
-        iconAfterSize="sm"
         tooltip={false}
       />
     </PopoverTrigger>

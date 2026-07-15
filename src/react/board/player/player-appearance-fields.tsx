@@ -65,57 +65,50 @@ export function PlayerAppearanceFields({
       {...props}
       className={cn("flex w-full min-w-0 flex-col gap-3", className)}
     >
-      <div className="flex flex-col gap-1.5">
-        <PlayerAppearanceFieldLabel>
-          {labels.playerAppearance.appearance}
-        </PlayerAppearanceFieldLabel>
-        <div
-          role="radiogroup"
-          aria-label={labels.playerAppearance.appearance}
-          className="grid grid-cols-3 gap-1.5"
-        >
-          {appearances.map((candidate) =>
-            candidate.id === "image" ? (
-              <PlayerImageAppearanceButton
-                key={candidate.id}
-                active={appearanceId === candidate.id}
-                asset={value.asset}
-                label={candidate.label}
-                onChange={(asset) =>
-                  onChange({
-                    ...getPlayerAppearanceFieldChangePatch(candidate, value),
-                    asset,
-                  })
-                }
+      <div
+        role="radiogroup"
+        aria-label={labels.playerAppearance.appearance}
+        className="grid grid-cols-3 gap-1.5"
+      >
+        {appearances.map((candidate) =>
+          candidate.id === "image" ? (
+            <PlayerImageAppearanceButton
+              key={candidate.id}
+              active={appearanceId === candidate.id}
+              asset={value.asset}
+              label={candidate.label}
+              onChange={(asset) =>
+                onChange({
+                  ...getPlayerAppearanceFieldChangePatch(candidate, value),
+                  asset,
+                })
+              }
+            />
+          ) : (
+            <button
+              key={candidate.id}
+              type="button"
+              role="radio"
+              aria-checked={appearanceId === candidate.id}
+              aria-label={candidate.label}
+              title={candidate.label}
+              className={appearanceButtonClassName(
+                appearanceId === candidate.id,
+              )}
+              onClick={() =>
+                onChange(getPlayerAppearanceFieldChangePatch(candidate, value))
+              }
+            >
+              <PlayerAppearancePreview
+                appearanceRenderers={appearanceRenderers}
+                appearance={candidate}
+                color={value.color}
+                colors={value.colors}
+                options={value.options}
               />
-            ) : (
-              <button
-                key={candidate.id}
-                type="button"
-                role="radio"
-                aria-checked={appearanceId === candidate.id}
-                aria-label={candidate.label}
-                title={candidate.label}
-                className={appearanceButtonClassName(
-                  appearanceId === candidate.id,
-                )}
-                onClick={() =>
-                  onChange(
-                    getPlayerAppearanceFieldChangePatch(candidate, value),
-                  )
-                }
-              >
-                <PlayerAppearancePreview
-                  appearanceRenderers={appearanceRenderers}
-                  appearance={candidate}
-                  color={value.color}
-                  colors={value.colors}
-                  options={value.options}
-                />
-              </button>
-            ),
-          )}
-        </div>
+            </button>
+          ),
+        )}
       </div>
 
       {appearanceId !== "image" ? (

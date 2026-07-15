@@ -3,7 +3,10 @@ import { applyPlayerGroupStylePatch } from "../../../board/team/player-team-comm
 import { PlayerAppearanceFields } from "../../../board/player/player-appearance-fields";
 import { useBoardEditorLabels } from "../../../board/editor/board-editor-labels";
 import { DEFAULT_PLAYER_COLOR } from "../../../../core/objects/player-object";
-import { TeamPanelSection } from "../../../board/team/team-panel-section";
+import {
+  TeamPanelSection,
+  TeamPanelSectionTitle,
+} from "../../../board/team/team-panel-section";
 import {
   FOOTBALL_PLAYER_APPEARANCES,
   FOOTBALL_PLAYER_APPEARANCE_RENDERERS,
@@ -15,6 +18,9 @@ export function FootballTeamPanelAppearance() {
 
   return (
     <TeamPanelSection>
+      <TeamPanelSectionTitle>
+        {labels.playerAppearance.appearance}
+      </TeamPanelSectionTitle>
       <PlayerAppearanceFields
         appearanceRenderers={FOOTBALL_PLAYER_APPEARANCE_RENDERERS}
         appearances={FOOTBALL_PLAYER_APPEARANCES}

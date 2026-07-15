@@ -15,6 +15,7 @@ import {
   applyPlayerGroupStylePatch,
   deletePlayerGroupCommand,
   movePlayerToGroup,
+  movePlayersToGroup,
 } from "./player-team-commands";
 
 function createTestToolApi() {
@@ -157,6 +158,23 @@ describe("movePlayerToGroup", () => {
       resolveEffectivePlayerStyle(toolApi.getState().board, moved).color,
     ).toBe(second.style.color);
     expect(moved.props.label).toBe("2");
+  });
+
+  it("moves several players with unique destination team numbers", () => {
+    const toolApi = createTestToolApi();
+    const [first, second] = getBoardPlayerGroups(toolApi.getState().board);
+
+    addGroupPlayer(toolApi, "player-a", first.id, "4");
+    addGroupPlayer(toolApi, "player-b", first.id, "5");
+    addGroupPlayer(toolApi, "player-c", second.id, "1");
+
+    movePlayersToGroup(toolApi, ["player-a", "player-b"], second.id);
+
+    expect(
+      getGroupMembers(toolApi, second.id)
+        .map((player) => player.props.label)
+        .sort(),
+    ).toEqual(["1", "2", "3"]);
   });
 });
 

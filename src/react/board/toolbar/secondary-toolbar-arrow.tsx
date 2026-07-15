@@ -3,7 +3,10 @@ import {
   ARROW_TOOL_ID,
   getArrowToolState,
 } from "../../../core/tools/arrow-tool-state";
-import type { ArrowToolDefault } from "../../../core/tools/arrow-tool";
+import {
+  ArrowTool,
+  type ArrowToolDefault,
+} from "../../../core/tools/arrow-tool";
 import { BOARD_ARROW_DEFAULTS } from "../theme/board-tool-defaults";
 import {
   BoardEditorToolbar,
@@ -12,6 +15,7 @@ import {
 } from "../editor/toolbar/editor-toolbar";
 import { useBoardEditorContext } from "../../adapter/editor/board-editor-context";
 import { useBoardEditorStore } from "../../adapter/editor/use-board-editor-store";
+import { cn } from "../../ui/misc";
 import { useBoardEditorLabels } from "../editor/board-editor-labels";
 import { BoardArrowDefaultIcon } from "./arrow-tool-icons";
 import { useBoardEditorToolbarDockOptional } from "../editor/toolbar/toolbar-dock";
@@ -32,7 +36,12 @@ export function BoardEditorArrowToolbar(props: BoardEditorArrowToolbarProps) {
     editorStore,
     (state) => state.ui.activeToolId === ARROW_TOOL_ID,
   );
-  const defaults = props.defaults ?? BOARD_ARROW_DEFAULTS;
+  const registeredDefaults = useBoardEditorStore(editorStore, (state) => {
+    const arrowTool = state.toolRegistry.definitions[ARROW_TOOL_ID];
+
+    return arrowTool instanceof ArrowTool ? arrowTool.getDefaults() : undefined;
+  });
+  const defaults = props.defaults ?? registeredDefaults ?? BOARD_ARROW_DEFAULTS;
 
   if (!active || defaults.length === 0) {
     return null;
@@ -51,6 +60,7 @@ type BoardEditorArrowToolbarContentProps = Omit<
 function BoardEditorArrowToolbarContent({
   defaults,
   orientation = "vertical",
+  contentClassName,
   ...toolbarProps
 }: BoardEditorArrowToolbarContentProps) {
   const labels = useBoardEditorLabels();
@@ -66,6 +76,7 @@ function BoardEditorArrowToolbarContent({
   return (
     <BoardEditorToolbar
       {...toolbarProps}
+      contentClassName={cn("items-stretch", contentClassName)}
       orientation={orientation}
       tooltipSide="right"
     >
@@ -84,7 +95,7 @@ function BoardEditorArrowToolbarContent({
               arrowState.draftStyle,
               toolDefault.draftStyle,
             )}
-            className="aspect-square px-0"
+            className="w-full min-w-36 justify-start px-3"
             iconBefore={
               <BoardArrowDefaultIcon
                 draftStyle={draftStyle}
@@ -102,8 +113,10 @@ function BoardEditorArrowToolbarContent({
             }}
             iconSize="xl"
             size="md"
-            tooltip={buttonLabel}
-          />
+            tooltip={false}
+          >
+            {buttonLabel}
+          </BoardEditorToolbarButton>
         );
       })}
     </BoardEditorToolbar>
@@ -115,11 +128,18 @@ function getArrowDefaultLabel(
   labels: ReturnType<typeof useBoardEditorLabels>,
 ) {
   const defaultLabels: Record<string, string> = {
+    "arrow-curved": labels.secondaryToolbar.arrowDefaults.curved,
+    "arrow-double": labels.secondaryToolbar.arrowDefaults.double,
+    "arrow-line": labels.secondaryToolbar.arrowDefaults.line,
+    "arrow-straight": labels.secondaryToolbar.arrowDefaults.straight,
+    "arrow-wavy": labels.secondaryToolbar.arrowDefaults.wavy,
+    cross: labels.secondaryToolbar.arrowDefaults.cross,
+    "curved-run": labels.secondaryToolbar.arrowDefaults.curvedRun,
     dribble: labels.secondaryToolbar.arrowDefaults.dribble,
     line: labels.secondaryToolbar.arrowDefaults.line,
-    "lofted-pass": labels.secondaryToolbar.arrowDefaults.loftedPass,
+    pass: labels.secondaryToolbar.arrowDefaults.pass,
     run: labels.secondaryToolbar.arrowDefaults.run,
-    screen: labels.secondaryToolbar.arrowDefaults.screen,
+    shot: labels.secondaryToolbar.arrowDefaults.shot,
   };
 
   return (

@@ -218,8 +218,21 @@ export function movePlayerToGroup(
   playerId: string,
   groupId: string,
 ) {
+  movePlayersToGroup(toolApi, [playerId], groupId);
+}
+
+/** Moves players together so auto-numbering resolves against each prior move. */
+export function movePlayersToGroup(
+  toolApi: TeamToolApi,
+  playerIds: string[],
+  groupId: string,
+) {
   toolApi.updateBoard((board) =>
-    movePlayerToGroupInBoard(board, playerId, groupId),
+    playerIds.reduce(
+      (nextBoard, playerId) =>
+        movePlayerToGroupInBoard(nextBoard, playerId, groupId),
+      board,
+    ),
   );
 }
 

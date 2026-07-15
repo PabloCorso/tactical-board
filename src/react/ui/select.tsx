@@ -102,7 +102,7 @@ export function SelectTrigger({
       <SelectValue placeholder={placeholder}>{children}</SelectValue>
       <SelectPrimitive.Icon
         render={
-          <Icon className="text-tb-text-tertiary shrink-0">
+          <Icon size="2xs" className="text-tb-text-tertiary shrink-0">
             <CaretDownIcon />
           </Icon>
         }
@@ -141,7 +141,7 @@ export function SelectContent({
           data-tactical-board
           data-align-trigger={alignItemWithTrigger}
           className={floatingContentClassName(
-            "border-tb-border-default bg-tb-background-surface text-tb-text-primary relative isolate z-50 max-h-(--available-height) w-(--anchor-width) min-w-36 overflow-x-hidden overflow-y-auto rounded-lg border p-1 shadow-lg data-[align-trigger=true]:animate-none",
+            "border-tb-border-default bg-tb-background-surface text-tb-text-primary relative isolate z-50 max-h-(--available-height) max-w-(--available-width) min-w-(--anchor-width) overflow-y-auto rounded-lg border p-1 shadow-lg data-[align-trigger=true]:animate-none",
             className,
           )}
           {...props}
@@ -187,17 +187,17 @@ export function SelectItem({ className, children, ...props }: SelectItemProps) {
     <SelectPrimitive.Item
       data-slot="select-item"
       className={cn(
-        "text-tb-text-primary transition-interactive focus:bg-tb-neutral-soft data-highlighted:bg-tb-neutral-soft relative flex min-h-7 w-full cursor-default items-center gap-2 rounded-md py-1 pr-7 pl-2 text-sm outline-hidden select-none data-disabled:pointer-events-none data-disabled:opacity-40",
+        "text-tb-text-primary transition-interactive focus:bg-tb-neutral-soft data-highlighted:bg-tb-neutral-soft flex min-h-7 cursor-default items-center gap-2 rounded-md px-2 py-1 text-sm outline-hidden select-none data-disabled:pointer-events-none data-disabled:opacity-40",
         className,
       )}
       {...props}
     >
-      <SelectPrimitive.ItemText className="flex flex-1 shrink-0 gap-2 whitespace-nowrap">
+      <SelectPrimitive.ItemText className="flex min-w-0 flex-1 items-center gap-2">
         {children}
       </SelectPrimitive.ItemText>
       <SelectPrimitive.ItemIndicator
         data-slot="select-item-indicator"
-        className="text-tb-text-secondary pointer-events-none absolute right-2 flex items-center justify-center"
+        className="text-tb-text-secondary pointer-events-none ml-auto flex shrink-0 items-center justify-center"
       >
         <Icon size="sm">
           <CheckIcon />

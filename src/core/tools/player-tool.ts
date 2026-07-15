@@ -16,6 +16,7 @@ import {
   PLAYER_OBJECT_TYPE,
   type PlayerObject,
 } from "../objects/player-object";
+import { TEXT_FONT_FAMILY, TEXT_FONT_WEIGHT } from "../objects/text-object";
 import type {
   CanvasObjectHitTestInput,
   CanvasObjectRenderInput,
@@ -509,7 +510,7 @@ function renderPlayerCaption(
   context.save();
   context.globalAlpha = appearance === "preview" ? PREVIEW_OPACITY : 1;
   context.fillStyle = player.props.caption?.style?.color ?? "#111827";
-  context.font = `600 ${fontSize}px "ui-rounded", "SF Pro Display", sans-serif`;
+  context.font = `${TEXT_FONT_WEIGHT} ${fontSize}px ${TEXT_FONT_FAMILY}`;
   context.textAlign = "center";
   context.textBaseline = "middle";
   context.fillText(

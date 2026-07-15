@@ -49,6 +49,7 @@ export function PopoverContent({
   align = "center",
   alignOffset = 0,
   collisionPadding = 8,
+  initialFocus = false,
   positionMethod = "fixed",
   portalContainer,
   side = "bottom",
@@ -68,6 +69,7 @@ export function PopoverContent({
       >
         <PopoverPrimitive.Popup
           data-tactical-board
+          initialFocus={initialFocus}
           className={floatingContentClassName(
             "border-tb-border-default bg-tb-background-surface text-tb-text-primary z-50 flex max-h-(--available-height) w-72 flex-col gap-2 overflow-x-hidden overflow-y-auto rounded-lg border p-2 text-sm shadow-lg outline-hidden",
             className,

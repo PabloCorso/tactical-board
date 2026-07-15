@@ -35,11 +35,17 @@ export type BoardEditorLabels = {
   };
   secondaryToolbar: {
     arrowDefaults: {
+      cross: string;
+      curved: string;
+      curvedRun: string;
       dribble: string;
+      double: string;
       line: string;
-      loftedPass: string;
+      pass: string;
       run: string;
-      screen: string;
+      shot: string;
+      straight: string;
+      wavy: string;
     };
     addPlayerGroup: string;
     playerGroup: string;
@@ -133,6 +139,7 @@ export type BoardEditorLabels = {
     playerPhotoUpload: string;
     playerStyle: string;
     playerTeam: string;
+    playerTeamMixed: string;
     labelText: string;
     resetAppearanceStyle: string;
     resetCaptionStyle: string;
@@ -192,11 +199,17 @@ export const BOARD_EDITOR_DEFAULT_LABELS: BoardEditorLabels = {
   },
   secondaryToolbar: {
     arrowDefaults: {
+      cross: "Cross",
+      curved: "Curved arrow",
+      curvedRun: "Curved run",
       dribble: "Dribble",
+      double: "Double arrow",
       line: "Line",
-      loftedPass: "Lofted pass",
+      pass: "Pass",
       run: "Run",
-      screen: "Screen",
+      shot: "Shot",
+      straight: "Straight arrow",
+      wavy: "Wavy arrow",
     },
     addPlayerGroup: "Add team",
     playerGroup: "Team",
@@ -291,6 +304,7 @@ export const BOARD_EDITOR_DEFAULT_LABELS: BoardEditorLabels = {
     playerPhotoUpload: "Upload photo",
     playerStyle: "Player style",
     playerTeam: "Team",
+    playerTeamMixed: "Mixed",
     labelText: "Label text",
     resetAppearanceStyle: "Reset appearance",
     resetCaptionStyle: "Reset caption style",

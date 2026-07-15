@@ -45,7 +45,7 @@ export type ArrowToolDefault = {
 };
 
 export type CreateArrowToolOptions = {
-  defaults?: ArrowToolDefault[];
+  defaults?: readonly ArrowToolDefault[];
 };
 
 const arrowObjectDefinition = defineObjectDefinition({
@@ -65,11 +65,15 @@ export class ArrowTool extends BoardEditorTool implements ToolDefinition {
   readonly id = ARROW_TOOL_ID;
   readonly label = "Arrow";
 
-  private readonly defaults: ArrowToolDefault[];
+  private readonly defaults: readonly ArrowToolDefault[];
 
   constructor(options: CreateArrowToolOptions = {}) {
     super();
     this.defaults = options.defaults ?? [];
+  }
+
+  getDefaults(): readonly ArrowToolDefault[] {
+    return this.defaults;
   }
 
   getActivatedDraftStyle(toolState: BoardEditorToolState): ArrowDraftStyle {

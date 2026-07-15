@@ -226,6 +226,45 @@ describe("React public frame", () => {
     expect(markup).not.toContain('aria-label="Add player group"');
   });
 
+  it("uses the arrow presets registered by each sport tool set", () => {
+    const renderArrowToolbar = (
+      store: ReturnType<typeof createBoardEditorStore>,
+    ) =>
+      renderToString(
+        createElement(
+          BoardEditorProvider,
+          { store },
+          createElement(BoardEditorArrowToolbar),
+        ),
+      );
+
+    const footballMarkup = renderArrowToolbar(
+      createBoardEditorStore({
+        initialBoard: createFootballBoard({ id: "football-arrows" }),
+        initialToolId: ARROW_TOOL_ID,
+        tools: createFootballTools(),
+      }),
+    );
+    const basketballMarkup = renderArrowToolbar(
+      createBoardEditorStore({
+        initialBoard: createBasketballBoard({ id: "basketball-arrows" }),
+        initialToolId: ARROW_TOOL_ID,
+        tools: createBasketballTools(),
+      }),
+    );
+
+    expect(footballMarkup).toContain('aria-label="Pass"');
+    expect(footballMarkup).toContain('aria-label="Run"');
+    expect(footballMarkup).toContain('aria-label="Dribble"');
+    expect(footballMarkup).toContain('aria-label="Shot"');
+    expect(footballMarkup).toContain('aria-label="Cross"');
+    expect(footballMarkup).toContain('aria-label="Curved run"');
+    expect(footballMarkup).toContain('aria-label="Line"');
+    expect(footballMarkup).not.toContain('aria-label="Straight arrow"');
+    expect(basketballMarkup).toContain('aria-label="Straight arrow"');
+    expect(basketballMarkup).not.toContain('aria-label="Pass"');
+  });
+
   it("exports the simple and composable football modules", () => {
     const board = createFootballBoard({ id: "public-frame-board" });
     const store = createBoardEditorStore({
