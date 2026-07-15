@@ -122,6 +122,7 @@ export function PlayerAppearanceFields({
             <PlayerAppearanceColorFields
               appearance={appearance}
               labels={labels}
+              options={value.options}
               value={{ color: value.color, colors: value.colors }}
               onChange={onChange}
             />

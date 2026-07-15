@@ -1,9 +1,47 @@
 import { describe, expect, it } from "vitest";
 import type { BoardThemePlayerAppearanceDefinition } from "../theme/board-theme";
 import {
+  getVisiblePlayerAppearanceColorRoles,
   getPlayerAppearanceChangePatch,
   getPlayerAppearanceFieldChangePatch,
 } from "./player-appearance-utils";
+
+describe("getVisiblePlayerAppearanceColorRoles", () => {
+  it("shows secondary colors only for patterns that render them", () => {
+    const appearance = {
+      id: "football-shirt",
+      label: "Shirt",
+      colors: [
+        {
+          id: "secondary",
+          label: "Secondary",
+          visibleWhen: {
+            optionId: "pattern",
+            values: ["stripes", "hoops"],
+          },
+        },
+      ],
+      options: [
+        {
+          id: "pattern",
+          label: "Pattern",
+          defaultValue: "solid",
+          choices: [
+            { value: "solid", label: "Solid" },
+            { value: "stripes", label: "Stripes" },
+          ],
+        },
+      ],
+    } satisfies BoardThemePlayerAppearanceDefinition;
+
+    expect(getVisiblePlayerAppearanceColorRoles(appearance)).toEqual([]);
+    expect(
+      getVisiblePlayerAppearanceColorRoles(appearance, {
+        pattern: "stripes",
+      }),
+    ).toEqual([appearance.colors[0]]);
+  });
+});
 
 describe("getPlayerAppearanceChangePatch", () => {
   it("clears stale appearance-specific props before applying defaults", () => {

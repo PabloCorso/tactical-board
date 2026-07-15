@@ -13,6 +13,24 @@ export type PlayerAppearanceFieldValue = {
   caption?: PlayerCaptionStyle;
 };
 
+export function getVisiblePlayerAppearanceColorRoles(
+  appearance?: BoardThemePlayerAppearanceDefinition,
+  options?: Record<string, unknown>,
+) {
+  return (appearance?.colors ?? []).filter((role) => {
+    if (!role.visibleWhen) {
+      return true;
+    }
+
+    const option = appearance?.options?.find(
+      (candidate) => candidate.id === role.visibleWhen?.optionId,
+    );
+    const value = options?.[role.visibleWhen.optionId] ?? option?.defaultValue;
+
+    return typeof value === "string" && role.visibleWhen.values.includes(value);
+  });
+}
+
 export function getPlayerAppearanceChangePatch(
   appearance: BoardThemePlayerAppearanceDefinition,
   patch: Partial<PlayerAppearanceFieldValue> = {},

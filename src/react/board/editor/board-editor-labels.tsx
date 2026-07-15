@@ -213,7 +213,7 @@ export const BOARD_EDITOR_DEFAULT_LABELS: BoardEditorLabels = {
     },
     addPlayerGroup: "Add team",
     playerGroup: "Team",
-    playerColor: "Player color",
+    playerColor: "Primary color",
     shapeDefaults: {
       diamond: "Diamond",
       oval: "Oval",
@@ -297,7 +297,7 @@ export const BOARD_EDITOR_DEFAULT_LABELS: BoardEditorLabels = {
       dashed: "Dashed",
       solid: "Solid",
     },
-    playerColor: "Player color",
+    playerColor: "Primary color",
     playerLabel: "Player label",
     playerProperties: "Player properties",
     playerPhotoRemove: "Remove photo",

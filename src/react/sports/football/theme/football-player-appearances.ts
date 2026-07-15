@@ -391,13 +391,17 @@ function drawFootballShirtPattern({
   context.fillStyle = patternColor;
 
   if (pattern === "stripes") {
-    for (let x = 172; x <= 1012; x += 210) {
-      fillViewBoxRect(context, scale, x, 60, 105, 1140);
-    }
+    drawCenteredFootballShirtBands({
+      context,
+      scale,
+      direction: "vertical",
+    });
   } else if (pattern === "hoops") {
-    for (let y = 210; y <= 1050; y += 210) {
-      fillViewBoxRect(context, scale, 60, y, 1140, 105);
-    }
+    drawCenteredFootballShirtBands({
+      context,
+      scale,
+      direction: "horizontal",
+    });
   } else if (pattern === "halves") {
     fillViewBoxRect(
       context,
@@ -413,6 +417,52 @@ function drawFootballShirtPattern({
   }
 
   context.restore();
+}
+
+function drawCenteredFootballShirtBands({
+  context,
+  direction,
+  scale,
+}: {
+  context: CanvasRenderingContext2D;
+  direction: "horizontal" | "vertical";
+  scale: number;
+}) {
+  const bandWidth = 105;
+  const bandStep = bandWidth * 2;
+  const center =
+    direction === "vertical"
+      ? FOOTBALL_SHIRT_VISIBLE_CENTER.x
+      : FOOTBALL_SHIRT_VISIBLE_CENTER.y;
+  const halfExtent =
+    (direction === "vertical"
+      ? FOOTBALL_SHIRT_VISIBLE_BOUNDS.width
+      : FOOTBALL_SHIRT_VISIBLE_BOUNDS.height) / 2;
+  const outerBandIndex = Math.floor((halfExtent + bandWidth / 2) / bandStep);
+
+  for (let index = -outerBandIndex; index <= outerBandIndex; index += 1) {
+    const offset = index * bandStep - bandWidth / 2;
+
+    if (direction === "vertical") {
+      fillViewBoxRect(
+        context,
+        scale,
+        center + offset,
+        FOOTBALL_SHIRT_VISIBLE_BOUNDS.y,
+        bandWidth,
+        FOOTBALL_SHIRT_VISIBLE_BOUNDS.height,
+      );
+    } else {
+      fillViewBoxRect(
+        context,
+        scale,
+        FOOTBALL_SHIRT_VISIBLE_BOUNDS.x,
+        center + offset,
+        FOOTBALL_SHIRT_VISIBLE_BOUNDS.width,
+        bandWidth,
+      );
+    }
+  }
 }
 
 function drawFootballCirclePattern({
@@ -438,14 +488,22 @@ function drawFootballCirclePattern({
 
   if (pattern === "stripes") {
     const stripeWidth = radius * 0.44;
+    const outerStripeIndex = Math.floor(
+      (radius + stripeWidth / 2) / (stripeWidth * 2),
+    );
 
-    for (let x = -radius; x < radius; x += stripeWidth * 2) {
+    for (let index = -outerStripeIndex; index <= outerStripeIndex; index += 1) {
+      const x = index * stripeWidth * 2 - stripeWidth / 2;
       context.fillRect(x, -radius, stripeWidth, radius * 2);
     }
   } else if (pattern === "hoops") {
     const stripeHeight = radius * 0.44;
+    const outerStripeIndex = Math.floor(
+      (radius + stripeHeight / 2) / (stripeHeight * 2),
+    );
 
-    for (let y = -radius; y < radius; y += stripeHeight * 2) {
+    for (let index = -outerStripeIndex; index <= outerStripeIndex; index += 1) {
+      const y = index * stripeHeight * 2 - stripeHeight / 2;
       context.fillRect(-radius, y, radius * 2, stripeHeight);
     }
   } else if (pattern === "halves") {
@@ -519,6 +577,10 @@ export const FOOTBALL_PLAYER_APPEARANCES: BoardThemePlayerAppearanceDefinition[]
           id: FOOTBALL_SECONDARY_COLOR_ROLE,
           label: "Secondary color",
           defaultValue: DEFAULT_SECONDARY_COLOR,
+          visibleWhen: {
+            optionId: "pattern",
+            values: ["stripes", "hoops", "halves", "sash"],
+          },
         },
       ],
       options: [
@@ -552,6 +614,10 @@ export const FOOTBALL_PLAYER_APPEARANCES: BoardThemePlayerAppearanceDefinition[]
           id: FOOTBALL_SECONDARY_COLOR_ROLE,
           label: "Secondary color",
           defaultValue: DEFAULT_SECONDARY_COLOR,
+          visibleWhen: {
+            optionId: "pattern",
+            values: ["stripes", "hoops", "halves", "sash"],
+          },
         },
       ],
       options: [

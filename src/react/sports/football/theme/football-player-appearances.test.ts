@@ -136,6 +136,46 @@ describe("renderFootballShirtPlayerAppearance", () => {
     expect(context.clip).not.toHaveBeenCalled();
     expect(context.arc).not.toHaveBeenCalled();
   });
+
+  it("centers shirt stripes symmetrically around the vertical axis", () => {
+    const context = createSpyContext();
+    const player = createPlayerObject({
+      id: "striped-shirt",
+      position: { x: 10, y: 10 },
+      size: { width: 2.4, height: 2.4 },
+      color: "#1f6feb",
+      colors: { secondary: "#ffffff" },
+      appearanceId: "football-shirt",
+      options: { pattern: "stripes" },
+    });
+    const frameTransform = createBoardSpaceProjection({
+      frame: { width: 100, height: 50 },
+      viewport: { pan: { x: 0, y: 0 }, zoom: 1 },
+      canvasRect: { width: 1000, height: 500 },
+    });
+
+    renderFootballShirtPlayerAppearance({
+      context,
+      board: createPlayerAppearanceBoard(player),
+      object: player,
+      player,
+      appearance: "default",
+      requestRender: () => {},
+      frameTransform,
+    });
+
+    const stripes = context.fillRect.mock.calls.map(([x, , width]) => ({
+      x,
+      width,
+    }));
+
+    expect(stripes).toHaveLength(5);
+    expect(stripes).toEqual(
+      expect.arrayContaining(
+        stripes.map(({ x, width }) => ({ x: -x - width, width })),
+      ),
+    );
+  });
 });
 
 describe("renderFootballCirclePlayerAppearance", () => {
@@ -245,5 +285,44 @@ describe("renderFootballCirclePlayerAppearance", () => {
     expect(context.fillRect).toHaveBeenCalled();
     expect(context.fillStyles).toContain("#1f6feb");
     expect(context.fillStyles).toContain("#ffffff");
+  });
+
+  it("centers circle stripes symmetrically around the marker", () => {
+    const context = createSpyContext();
+    const player = createPlayerObject({
+      id: "symmetrical-striped-circle",
+      position: { x: 10, y: 10 },
+      size: { width: 2.4, height: 2.4 },
+      color: "#1f6feb",
+      colors: { secondary: "#ffffff" },
+      appearanceId: "circle",
+      options: { pattern: "stripes" },
+    });
+    const frameTransform = createBoardSpaceProjection({
+      frame: { width: 100, height: 50 },
+      viewport: { pan: { x: 0, y: 0 }, zoom: 1 },
+      canvasRect: { width: 1000, height: 500 },
+    });
+
+    renderFootballCirclePlayerAppearance({
+      context,
+      board: createPlayerAppearanceBoard(player),
+      object: player,
+      player,
+      appearance: "default",
+      requestRender: () => {},
+      frameTransform,
+    });
+
+    const stripes = context.fillRect.mock.calls.map(([x, , width]) => ({
+      x,
+      width,
+    }));
+
+    expect(stripes).toEqual(
+      expect.arrayContaining(
+        stripes.map(({ x, width }) => ({ x: -x - width, width })),
+      ),
+    );
   });
 });

@@ -5,6 +5,7 @@ import { ColorPicker, ColorSwatch } from "../../ui/color-picker";
 import { cn } from "../../ui/misc";
 import { Popover, PopoverContent, PopoverTrigger } from "../../ui/popover";
 import type { useBoardEditorLabels } from "../editor/board-editor-labels";
+import { getVisiblePlayerAppearanceColorRoles } from "./player-appearance-utils";
 
 export type PlayerAppearanceColorValue = {
   color: string;
@@ -101,48 +102,54 @@ export function PlayerAppearanceBaseColorField({
 export function PlayerAppearanceRoleColorFields({
   appearance,
   labels,
+  options,
   value,
   onChange,
 }: {
   appearance?: BoardThemePlayerAppearanceDefinition;
   labels: ReturnType<typeof useBoardEditorLabels>;
+  options?: Record<string, unknown>;
   value: PlayerAppearanceColorValue;
   onChange: (patch: PlayerAppearanceColorPatch) => void;
 }) {
-  return appearance?.colors?.map((role) => {
-    const roleColor =
-      value.colors?.[role.id] ??
-      (role.id === "shirt" ? value.color : role.defaultValue) ??
-      value.color;
+  return getVisiblePlayerAppearanceColorRoles(appearance, options).map(
+    (role) => {
+      const roleColor =
+        value.colors?.[role.id] ??
+        (role.id === "shirt" ? value.color : role.defaultValue) ??
+        value.color;
 
-    return (
-      <PlayerAppearanceColorField
-        key={role.id}
-        chooseCustomColorLabel={labels.colorPicker.chooseCustomColor}
-        label={role.label}
-        value={roleColor}
-        onChange={(color) =>
-          onChange({
-            colors: {
-              ...(value.colors ?? {}),
-              [role.id]: color,
-            },
-          })
-        }
-      />
-    );
-  });
+      return (
+        <PlayerAppearanceColorField
+          key={role.id}
+          chooseCustomColorLabel={labels.colorPicker.chooseCustomColor}
+          label={role.label}
+          value={roleColor}
+          onChange={(color) =>
+            onChange({
+              colors: {
+                ...(value.colors ?? {}),
+                [role.id]: color,
+              },
+            })
+          }
+        />
+      );
+    },
+  );
 }
 
 export function PlayerAppearanceColorFields({
   appearance,
   labels,
+  options,
   value,
   onChange,
   showBaseColor = true,
 }: {
   appearance?: BoardThemePlayerAppearanceDefinition;
   labels: ReturnType<typeof useBoardEditorLabels>;
+  options?: Record<string, unknown>;
   value: PlayerAppearanceColorValue;
   onChange: (patch: PlayerAppearanceColorPatch) => void;
   showBaseColor?: boolean;
@@ -159,6 +166,7 @@ export function PlayerAppearanceColorFields({
       <PlayerAppearanceRoleColorFields
         appearance={appearance}
         labels={labels}
+        options={options}
         value={value}
         onChange={onChange}
       />

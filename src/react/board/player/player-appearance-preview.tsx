@@ -20,6 +20,7 @@ export type PlayerAppearancePreviewProps = {
   color: string;
   colors?: Record<string, string>;
   options?: Record<string, unknown>;
+  size?: number;
 };
 
 export function PlayerAppearancePreview({
@@ -30,6 +31,7 @@ export function PlayerAppearancePreview({
   color,
   colors,
   options,
+  size = 36,
 }: PlayerAppearancePreviewProps) {
   if (appearance.id === "image") {
     if (asset?.src) {
@@ -39,7 +41,11 @@ export function PlayerAppearancePreview({
             "border-tb-border-default bg-tb-background-screen h-9 w-9 overflow-hidden rounded-md border bg-cover bg-center",
             className,
           )}
-          style={{ backgroundImage: `url("${asset.src}")` }}
+          style={{
+            backgroundImage: `url("${asset.src}")`,
+            width: size,
+            height: size,
+          }}
         />
       );
     }
@@ -50,6 +56,7 @@ export function PlayerAppearancePreview({
           "border-tb-border-default bg-tb-background-screen flex h-9 w-9 items-center justify-center rounded-md border",
           className,
         )}
+        style={{ width: size, height: size }}
       >
         <UploadSimpleIcon className="text-tb-text-secondary size-4" />
       </span>
@@ -74,9 +81,9 @@ export function PlayerAppearancePreview({
     <BoardToolIconCanvas
       object={player}
       renderer={renderer}
-      className={cn("h-9 w-9 shrink-0", className)}
-      width={36}
-      height={36}
+      className={cn("shrink-0", className)}
+      width={size}
+      height={size}
     />
   );
 }

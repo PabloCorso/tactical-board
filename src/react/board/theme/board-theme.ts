@@ -26,6 +26,10 @@ export type BoardThemePlayerAppearanceDefinition = {
     id: string;
     label: string;
     defaultValue?: string;
+    visibleWhen?: {
+      optionId: string;
+      values: string[];
+    };
   }>;
   options?: Array<{
     id: string;

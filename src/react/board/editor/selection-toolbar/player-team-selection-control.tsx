@@ -5,11 +5,7 @@ import {
   SelectItem,
   SelectTrigger,
 } from "../../../ui/select";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "../../../ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../../../ui/tooltip";
 import { useBoardEditorLabels } from "../board-editor-labels";
 
 export type PlayerTeamSelectionControlProps = {

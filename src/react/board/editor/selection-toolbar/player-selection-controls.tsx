@@ -177,7 +177,8 @@ export function PlayerAppearanceSelectionControl({
             color={value.color}
             colors={value.colors}
             options={value.options}
-            className="size-5 rounded-md"
+            size={24}
+            className="rounded-md"
           />
         ) : (
           <PaletteIcon className="size-5" />
