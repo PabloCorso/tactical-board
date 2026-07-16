@@ -19,22 +19,27 @@ export type ColorPickerProps = {
   chooseCustomColorLabel?: string;
   defaultColors?: string[];
   className?: string;
+  mixed?: boolean;
 };
 
 export function ColorSwatch({
   value,
   className,
+  mixed = false,
 }: {
   value: string;
   className?: string;
+  mixed?: boolean;
 }) {
   return (
     <span
       className={cn(
-        "border-tb-border-default inline-flex h-4 w-4 shrink-0 rounded-full border",
+        "border-tb-border-default relative inline-flex h-4 w-4 shrink-0 rounded-full border",
+        mixed &&
+          "bg-tb-background-surface after:bg-tb-text-secondary after:absolute after:top-1/2 after:left-1/2 after:h-0.5 after:w-2.5 after:-translate-x-1/2 after:-translate-y-1/2 after:rounded-full",
         className,
       )}
-      style={{ backgroundColor: value }}
+      style={{ backgroundColor: mixed ? undefined : value }}
       aria-hidden="true"
     />
   );
@@ -47,11 +52,12 @@ export function ColorPicker({
   label,
   defaultColors = [...DEFAULT_BOARD_COLORS],
   className,
+  mixed = false,
 }: ColorPickerProps) {
   const normalizedValue = normalizeColor(value);
-  const isDefaultColor = defaultColors.some(
-    (color) => normalizeColor(color) === normalizedValue,
-  );
+  const isDefaultColor =
+    !mixed &&
+    defaultColors.some((color) => normalizeColor(color) === normalizedValue);
 
   return (
     <div className={cn("flex min-w-52 flex-col gap-3", className)}>
@@ -63,7 +69,7 @@ export function ColorPicker({
 
       <div className="grid grid-cols-11 gap-2">
         {defaultColors.map((color) => {
-          const isActive = normalizeColor(color) === normalizedValue;
+          const isActive = !mixed && normalizeColor(color) === normalizedValue;
 
           return (
             <button
@@ -87,7 +93,8 @@ export function ColorPicker({
         <label
           className={cn(
             "focus-within:focus-ring relative flex h-8 w-8 cursor-pointer items-center justify-center rounded-full transition-transform",
-            !isDefaultColor &&
+            !mixed &&
+              !isDefaultColor &&
               "ring-tb-accent ring-offset-tb-background-surface ring-2 ring-offset-2",
           )}
           aria-label={chooseCustomColorLabel}
@@ -95,16 +102,17 @@ export function ColorPicker({
           <span
             className={cn(
               "border-tb-border-default pointer-events-none h-full w-full rounded-full border",
-              !isDefaultColor && "border-transparent",
+              !mixed && !isDefaultColor && "border-transparent",
             )}
             style={{
-              background: isDefaultColor
-                ? CUSTOM_COLOR_SWATCH_BACKGROUND
-                : undefined,
-              backgroundColor: isDefaultColor ? undefined : value,
+              background:
+                isDefaultColor || mixed
+                  ? CUSTOM_COLOR_SWATCH_BACKGROUND
+                  : undefined,
+              backgroundColor: isDefaultColor || mixed ? undefined : value,
             }}
           />
-          {!isDefaultColor ? (
+          {!mixed && !isDefaultColor ? (
             <span
               className="pointer-events-none absolute inset-0 rounded-full p-[2px]"
               style={{

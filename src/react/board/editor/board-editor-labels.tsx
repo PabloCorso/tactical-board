@@ -126,6 +126,7 @@ export type BoardEditorLabels = {
     customPlayerStyle: string;
     equipmentProperties: string;
     equipmentColor: string;
+    equipmentColorMixed: string;
     fillStyle: string;
     lineStyle: string;
     lineValue: {
@@ -291,6 +292,7 @@ export const BOARD_EDITOR_DEFAULT_LABELS: BoardEditorLabels = {
     customPlayerStyle: "Customized for this player",
     equipmentProperties: "Equipment properties",
     equipmentColor: "Equipment color",
+    equipmentColorMixed: "Equipment color, mixed",
     fillStyle: "Fill style",
     lineStyle: "Line style",
     lineValue: {

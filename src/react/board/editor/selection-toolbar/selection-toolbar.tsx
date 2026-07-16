@@ -32,7 +32,10 @@ import { getSelectToolState } from "../../../../core/tools/select-tool-state";
 import { SELECTION_TOOLBAR_OFFSET_PX } from "../../../../core/tools/selection-geometry";
 import { useBoardEditorStore } from "../../../adapter/editor/use-board-editor-store";
 import { BoardEditorArrowSelectionToolbar } from "./arrow-selection-toolbar";
-import { BoardEditorEquipmentSelectionToolbar } from "./equipment-selection-toolbar";
+import {
+  BoardEditorEquipmentSelectionControls,
+  BoardEditorEquipmentSelectionToolbar,
+} from "./equipment-selection-toolbar";
 import { BoardEditorPlayerSelectionToolbar } from "./player-selection-toolbar";
 import { PlayerTeamSelectionControl } from "./player-team-selection-control";
 import { movePlayersToGroup } from "../../team/player-team-commands";
@@ -209,6 +212,12 @@ export function BoardEditorSelectionToolbar({
     )
       ? selectedObjects
       : undefined;
+    const selectedEquipment = selectedObjects.every(
+      (object): object is EquipmentObject =>
+        object.type === EQUIPMENT_OBJECT_TYPE,
+    )
+      ? selectedObjects
+      : undefined;
     const playerGroups = selectedPlayers
       ? getBoardPlayerGroups(state.board)
       : [];
@@ -235,7 +244,9 @@ export function BoardEditorSelectionToolbar({
           aria-label={
             selectedPlayers
               ? labels.selectionToolbar.playerProperties
-              : labels.selectionToolbar.selectionProperties
+              : selectedEquipment
+                ? labels.selectionToolbar.equipmentProperties
+                : labels.selectionToolbar.selectionProperties
           }
           className={className}
           controlSize="sm"
@@ -256,6 +267,11 @@ export function BoardEditorSelectionToolbar({
               />
               <BoardEditorToolbarSeparator />
             </>
+          ) : null}
+          {selectedEquipment ? (
+            <BoardEditorEquipmentSelectionControls
+              selectedObjects={selectedEquipment}
+            />
           ) : null}
           <BoardEditorSelectionActionsMenu
             selectedObjectIds={selectedObjects.map((object) => object.id)}
