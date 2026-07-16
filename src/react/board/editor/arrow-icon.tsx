@@ -12,7 +12,7 @@ import {
 } from "../../../core/objects/arrow-object";
 import { renderArrow } from "../../../core/tools/arrow-tool";
 
-type ArrowIconLayout = "wide" | "compact";
+type ArrowIconLayout = "wide" | "compact" | "horizontal";
 const COMPACT_WAVY_ICON_STYLE_SCALE = 0.58;
 
 export type BoardEditorArrowIconStyle = {
@@ -215,17 +215,26 @@ function getSimplePreviewGeometry(
 ) {
   const inset = layout === "compact" ? 4 : 5;
 
-  return layout === "compact"
-    ? {
+  switch (layout) {
+    case "compact":
+      return {
         start: { x: inset, y: height - inset },
         end: { x: width - inset, y: inset },
         curveOffset: -height * 0.26,
-      }
-    : {
+      };
+    case "horizontal":
+      return {
+        start: { x: inset, y: height / 2 },
+        end: { x: width - inset, y: height / 2 },
+        curveOffset: -height * 0.24,
+      };
+    default:
+      return {
         start: { x: inset, y: height * 0.64 },
         end: { x: width - inset, y: height * 0.36 },
         curveOffset: -height * 0.24,
       };
+  }
 }
 
 function createArrowIconProjection(

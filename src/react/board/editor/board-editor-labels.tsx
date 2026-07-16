@@ -105,6 +105,7 @@ export type BoardEditorLabels = {
     arrowBodyOption: (label: string) => string;
     arrowBodyStyle: string;
     arrowColor: string;
+    arrowLine: string;
     arrowHead: {
       arrow: string;
       none: string;
@@ -132,6 +133,11 @@ export type BoardEditorLabels = {
     lineValue: {
       dashed: string;
       solid: string;
+    };
+    thickness: string;
+    thicknessValue: {
+      thick: string;
+      thin: string;
     };
     playerColor: string;
     playerLabel: string;
@@ -268,18 +274,19 @@ export const BOARD_EDITOR_DEFAULT_LABELS: BoardEditorLabels = {
   selectionToolbar: {
     arrowProperties: "Arrow properties",
     arrowBodyOption: (label) => `Arrow body ${label}`,
-    arrowBodyStyle: "Arrow body style",
-    arrowColor: "Arrow color",
+    arrowBodyStyle: "Body style",
+    arrowColor: "Color",
+    arrowLine: "Line",
     arrowHead: {
       arrow: "Arrow",
       none: "None",
     },
     arrowHeadOption: (side, label) =>
       `${side === "left" ? "Left" : "Right"} arrow head ${label}`,
-    arrowLeftHead: "Arrow left head",
+    arrowLeftHead: "Start head",
     arrowLineOption: (label) => `Arrow line style ${label}`,
     arrowLineStyle: "Arrow line style",
-    arrowRightHead: "Arrow right head",
+    arrowRightHead: "End head",
     arrowStyle: {
       curved: "Curved",
       double: "Double",
@@ -298,6 +305,11 @@ export const BOARD_EDITOR_DEFAULT_LABELS: BoardEditorLabels = {
     lineValue: {
       dashed: "Dashed",
       solid: "Solid",
+    },
+    thickness: "Thickness",
+    thicknessValue: {
+      thick: "Thick",
+      thin: "Thin",
     },
     playerColor: "Primary color",
     playerLabel: "Player label",

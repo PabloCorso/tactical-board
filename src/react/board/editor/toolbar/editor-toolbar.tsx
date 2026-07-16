@@ -20,6 +20,8 @@ import {
   TooltipTrigger,
   type TooltipContentProps,
 } from "../../../ui/tooltip";
+import { Toggle } from "@base-ui/react/toggle";
+import { ToggleGroup } from "@base-ui/react/toggle-group";
 import { useBoardEditorToolbarFloatingPortal } from "./toolbar-dock";
 
 export type BoardEditorToolbarOrientation = "horizontal" | "vertical";
@@ -281,6 +283,7 @@ export type BoardEditorToolbarOptionButtonProps = Omit<
   active: boolean;
   ariaLabel: string;
   icon: IconRender;
+  tooltip?: ReactNode | false;
 };
 
 export function BoardEditorToolbarOptionButton({
@@ -288,11 +291,12 @@ export function BoardEditorToolbarOptionButton({
   ariaLabel,
   icon,
   className,
+  tooltip,
   ...props
 }: BoardEditorToolbarOptionButtonProps) {
-  const { controlSize } = useContext(BoardEditorToolbarContext);
-
-  return (
+  const { controlSize, tooltipSide } = useContext(BoardEditorToolbarContext);
+  const tooltipContent = tooltip === false ? null : (tooltip ?? ariaLabel);
+  const button = (
     <Button
       variant={active ? "secondary" : "ghost"}
       aria-label={ariaLabel}
@@ -307,5 +311,77 @@ export function BoardEditorToolbarOptionButton({
       size={controlSize}
       {...props}
     />
+  );
+
+  if (!tooltipContent) {
+    return button;
+  }
+
+  return (
+    <Tooltip>
+      <TooltipTrigger>{button}</TooltipTrigger>
+      <TooltipContent side={tooltipSide}>{tooltipContent}</TooltipContent>
+    </Tooltip>
+  );
+}
+
+export type BoardEditorToolbarToggleGroupProps<Value extends string = string> =
+  ToggleGroup.Props<Value>;
+
+export function BoardEditorToolbarToggleGroup<Value extends string>({
+  className,
+  ...props
+}: BoardEditorToolbarToggleGroupProps<Value>) {
+  return (
+    <ToggleGroup
+      className={cn("flex min-w-0 items-center gap-0.5", className)}
+      {...props}
+    />
+  );
+}
+
+export type BoardEditorToolbarToggleButtonProps<Value extends string = string> =
+  Omit<Toggle.Props<Value>, "children" | "render"> & {
+    icon: IconRender;
+    tooltip?: ReactNode | false;
+  };
+
+export function BoardEditorToolbarToggleButton<Value extends string>({
+  "aria-label": ariaLabel,
+  className,
+  icon,
+  tooltip,
+  ...props
+}: BoardEditorToolbarToggleButtonProps<Value>) {
+  const { controlSize, tooltipSide } = useContext(BoardEditorToolbarContext);
+  const tooltipContent = tooltip === false ? null : (tooltip ?? ariaLabel);
+  const button = (
+    <Toggle
+      {...props}
+      aria-label={ariaLabel}
+      render={
+        <Button
+          variant="ghost"
+          size={controlSize}
+          iconBefore={icon}
+          iconSize="xl"
+          className={cn(
+            "data-[pressed]:border-tb-neutral-soft data-[pressed]:bg-tb-neutral-soft data-[pressed]:hover:border-tb-neutral-soft-hover data-[pressed]:hover:bg-tb-neutral-soft-hover rounded-lg",
+            className,
+          )}
+        />
+      }
+    />
+  );
+
+  if (!tooltipContent) {
+    return button;
+  }
+
+  return (
+    <Tooltip>
+      <TooltipTrigger>{button}</TooltipTrigger>
+      <TooltipContent side={tooltipSide}>{tooltipContent}</TooltipContent>
+    </Tooltip>
   );
 }

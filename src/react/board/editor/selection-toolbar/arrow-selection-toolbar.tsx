@@ -1,5 +1,7 @@
 import {
   setArrowKind,
+  THICK_ARROW_STROKE_WIDTH,
+  THIN_ARROW_STROKE_WIDTH,
   updateArrowObject,
   type ArrowHeadStyle,
   type ArrowKind,
@@ -13,8 +15,9 @@ import { useBoardEditorContext } from "../../../adapter/editor/board-editor-cont
 import {
   BoardEditorToolbar,
   BoardEditorToolbarGroup,
-  BoardEditorToolbarOptionButton,
   BoardEditorToolbarSeparator,
+  BoardEditorToolbarToggleButton,
+  BoardEditorToolbarToggleGroup,
 } from "../toolbar/editor-toolbar";
 import { BoardEditorSelectionToolbarPositioner } from "./selection-toolbar-positioner";
 import type { BoardEditorSelectionToolbarRendererProps } from "./selection-toolbar-types";
@@ -29,7 +32,6 @@ import {
   useBoardEditorLabels,
   type BoardEditorLabels,
 } from "../board-editor-labels";
-import { BoardEditorStrokeWidthControl } from "./stroke-width-control";
 import {
   BoardEditorSelectionToolbarPopover,
   BoardEditorSelectionToolbarPopoverContent,
@@ -49,6 +51,11 @@ const LINE_STYLE_OPTIONS: Array<{
   value: ArrowLineStyle;
 }> = [{ value: "solid" }, { value: "dashed" }] as const;
 
+const THICKNESS_OPTIONS = [
+  { value: "thin", strokeWidth: THIN_ARROW_STROKE_WIDTH },
+  { value: "thick", strokeWidth: THICK_ARROW_STROKE_WIDTH },
+] as const;
+
 const HEAD_STYLE_OPTIONS: Array<{
   value: ArrowHeadStyle;
 }> = [{ value: "none" }, { value: "triangle" }] as const;
@@ -59,7 +66,7 @@ function getBodyStyleIcon(kind: ArrowKind): IconRender {
       draftStyle={{
         kind,
         startHead: "none",
-        endHead: "triangle",
+        endHead: "none",
       }}
       width={24}
       height={24}
@@ -81,7 +88,7 @@ function getHeadStyleIcon(
       }}
       width={24}
       height={24}
-      layout="compact"
+      layout="horizontal"
     />
   );
 }
@@ -98,19 +105,26 @@ function ArrowBodyPopoverContent({
   onSelect,
 }: ArrowBodyPopoverContentProps) {
   return (
-    <div className="grid grid-cols-2 gap-2">
+    <BoardEditorToolbarToggleGroup
+      aria-label={labels.selectionToolbar.arrowBodyStyle}
+      value={[selectedObject.props.kind]}
+      onValueChange={(values) => {
+        const value = values[0];
+
+        if (value) {
+          onSelect(value);
+        }
+      }}
+    >
       {BODY_STYLE_OPTIONS.map((option) => (
-        <BoardEditorToolbarOptionButton
+        <BoardEditorToolbarToggleButton
           key={option.value}
-          active={selectedObject.props.kind === option.value}
-          ariaLabel={labels.selectionToolbar.arrowBodyOption(
-            labels.selectionToolbar.arrowStyle[option.value],
-          )}
+          value={option.value}
+          aria-label={labels.selectionToolbar.arrowStyle[option.value]}
           icon={getBodyStyleIcon(option.value)}
-          onClick={() => onSelect(option.value)}
         />
       ))}
-    </div>
+    </BoardEditorToolbarToggleGroup>
   );
 }
 
@@ -127,53 +141,107 @@ function ArrowHeadPopoverContent({
   side,
   onSelect,
 }: ArrowHeadPopoverContentProps) {
-  const labelSide = side === "start" ? "left" : "right";
+  const groupLabel =
+    side === "start"
+      ? labels.selectionToolbar.arrowLeftHead
+      : labels.selectionToolbar.arrowRightHead;
 
   return (
-    <div className="grid grid-cols-2 gap-2">
+    <BoardEditorToolbarToggleGroup
+      aria-label={groupLabel}
+      value={[headStyle]}
+      onValueChange={(values) => {
+        const value = values[0];
+
+        if (value) {
+          onSelect(value);
+        }
+      }}
+    >
       {HEAD_STYLE_OPTIONS.map((option) => (
-        <BoardEditorToolbarOptionButton
+        <BoardEditorToolbarToggleButton
           key={option.value}
-          active={headStyle === option.value}
-          ariaLabel={labels.selectionToolbar.arrowHeadOption(
-            labelSide,
+          value={option.value}
+          aria-label={
             option.value === "triangle"
               ? labels.selectionToolbar.arrowHead.arrow
-              : labels.selectionToolbar.arrowHead.none,
-          )}
+              : labels.selectionToolbar.arrowHead.none
+          }
           icon={getHeadStyleIcon(option.value, side)}
-          onClick={() => onSelect(option.value)}
         />
       ))}
-    </div>
+    </BoardEditorToolbarToggleGroup>
   );
 }
 
-type ArrowLineStylePopoverContentProps = {
+type ArrowLinePopoverContentProps = {
   labels: BoardEditorLabels;
   lineStyle: ArrowLineStyle;
-  onSelect: (value: ArrowLineStyle) => void;
+  onLineStyleSelect: (value: ArrowLineStyle) => void;
+  onStrokeWidthSelect: (value: number) => void;
+  strokeWidth: number;
 };
 
-function ArrowLineStylePopoverContent({
+function ArrowLinePopoverContent({
   labels,
   lineStyle,
-  onSelect,
-}: ArrowLineStylePopoverContentProps) {
+  onLineStyleSelect,
+  onStrokeWidthSelect,
+  strokeWidth,
+}: ArrowLinePopoverContentProps) {
+  const selectedThickness = THICKNESS_OPTIONS.find(
+    (option) => option.strokeWidth === strokeWidth,
+  )?.value;
+
   return (
-    <div className="grid grid-cols-2 gap-2">
-      {LINE_STYLE_OPTIONS.map((option) => (
-        <BoardEditorToolbarOptionButton
-          key={option.value}
-          active={lineStyle === option.value}
-          ariaLabel={labels.selectionToolbar.arrowLineOption(
-            labels.selectionToolbar.lineValue[option.value],
-          )}
-          icon={<LineStyleIcon dashed={option.value === "dashed"} />}
-          onClick={() => onSelect(option.value)}
-        />
-      ))}
-    </div>
+    <>
+      <BoardEditorToolbarToggleGroup
+        aria-label={labels.selectionToolbar.lineStyle}
+        value={[lineStyle]}
+        onValueChange={(values) => {
+          const value = values[0];
+
+          if (value) {
+            onLineStyleSelect(value);
+          }
+        }}
+      >
+        {LINE_STYLE_OPTIONS.map((option) => (
+          <BoardEditorToolbarToggleButton
+            key={option.value}
+            value={option.value}
+            aria-label={labels.selectionToolbar.lineValue[option.value]}
+            icon={<LineStyleIcon dashed={option.value === "dashed"} />}
+          />
+        ))}
+      </BoardEditorToolbarToggleGroup>
+
+      <BoardEditorToolbarSeparator orientation="horizontal" />
+
+      <BoardEditorToolbarToggleGroup
+        aria-label={labels.selectionToolbar.thickness}
+        value={selectedThickness ? [selectedThickness] : []}
+        onValueChange={(values) => {
+          const value = values[0];
+          const option = THICKNESS_OPTIONS.find(
+            (candidate) => candidate.value === value,
+          );
+
+          if (option) {
+            onStrokeWidthSelect(option.strokeWidth);
+          }
+        }}
+      >
+        {THICKNESS_OPTIONS.map((option) => (
+          <BoardEditorToolbarToggleButton
+            key={option.value}
+            value={option.value}
+            aria-label={labels.selectionToolbar.thicknessValue[option.value]}
+            icon={<LineStyleIcon strokeWidth={option.strokeWidth} />}
+          />
+        ))}
+      </BoardEditorToolbarToggleGroup>
+    </>
   );
 }
 
@@ -246,7 +314,7 @@ export function BoardEditorArrowSelectionToolbar({
             >
               {getHeadStyleIcon(selectedObject.props.startHead, "start")}
             </BoardEditorSelectionToolbarPopoverTrigger>
-            <BoardEditorSelectionToolbarPopoverContent>
+            <BoardEditorSelectionToolbarPopoverContent className="flex-row items-center gap-0.5 p-1">
               <ArrowHeadPopoverContent
                 labels={labels}
                 headStyle={selectedObject.props.startHead}
@@ -263,7 +331,7 @@ export function BoardEditorArrowSelectionToolbar({
             >
               {getBodyStyleIcon(selectedObject.props.kind)}
             </BoardEditorSelectionToolbarPopoverTrigger>
-            <BoardEditorSelectionToolbarPopoverContent>
+            <BoardEditorSelectionToolbarPopoverContent className="flex-row items-center gap-0.5 p-1">
               <ArrowBodyPopoverContent
                 labels={labels}
                 selectedObject={selectedObject}
@@ -279,7 +347,7 @@ export function BoardEditorArrowSelectionToolbar({
             >
               {getHeadStyleIcon(selectedObject.props.endHead, "end")}
             </BoardEditorSelectionToolbarPopoverTrigger>
-            <BoardEditorSelectionToolbarPopoverContent>
+            <BoardEditorSelectionToolbarPopoverContent className="flex-row items-center gap-0.5 p-1">
               <ArrowHeadPopoverContent
                 labels={labels}
                 headStyle={selectedObject.props.endHead}
@@ -295,27 +363,28 @@ export function BoardEditorArrowSelectionToolbar({
         <BoardEditorToolbarGroup>
           <BoardEditorSelectionToolbarPopover>
             <BoardEditorSelectionToolbarPopoverTrigger
-              aria-label={labels.selectionToolbar.arrowLineStyle}
-              tooltip={labels.selectionToolbar.lineStyle}
+              aria-label={labels.selectionToolbar.arrowLine}
+              tooltip={labels.selectionToolbar.arrowLine}
             >
               <LineStyleIcon
                 dashed={selectedObject.props.lineStyle === "dashed"}
+                strokeWidth={selectedObject.props.strokeWidth}
               />
             </BoardEditorSelectionToolbarPopoverTrigger>
-            <BoardEditorSelectionToolbarPopoverContent>
-              <ArrowLineStylePopoverContent
+            <BoardEditorSelectionToolbarPopoverContent className="flex-row items-center gap-0.5 p-1">
+              <ArrowLinePopoverContent
                 labels={labels}
                 lineStyle={selectedObject.props.lineStyle}
-                onSelect={(value) => updateArrowProps({ lineStyle: value })}
+                strokeWidth={selectedObject.props.strokeWidth}
+                onLineStyleSelect={(value) =>
+                  updateArrowProps({ lineStyle: value })
+                }
+                onStrokeWidthSelect={(value) =>
+                  updateArrowProps({ strokeWidth: value })
+                }
               />
             </BoardEditorSelectionToolbarPopoverContent>
           </BoardEditorSelectionToolbarPopover>
-
-          <BoardEditorStrokeWidthControl
-            label={labels.selectionToolbar.strokeWidth}
-            value={selectedObject.props.strokeWidth}
-            onChange={(strokeWidth) => updateArrowProps({ strokeWidth })}
-          />
 
           <BoardEditorSelectionToolbarPopover>
             <BoardEditorSelectionToolbarPopoverTrigger
