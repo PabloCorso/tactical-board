@@ -15,7 +15,7 @@ export const THIN_SHAPE_STROKE_WIDTH = 2;
 export const THICK_SHAPE_STROKE_WIDTH = 4;
 export const DEFAULT_SHAPE_STROKE_WIDTH = THIN_SHAPE_STROKE_WIDTH;
 export const DEFAULT_SHAPE_DASH_STYLE = [8, 4] as const;
-export const DEFAULT_SHAPE_FILL_OPACITY = 0.20;
+export const DEFAULT_SHAPE_FILL_OPACITY = 0.2;
 
 export interface ShapeObjectProps extends Record<string, unknown> {
   kind: ShapeKind;

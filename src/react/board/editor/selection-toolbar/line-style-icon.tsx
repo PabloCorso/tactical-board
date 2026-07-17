@@ -22,9 +22,7 @@ export function LineStyleIcon({
           stroke="currentColor"
           strokeLinecap="round"
           strokeWidth={renderedStrokeWidth}
-          strokeDasharray={
-            dashed ? `3 ${3 + renderedStrokeWidth}` : undefined
-          }
+          strokeDasharray={dashed ? `3 ${3 + renderedStrokeWidth}` : undefined}
         />
       </svg>
     </span>

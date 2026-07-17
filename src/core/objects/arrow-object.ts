@@ -327,8 +327,7 @@ export function getArrowBodyPolylines(
         props.strokeWidth ?? DEFAULT_ARROW_STROKE_WIDTH,
         props.kind,
       );
-      const lineOffset =
-        ((bodyStrokeWidth + DOUBLE_LINE_GAP) / 2) * styleScale;
+      const lineOffset = ((bodyStrokeWidth + DOUBLE_LINE_GAP) / 2) * styleScale;
 
       return [
         [

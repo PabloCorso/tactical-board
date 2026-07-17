@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  getArrowBodyPolylines,
-  getArrowBodyStrokeWidth,
-} from "./arrow-object";
+import { getArrowBodyPolylines, getArrowBodyStrokeWidth } from "./arrow-object";
 
 function getDoubleLineGap(strokeWidth: number) {
   const polylines = getArrowBodyPolylines({
@@ -11,9 +8,7 @@ function getDoubleLineGap(strokeWidth: number) {
     kind: "double",
     strokeWidth,
   });
-  const centerlineDistance = Math.abs(
-    polylines[0][0].y - polylines[1][0].y,
-  );
+  const centerlineDistance = Math.abs(polylines[0][0].y - polylines[1][0].y);
 
   return centerlineDistance - getArrowBodyStrokeWidth(strokeWidth, "double");
 }
