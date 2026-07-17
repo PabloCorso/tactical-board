@@ -126,7 +126,7 @@ const spanishEditorLabels = {
     shapeFillStyle: "Estilo de relleno",
     shapeFillValue: {
       none: "Ninguno",
-      solid: "Solido",
+      solid: "Tinte",
       stripes: "Rayas",
     },
     shapeLineOption: (label) => `Linea de forma: ${label}`,

@@ -11,7 +11,7 @@ import {
 import { createBoardSpaceProjection } from "../geometry/board-space-projection";
 import { resolveBoardEditorFitPadding } from "../editor/fit-padding";
 import {
-  scaleCanvasDashStyle,
+  scaleRoundCapCanvasDashStyle,
   scaleCanvasStyleValue,
 } from "../rendering/canvas/style-scale";
 import { getScaledCanvasStrokeWidth } from "../rendering/canvas/object-render-scale";
@@ -36,6 +36,8 @@ const MIN_HIT_DISTANCE_PX = 10;
 const POLYGON_FINISH_HIT_RADIUS_PX = 12;
 const DIAGONAL_STRIPE_TILE_SIZE_PX = 11;
 const DIAGONAL_STRIPE_LINE_WIDTH_PX = 2.25;
+const DIAGONAL_STRIPE_BACKGROUND_OPACITY_RATIO = 0.5;
+const DIAGONAL_STRIPE_OPACITY_MULTIPLIER = 2;
 const RECTANGLE_CORNER_RADIUS_RATIO = 0.08;
 const MAX_RECTANGLE_CORNER_RADIUS_PX = 8;
 const DEFAULT_SHAPE_PREVIEW_SIZE = {
@@ -595,17 +597,30 @@ export function renderShape({
   context.lineJoin = "round";
   context.setLineDash(
     shape.props.lineStyle === "dashed"
-      ? scaleCanvasDashStyle(shape.props.dashStyle, frameTransform.zoom)
+      ? scaleRoundCapCanvasDashStyle(
+          shape.props.dashStyle,
+          frameTransform.zoom,
+          strokeWidth,
+        )
       : [],
   );
 
   if (shape.props.fillStyle !== "none") {
     context.save();
-    context.globalAlpha *= shape.props.fillOpacity;
+    context.globalAlpha *=
+      shape.props.fillStyle === "diagonal-stripes"
+        ? shape.props.fillOpacity * DIAGONAL_STRIPE_BACKGROUND_OPACITY_RATIO
+        : shape.props.fillOpacity;
     context.fillStyle = shape.props.color;
     context.fill(path);
+    context.restore();
 
     if (shape.props.fillStyle === "diagonal-stripes") {
+      context.save();
+      context.globalAlpha *= Math.min(
+        shape.props.fillOpacity * DIAGONAL_STRIPE_OPACITY_MULTIPLIER,
+        1,
+      );
       fillDiagonalStripes(
         context,
         path,
@@ -613,8 +628,8 @@ export function renderShape({
         shape.props.color,
         frameTransform,
       );
+      context.restore();
     }
-    context.restore();
   }
 
   if (shape.props.bordered) {

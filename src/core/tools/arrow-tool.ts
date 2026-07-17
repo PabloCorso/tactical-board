@@ -13,7 +13,7 @@ import {
   type ArrowHeadStyle,
 } from "../objects/arrow-object";
 import { rotatePointAround } from "../objects/object-behaviors";
-import { scaleCanvasDashStyle } from "../rendering/canvas/style-scale";
+import { scaleRoundCapCanvasDashStyle } from "../rendering/canvas/style-scale";
 import {
   getArrowHeadLength,
   getScaledCanvasStrokeWidth,
@@ -362,7 +362,11 @@ export function renderArrow({
   context.lineJoin = "round";
   context.setLineDash(
     arrow.props.lineStyle === "dashed"
-      ? scaleCanvasDashStyle(arrow.props.dashStyle, frameTransform.zoom)
+      ? scaleRoundCapCanvasDashStyle(
+          arrow.props.dashStyle,
+          frameTransform.zoom,
+          bodyStrokeWidth,
+        )
       : [],
   );
 
@@ -394,6 +398,7 @@ export function renderArrow({
     controlPoint: arrow.props.kind === "curved" ? controlPoint : undefined,
     kind: arrow.props.kind,
     styleScale: frameTransform.zoom,
+    strokeWidth: arrow.props.strokeWidth,
   })) {
     drawArrowPath(context, polyline);
     context.stroke();
@@ -484,6 +489,7 @@ function hitTestArrow({
     controlPoint: arrow.props.kind === "curved" ? controlPoint : undefined,
     kind: arrow.props.kind,
     styleScale: frameTransform.zoom,
+    strokeWidth: arrow.props.strokeWidth,
   })) {
     for (let index = 1; index < polyline.length; index += 1) {
       if (

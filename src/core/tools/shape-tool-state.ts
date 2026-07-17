@@ -8,6 +8,7 @@ import type {
 } from "../objects/shape-object";
 import {
   DEFAULT_SHAPE_DASH_STYLE,
+  DEFAULT_SHAPE_FILL_OPACITY,
   DEFAULT_SHAPE_STROKE_WIDTH,
 } from "../objects/shape-object";
 import { DEFAULT_BOARD_COLOR } from "../colors/default-colors";
@@ -39,7 +40,7 @@ export const DEFAULT_SHAPE_TOOL_STATE: ShapeToolState = {
     dashStyle: [...DEFAULT_SHAPE_DASH_STYLE],
     fillStyle: "solid",
     bordered: true,
-    fillOpacity: 0.15,
+    fillOpacity: DEFAULT_SHAPE_FILL_OPACITY,
   },
   pendingPoints: [],
 };

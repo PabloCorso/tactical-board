@@ -17,8 +17,8 @@ const MIN_WAVE_SEGMENTS = 1;
 const WAVE_SAMPLES_PER_SEGMENT = 8;
 const WAVE_TAIL_LENGTH = 2;
 const BODY_SAMPLE_COUNT = 24;
-const DOUBLE_LINE_OFFSET = 3;
 const DOUBLE_LINE_STYLE_SCALE = 0.3;
+const DOUBLE_LINE_GAP = 1;
 const CURVE_HANDLE_OFFSET = 0.5;
 
 export interface ArrowObjectProps extends Record<string, unknown> {
@@ -302,6 +302,7 @@ export function getArrowBodyPolylines(
     "start" | "end" | "controlPoint" | "curveOffset" | "kind"
   > & {
     styleScale?: number;
+    strokeWidth?: number;
   },
 ) {
   const styleScale = props.styleScale ?? 1;
@@ -322,8 +323,12 @@ export function getArrowBodyPolylines(
     case "wavy":
       return [getArrowWavyPoints(props.start, props.end, styleScale)];
     case "double": {
+      const bodyStrokeWidth = getArrowBodyStrokeWidth(
+        props.strokeWidth ?? DEFAULT_ARROW_STROKE_WIDTH,
+        props.kind,
+      );
       const lineOffset =
-        DOUBLE_LINE_OFFSET * getArrowKindScale(props.kind) * styleScale;
+        ((bodyStrokeWidth + DOUBLE_LINE_GAP) / 2) * styleScale;
 
       return [
         [

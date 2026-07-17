@@ -205,6 +205,7 @@ export function getArrowSelectionCanvasBounds(
     controlPoint: arrow.props.kind === "curved" ? controlCanvas : undefined,
     kind: arrow.props.kind,
     styleScale,
+    strokeWidth: arrow.props.strokeWidth,
   }).flat();
   const points = [...bodyPoints, ...headPoints];
   const padding = Math.max(bodyStrokeWidth / 2, 1);

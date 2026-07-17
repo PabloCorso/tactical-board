@@ -1,17 +1,20 @@
-import type {
-  ShapeFillStyle,
-  ShapeLineStyle,
-  ShapeObject,
+import {
+  THICK_SHAPE_STROKE_WIDTH,
+  THIN_SHAPE_STROKE_WIDTH,
+  updateShapeObject,
+  type ShapeFillStyle,
+  type ShapeLineStyle,
+  type ShapeObject,
 } from "../../../../core/objects/shape-object";
-import { updateShapeObject } from "../../../../core/objects/shape-object";
 import { createToolApi } from "../../../../core/editor/create-tool-api";
 import { BoardEditorSelectionActionsMenu } from "./selection-actions-menu";
 import { useBoardEditorContext } from "../../../adapter/editor/board-editor-context";
 import {
   BoardEditorToolbar,
   BoardEditorToolbarGroup,
-  BoardEditorToolbarOptionButton,
   BoardEditorToolbarSeparator,
+  BoardEditorToolbarToggleButton,
+  BoardEditorToolbarToggleGroup,
 } from "../toolbar/editor-toolbar";
 import { BoardEditorSelectionToolbarPositioner } from "./selection-toolbar-positioner";
 import type { BoardEditorSelectionToolbarRendererProps } from "./selection-toolbar-types";
@@ -25,22 +28,26 @@ import {
   useBoardEditorLabels,
   type BoardEditorLabels,
 } from "../board-editor-labels";
-import { BoardEditorStrokeWidthControl } from "./stroke-width-control";
 import {
   BoardEditorSelectionToolbarPopover,
   BoardEditorSelectionToolbarPopoverContent,
   BoardEditorSelectionToolbarPopoverTrigger,
 } from "./selection-toolbar-popover";
 
-const LINE_STYLE_OPTIONS: Array<{
-  value: ShapeLineStyle;
-}> = [{ value: "solid" }, { value: "dashed" }];
+const BORDER_STYLE_OPTIONS = [
+  { value: "none" },
+  { value: "solid" },
+  { value: "dashed" },
+] as const;
+
+const THICKNESS_OPTIONS = [
+  { value: "thin", strokeWidth: THIN_SHAPE_STROKE_WIDTH },
+  { value: "thick", strokeWidth: THICK_SHAPE_STROKE_WIDTH },
+] as const;
 
 const FILL_STYLE_OPTIONS: Array<{
   value: ShapeFillStyle;
 }> = [{ value: "none" }, { value: "solid" }, { value: "diagonal-stripes" }];
-
-const BORDER_STYLE_OPTIONS = [{ value: true }, { value: false }] as const;
 
 function ShapeFillStyleIcon({ value }: { value: ShapeFillStyle }) {
   return (
@@ -74,7 +81,7 @@ function ShapeFillStyleIcon({ value }: { value: ShapeFillStyle }) {
   );
 }
 
-function ShapeBorderStyleIcon({ bordered }: { bordered: boolean }) {
+function ShapeBorderlessIcon() {
   return (
     <span className="flex h-6 w-6 items-center justify-center">
       <svg
@@ -91,37 +98,93 @@ function ShapeBorderStyleIcon({ bordered }: { bordered: boolean }) {
           rx="2"
           fill="currentColor"
           fillOpacity="0.12"
-          stroke={bordered ? "currentColor" : "none"}
-          strokeWidth="2"
+          stroke="none"
         />
       </svg>
     </span>
   );
 }
 
-function ShapeLineStylePopoverContent({
+function ShapeBorderPopoverContent({
+  bordered,
   labels,
   lineStyle,
-  onSelect,
+  onChange,
+  strokeWidth,
 }: {
+  bordered: boolean;
   labels: BoardEditorLabels;
   lineStyle: ShapeLineStyle;
-  onSelect: (value: ShapeLineStyle) => void;
+  onChange: (props: Partial<ShapeObject["props"]>) => void;
+  strokeWidth: number;
 }) {
+  const borderStyle = bordered ? lineStyle : "none";
+  const selectedThickness = THICKNESS_OPTIONS.find(
+    (option) => option.strokeWidth === strokeWidth,
+  )?.value;
+
   return (
-    <div className="grid grid-cols-2 gap-2">
-      {LINE_STYLE_OPTIONS.map((option) => (
-        <BoardEditorToolbarOptionButton
-          key={option.value}
-          active={lineStyle === option.value}
-          ariaLabel={labels.selectionToolbar.shapeLineOption(
-            labels.selectionToolbar.lineValue[option.value],
-          )}
-          icon={<LineStyleIcon dashed={option.value === "dashed"} />}
-          onClick={() => onSelect(option.value)}
-        />
-      ))}
-    </div>
+    <>
+      <BoardEditorToolbarToggleGroup
+        aria-label={labels.selectionToolbar.shapeBorderStyle}
+        value={[borderStyle]}
+        onValueChange={(values) => {
+          const value = values[0];
+
+          if (value === "none") {
+            onChange({ bordered: false });
+          } else if (value) {
+            onChange({ bordered: true, lineStyle: value });
+          }
+        }}
+      >
+        {BORDER_STYLE_OPTIONS.map((option) => (
+          <BoardEditorToolbarToggleButton
+            key={option.value}
+            value={option.value}
+            aria-label={
+              option.value === "none"
+                ? labels.selectionToolbar.shapeFillValue.none
+                : labels.selectionToolbar.lineValue[option.value]
+            }
+            icon={
+              option.value === "none" ? (
+                <ShapeBorderlessIcon />
+              ) : (
+                <LineStyleIcon dashed={option.value === "dashed"} />
+              )
+            }
+          />
+        ))}
+      </BoardEditorToolbarToggleGroup>
+
+      <BoardEditorToolbarSeparator orientation="horizontal" />
+
+      <BoardEditorToolbarToggleGroup
+        aria-label={labels.selectionToolbar.thickness}
+        disabled={!bordered}
+        value={selectedThickness ? [selectedThickness] : []}
+        onValueChange={(values) => {
+          const value = values[0];
+          const option = THICKNESS_OPTIONS.find(
+            (candidate) => candidate.value === value,
+          );
+
+          if (option) {
+            onChange({ strokeWidth: option.strokeWidth });
+          }
+        }}
+      >
+        {THICKNESS_OPTIONS.map((option) => (
+          <BoardEditorToolbarToggleButton
+            key={option.value}
+            value={option.value}
+            aria-label={labels.selectionToolbar.thicknessValue[option.value]}
+            icon={<LineStyleIcon strokeWidth={option.strokeWidth} />}
+          />
+        ))}
+      </BoardEditorToolbarToggleGroup>
+    </>
   );
 }
 
@@ -135,49 +198,30 @@ function ShapeFillPopoverContent({
   onSelect: (nextValue: ShapeFillStyle) => void;
 }) {
   return (
-    <div className="grid grid-cols-3 gap-2">
+    <BoardEditorToolbarToggleGroup
+      aria-label={labels.selectionToolbar.shapeFillStyle}
+      value={[value]}
+      onValueChange={(values) => {
+        const nextValue = values[0];
+
+        if (nextValue) {
+          onSelect(nextValue);
+        }
+      }}
+    >
       {FILL_STYLE_OPTIONS.map((option) => (
-        <BoardEditorToolbarOptionButton
+        <BoardEditorToolbarToggleButton
           key={option.value}
-          active={value === option.value}
-          ariaLabel={labels.selectionToolbar.shapeFillOption(
+          value={option.value}
+          aria-label={
             option.value === "diagonal-stripes"
               ? labels.selectionToolbar.shapeFillValue.stripes
-              : labels.selectionToolbar.shapeFillValue[option.value],
-          )}
+              : labels.selectionToolbar.shapeFillValue[option.value]
+          }
           icon={<ShapeFillStyleIcon value={option.value} />}
-          onClick={() => onSelect(option.value)}
         />
       ))}
-    </div>
-  );
-}
-
-function ShapeBorderPopoverContent({
-  labels,
-  value,
-  onSelect,
-}: {
-  labels: BoardEditorLabels;
-  value: boolean;
-  onSelect: (nextValue: boolean) => void;
-}) {
-  return (
-    <div className="grid grid-cols-2 gap-2">
-      {BORDER_STYLE_OPTIONS.map((option) => (
-        <BoardEditorToolbarOptionButton
-          key={String(option.value)}
-          active={value === option.value}
-          ariaLabel={labels.selectionToolbar.shapeBorderOption(
-            option.value
-              ? labels.selectionToolbar.shapeBorderValue.bordered
-              : labels.selectionToolbar.shapeBorderValue.borderless,
-          )}
-          icon={<ShapeBorderStyleIcon bordered={option.value} />}
-          onClick={() => onSelect(option.value)}
-        />
-      ))}
-    </div>
+    </BoardEditorToolbarToggleGroup>
   );
 }
 
@@ -236,29 +280,28 @@ export function BoardEditorShapeSelectionToolbar({
 
           <BoardEditorSelectionToolbarPopover>
             <BoardEditorSelectionToolbarPopoverTrigger
-              aria-label={labels.selectionToolbar.shapeLineStyle}
-              tooltip={labels.selectionToolbar.lineStyle}
+              aria-label={labels.selectionToolbar.shapeBorderStyle}
+              tooltip={labels.selectionToolbar.shapeBorderStyle}
             >
-              <LineStyleIcon
-                dashed={selectedObject.props.lineStyle === "dashed"}
-              />
+              {selectedObject.props.bordered ? (
+                <LineStyleIcon
+                  dashed={selectedObject.props.lineStyle === "dashed"}
+                  strokeWidth={selectedObject.props.strokeWidth}
+                />
+              ) : (
+                <ShapeBorderlessIcon />
+              )}
             </BoardEditorSelectionToolbarPopoverTrigger>
-            <BoardEditorSelectionToolbarPopoverContent>
-              <ShapeLineStylePopoverContent
+            <BoardEditorSelectionToolbarPopoverContent className="flex-row items-center gap-0.5 p-1">
+              <ShapeBorderPopoverContent
+                bordered={selectedObject.props.bordered}
                 labels={labels}
                 lineStyle={selectedObject.props.lineStyle}
-                onSelect={(value) => updateShapeProps({ lineStyle: value })}
+                strokeWidth={selectedObject.props.strokeWidth}
+                onChange={updateShapeProps}
               />
             </BoardEditorSelectionToolbarPopoverContent>
           </BoardEditorSelectionToolbarPopover>
-
-          {selectedObject.props.bordered ? (
-            <BoardEditorStrokeWidthControl
-              label={labels.selectionToolbar.strokeWidth}
-              value={selectedObject.props.strokeWidth}
-              onChange={(strokeWidth) => updateShapeProps({ strokeWidth })}
-            />
-          ) : null}
 
           <BoardEditorSelectionToolbarPopover>
             <BoardEditorSelectionToolbarPopoverTrigger
@@ -267,27 +310,11 @@ export function BoardEditorShapeSelectionToolbar({
             >
               <ShapeFillStyleIcon value={selectedObject.props.fillStyle} />
             </BoardEditorSelectionToolbarPopoverTrigger>
-            <BoardEditorSelectionToolbarPopoverContent>
+            <BoardEditorSelectionToolbarPopoverContent className="flex-row items-center gap-0.5 p-1">
               <ShapeFillPopoverContent
                 labels={labels}
                 value={selectedObject.props.fillStyle}
                 onSelect={(value) => updateShapeProps({ fillStyle: value })}
-              />
-            </BoardEditorSelectionToolbarPopoverContent>
-          </BoardEditorSelectionToolbarPopover>
-
-          <BoardEditorSelectionToolbarPopover>
-            <BoardEditorSelectionToolbarPopoverTrigger
-              aria-label={labels.selectionToolbar.shapeBorderStyle}
-              tooltip={labels.selectionToolbar.border}
-            >
-              <ShapeBorderStyleIcon bordered={selectedObject.props.bordered} />
-            </BoardEditorSelectionToolbarPopoverTrigger>
-            <BoardEditorSelectionToolbarPopoverContent>
-              <ShapeBorderPopoverContent
-                labels={labels}
-                value={selectedObject.props.bordered}
-                onSelect={(value) => updateShapeProps({ bordered: value })}
               />
             </BoardEditorSelectionToolbarPopoverContent>
           </BoardEditorSelectionToolbarPopover>

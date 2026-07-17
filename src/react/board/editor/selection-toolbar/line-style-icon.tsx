@@ -7,6 +7,8 @@ export function LineStyleIcon({
   dashed = false,
   strokeWidth = 2.5,
 }: LineStyleIconProps) {
+  const renderedStrokeWidth = Math.min(6, Math.max(1, strokeWidth));
+
   return (
     <span className="flex h-6 w-6 items-center justify-center">
       <svg
@@ -19,8 +21,10 @@ export function LineStyleIcon({
           d="M4 20 L20 4"
           stroke="currentColor"
           strokeLinecap="round"
-          strokeWidth={Math.min(6, Math.max(1, strokeWidth))}
-          strokeDasharray={dashed ? "3 3" : undefined}
+          strokeWidth={renderedStrokeWidth}
+          strokeDasharray={
+            dashed ? `3 ${3 + renderedStrokeWidth}` : undefined
+          }
         />
       </svg>
     </span>
