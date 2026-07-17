@@ -81,6 +81,7 @@ export type BoardThemeObjectDefinition = {
   defaultSize?: BoardObjectSize;
   asset?: Asset;
   defaultProps?: Record<string, unknown>;
+  toolIconColorMode?: "adaptive" | "fixed";
   lockedAspectRatio?: boolean;
   selectionBounds?: {
     left: number;

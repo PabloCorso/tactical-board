@@ -26,6 +26,7 @@ export const soccerBallEquipment: FootballEquipmentSpec = {
     label: "Ball",
     defaultSize: { width: 12, height: 12 },
     color: DEFAULT_BOARD_COLOR.white,
+    toolIconColorMode: "fixed",
     lockedAspectRatio: true,
     minimumHitRadiusPx: 0,
     selectionBounds: {

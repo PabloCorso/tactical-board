@@ -11,6 +11,14 @@ import { cn } from "../../ui/misc";
 import { BoardToolIconCanvas } from "./tool-icon-canvas";
 import { getThemeAwareToolIconColor } from "./tool-icon-color";
 
+export function getEquipmentToolIconColor(definition: EquipmentDefinition) {
+  if (definition.toolIconColorMode === "fixed") {
+    return definition.color;
+  }
+
+  return getThemeAwareToolIconColor(definition.color);
+}
+
 export function BoardEquipmentDefinitionIcon({
   definition,
   renderer,
@@ -22,7 +30,7 @@ export function BoardEquipmentDefinitionIcon({
   className?: string;
   size?: number;
 }) {
-  const iconColor = getThemeAwareToolIconColor(definition.color);
+  const iconColor = getEquipmentToolIconColor(definition);
   const equipment = useMemo(
     () =>
       createEquipmentObject({

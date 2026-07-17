@@ -33,6 +33,7 @@ export function getThemeEquipmentDefinitions(
         typeof definition.defaultProps?.color === "string"
           ? definition.defaultProps.color
           : undefined,
+      toolIconColorMode: definition.toolIconColorMode,
       lockedAspectRatio: definition.lockedAspectRatio,
       selectionBounds: definition.selectionBounds,
       selectionPaddingPx: definition.selectionPaddingPx,

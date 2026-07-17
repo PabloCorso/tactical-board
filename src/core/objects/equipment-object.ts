@@ -14,6 +14,7 @@ export interface EquipmentDefinitionSnapshot {
   kind: string;
   label: string;
   color?: string;
+  toolIconColorMode?: "adaptive" | "fixed";
   lockedAspectRatio?: boolean;
   selectionBounds?: EquipmentSelectionBounds;
   selectionPaddingPx?: number;

@@ -6,6 +6,7 @@ import {
 } from "../../../core/objects/player-object";
 import { createPlayerToolIconPreviewObject } from "./player-tool-icons";
 import { getThemeAwareToolIconColor } from "./tool-icon-color";
+import { getEquipmentToolIconColor } from "./equipment-tool-icons";
 
 describe("toolbar tool icons", () => {
   it("caps player preview label font size to the marker size ratio", () => {
@@ -50,5 +51,17 @@ describe("toolbar tool icons", () => {
       "currentColor",
     );
     expect(player.props.color).toBe("currentColor");
+  });
+
+  it("preserves fixed equipment icon colors across toolbar themes", () => {
+    expect(
+      getEquipmentToolIconColor({
+        kind: "soccer-ball",
+        label: "Ball",
+        color: DEFAULT_BOARD_COLOR.white,
+        defaultSize: { width: 12, height: 12 },
+        toolIconColorMode: "fixed",
+      }),
+    ).toBe(DEFAULT_BOARD_COLOR.white);
   });
 });
