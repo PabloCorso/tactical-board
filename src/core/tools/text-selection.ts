@@ -1,14 +1,31 @@
 import colors from "tailwindcss/colors";
-import type { ObjectSelectionAdapter } from "../objects/object-selection";
-import { type TextObject } from "../objects/text-object";
+import type {
+  ObjectSelectionAdapter,
+  ObjectSelectionSession,
+} from "../objects/object-selection";
+import { updateTextObject, type TextObject } from "../objects/text-object";
 import {
   drawClosedCanvasPath,
   getBoundsFromCanvasPoints,
+  getCornerHandleCanvasPoint,
+  getRotationFromPointer,
   getSelectionToolbarAnchorFromSelectionChrome,
+  renderRotateHandleIcon,
   rotateOffset,
 } from "./selection-geometry";
 
 const TEXT_SELECTION_PADDING_PX = 0;
+const TEXT_ROTATE_HANDLE_RADIUS_PX = 11;
+const TEXT_ROTATE_HANDLE_HIT_RADIUS_PX = 18;
+const ROTATE_HANDLE_CORNER_INDEX = 3;
+const ROTATE_HANDLE_CORNER_OFFSET_PX = 18;
+
+type TextSelectionSession = ObjectSelectionSession & {
+  kind: "rotate";
+  center: TextObject["position"];
+  initialRotation: number;
+  initialPointerAngle: number;
+};
 
 function getTextSelectionOutlineCanvasPoints(
   projection: Parameters<
@@ -39,17 +56,34 @@ function getTextSelectionOutlineCanvasPoints(
   });
 }
 
-export const textSelectionAdapter: ObjectSelectionAdapter<TextObject> = {
-  getTransformCapabilities: () => ({
-    move: true,
-    resize: false,
-    rotate: false,
-  }),
+function getTextRotateHandleCanvasPoint(
+  projection: Parameters<
+    NonNullable<ObjectSelectionAdapter<TextObject>["renderSelection"]>
+  >[0]["projection"],
+  object: TextObject,
+) {
+  return getCornerHandleCanvasPoint(
+    getTextSelectionOutlineCanvasPoints(projection, object),
+    ROTATE_HANDLE_CORNER_INDEX,
+    ROTATE_HANDLE_CORNER_OFFSET_PX,
+  );
+}
+
+export const textSelectionAdapter: ObjectSelectionAdapter<
+  TextObject,
+  TextSelectionSession
+> = {
   getCanvasBounds: ({ object, projection }) =>
     getBoundsFromCanvasPoints(
       getTextSelectionOutlineCanvasPoints(projection, object),
     ),
-  renderSelection: ({ context, object, projection, color }) => {
+  renderSelection: ({
+    context,
+    object,
+    projection,
+    color,
+    showControls = true,
+  }) => {
     context.save();
     context.strokeStyle = color;
     context.lineWidth = 1.5;
@@ -59,11 +93,64 @@ export const textSelectionAdapter: ObjectSelectionAdapter<TextObject> = {
       getTextSelectionOutlineCanvasPoints(projection, object),
     );
     context.stroke();
+
+    if (showControls && !object.locked) {
+      renderRotateHandleIcon(
+        context,
+        getTextRotateHandleCanvasPoint(projection, object),
+        TEXT_ROTATE_HANDLE_RADIUS_PX,
+        object.rotation,
+      );
+    }
+
     context.restore();
   },
-  getToolbarAnchor: ({ object, projection }) =>
-    getSelectionToolbarAnchorFromSelectionChrome({
-      left: projection.boardToCanvas(object.position).x,
-      outlinePoints: getTextSelectionOutlineCanvasPoints(projection, object),
+  hitSelectionHandle: ({ object, projection, event }) => {
+    if (object.locked) {
+      return undefined;
+    }
+
+    const canvasPoint = projection.boardToCanvas(event.point);
+    const rotateHandle = getTextRotateHandleCanvasPoint(projection, object);
+    const rotateDistance = Math.hypot(
+      canvasPoint.x - rotateHandle.x,
+      canvasPoint.y - rotateHandle.y,
+    );
+
+    if (rotateDistance > TEXT_ROTATE_HANDLE_HIT_RADIUS_PX) {
+      return undefined;
+    }
+
+    return {
+      kind: "rotate",
+      center: object.position,
+      initialRotation: object.rotation ?? 0,
+      initialPointerAngle: Math.atan2(
+        event.point.y - object.position.y,
+        event.point.x - object.position.x,
+      ),
+    };
+  },
+  updateSelectionInteraction: ({ object, session, event }) =>
+    updateTextObject(object, {
+      rotation: getRotationFromPointer(
+        session.center,
+        event.point,
+        session.initialRotation,
+        session.initialPointerAngle,
+      ),
     }),
+  getToolbarAnchor: ({ object, projection }) => {
+    const outlinePoints = getTextSelectionOutlineCanvasPoints(
+      projection,
+      object,
+    );
+
+    return getSelectionToolbarAnchorFromSelectionChrome({
+      left: projection.boardToCanvas(object.position).x,
+      outlinePoints,
+      rotateHandlePoint: getTextRotateHandleCanvasPoint(projection, object),
+      rotateHandleRadiusPx: TEXT_ROTATE_HANDLE_RADIUS_PX,
+    });
+  },
 };

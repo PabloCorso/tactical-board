@@ -104,7 +104,6 @@ export type BoardEditorLabels = {
     arrowProperties: string;
     arrowBodyOption: (label: string) => string;
     arrowBodyStyle: string;
-    arrowColor: string;
     arrowLine: string;
     arrowHead: {
       arrow: string;
@@ -124,10 +123,9 @@ export type BoardEditorLabels = {
     border: string;
     captionText: string;
     color: string;
+    colorMixed: string;
     customPlayerStyle: string;
     equipmentProperties: string;
-    equipmentColor: string;
-    equipmentColorMixed: string;
     fillStyle: string;
     lineStyle: string;
     lineValue: {
@@ -158,7 +156,6 @@ export type BoardEditorLabels = {
       bordered: string;
       borderless: string;
     };
-    shapeColor: string;
     shapeFillOption: (label: string) => string;
     shapeFillStyle: string;
     shapeLineStyle: string;
@@ -170,7 +167,6 @@ export type BoardEditorLabels = {
     };
     shapeLineOption: (label: string) => string;
     strokeWidth: string;
-    textColor: string;
     textProperties: string;
     textSize: string;
     selectionProperties: string;
@@ -275,7 +271,6 @@ export const BOARD_EDITOR_DEFAULT_LABELS: BoardEditorLabels = {
     arrowProperties: "Arrow properties",
     arrowBodyOption: (label) => `Arrow body ${label}`,
     arrowBodyStyle: "Body style",
-    arrowColor: "Color",
     arrowLine: "Line",
     arrowHead: {
       arrow: "Arrow",
@@ -296,10 +291,9 @@ export const BOARD_EDITOR_DEFAULT_LABELS: BoardEditorLabels = {
     border: "Border",
     captionText: "Caption text",
     color: "Color",
+    colorMixed: "Color, mixed",
     customPlayerStyle: "Customized for this player",
     equipmentProperties: "Equipment properties",
-    equipmentColor: "Equipment color",
-    equipmentColorMixed: "Equipment color, mixed",
     fillStyle: "Fill style",
     lineStyle: "Line style",
     lineValue: {
@@ -330,7 +324,6 @@ export const BOARD_EDITOR_DEFAULT_LABELS: BoardEditorLabels = {
       bordered: "Bordered",
       borderless: "Borderless",
     },
-    shapeColor: "Color",
     shapeFillOption: (label) => `Shape style ${label}`,
     shapeFillStyle: "Fill",
     shapeLineStyle: "Shape line style",
@@ -342,7 +335,6 @@ export const BOARD_EDITOR_DEFAULT_LABELS: BoardEditorLabels = {
     },
     shapeLineOption: (label) => `Shape line style ${label}`,
     strokeWidth: "Stroke width",
-    textColor: "Text color",
     textProperties: "Text properties",
     textSize: "Text size",
     selectionProperties: "Selection actions",

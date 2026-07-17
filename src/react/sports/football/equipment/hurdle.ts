@@ -65,11 +65,6 @@ export const hurdleEquipment: FootballEquipmentSpec = {
       height: HURDLE_METRICS.height,
     },
     color: DEFAULT_BOARD_COLOR.orange,
-    capabilities: { color: true },
-    transformCapabilities: {
-      resize: false,
-      rotate: true,
-    },
     lockedAspectRatio: true,
     selectionBounds: {
       left: -0.485,

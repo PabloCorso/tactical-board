@@ -87,7 +87,6 @@ const spanishEditorLabels = {
   selectionToolbar: {
     arrowBodyOption: (label) => `Cuerpo de flecha: ${label}`,
     arrowBodyStyle: "Estilo del cuerpo de flecha",
-    arrowColor: "Color de flecha",
     arrowHead: {
       arrow: "Flecha",
       none: "Ninguna",
@@ -106,7 +105,7 @@ const spanishEditorLabels = {
     },
     border: "Borde",
     color: "Color",
-    equipmentColor: "Color del material",
+    colorMixed: "Color, mixto",
     fillStyle: "Relleno",
     lineStyle: "Linea",
     lineValue: {
@@ -121,7 +120,6 @@ const spanishEditorLabels = {
       bordered: "Con borde",
       borderless: "Sin borde",
     },
-    shapeColor: "Color de forma",
     shapeFillOption: (label) => `Estilo de forma: ${label}`,
     shapeFillStyle: "Estilo de relleno",
     shapeFillValue: {
@@ -131,7 +129,6 @@ const spanishEditorLabels = {
     },
     shapeLineOption: (label) => `Linea de forma: ${label}`,
     shapeLineStyle: "Estilo de linea",
-    textColor: "Color de texto",
     textSize: "Tamano de texto",
   },
   textEditor: {

@@ -33,10 +33,6 @@ export function getThemeEquipmentDefinitions(
         typeof definition.defaultProps?.color === "string"
           ? definition.defaultProps.color
           : undefined,
-      capabilities:
-        definition.capabilities as EquipmentDefinition["capabilities"],
-      transformCapabilities:
-        definition.transformCapabilities as EquipmentDefinition["transformCapabilities"],
       lockedAspectRatio: definition.lockedAspectRatio,
       selectionBounds: definition.selectionBounds,
       selectionPaddingPx: definition.selectionPaddingPx,

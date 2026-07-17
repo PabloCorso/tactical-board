@@ -18,11 +18,6 @@ export const ladderEquipment: FootballEquipmentSpec = {
       height: LADDER_METRICS.height,
     },
     color: DEFAULT_BOARD_COLOR.black,
-    capabilities: { color: true },
-    transformCapabilities: {
-      resize: false,
-      rotate: true,
-    },
     lockedAspectRatio: true,
     selectionBounds: {
       left: -0.553,

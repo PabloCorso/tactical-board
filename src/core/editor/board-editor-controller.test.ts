@@ -982,7 +982,6 @@ describe("createBoardEditorController", () => {
         label: "Cone",
         defaultSize: { width: 1.8, height: 2.2 },
         color: "#ff6b35",
-        capabilities: { color: true },
         lockedAspectRatio: true,
       },
     ];
@@ -1045,7 +1044,7 @@ describe("createBoardEditorController", () => {
     });
   });
 
-  it("moves a selected player instead of resizing when dragging a corner", () => {
+  it("resizes a selected player by dragging a corner", () => {
     const playerTool = new PlayerTool();
     const existingPlayer = createPlayerObject({
       id: "player-1",
@@ -1113,10 +1112,11 @@ describe("createBoardEditorController", () => {
       canvasRect,
     });
 
-    const movedPlayer = store.getState().board.objects.byId[existingPlayer.id];
-    expect(movedPlayer?.position.x).toBeCloseTo(11);
-    expect(movedPlayer?.position.y).toBeCloseTo(11);
-    expect(movedPlayer?.size).toMatchObject({ width: 2, height: 2 });
+    const resizedPlayer =
+      store.getState().board.objects.byId[existingPlayer.id];
+    expect(resizedPlayer?.position.x).toBeCloseTo(10);
+    expect(resizedPlayer?.position.y).toBeCloseTo(10);
+    expect(resizedPlayer?.size).toMatchObject({ width: 4, height: 4 });
   });
 
   it("rotates a selected player by dragging the rotation handle", () => {
@@ -1128,10 +1128,6 @@ describe("createBoardEditorController", () => {
       color: "#1f6feb",
       label: "1",
     });
-    existingPlayer.props.transformCapabilities = {
-      ...existingPlayer.props.transformCapabilities,
-      rotate: true,
-    };
     const store = createBoardEditorStore({
       initialBoard: {
         id: "board-1",
@@ -1209,10 +1205,6 @@ describe("createBoardEditorController", () => {
       color: "#111827",
       label: "1",
     });
-    existingPlayer.props.transformCapabilities = {
-      ...existingPlayer.props.transformCapabilities,
-      rotate: true,
-    };
     const store = createBoardEditorStore({
       initialBoard: {
         id: "board-1",
@@ -1293,8 +1285,6 @@ describe("createBoardEditorController", () => {
           label: "Goal",
           defaultSize: { width: 6, height: 2 },
           color: "#ffffff",
-          capabilities: { color: true },
-          transformCapabilities: { resize: true, rotate: true },
           lockedAspectRatio: true,
         },
       ],
@@ -1311,8 +1301,6 @@ describe("createBoardEditorController", () => {
         label: "Goal",
         defaultSize: { width: 6, height: 2 },
         color: "#ffffff",
-        capabilities: { color: true },
-        transformCapabilities: { resize: true, rotate: true },
         lockedAspectRatio: true,
       },
     });
@@ -2078,26 +2066,8 @@ describe("createBoardEditorController", () => {
       size: { width: 2.5, height: 2.5 },
       color: "#111827",
     });
-    const firstPlayer = {
-      ...baseFirstPlayer,
-      props: {
-        ...baseFirstPlayer.props,
-        transformCapabilities: {
-          ...baseFirstPlayer.props.transformCapabilities,
-          rotate: true,
-        },
-      },
-    };
-    const secondPlayer = {
-      ...baseSecondPlayer,
-      props: {
-        ...baseSecondPlayer.props,
-        transformCapabilities: {
-          ...baseSecondPlayer.props.transformCapabilities,
-          rotate: true,
-        },
-      },
-    };
+    const firstPlayer = baseFirstPlayer;
+    const secondPlayer = baseSecondPlayer;
     const store = createBoardEditorStore({
       initialBoard: {
         id: "board-1",
@@ -2267,7 +2237,7 @@ describe("createBoardEditorController", () => {
     );
   });
 
-  it("hides group rotation when any selected object cannot rotate", () => {
+  it("allows group rotation by default", () => {
     const playerTool = new PlayerTool();
     const baseFirstPlayer = createPlayerObject({
       id: "player-1",
@@ -2283,16 +2253,7 @@ describe("createBoardEditorController", () => {
       size: { width: 2.5, height: 2.5 },
       color: "#111827",
     });
-    const firstPlayer = {
-      ...baseFirstPlayer,
-      props: {
-        ...baseFirstPlayer.props,
-        transformCapabilities: {
-          ...baseFirstPlayer.props.transformCapabilities,
-          rotate: true,
-        },
-      },
-    };
+    const firstPlayer = baseFirstPlayer;
     const store = createBoardEditorStore({
       initialBoard: {
         id: "board-1",
@@ -2325,7 +2286,7 @@ describe("createBoardEditorController", () => {
     };
 
     expect(overlay.kind).toBe("select:group-selection-ring");
-    expect(overlay.canRotate).toBe(false);
+    expect(overlay.canRotate).toBe(true);
     expect(overlay.rotation).toBeUndefined();
 
     const controller = createBoardEditorController(store);
@@ -2377,22 +2338,20 @@ describe("createBoardEditorController", () => {
       canvasRect,
     });
 
-    expect(store.getState().board.objects.byId[firstPlayer.id]).toMatchObject(
-      initialFirstPlayer,
-    );
-    expect(store.getState().board.objects.byId[secondPlayer.id]).toMatchObject(
-      initialSecondPlayer,
-    );
+    expect(
+      store.getState().board.objects.byId[firstPlayer.id]?.rotation,
+    ).not.toBe(initialFirstPlayer.rotation);
+    expect(
+      store.getState().board.objects.byId[secondPlayer.id]?.rotation,
+    ).not.toBe(initialSecondPlayer.rotation);
   });
 
-  it("rotates but does not resize ladder equipment", () => {
+  it("resizes and rotates ladder equipment by default", () => {
     const definition: EquipmentDefinition = {
       kind: "ladder",
       label: "Ladder",
       defaultSize: { width: 3.8, height: 14 },
       color: "#0f172a",
-      capabilities: { color: true },
-      transformCapabilities: { resize: false, rotate: true },
       lockedAspectRatio: true,
     };
     const equipmentTool = new EquipmentTool({
@@ -2468,12 +2427,11 @@ describe("createBoardEditorController", () => {
 
     const resizedEquipment =
       store.getState().board.objects.byId[existingEquipment.id];
-    expect(resizedEquipment?.position.x).toBeCloseTo(12);
-    expect(resizedEquipment?.position.y).toBeCloseTo(11);
-    expect(resizedEquipment).toMatchObject({
-      size: { width: 3.8, height: 14 },
-      rotation: 0,
-    });
+    expect(resizedEquipment?.position.x).toBeCloseTo(10);
+    expect(resizedEquipment?.position.y).toBeCloseTo(10);
+    expect(resizedEquipment?.size?.width).toBeGreaterThan(3.8);
+    expect(resizedEquipment?.size?.height).toBeGreaterThan(14);
+    expect(resizedEquipment?.rotation).toBe(0);
 
     const movedEquipment = store.getState().board.objects.byId[
       existingEquipment.id
@@ -2513,13 +2471,12 @@ describe("createBoardEditorController", () => {
     ).not.toBe(0);
   });
 
-  it("moves a ball instead of resizing or rotating it", () => {
+  it("resizes ball equipment by default", () => {
     const definition: EquipmentDefinition = {
       kind: "soccer-ball",
       label: "Ball",
       defaultSize: { width: 1.5, height: 1.5 },
       color: "#ffffff",
-      transformCapabilities: { resize: false, rotate: false },
       lockedAspectRatio: true,
     };
     const equipmentTool = new EquipmentTool({
@@ -2593,14 +2550,12 @@ describe("createBoardEditorController", () => {
       canvasRect,
     });
 
-    const movedEquipment =
+    const resizedEquipment =
       store.getState().board.objects.byId[existingEquipment.id];
-    expect(movedEquipment?.position.x).toBeCloseTo(12);
-    expect(movedEquipment?.position.y).toBeCloseTo(11);
-    expect(movedEquipment).toMatchObject({
-      size: { width: 1.5, height: 1.5 },
-      rotation: 0,
-    });
+    expect(resizedEquipment?.position.x).toBeCloseTo(10);
+    expect(resizedEquipment?.position.y).toBeCloseTo(10);
+    expect(resizedEquipment?.size).toMatchObject({ width: 5.5, height: 5.5 });
+    expect(resizedEquipment?.rotation).toBe(0);
   });
 
   it("renders equipment through host app adapters keyed by kind", () => {

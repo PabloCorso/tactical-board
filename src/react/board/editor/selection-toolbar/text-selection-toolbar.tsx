@@ -10,11 +10,6 @@ import {
 import { BoardEditorSelectionToolbarPositioner } from "./selection-toolbar-positioner";
 import { BoardEditorSelectionActionsMenu } from "./selection-actions-menu";
 import type { BoardEditorSelectionToolbarRendererProps } from "./selection-toolbar-types";
-import {
-  ColorPicker,
-  ColorSwatch,
-  DEFAULT_BOARD_COLORS,
-} from "../../../ui/color-picker";
 import { NumberInput } from "../../../ui/number-input";
 import { useBoardEditorLabels } from "../board-editor-labels";
 import {
@@ -23,6 +18,7 @@ import {
   BoardEditorSelectionToolbarPopoverTitle,
   BoardEditorSelectionToolbarPopoverTrigger,
 } from "./selection-toolbar-popover";
+import { BoardEditorObjectColorSelectionControl } from "./object-color-selection-control";
 
 export function BoardEditorTextSelectionToolbar({
   className,
@@ -83,25 +79,9 @@ export function BoardEditorTextSelectionToolbar({
             </BoardEditorSelectionToolbarPopoverContent>
           </BoardEditorSelectionToolbarPopover>
 
-          <BoardEditorSelectionToolbarPopover>
-            <BoardEditorSelectionToolbarPopoverTrigger
-              aria-label={labels.selectionToolbar.textColor}
-              tooltip={labels.selectionToolbar.color}
-            >
-              <ColorSwatch
-                value={selectedObject.props.color}
-                className="size-6"
-              />
-            </BoardEditorSelectionToolbarPopoverTrigger>
-            <BoardEditorSelectionToolbarPopoverContent>
-              <ColorPicker
-                value={selectedObject.props.color}
-                onChange={(value) => updateText({ color: value })}
-                chooseCustomColorLabel={labels.colorPicker.chooseCustomColor}
-                defaultColors={[...DEFAULT_BOARD_COLORS]}
-              />
-            </BoardEditorSelectionToolbarPopoverContent>
-          </BoardEditorSelectionToolbarPopover>
+          <BoardEditorObjectColorSelectionControl
+            selectedObjects={[selectedObject]}
+          />
         </BoardEditorToolbarGroup>
         <BoardEditorToolbarSeparator />
         <BoardEditorSelectionActionsMenu

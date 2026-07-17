@@ -134,6 +134,12 @@ Rendering order alone should not define interaction. Objects need separate conce
 
 This allows overlays or zones to render above players while remaining passthrough or less intrusive to selection.
 
+### Editing Defaults
+
+Persistent Objects contain editable values such as position, size, rotation, and color, not editor capability flags. Object properties and transforms are supported by default.
+
+An Object Definition may opt out of an operation only when the Object cannot technically support it. Host App or workflow restrictions belong to runtime Editor Policy. An absent restriction means the operation is allowed.
+
 ## Extensibility
 
 ### Objects

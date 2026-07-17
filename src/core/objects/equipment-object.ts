@@ -3,17 +3,6 @@ import type { BoardObject, BoardObjectSize, Point } from "../board/types";
 export const EQUIPMENT_OBJECT_TYPE = "equipment";
 const MIN_EQUIPMENT_DIMENSION = 0.25;
 
-export interface EquipmentCapabilities {
-  color?: boolean;
-  label?: boolean;
-}
-
-export interface EquipmentTransformCapabilities {
-  move?: boolean;
-  resize?: boolean;
-  rotate?: boolean;
-}
-
 export interface EquipmentSelectionBounds {
   left: number;
   top: number;
@@ -25,8 +14,6 @@ export interface EquipmentDefinitionSnapshot {
   kind: string;
   label: string;
   color?: string;
-  capabilities?: EquipmentCapabilities;
-  transformCapabilities?: EquipmentTransformCapabilities;
   lockedAspectRatio?: boolean;
   selectionBounds?: EquipmentSelectionBounds;
   selectionPaddingPx?: number;

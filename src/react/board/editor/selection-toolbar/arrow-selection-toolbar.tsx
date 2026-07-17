@@ -21,11 +21,6 @@ import {
 } from "../toolbar/editor-toolbar";
 import { BoardEditorSelectionToolbarPositioner } from "./selection-toolbar-positioner";
 import type { BoardEditorSelectionToolbarRendererProps } from "./selection-toolbar-types";
-import {
-  ColorPicker,
-  ColorSwatch,
-  DEFAULT_BOARD_COLORS,
-} from "../../../ui/color-picker";
 import type { IconRender } from "../../../ui/icon";
 import { LineStyleIcon } from "./line-style-icon";
 import {
@@ -37,6 +32,7 @@ import {
   BoardEditorSelectionToolbarPopoverContent,
   BoardEditorSelectionToolbarPopoverTrigger,
 } from "./selection-toolbar-popover";
+import { BoardEditorObjectColorSelectionControl } from "./object-color-selection-control";
 
 const BODY_STYLE_OPTIONS: Array<{
   value: ArrowKind;
@@ -245,27 +241,6 @@ function ArrowLinePopoverContent({
   );
 }
 
-type ArrowColorPopoverContentProps = {
-  color: string;
-  labels: BoardEditorLabels;
-  onSelect: (value: string) => void;
-};
-
-function ArrowColorPopoverContent({
-  color,
-  labels,
-  onSelect,
-}: ArrowColorPopoverContentProps) {
-  return (
-    <ColorPicker
-      value={color}
-      onChange={onSelect}
-      chooseCustomColorLabel={labels.colorPicker.chooseCustomColor}
-      defaultColors={[...DEFAULT_BOARD_COLORS]}
-    />
-  );
-}
-
 export function BoardEditorArrowSelectionToolbar({
   className,
   selectedObject,
@@ -386,24 +361,9 @@ export function BoardEditorArrowSelectionToolbar({
             </BoardEditorSelectionToolbarPopoverContent>
           </BoardEditorSelectionToolbarPopover>
 
-          <BoardEditorSelectionToolbarPopover>
-            <BoardEditorSelectionToolbarPopoverTrigger
-              aria-label={labels.selectionToolbar.arrowColor}
-              tooltip={labels.selectionToolbar.color}
-            >
-              <ColorSwatch
-                value={selectedObject.props.color}
-                className="size-6"
-              />
-            </BoardEditorSelectionToolbarPopoverTrigger>
-            <BoardEditorSelectionToolbarPopoverContent>
-              <ArrowColorPopoverContent
-                color={selectedObject.props.color}
-                labels={labels}
-                onSelect={(value) => updateArrowProps({ color: value })}
-              />
-            </BoardEditorSelectionToolbarPopoverContent>
-          </BoardEditorSelectionToolbarPopover>
+          <BoardEditorObjectColorSelectionControl
+            selectedObjects={[selectedObject]}
+          />
         </BoardEditorToolbarGroup>
 
         <BoardEditorToolbarSeparator />

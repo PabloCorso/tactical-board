@@ -28,10 +28,6 @@ const EQUIPMENT_ROTATE_HANDLE_HIT_RADIUS_PX = 18;
 const ROTATE_HANDLE_CORNER_INDEX = 3;
 const ROTATE_HANDLE_CORNER_OFFSET_PX = 18;
 
-function getEquipmentTransformCapabilities(equipment: EquipmentObject) {
-  return getEquipmentDefinition(equipment)?.transformCapabilities;
-}
-
 type EquipmentSelectionSession = ObjectSelectionSession & {
   kind: "resize" | "rotate";
   handle?: "top-left" | "top-right" | "bottom-right" | "bottom-left";
@@ -62,7 +58,6 @@ export const equipmentSelectionAdapter: ObjectSelectionAdapter<
   EquipmentObject,
   EquipmentSelectionSession
 > = {
-  getTransformCapabilities: getEquipmentTransformCapabilities,
   getCanvasBounds: ({ object, projection }) =>
     getBoundsFromCanvasPoints(
       getEquipmentSelectionOutlineCanvasPoints(projection, object),
@@ -78,8 +73,6 @@ export const equipmentSelectionAdapter: ObjectSelectionAdapter<
       projection,
       object,
     );
-    const transformCapabilities = getEquipmentTransformCapabilities(object);
-
     context.save();
     context.strokeStyle = color;
     context.lineWidth = 1.5;
@@ -88,27 +81,23 @@ export const equipmentSelectionAdapter: ObjectSelectionAdapter<
     context.stroke();
 
     if (showControls && !object.locked) {
-      if (transformCapabilities?.resize !== false) {
-        for (const handlePoint of outlinePoints) {
-          drawRoundedSquareHandle(
-            context,
-            handlePoint,
-            EQUIPMENT_RESIZE_HANDLE_RADIUS_PX,
-            2,
-          );
-          context.fill();
-          context.stroke();
-        }
+      for (const handlePoint of outlinePoints) {
+        drawRoundedSquareHandle(
+          context,
+          handlePoint,
+          EQUIPMENT_RESIZE_HANDLE_RADIUS_PX,
+          2,
+        );
+        context.fill();
+        context.stroke();
       }
 
-      if (transformCapabilities?.rotate !== false) {
-        renderRotateHandleIcon(
-          context,
-          getEquipmentRotateHandleCanvasPoint(projection, object),
-          EQUIPMENT_ROTATE_HANDLE_RADIUS_PX,
-          object.rotation,
-        );
-      }
+      renderRotateHandleIcon(
+        context,
+        getEquipmentRotateHandleCanvasPoint(projection, object),
+        EQUIPMENT_ROTATE_HANDLE_RADIUS_PX,
+        object.rotation,
+      );
     }
 
     context.restore();
@@ -118,45 +107,38 @@ export const equipmentSelectionAdapter: ObjectSelectionAdapter<
       return undefined;
     }
 
-    const transformCapabilities = getEquipmentTransformCapabilities(object);
     const canvasPoint = projection.boardToCanvas(event.point);
-    if (transformCapabilities?.resize !== false) {
-      const handlePoints = getEquipmentSelectionOutlineCanvasPoints(
-        projection,
-        object,
+    const handlePoints = getEquipmentSelectionOutlineCanvasPoints(
+      projection,
+      object,
+    );
+
+    for (const [index, handleCanvasPoint] of handlePoints.entries()) {
+      const distance = Math.hypot(
+        canvasPoint.x - handleCanvasPoint.x,
+        canvasPoint.y - handleCanvasPoint.y,
       );
 
-      for (const [index, handleCanvasPoint] of handlePoints.entries()) {
-        const distance = Math.hypot(
-          canvasPoint.x - handleCanvasPoint.x,
-          canvasPoint.y - handleCanvasPoint.y,
-        );
-
-        if (distance <= EQUIPMENT_RESIZE_HANDLE_HIT_RADIUS_PX) {
-          return {
-            kind: "resize",
-            handle:
-              index === 0
-                ? "top-left"
-                : index === 1
-                  ? "top-right"
-                  : index === 2
-                    ? "bottom-right"
-                    : "bottom-left",
-            center: object.position,
-            initialSize: {
-              width: object.size?.width ?? 0,
-              height: object.size?.height ?? 0,
-            },
-            lockedAspectRatio:
-              getEquipmentDefinition(object)?.lockedAspectRatio !== false,
-          };
-        }
+      if (distance <= EQUIPMENT_RESIZE_HANDLE_HIT_RADIUS_PX) {
+        return {
+          kind: "resize",
+          handle:
+            index === 0
+              ? "top-left"
+              : index === 1
+                ? "top-right"
+                : index === 2
+                  ? "bottom-right"
+                  : "bottom-left",
+          center: object.position,
+          initialSize: {
+            width: object.size?.width ?? 0,
+            height: object.size?.height ?? 0,
+          },
+          lockedAspectRatio:
+            getEquipmentDefinition(object)?.lockedAspectRatio !== false,
+        };
       }
-    }
-
-    if (transformCapabilities?.rotate === false) {
-      return undefined;
     }
 
     const rotateHandle = getEquipmentRotateHandleCanvasPoint(
@@ -223,11 +205,10 @@ export const equipmentSelectionAdapter: ObjectSelectionAdapter<
       projection,
       object,
     );
-    const transformCapabilities = getEquipmentTransformCapabilities(object);
-    const rotateHandlePoint =
-      transformCapabilities?.rotate === false
-        ? undefined
-        : getEquipmentRotateHandleCanvasPoint(projection, object);
+    const rotateHandlePoint = getEquipmentRotateHandleCanvasPoint(
+      projection,
+      object,
+    );
 
     return getSelectionToolbarAnchorFromSelectionChrome({
       left: projection.boardToCanvas(object.position).x,

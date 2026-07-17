@@ -11,18 +11,6 @@ export const PLAYER_OBJECT_TYPE = "player";
 export const DEFAULT_PLAYER_SIZE = 8 * 2.75;
 export const DEFAULT_PLAYER_FONT_SIZE = 12;
 export const DEFAULT_PLAYER_COLOR = DEFAULT_BOARD_COLOR.black;
-export const DEFAULT_PLAYER_TRANSFORM_CAPABILITIES = {
-  move: true,
-  resize: false,
-  rotate: false,
-} as const;
-
-export interface PlayerTransformCapabilities {
-  move?: boolean;
-  resize?: boolean;
-  rotate?: boolean;
-}
-
 export interface PlayerObjectProps extends Record<string, unknown> {
   groupId?: string;
   label?: string;
@@ -35,7 +23,6 @@ export interface PlayerObjectProps extends Record<string, unknown> {
   asset?: Asset;
   caption?: PlayerCaption;
   meta?: Record<string, unknown>;
-  transformCapabilities: PlayerTransformCapabilities;
 }
 
 export type PlayerObject = BoardObject & {
@@ -110,9 +97,6 @@ function getCanonicalPlayerProps(input: PlayerCoreInput): PlayerObjectProps {
         }
       : undefined,
     meta: input.meta ? { ...input.meta } : undefined,
-    transformCapabilities: {
-      ...DEFAULT_PLAYER_TRANSFORM_CAPABILITIES,
-    },
   };
 }
 

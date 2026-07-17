@@ -34,11 +34,6 @@ export const poleEquipment: FootballEquipmentSpec = {
       height: 28,
     },
     color: POLE_COLOR,
-    capabilities: { color: true },
-    transformCapabilities: {
-      resize: false,
-      rotate: true,
-    },
     lockedAspectRatio: true,
     selectionBounds: POLE_SELECTION_BOUNDS,
   },

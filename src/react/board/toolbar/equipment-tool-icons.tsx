@@ -22,9 +22,7 @@ export function BoardEquipmentDefinitionIcon({
   className?: string;
   size?: number;
 }) {
-  const iconColor = definition.capabilities?.color
-    ? getThemeAwareToolIconColor(definition.color)
-    : definition.color;
+  const iconColor = getThemeAwareToolIconColor(definition.color);
   const equipment = useMemo(
     () =>
       createEquipmentObject({

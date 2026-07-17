@@ -265,11 +265,6 @@ export const goalEquipment: FootballEquipmentSpec = {
     label: "Goal",
     defaultSize: { width: GOAL_METRICS.width, height: GOAL_METRICS.height },
     color: DEFAULT_BOARD_COLOR.white,
-    capabilities: { color: true },
-    transformCapabilities: {
-      resize: true,
-      rotate: true,
-    },
     lockedAspectRatio: true,
     selectionBounds: {
       left: -0.5,

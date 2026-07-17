@@ -36,11 +36,6 @@ export const mannequinEquipment: FootballEquipmentSpec = {
       height: DEFAULT_MANNEQUIN_HEIGHT,
     },
     color: DEFAULT_BOARD_COLOR.yellow,
-    capabilities: { color: true },
-    transformCapabilities: {
-      resize: false,
-      rotate: true,
-    },
     lockedAspectRatio: true,
   },
   renderer: ({ context, color, height }) => {

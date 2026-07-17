@@ -56,11 +56,6 @@ export const discConeEquipment: FootballEquipmentSpec = {
     label: "Disc Cone",
     defaultSize: { width: 14, height: 14 },
     color: "#ffc857",
-    capabilities: { color: true },
-    transformCapabilities: {
-      resize: false,
-      rotate: false,
-    },
     lockedAspectRatio: true,
     minimumHitRadiusPx: 0,
     hitTestShape: "circle",

@@ -112,11 +112,6 @@ export const coneEquipment: FootballEquipmentSpec = {
     label: "Cone",
     defaultSize: { width: 14, height: 16 },
     color: DEFAULT_BOARD_COLOR.red,
-    capabilities: { color: true },
-    transformCapabilities: {
-      resize: false,
-      rotate: false,
-    },
     lockedAspectRatio: true,
     minimumHitRadiusPx: 0,
     selectionBounds: {

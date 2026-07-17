@@ -31,8 +31,6 @@ export const footballTheme = {
     defaultProps: {
       color: definition.color,
     },
-    capabilities: definition.capabilities,
-    transformCapabilities: definition.transformCapabilities,
     lockedAspectRatio: definition.lockedAspectRatio,
     selectionBounds: definition.selectionBounds,
     selectionPaddingPx: definition.selectionPaddingPx,

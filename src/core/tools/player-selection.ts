@@ -1,6 +1,5 @@
 import colors from "tailwindcss/colors";
 import {
-  DEFAULT_PLAYER_TRANSFORM_CAPABILITIES,
   resizePlayerObject,
   rotatePlayerObject,
   PLAYER_OBJECT_TYPE,
@@ -34,13 +33,6 @@ const PLAYER_ROTATE_HANDLE_RADIUS_PX = 11;
 const PLAYER_ROTATE_HANDLE_HIT_RADIUS_PX = 18;
 const ROTATE_HANDLE_CORNER_INDEX = 3;
 const ROTATE_HANDLE_CORNER_OFFSET_PX = 18;
-
-function getPlayerTransformCapabilities(player: PlayerObject) {
-  return {
-    ...DEFAULT_PLAYER_TRANSFORM_CAPABILITIES,
-    ...player.props.transformCapabilities,
-  };
-}
 
 type PlayerSelectionSession = ObjectSelectionSession & {
   kind: "resize" | "rotate";
@@ -112,7 +104,6 @@ export const playerSelectionAdapter: ObjectSelectionAdapter<
   PlayerObject,
   PlayerSelectionSession
 > = {
-  getTransformCapabilities: getPlayerTransformCapabilities,
   getCanvasBounds: ({ object, projection }) =>
     getBoundsFromCanvasPoints(
       getPlayerSelectionOutlineCanvasPoints(projection, object),
@@ -128,8 +119,6 @@ export const playerSelectionAdapter: ObjectSelectionAdapter<
       projection,
       object,
     );
-    const transformCapabilities = getPlayerTransformCapabilities(object);
-
     context.save();
     context.strokeStyle = color;
     context.lineWidth = 1.5;
@@ -138,27 +127,23 @@ export const playerSelectionAdapter: ObjectSelectionAdapter<
     context.stroke();
 
     if (showControls && !object.locked) {
-      if (transformCapabilities.resize !== false) {
-        for (const handlePoint of outlinePoints) {
-          drawRoundedSquareHandle(
-            context,
-            handlePoint,
-            PLAYER_RESIZE_HANDLE_RADIUS_PX,
-            2,
-          );
-          context.fill();
-          context.stroke();
-        }
+      for (const handlePoint of outlinePoints) {
+        drawRoundedSquareHandle(
+          context,
+          handlePoint,
+          PLAYER_RESIZE_HANDLE_RADIUS_PX,
+          2,
+        );
+        context.fill();
+        context.stroke();
       }
 
-      if (transformCapabilities.rotate !== false) {
-        renderRotateHandleIcon(
-          context,
-          getPlayerRotateHandleCanvasPoint(projection, object),
-          PLAYER_ROTATE_HANDLE_RADIUS_PX,
-          object.rotation,
-        );
-      }
+      renderRotateHandleIcon(
+        context,
+        getPlayerRotateHandleCanvasPoint(projection, object),
+        PLAYER_ROTATE_HANDLE_RADIUS_PX,
+        object.rotation,
+      );
     }
 
     context.restore();
@@ -168,39 +153,32 @@ export const playerSelectionAdapter: ObjectSelectionAdapter<
       return undefined;
     }
 
-    const transformCapabilities = getPlayerTransformCapabilities(object);
     const canvasPoint = projection.boardToCanvas(event.point);
-    if (transformCapabilities.resize !== false) {
-      const handlePoints = getPlayerSelectionOutlineCanvasPoints(
-        projection,
-        object,
+    const handlePoints = getPlayerSelectionOutlineCanvasPoints(
+      projection,
+      object,
+    );
+
+    for (const [index, handleCanvasPoint] of handlePoints.entries()) {
+      const distance = Math.hypot(
+        canvasPoint.x - handleCanvasPoint.x,
+        canvasPoint.y - handleCanvasPoint.y,
       );
 
-      for (const [index, handleCanvasPoint] of handlePoints.entries()) {
-        const distance = Math.hypot(
-          canvasPoint.x - handleCanvasPoint.x,
-          canvasPoint.y - handleCanvasPoint.y,
-        );
-
-        if (distance <= PLAYER_RESIZE_HANDLE_HIT_RADIUS_PX) {
-          return {
-            kind: "resize",
-            handle:
-              index === 0
-                ? "top-left"
-                : index === 1
-                  ? "top-right"
-                  : index === 2
-                    ? "bottom-right"
-                    : "bottom-left",
-            center: object.position,
-          };
-        }
+      if (distance <= PLAYER_RESIZE_HANDLE_HIT_RADIUS_PX) {
+        return {
+          kind: "resize",
+          handle:
+            index === 0
+              ? "top-left"
+              : index === 1
+                ? "top-right"
+                : index === 2
+                  ? "bottom-right"
+                  : "bottom-left",
+          center: object.position,
+        };
       }
-    }
-
-    if (transformCapabilities.rotate === false) {
-      return undefined;
     }
 
     const rotateHandle = getPlayerRotateHandleCanvasPoint(projection, object);
@@ -249,11 +227,10 @@ export const playerSelectionAdapter: ObjectSelectionAdapter<
       projection,
       object,
     );
-    const transformCapabilities = getPlayerTransformCapabilities(object);
-    const rotateHandlePoint =
-      transformCapabilities.rotate === false
-        ? undefined
-        : getPlayerRotateHandleCanvasPoint(projection, object);
+    const rotateHandlePoint = getPlayerRotateHandleCanvasPoint(
+      projection,
+      object,
+    );
 
     return getSelectionToolbarAnchorFromSelectionChrome({
       left: projection.boardToCanvas(object.position).x,

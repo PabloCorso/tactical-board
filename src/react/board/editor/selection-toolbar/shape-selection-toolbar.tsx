@@ -18,11 +18,6 @@ import {
 } from "../toolbar/editor-toolbar";
 import { BoardEditorSelectionToolbarPositioner } from "./selection-toolbar-positioner";
 import type { BoardEditorSelectionToolbarRendererProps } from "./selection-toolbar-types";
-import {
-  ColorPicker,
-  ColorSwatch,
-  DEFAULT_BOARD_COLORS,
-} from "../../../ui/color-picker";
 import { LineStyleIcon } from "./line-style-icon";
 import {
   useBoardEditorLabels,
@@ -33,6 +28,7 @@ import {
   BoardEditorSelectionToolbarPopoverContent,
   BoardEditorSelectionToolbarPopoverTrigger,
 } from "./selection-toolbar-popover";
+import { BoardEditorObjectColorSelectionControl } from "./object-color-selection-control";
 
 const BORDER_STYLE_OPTIONS = [
   { value: "none" },
@@ -258,25 +254,9 @@ export function BoardEditorShapeSelectionToolbar({
         controlSize="sm"
       >
         <BoardEditorToolbarGroup>
-          <BoardEditorSelectionToolbarPopover>
-            <BoardEditorSelectionToolbarPopoverTrigger
-              aria-label={labels.selectionToolbar.shapeColor}
-              tooltip={labels.selectionToolbar.color}
-            >
-              <ColorSwatch
-                value={selectedObject.props.color}
-                className="size-6"
-              />
-            </BoardEditorSelectionToolbarPopoverTrigger>
-            <BoardEditorSelectionToolbarPopoverContent>
-              <ColorPicker
-                value={selectedObject.props.color}
-                onChange={(value) => updateShapeProps({ color: value })}
-                chooseCustomColorLabel={labels.colorPicker.chooseCustomColor}
-                defaultColors={[...DEFAULT_BOARD_COLORS]}
-              />
-            </BoardEditorSelectionToolbarPopoverContent>
-          </BoardEditorSelectionToolbarPopover>
+          <BoardEditorObjectColorSelectionControl
+            selectedObjects={[selectedObject]}
+          />
 
           <BoardEditorSelectionToolbarPopover>
             <BoardEditorSelectionToolbarPopoverTrigger

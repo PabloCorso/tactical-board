@@ -32,10 +32,7 @@ import { getSelectToolState } from "../../../../core/tools/select-tool-state";
 import { SELECTION_TOOLBAR_OFFSET_PX } from "../../../../core/tools/selection-geometry";
 import { useBoardEditorStore } from "../../../adapter/editor/use-board-editor-store";
 import { BoardEditorArrowSelectionToolbar } from "./arrow-selection-toolbar";
-import {
-  BoardEditorEquipmentSelectionControls,
-  BoardEditorEquipmentSelectionToolbar,
-} from "./equipment-selection-toolbar";
+import { BoardEditorEquipmentSelectionToolbar } from "./equipment-selection-toolbar";
 import { BoardEditorPlayerSelectionToolbar } from "./player-selection-toolbar";
 import { PlayerTeamSelectionControl } from "./player-team-selection-control";
 import { movePlayersToGroup } from "../../team/player-team-commands";
@@ -51,6 +48,8 @@ import {
 } from "../toolbar/editor-toolbar";
 import type { BoardTheme, BoardThemeAdapters } from "../../theme/board-theme";
 import { useBoardEditorLabels } from "../board-editor-labels";
+import { BoardEditorObjectColorSelectionControl } from "./object-color-selection-control";
+import { getObjectColorSelectionState } from "../../../../core/objects/object-properties";
 
 const DEFAULT_SELECTION_TOOLBAR_RENDERERS: Record<
   string,
@@ -227,6 +226,10 @@ export function BoardEditorSelectionToolbar({
     const commonGroupId =
       selectedGroupIds.size === 1 ? [...selectedGroupIds][0] : undefined;
     const hasMixedGroups = selectedGroupIds.size > 1;
+    const selectionColor = getObjectColorSelectionState(
+      state.board,
+      selectedObjects,
+    );
 
     if (!anchor || !bounds) {
       return null;
@@ -268,10 +271,13 @@ export function BoardEditorSelectionToolbar({
               <BoardEditorToolbarSeparator />
             </>
           ) : null}
-          {selectedEquipment ? (
-            <BoardEditorEquipmentSelectionControls
-              selectedObjects={selectedEquipment}
-            />
+          {selectionColor ? (
+            <>
+              <BoardEditorObjectColorSelectionControl
+                selectedObjects={selectedObjects}
+              />
+              <BoardEditorToolbarSeparator />
+            </>
           ) : null}
           <BoardEditorSelectionActionsMenu
             selectedObjectIds={selectedObjects.map((object) => object.id)}
