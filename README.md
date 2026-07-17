@@ -18,7 +18,7 @@ own board experience.
 
 The repository is scaffolded around a simple layered architecture.
 
-- `src/core`: the framework-independent Editor Engine. It owns Document/Shape state, editor operations, tool contracts, geometry contracts, selection, history, and serialization entrypoints.
+- `src/core`: the framework-independent Editor Engine. It owns Document/Object state, editor operations, tool contracts, geometry contracts, selection, history, and serialization entrypoints.
 - `src/rendering/canvas`: the Canvas Renderer. It paints Document or Board state and transient overlays to HTML canvas.
 - `src/react/adapter`: the React Adapter. It wires DOM input and subscriptions without owning canonical Document state.
 - `src/react/board`: shared Board Editor UI, Theme composition, toolbar, renderer, and Tool registration modules.

@@ -6,20 +6,12 @@
 - Build a generic visual Editor Engine that can support board editors without becoming football-specific.
 - Support high-quality coach workflows in board and sport-specific layers.
 - Support both interactive editing and read-only rendering from the same Document data.
-- Preserve room for future custom shape types, backgrounds, skins, and tools without designing a large framework upfront.
+- Preserve room for future custom Object types, backgrounds, skins, and tools without designing a large framework upfront.
 - Optimize for HTML canvas rendering instead of abstracting equally over Canvas, SVG, and WebGL.
 
-## Core Concepts
+## Domain Language
 
-- **Document** is the generic persistent editable content.
-- **Shape** is a placed entity inside a Document.
-- **Board** is a bounded visual planning canvas built as a specialization of a Document.
-- **Board Editor** is a board-specific editor layer built on top of the generic Editor Engine.
-- **Board Renderer** displays a Board in read-only contexts such as previews, thumbnails, and export flows.
-- **Editor Engine** is framework-independent and owns Document state, editing operations, shape dispatch, geometry contracts, selection, history, and serialization boundaries.
-- **Editor Store** is the framework-independent store boundary for editing state and actions.
-- **Canvas Renderer** paints Document or Board state and transient overlays to HTML canvas.
-- **React Adapter** hosts subscriptions, DOM input wiring, and editor UI, but does not own canonical Document state.
+[CONTEXT.md](./CONTEXT.md) is the canonical glossary for this architecture. This document uses that language to describe responsibilities and boundaries without redefining it.
 
 ## Boundaries
 
@@ -30,7 +22,7 @@ Owns:
 - Document and schema-facing types
 - framework-independent editor store
 - editor operations
-- shape definitions
+- Object Definitions
 - tool contracts
 - geometry and hit-testing contracts
 - selection and history state
@@ -52,7 +44,7 @@ Owns:
 - canvas draw loop
 - viewport-to-pixel mapping
 - document background and frame drawing
-- shape render hooks
+- Object render hooks
 - transient overlays
 
 Does not own:
@@ -95,13 +87,13 @@ Does not own:
 Own:
 
 - board-specific Frames
-- board-specific Shapes such as Player Tokens and equipment
+- board-specific Objects such as Players and equipment
 - board or sport-specific presets, dimensions, and coach-facing UI
 - Football as the first consumer-ready React board package
 
 React-facing Board modules live under `src/react/board`. The sport adapters live under `src/react/sports`: football and basketball own sport-specific board creation, tools, equipment, icons, and editor composition. The football adapter is not disposable demo code; it remains the first consumer package that pressure-tests the shared Board Editor modules.
 
-The current `src/core/board` directory is a compatibility namespace for Board-facing types and helpers during the incremental migration from Board/Object vocabulary to Document/Shape vocabulary. It is not a fully extracted shared Board Library layer. New shared Board Library code should appear only when a concrete boundary exists outside the football package.
+The current `src/core/board` directory is a compatibility namespace for Board-facing types and helpers during the incremental migration from Board/BoardObject vocabulary to Document/Object vocabulary. It is not a fully extracted shared Board Library layer. New shared Board Library code should appear only when a concrete boundary exists outside the football package.
 
 ## Data Model
 
@@ -111,7 +103,7 @@ Persist only Document data:
 
 - document id and metadata
 - document background or board frame config
-- shapes
+- Objects
 - explicit ordering
 - document-level style/theme references
 
@@ -123,18 +115,18 @@ Do not persist editor UI state such as:
 - temporary drags
 - zoom/pan session state
 
-### Internal Shape Storage
+### Internal Object Storage
 
-Inside the Editor Engine, shapes should be stored canonically as:
+Inside the Editor Engine, Objects should be stored canonically as:
 
-- `byId: Record<ShapeId, Shape>`
-- `order: ShapeId[]`
+- `byId: Record<ObjectId, Object>`
+- `order: ObjectId[]`
 
 This keeps lookup/update operations simple while preserving explicit ordering.
 
 ### Layering and Interaction
 
-Rendering order alone should not define interaction. Shapes need separate concepts for:
+Rendering order alone should not define interaction. Objects need separate concepts for:
 
 - visual order
 - hit-test behavior
@@ -144,16 +136,16 @@ This allows overlays or zones to render above players while remaining passthroug
 
 ## Extensibility
 
-### Shapes
+### Objects
 
-Shapes are type-based. Each type has a **Shape Definition** with:
+Objects are type-based. Each type has an **Object Definition** with:
 
 - default props
 - geometry/bounds behavior
 - hit-testing behavior
 - render hook
 
-Player tokens are board-specific Shapes. Skins such as dots, numbered circles, shirts, or stylized players are visual concerns, not separate persistent shape semantics.
+Players are board-specific Objects. Skins such as dots, numbered circles, shirts, or stylized players are visual concerns, not separate persistent Object semantics.
 
 ### Tools
 
@@ -191,7 +183,7 @@ The generic core may later own a lower-level Timeline and Frame model. Board Seq
 - The library can expose parse/serialize helpers and runtime validation at the boundary.
 - Runtime validation is still useful even with TypeScript because persisted JSON is untrusted input.
 
-## Delivery Shape
+## Delivery Structure
 
 Start as one package with strict internal boundaries:
 
@@ -207,4 +199,4 @@ src/
     football/  # current first pressure-test application
 ```
 
-This keeps the repo simple while allowing clean future extraction into separate packages if the boundaries prove stable. The current code may still use Board names while the migration proceeds incrementally; new architectural work should follow the Document/Shape/Editor vocabulary.
+This keeps the repo simple while allowing clean future extraction into separate packages if the boundaries prove stable. The current code still contains legacy `Shape*` names for generic Objects while the migration proceeds incrementally; new architectural work should follow the Document/Object/Editor vocabulary.

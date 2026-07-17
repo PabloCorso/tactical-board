@@ -27,13 +27,14 @@
 - **Player Appearance Option**: A serializable configuration value for a Player Appearance that is neither its identity, colors, nor media asset.
 - **Player Appearance Catalog**: A Theme- or Host App-provided collection of available Player Appearances and their configuration metadata.
 - **Preset**: A reusable shortcut that creates or applies a preconfigured Board state, object, or style from one or more Definitions.
-- **Document Schema**: The explicit serialized JSON shape for a Document. The Editor Engine may offer validation helpers, while migration policy and persistence handling remain Host App responsibilities.
+- **Document Schema**: The explicit serialized JSON structure for a Document. The Editor Engine may offer validation helpers, while migration policy and persistence handling remain Host App responsibilities.
 - **Board Schema**: A board-specific profile of the Document Schema for tactical-board content.
 - **Board Editor**: A board-specific editor layer built on top of the generic Editor Engine.
-- **Shape**: A placed entity in a Document with shared editing behavior such as selection, movement, layering, and serialization.
-- **Board Object**: A board-specific Shape with planning-board meaning.
+- **Object**: A placed entity in a Document with shared editing behavior such as selection, movement, layering, and serialization.
+- **Shape**: An Object representing a geometric figure such as a rectangle, ellipse, or polygon.
+- **Board Object**: A board-specific Object with planning-board meaning.
 - **Board Renderer**: The non-editing rendering capability used to display a Board in read-only contexts such as thumbnails, lists, previews, and exports.
-- **Shape Definition**: The per-type definition that supplies shape-specific behavior such as default properties, geometry, hit-testing, bounds, and render hooks while the Canvas Renderer retains ownership of the draw loop and viewport concerns.
+- **Object Definition**: The per-type definition that supplies Object-specific behavior such as default properties, geometry, hit-testing, bounds, and render hooks while the Canvas Renderer retains ownership of the draw loop and viewport concerns.
 - **Editor Store**: The framework-independent source of truth for editing state and operations. React subscribes to the Editor Store rather than owning editing state directly.
 - **Editor Engine**: The framework-independent core that defines Document state, editing operations, geometry contracts, object dispatch, and serialization rules. The Editor Engine does not own React UI concerns or canvas drawing details.
 - **React Adapter**: The React integration layer that subscribes to the Editor Store, wires DOM input to Tools, and renders editor UI without owning canonical Document state.
@@ -43,31 +44,32 @@
 - **Board Library**: The reusable board editor library developed in this repository. It must be embeddable across multiple Host Apps while supporting sport-specific workflows such as tactics, game plans, and practice drills.
 - **Canvas Renderer**: The rendering layer that paints Document or Board state to HTML canvas for editing and read-only display. It consumes Editor Engine data rather than defining editing rules itself.
 - **Tool**: An interaction module that interprets user input and invokes Editor Engine operations. Tools may own temporary interaction state, but persistent Document mutations belong to the Editor Engine rather than the Tool itself.
+- **Shape Tool**: The Standard Tool used to create and edit Shapes.
 - **Standard Tool**: A reusable generic Tool, such as Select, Hand, Shape, Arrow, or Text, that is provided outside the Editor Engine and registered by an editor instance.
 - **Default Tool**: The configured fallback Tool for an editor instance. The Editor Engine stores the default tool id but does not know which Tool, such as Select, fills that role.
 - **React UI Copy**: User-facing labels, aria labels, tooltips, and menu text owned by the React Adapter rather than by the Editor Engine, Tool registrations, Theme data, or Host App data.
-- **Selection**: The editor-session set of Shapes currently targeted for editing. Tools may change Selection or decide how to present it, but Selection is not owned by any specific Tool.
-- **Smart Guides**: Temporary editor-session assistance that helps a user place, align, size, or constrain Shapes while interacting with a Document.
+- **Selection**: The editor-session set of Objects currently targeted for editing. Tools may change Selection or decide how to present it, but Selection is not owned by any specific Tool.
+- **Smart Guides**: Temporary editor-session assistance that helps a user place, align, size, or constrain Objects while interacting with a Document.
 - **Guide**: A visual hint shown for a possible or active Smart Guides target, distinct from a persistent visual grid.
-- **Guide Target**: A Shape, Board Frame boundary, or Theme-provided Board Frame marking that Smart Guides may use for placement assistance.
+- **Guide Target**: An Object, Board Frame boundary, or Theme-provided Board Frame marking that Smart Guides may use for placement assistance.
 - **Snap**: The adjustment of an in-progress interaction to a nearby Guide target.
 - **Selection Bounds**: The aggregate bounds of the current Selection when it is treated as one editable unit.
-- **Shape Skin**: A visual representation of a Shape that can change without changing the shape's meaning or serialized identity.
+- **Object Skin**: A visual representation of an Object that can change without changing the Object's meaning or serialized identity.
 - **Player**: A Board Object representing a player or participant on a Board; in the board layer, a Player is an object kind rather than a separate domain aggregate.
-- **Player Appearance**: A player-specific Shape Skin that controls how Players are visually represented, such as a circle, kit, patterned marker, pixel-art figure, or custom media.
+- **Player Appearance**: A player-specific Object Skin that controls how Players are visually represented, such as a circle, kit, patterned marker, pixel-art figure, or custom media.
 - **Player Appearance Color**: A named color role used by a Player Appearance, where built-in and custom appearances decide which roles they understand.
 - **Player Appearance Option**: A serializable configuration value for a Player Appearance that is neither its identity, colors, nor media asset.
 - **Player Appearance Catalog**: A Theme- or Host App-provided collection of available Player Appearances and their configuration metadata.
 - **Player Marker Label**: A short label rendered as part of a Player's marker or appearance, typically a number or compact role abbreviation.
 - **Player Caption**: Longer text associated with a Player and positioned around the player marker, typically used for names or readable role notes.
 - **Equipment Object**: A Board Object representing placeable training or game equipment whose name and visual appearance may be extended by a Theme or Host App.
-- **Shape Index**: The canonical internal storage shape for Shapes inside the Editor Engine: a map keyed by shape id plus a separate ordering list.
+- **Object Index**: The canonical internal storage structure for Objects inside the Editor Engine: a map keyed by Object id plus a separate ordering list.
 - **Export Primitive**: A low-level Board Library capability that turns Board data into a portable representation, such as serialized JSON or a rendered image, without deciding where the result is stored or shared.
 - **Share Workflow**: A Host App workflow that chooses product-specific sharing behavior such as uploads, short links, deep links, native share sheets, WhatsApp links, permissions, analytics, or server-side rendering.
 
 ## Relationships
 
-- **Smart Guides** treat a multi-Shape **Selection** through its **Selection Bounds** and exclude Shapes inside that Selection from the active set of **Guide Targets**.
+- **Smart Guides** treat a multi-Object **Selection** through its **Selection Bounds** and exclude Objects inside that Selection from the active set of **Guide Targets**.
 - The **Board Library** may provide reusable **Export Primitives**, while **Share Workflows** belong to the **Host App** because storage, privacy, URLs, channels, and analytics are product-specific.
 - A **Host App** may compose custom save, export, or share controls with Board Library toolbar primitives instead of using a prescribed Board Library toolbar.
 - **React UI Copy** is localized through the React Adapter labels provider only when the copy is owned by React UI. Labels carried by **Tool** registrations, **Theme** definitions, frame variant options, equipment definitions, or Host App-provided presets remain owned by that data and should not be overwritten by the provider.
@@ -97,11 +99,3 @@
 - New grouped football-style boards should start with two Player Group Presets by default, each seeded from the first available colors in the shared color-order list used by the Color Picker.
 - Adding a Player Group Preset in v1 uses the next unused color from that same color-order list.
 - When all preset colors are already in use, new Player Group Presets fall back to the next color in the shared color-order sequence (wrapping as needed).
-
-## Testing Policy
-
-Tests should protect important behavior at meaningful module interfaces, not document every helper, constant, catalog entry, object size, or visual tuning value. Prefer adding tests when a behavior is central to the Editor Engine, public React Adapter, Board Library contract, serialization compatibility, architecture rule, or a regression-prone Coach Workflow.
-
-Do not add tests just because a file or function exists. Avoid tests that only assert arithmetic pass-throughs, default dimensions, icon color choices, preset order, or other low-risk implementation details unless those details have caused repeated regressions or are part of a documented public contract.
-
-When coverage is needed, test through the deepest useful module interface: editor interactions, Editor Store operations, Tool behavior, rendering contracts, public exports, or compatibility seams. Small helper tests are acceptable only when the helper hides non-obvious rules that would otherwise be hard to exercise through a higher-level interface.
