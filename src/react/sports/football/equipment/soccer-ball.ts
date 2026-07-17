@@ -26,6 +26,7 @@ export const soccerBallEquipment: FootballEquipmentSpec = {
     label: "Ball",
     defaultSize: { width: 12, height: 12 },
     color: DEFAULT_BOARD_COLOR.white,
+    capabilities: { color: true },
     transformCapabilities: {
       resize: false,
       rotate: false,
@@ -39,7 +40,7 @@ export const soccerBallEquipment: FootballEquipmentSpec = {
       bottom: 0.391,
     },
   },
-  renderer: ({ context, width, height }) => {
+  renderer: ({ context, color, width, height }) => {
     const scale = Math.min(width, height) / 256;
     const panelPath = getSoccerBallPanelPath();
 
@@ -47,7 +48,7 @@ export const soccerBallEquipment: FootballEquipmentSpec = {
     context.scale(scale, scale);
     context.translate(-128, -128);
 
-    context.fillStyle = "#ffffff";
+    context.fillStyle = color;
     context.beginPath();
     context.arc(128, 128, 100, 0, Math.PI * 2);
     context.fill();
