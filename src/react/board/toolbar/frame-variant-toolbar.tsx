@@ -2,7 +2,6 @@ import { useMemo, type ReactNode } from "react";
 import { ArrowClockwiseIcon } from "@phosphor-icons/react";
 import type { BoardFrameConfig, BoardObject } from "../../../core/board/types";
 import { createToolApi } from "../../../core/editor/create-tool-api";
-import { getObjectSelectionAdapterForObject } from "../../../core/objects/object-selection";
 import {
   getViewportToFitBoard,
   type FitPadding,
@@ -50,7 +49,6 @@ export type BoardEditorFrameVariantAction<TValue extends string = string> = {
     object: BoardObject;
     previousFrame: BoardFrameConfig;
     nextFrame: BoardFrameConfig;
-    rotateObject: boolean;
   }) => BoardObject;
   value?: TValue;
 };
@@ -172,15 +170,10 @@ export function BoardEditorFrameVariantDefaultsToolbar<
           continue;
         }
 
-        const transformCapabilities = getObjectSelectionAdapterForObject(
-          state,
-          object,
-        )?.getTransformCapabilities?.(object);
         const nextObject = remapObject({
           object,
           previousFrame: state.board.frame,
           nextFrame: frame,
-          rotateObject: transformCapabilities?.rotate !== false,
         });
 
         if (nextObject !== object) {

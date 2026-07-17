@@ -19,7 +19,6 @@ export type FrameObjectRemapContext = {
   object: BoardObject;
   previousFrame: BoardFrameConfig;
   nextFrame: BoardFrameConfig;
-  rotateObject?: boolean;
 };
 
 function remapCoordinate(
@@ -53,15 +52,6 @@ function getFrameScale(previousSize: number, nextSize: number) {
   return nextSize / previousSize;
 }
 
-function addRotation(rotation: number | undefined, rotationDelta: number) {
-  if (rotation === undefined) {
-    return undefined;
-  }
-
-  const nextRotation = (rotation + rotationDelta) % 360;
-  return nextRotation < 0 ? nextRotation + 360 : nextRotation;
-}
-
 function remapCurveOffset(
   curveOffset: number | undefined,
   previousFrame: BoardFrameConfig,
@@ -85,7 +75,6 @@ function remapObjectPoints(
   remapCurveOffsetValue: (
     curveOffset: number | undefined,
   ) => number | undefined,
-  rotationDelta = 0,
 ): BoardObject {
   if (object.type === ARROW_OBJECT_TYPE) {
     const arrow = object as ArrowObject;
@@ -99,22 +88,16 @@ function remapObjectPoints(
 
   if (object.type === SHAPE_OBJECT_TYPE) {
     const shape = object as ShapeObject;
-    const nextShape = updateShapeObject(shape, {
+    return updateShapeObject(shape, {
       start: shape.props.start ? remapPoint(shape.props.start) : undefined,
       end: shape.props.end ? remapPoint(shape.props.end) : undefined,
       points: shape.props.points?.map(remapPoint),
     });
-
-    return {
-      ...nextShape,
-      rotation: addRotation(nextShape.rotation, rotationDelta),
-    };
   }
 
   return {
     ...object,
     position: remapPoint(object.position),
-    rotation: addRotation(object.rotation, rotationDelta),
   };
 }
 
@@ -201,7 +184,6 @@ export function remapObjectToFrameRotation({
   object,
   previousFrame,
   nextFrame,
-  rotateObject = false,
 }: FrameObjectRemapContext): BoardObject {
   const previousOrientation = getOrientation(previousFrame.orientation);
   const nextOrientation = getOrientation(nextFrame.orientation);
@@ -211,9 +193,6 @@ export function remapObjectToFrameRotation({
   }
 
   const canonicalSize = getCanonicalFrameSize(previousFrame);
-  const rotationDelta = rotateObject
-    ? previousOrientation - nextOrientation
-    : 0;
 
   return remapObjectPoints(
     object,
@@ -224,6 +203,5 @@ export function remapObjectToFrameRotation({
         nextOrientation,
       ),
     (curveOffset) => curveOffset,
-    rotationDelta,
   );
 }
