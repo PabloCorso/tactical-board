@@ -16,7 +16,6 @@ import {
   PLAYER_OBJECT_TYPE,
   type PlayerObject,
 } from "../objects/player-object";
-import { TEXT_FONT_FAMILY, TEXT_FONT_WEIGHT } from "../objects/text-object";
 import type {
   CanvasObjectHitTestInput,
   CanvasObjectRenderInput,
@@ -49,6 +48,8 @@ import {
   getPlayerCaptionText,
   hitTestPlayerCaption,
 } from "./player-geometry";
+import { drawCanvasCaption } from "../rendering/canvas/caption";
+import { getContrastingTextColor } from "../colors/contrast";
 
 export type PlayerToolLabelStrategy = "numeric-by-color" | "none";
 
@@ -330,28 +331,6 @@ export function getContrastingPlayerLabelColor(color: string) {
   return getContrastingTextColor(color);
 }
 
-function getContrastingTextColor(color: string) {
-  const normalized = color.trim().replace("#", "");
-  const expanded =
-    normalized.length === 3
-      ? normalized
-          .split("")
-          .map((part) => part + part)
-          .join("")
-      : normalized;
-
-  if (!/^[\da-f]{6}$/i.test(expanded)) {
-    return "#ffffff";
-  }
-
-  const red = Number.parseInt(expanded.slice(0, 2), 16);
-  const green = Number.parseInt(expanded.slice(2, 4), 16);
-  const blue = Number.parseInt(expanded.slice(4, 6), 16);
-  const luminance = (red * 299 + green * 587 + blue * 114) / 1000;
-
-  return luminance > 160 ? "#111827" : "#ffffff";
-}
-
 function createPlayerId(existingIds: Record<string, unknown>) {
   let index = 1;
 
@@ -506,18 +485,31 @@ function renderPlayerCaption(
 
   const { context, appearance } = input;
   const fontSize = getPlayerCaptionCanvasFontSize(player, input.frameTransform);
+  const captionStyle = player.props.caption?.style;
+  const backgroundStyle = captionStyle?.backgroundStyle ?? "none";
+  const backgroundColor =
+    captionStyle?.backgroundColor ?? player.props.color ?? DEFAULT_PLAYER_COLOR;
 
   context.save();
   context.globalAlpha = appearance === "preview" ? PREVIEW_OPACITY : 1;
-  context.fillStyle = player.props.caption?.style?.color ?? "#111827";
-  context.font = `${TEXT_FONT_WEIGHT} ${fontSize}px ${TEXT_FONT_FAMILY}`;
-  context.textAlign = "center";
-  context.textBaseline = "middle";
-  context.fillText(
+  drawCanvasCaption({
+    anchor: {
+      x: bounds.x + bounds.width / 2,
+      y: bounds.y + bounds.height / 2,
+    },
+    context,
+    style: {
+      fontSize,
+      color:
+        captionStyle?.color ??
+        (backgroundStyle === "solid"
+          ? getContrastingTextColor(backgroundColor)
+          : "#111827"),
+      backgroundStyle,
+      backgroundColor,
+    },
     text,
-    bounds.x + bounds.width / 2,
-    bounds.y + bounds.height / 2,
-  );
+  });
   context.restore();
 }
 

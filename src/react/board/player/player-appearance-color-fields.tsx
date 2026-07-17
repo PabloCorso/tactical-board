@@ -18,6 +18,7 @@ export function PlayerAppearanceColorPicker({
   ariaLabel,
   chooseCustomColorLabel,
   className,
+  mixed = false,
   value,
   onChange,
   ...props
@@ -25,6 +26,7 @@ export function PlayerAppearanceColorPicker({
   ariaLabel: string;
   chooseCustomColorLabel: string;
   value: string;
+  mixed?: boolean;
   onChange: (value: string) => void;
 }) {
   return (
@@ -35,7 +37,7 @@ export function PlayerAppearanceColorPicker({
           size="sm"
           aria-label={ariaLabel}
           className={cn("h-7 justify-between rounded-md px-2", className)}
-          iconBefore={<ColorSwatch value={value} />}
+          iconBefore={<ColorSwatch value={value} mixed={mixed} />}
           iconAfter={
             <CaretDownIcon className="text-tb-text-tertiary h-3.5 w-3.5" />
           }
@@ -45,6 +47,7 @@ export function PlayerAppearanceColorPicker({
       <PopoverContent className="w-auto min-w-max gap-0.5 p-1">
         <ColorPicker
           value={value}
+          mixed={mixed}
           onChange={onChange}
           chooseCustomColorLabel={chooseCustomColorLabel}
         />

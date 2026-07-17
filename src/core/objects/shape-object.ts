@@ -1,4 +1,8 @@
 import type { BoardObject, Point } from "../board/types";
+import {
+  cloneObjectMeasurement,
+  type ObjectMeasurement,
+} from "./object-measurement";
 
 export const SHAPE_OBJECT_TYPE = "shape";
 
@@ -29,6 +33,7 @@ export interface ShapeObjectProps extends Record<string, unknown> {
   start?: Point;
   end?: Point;
   points?: Point[];
+  measurement?: ObjectMeasurement;
 }
 
 export type ShapeObject = BoardObject & {
@@ -50,6 +55,7 @@ type ShapeCoreInput = {
   start?: Point;
   end?: Point;
   points?: Point[];
+  measurement?: ObjectMeasurement;
 };
 
 function normalizeShapeKind(kind: ShapeCoreInput["kind"]): ShapeKind {
@@ -225,6 +231,7 @@ function getCanonicalShapeProps(input: ShapeCoreInput): ShapeObjectProps {
     start,
     end,
     points,
+    measurement: cloneObjectMeasurement(input.measurement),
   };
 }
 

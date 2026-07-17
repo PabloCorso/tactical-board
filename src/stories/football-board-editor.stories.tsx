@@ -112,6 +112,9 @@ const spanishEditorLabels = {
       dashed: "Discontinua",
       solid: "Solida",
     },
+    measurement: "Medida",
+    measurementMixed: "Medida, mixta",
+    mixedValue: "Mixto",
     playerColor: "Color del jugador",
     playerLabel: "Etiqueta del jugador",
     shapeBorderOption: (label) => `Borde de forma: ${label}`,
@@ -129,6 +132,7 @@ const spanishEditorLabels = {
     },
     shapeLineOption: (label) => `Linea de forma: ${label}`,
     shapeLineStyle: "Estilo de linea",
+    showMeasurement: "Mostrar medida",
     textSize: "Tamano de texto",
   },
   textEditor: {

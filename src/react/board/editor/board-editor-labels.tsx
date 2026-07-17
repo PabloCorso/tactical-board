@@ -85,6 +85,12 @@ export type BoardEditorLabels = {
   playerAppearance: {
     appearance: string;
     caption: string;
+    captionBackground: string;
+    captionBackgroundColor: string;
+    captionBackgroundValue: {
+      none: string;
+      solid: string;
+    };
     captionColor: string;
     captionDistance: string;
     captionPlacement: string;
@@ -132,6 +138,9 @@ export type BoardEditorLabels = {
       dashed: string;
       solid: string;
     };
+    measurement: string;
+    measurementMixed: string;
+    mixedValue: string;
     thickness: string;
     thicknessValue: {
       thick: string;
@@ -166,6 +175,7 @@ export type BoardEditorLabels = {
       stripes: string;
     };
     shapeLineOption: (label: string) => string;
+    showMeasurement: string;
     strokeWidth: string;
     textProperties: string;
     textSize: string;
@@ -252,10 +262,16 @@ export const BOARD_EDITOR_DEFAULT_LABELS: BoardEditorLabels = {
   playerAppearance: {
     appearance: "Appearance",
     caption: "Caption",
+    captionBackground: "Background",
+    captionBackgroundColor: "Background color",
+    captionBackgroundValue: {
+      none: "None",
+      solid: "Solid",
+    },
     captionColor: "Color",
     captionDistance: "Gap",
     captionPlacement: "Position",
-    captionSize: "Size",
+    captionSize: "Text size",
     labelColor: "Color",
     labelSize: "Size",
     captionPlacementValue: {
@@ -300,6 +316,9 @@ export const BOARD_EDITOR_DEFAULT_LABELS: BoardEditorLabels = {
       dashed: "Dashed",
       solid: "Solid",
     },
+    measurement: "Measurement",
+    measurementMixed: "Measurement, mixed",
+    mixedValue: "Mixed",
     thickness: "Thickness",
     thicknessValue: {
       thick: "Thick",
@@ -334,6 +353,7 @@ export const BOARD_EDITOR_DEFAULT_LABELS: BoardEditorLabels = {
       stripes: "Stripes",
     },
     shapeLineOption: (label) => `Shape line style ${label}`,
+    showMeasurement: "Show measurement",
     strokeWidth: "Stroke width",
     textProperties: "Text properties",
     textSize: "Text size",

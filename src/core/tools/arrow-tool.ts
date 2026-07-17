@@ -3,6 +3,7 @@ import type { BoardEditorToolState } from "../editor/types";
 import {
   ARROW_OBJECT_TYPE,
   createArrowObject,
+  getArrowLength,
   getArrowBodyPolylines,
   getArrowBodyStrokeWidth,
   getArrowControlPoint,
@@ -14,6 +15,11 @@ import {
 } from "../objects/arrow-object";
 import { rotatePointAround } from "../objects/object-behaviors";
 import { scaleRoundCapCanvasDashStyle } from "../rendering/canvas/style-scale";
+import {
+  drawCanvasMeasurementCaption,
+  getCanvasMeasurementCaptionOffset,
+} from "../rendering/canvas/measurement-caption";
+import { formatDocumentMeasurements } from "../geometry/document-measurement";
 import {
   getArrowHeadLength,
   getScaledCanvasStrokeWidth,
@@ -303,6 +309,66 @@ function drawArrowPath(context: CanvasRenderingContext2D, points: Point[]) {
   }
 }
 
+function getArrowMeasurementCaptionGeometry(points: Point[]) {
+  if (points.length < 2) {
+    return {
+      point: points[0] ?? { x: 0, y: 0 },
+      normal: { x: 0, y: -1 },
+      rotation: 0,
+    };
+  }
+
+  const segmentLengths = points.slice(1).map((point, index) => {
+    const previous = points[index];
+    return Math.hypot(point.x - previous.x, point.y - previous.y);
+  });
+  const targetLength =
+    segmentLengths.reduce((total, length) => total + length, 0) / 2;
+  let traversedLength = 0;
+
+  for (let index = 0; index < segmentLengths.length; index += 1) {
+    const segmentLength = segmentLengths[index];
+    const nextLength = traversedLength + segmentLength;
+
+    if (nextLength >= targetLength || index === segmentLengths.length - 1) {
+      const start = points[index];
+      const end = points[index + 1];
+      const ratio =
+        segmentLength === 0
+          ? 0
+          : (targetLength - traversedLength) / segmentLength;
+      let normal =
+        segmentLength === 0
+          ? { x: 0, y: -1 }
+          : {
+              x: -(end.y - start.y) / segmentLength,
+              y: (end.x - start.x) / segmentLength,
+            };
+
+      if (normal.y > 0) {
+        normal = { x: -normal.x, y: -normal.y };
+      }
+
+      return {
+        point: {
+          x: start.x + (end.x - start.x) * ratio,
+          y: start.y + (end.y - start.y) * ratio,
+        },
+        normal,
+        rotation: Math.atan2(end.y - start.y, end.x - start.x),
+      };
+    }
+
+    traversedLength = nextLength;
+  }
+
+  return {
+    point: points[Math.floor(points.length / 2)],
+    normal: { x: 0, y: -1 },
+    rotation: 0,
+  };
+}
+
 function getArrowGeometry(
   start: Point,
   end: Point,
@@ -339,6 +405,7 @@ function getArrowGeometry(
 }
 
 export function renderArrow({
+  board,
   context,
   object,
   appearance,
@@ -421,6 +488,48 @@ export function renderArrow({
     headStyle: arrow.props.endHead,
   });
   context.restore();
+
+  if (arrow.props.measurement?.visible && board.frame.measurement) {
+    const measurementPath =
+      arrow.props.kind === "double"
+        ? [start, end]
+        : getArrowBodyPolylines({
+            start,
+            end,
+            controlPoint,
+            kind: arrow.props.kind,
+            styleScale: frameTransform.zoom,
+            strokeWidth: arrow.props.strokeWidth,
+          })[0];
+
+    const captionGeometry = getArrowMeasurementCaptionGeometry(measurementPath);
+    const captionOffset = getCanvasMeasurementCaptionOffset(
+      arrow.props.measurement,
+      frameTransform.scale,
+    );
+    const captionSide =
+      arrow.props.measurement.style?.placement === "top" ? 1 : -1;
+
+    drawCanvasMeasurementCaption({
+      anchor: {
+        x:
+          captionGeometry.point.x +
+          captionGeometry.normal.x * captionOffset * captionSide,
+        y:
+          captionGeometry.point.y +
+          captionGeometry.normal.y * captionOffset * captionSide,
+      },
+      context,
+      measurement: arrow.props.measurement,
+      objectColor: arrow.props.color,
+      rotation: captionGeometry.rotation,
+      scale: frameTransform.scale,
+      text: formatDocumentMeasurements(
+        [getArrowLength(arrow.props)],
+        board.frame.measurement,
+      ),
+    });
+  }
 }
 
 function distanceToSegment(point: Point, start: Point, end: Point) {

@@ -1,6 +1,10 @@
 import type { PlayerObject } from "../objects/player-object";
 import { DEFAULT_PLAYER_FONT_SIZE } from "../objects/player-object";
 import type { Rect } from "../geometry/types";
+import {
+  CANVAS_CAPTION_HEIGHT_FACTOR,
+  CANVAS_CAPTION_HORIZONTAL_PADDING_FACTOR,
+} from "../rendering/canvas/caption";
 
 const DEFAULT_CAPTION_DISTANCE = 4;
 const CAPTION_WIDTH_FACTOR = 0.58;
@@ -50,11 +54,15 @@ export function getPlayerCaptionCanvasBounds(
   const centerX = markerBounds.x + markerBounds.width / 2;
   const centerY = markerBounds.y + markerBounds.height / 2;
   const fontSize = getPlayerCaptionCanvasFontSize(player, projection);
-  const width = Math.max(
-    fontSize,
-    text.length * fontSize * CAPTION_WIDTH_FACTOR,
-  );
-  const height = fontSize * 1.25;
+  const width =
+    Math.max(fontSize, text.length * fontSize * CAPTION_WIDTH_FACTOR) +
+    (player.props.caption?.style?.backgroundStyle === "solid"
+      ? fontSize * CANVAS_CAPTION_HORIZONTAL_PADDING_FACTOR * 2
+      : 0);
+  const height =
+    player.props.caption?.style?.backgroundStyle === "solid"
+      ? fontSize * CANVAS_CAPTION_HEIGHT_FACTOR
+      : fontSize * 1.25;
   const distance =
     (player.props.caption?.style?.distance ?? DEFAULT_CAPTION_DISTANCE) *
     projection.scale;

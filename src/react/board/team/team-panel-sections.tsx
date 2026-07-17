@@ -113,6 +113,7 @@ export function TeamPanelCaptionSection(props: TeamPanelCaptionSectionProps) {
       <div className="flex flex-col gap-1.5">
         <PlayerCaptionFields
           caption={group.style.caption ?? {}}
+          fallbackBackgroundColor={group.style.color}
           labels={labels}
           onChange={(caption) => updateGroupStyle({ caption })}
         />

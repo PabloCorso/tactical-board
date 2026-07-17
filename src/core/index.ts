@@ -20,6 +20,7 @@ export type * from "./geometry/types";
 export * from "./objects/arrow-object";
 export * from "./objects/equipment-object";
 export * from "./objects/object-behaviors";
+export type * from "./objects/object-measurement";
 export * from "./objects/object-selection";
 export * from "./objects/player-object";
 export * from "./objects/shape-object";

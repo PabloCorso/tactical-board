@@ -49,7 +49,11 @@ import {
 import type { BoardTheme, BoardThemeAdapters } from "../../theme/board-theme";
 import { useBoardEditorLabels } from "../board-editor-labels";
 import { BoardEditorObjectColorSelectionControl } from "./object-color-selection-control";
-import { getObjectColorSelectionState } from "../../../../core/objects/object-properties";
+import {
+  getObjectColorSelectionState,
+  getObjectMeasurementSelectionState,
+} from "../../../../core/objects/object-properties";
+import { BoardEditorObjectMeasurementSelectionControl } from "./object-measurement-selection-control";
 
 const DEFAULT_SELECTION_TOOLBAR_RENDERERS: Record<
   string,
@@ -230,6 +234,9 @@ export function BoardEditorSelectionToolbar({
       state.board,
       selectedObjects,
     );
+    const selectionMeasurement = state.board.frame.measurement
+      ? getObjectMeasurementSelectionState(selectedObjects)
+      : undefined;
 
     if (!anchor || !bounds) {
       return null;
@@ -274,6 +281,14 @@ export function BoardEditorSelectionToolbar({
           {selectionColor ? (
             <>
               <BoardEditorObjectColorSelectionControl
+                selectedObjects={selectedObjects}
+              />
+              <BoardEditorToolbarSeparator />
+            </>
+          ) : null}
+          {selectionMeasurement ? (
+            <>
+              <BoardEditorObjectMeasurementSelectionControl
                 selectedObjects={selectedObjects}
               />
               <BoardEditorToolbarSeparator />

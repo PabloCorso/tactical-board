@@ -26,14 +26,20 @@ export interface Asset {
   src: string;
 }
 
-export type PlayerCaptionPlacement = "top" | "right" | "bottom" | "left";
+export type CaptionPlacement = "top" | "right" | "bottom" | "left";
+export type CaptionBackgroundStyle = "none" | "solid";
 
-export interface PlayerCaptionStyle {
-  placement?: PlayerCaptionPlacement;
+export interface CaptionStyle {
+  placement?: CaptionPlacement;
   distance?: number;
   color?: string;
   fontSize?: number;
+  backgroundStyle?: CaptionBackgroundStyle;
+  backgroundColor?: string;
 }
+
+export type PlayerCaptionPlacement = CaptionPlacement;
+export type PlayerCaptionStyle = CaptionStyle;
 
 export interface PlayerCaption {
   text?: string;
@@ -75,6 +81,7 @@ export type DocumentMeasurementUnit = "meter";
 export interface DocumentMeasurement {
   unit: DocumentMeasurementUnit;
   unitsPerUnit: number;
+  measurementPrecision?: 1 | 0.5 | 0.1;
 }
 
 export interface Shape {

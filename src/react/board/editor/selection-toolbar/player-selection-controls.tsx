@@ -89,6 +89,7 @@ export function PlayerLabelSelectionControl({
 }
 
 export type PlayerCaptionSelectionControlProps = {
+  fallbackBackgroundColor: string;
   caption: PlayerCaptionStyle;
   customized: boolean;
   labels: BoardEditorLabels;
@@ -101,6 +102,7 @@ export type PlayerCaptionSelectionControlProps = {
 export function PlayerCaptionSelectionControl({
   caption,
   customized,
+  fallbackBackgroundColor,
   labels,
   onChange,
   onReset,
@@ -134,6 +136,7 @@ export function PlayerCaptionSelectionControl({
         />
         <PlayerCaptionFields
           caption={caption}
+          fallbackBackgroundColor={fallbackBackgroundColor}
           labels={labels}
           onChange={onChange}
         />

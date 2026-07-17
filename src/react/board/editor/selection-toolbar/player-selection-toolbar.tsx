@@ -161,6 +161,7 @@ export function BoardEditorPlayerSelectionToolbar({
           <PlayerCaptionSelectionControl
             caption={effectiveStyle.caption ?? {}}
             customized={hasCaptionStyleOverride}
+            fallbackBackgroundColor={effectiveStyle.color}
             labels={labels}
             text={selectedObject.props.caption?.text}
             onChange={(caption) => applyPlayerStylePatch({ caption })}

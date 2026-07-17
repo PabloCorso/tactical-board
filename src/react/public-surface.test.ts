@@ -52,14 +52,75 @@ import {
   getBasketballObjectRenderers,
   getFootballPitchVariant,
 } from "./";
-import { ARROW_OBJECT_TYPE } from "../core/objects/arrow-object";
+import {
+  ARROW_OBJECT_TYPE,
+  createArrowObject,
+} from "../core/objects/arrow-object";
 import { ARROW_TOOL_ID } from "../core/tools/arrow-tool-state";
 import { EQUIPMENT_OBJECT_TYPE } from "../core/objects/equipment-object";
 import { PLAYER_OBJECT_TYPE } from "../core/objects/player-object";
-import { SHAPE_OBJECT_TYPE } from "../core/objects/shape-object";
+import {
+  SHAPE_OBJECT_TYPE,
+  createShapeObject,
+} from "../core/objects/shape-object";
 import { TEXT_OBJECT_TYPE } from "../core/objects/text-object";
 
 describe("React public frame", () => {
+  it("shows a mixed measurement toggle for a measurable multi-Object Selection", () => {
+    const arrow = createArrowObject({
+      id: "measured-arrow",
+      start: { x: 100, y: 100 },
+      end: { x: 200, y: 100 },
+      color: "#111827",
+      lineStyle: "solid",
+      kind: "straight",
+      startHead: "none",
+      endHead: "triangle",
+      measurement: { visible: true },
+    });
+    const rectangle = createShapeObject({
+      id: "unmeasured-rectangle",
+      kind: "rectangle",
+      start: { x: 250, y: 100 },
+      end: { x: 350, y: 200 },
+      color: "#111827",
+      lineStyle: "solid",
+    });
+    const baseBoard = createFootballBoard({ id: "measurement-selection" });
+    const store = createBoardEditorStore({
+      initialBoard: {
+        ...baseBoard,
+        objects: {
+          byId: {
+            [arrow.id]: arrow,
+            [rectangle.id]: rectangle,
+          },
+          order: [arrow.id, rectangle.id],
+        },
+      },
+      tools: createFootballTools(),
+    });
+
+    store.getState().actions.setCanvasRect({ width: 800, height: 600 });
+    store.getState().actions.setSelectedObjectIds([arrow.id, rectangle.id]);
+
+    // Zustand's SSR hook reads the initial snapshot, so expose the prepared
+    // selection as that snapshot for this render-only integration test.
+    store.getInitialState = store.getState;
+
+    const markup = renderToString(
+      createElement(
+        BoardEditorProvider,
+        { store },
+        createElement(BoardEditorSelectionToolbar),
+      ),
+    );
+
+    expect(markup).toContain('aria-label="Measurement, mixed"');
+    expect(markup).toContain('aria-pressed="true"');
+    expect(markup).not.toContain('aria-label="Measurement caption"');
+  });
+
   it("keeps football player groups on generic circle defaults", () => {
     const board = createFootballBoard({ id: "football-player-groups" });
 

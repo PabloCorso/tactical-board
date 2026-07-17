@@ -7,6 +7,7 @@ export const DEFAULT_FOOTBALL_PLAYER_SIZE = 30;
 export const FOOTBALL_MEASUREMENT = {
   unit: "meter",
   unitsPerUnit: FOOTBALL_UNITS_PER_METER,
+  measurementPrecision: 0.5,
 } as const satisfies DocumentMeasurement;
 
 export function metersToPixels(value: number) {

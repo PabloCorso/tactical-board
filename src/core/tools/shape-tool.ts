@@ -15,6 +15,11 @@ import {
   scaleCanvasStyleValue,
 } from "../rendering/canvas/style-scale";
 import { getScaledCanvasStrokeWidth } from "../rendering/canvas/object-render-scale";
+import {
+  drawCanvasMeasurementCaption,
+  getCanvasMeasurementCaptionOffset,
+} from "../rendering/canvas/measurement-caption";
+import { formatDocumentMeasurements } from "../geometry/document-measurement";
 import type {
   CanvasObjectHitTestInput,
   CanvasObjectRenderInput,
@@ -575,6 +580,7 @@ function fillDiagonalStripes(
 }
 
 export function renderShape({
+  board,
   context,
   object,
   appearance,
@@ -637,6 +643,49 @@ export function renderShape({
   }
 
   context.restore();
+
+  if (
+    shape.props.kind === "rectangle" &&
+    shape.props.measurement?.visible &&
+    board.frame.measurement
+  ) {
+    const metrics = getRenderedRectangleMetrics(shape, frameTransform);
+    const rotation = ((shape.rotation ?? 0) * Math.PI) / 180;
+    const captionOffset = getCanvasMeasurementCaptionOffset(
+      shape.props.measurement,
+      frameTransform.scale,
+    );
+    const placement = shape.props.measurement.style?.placement ?? "bottom";
+    const captionLocalPoint =
+      placement === "top"
+        ? { x: 0, y: -metrics.halfHeight - captionOffset }
+        : placement === "left"
+          ? { x: -metrics.halfWidth - captionOffset, y: 0 }
+          : placement === "right"
+            ? { x: metrics.halfWidth + captionOffset, y: 0 }
+            : { x: 0, y: metrics.halfHeight + captionOffset };
+    const captionRotation =
+      placement === "left" || placement === "right"
+        ? rotation + Math.PI / 2
+        : rotation;
+
+    drawCanvasMeasurementCaption({
+      anchor: rotateLocalCanvasPoint(
+        captionLocalPoint,
+        metrics.center,
+        shape.rotation,
+      ),
+      context,
+      measurement: shape.props.measurement,
+      objectColor: shape.props.color,
+      rotation: captionRotation,
+      scale: frameTransform.scale,
+      text: formatDocumentMeasurements(
+        [shape.size?.width ?? 0, shape.size?.height ?? 0],
+        board.frame.measurement,
+      ),
+    });
+  }
 }
 
 function getRotatedOffsetFromCenter(

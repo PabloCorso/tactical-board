@@ -1,4 +1,8 @@
 import type { BoardObject, Point } from "../board/types";
+import {
+  cloneObjectMeasurement,
+  type ObjectMeasurement,
+} from "./object-measurement";
 
 export const ARROW_OBJECT_TYPE = "arrow";
 
@@ -33,6 +37,7 @@ export interface ArrowObjectProps extends Record<string, unknown> {
   kind: ArrowKind;
   startHead: ArrowHeadStyle;
   endHead: ArrowHeadStyle;
+  measurement?: ObjectMeasurement;
 }
 
 export type ArrowObject = BoardObject & {
@@ -52,6 +57,7 @@ type ArrowCoreInput = {
   curveOffset?: number;
   startHead: ArrowHeadStyle;
   endHead: ArrowHeadStyle;
+  measurement?: ObjectMeasurement;
 };
 
 function clonePoint(point: Point): Point {
@@ -376,7 +382,26 @@ function getCanonicalArrowProps(input: ArrowCoreInput): ArrowObjectProps {
     kind: input.kind,
     startHead: input.startHead,
     endHead: input.endHead,
+    measurement: cloneObjectMeasurement(input.measurement),
   };
+}
+
+export function getArrowLength(
+  props: Pick<
+    ArrowObjectProps,
+    "start" | "end" | "controlPoint" | "curveOffset" | "kind"
+  >,
+) {
+  if (props.kind !== "curved") {
+    return Math.hypot(props.end.x - props.start.x, props.end.y - props.start.y);
+  }
+
+  const [points] = getArrowBodyPolylines(props);
+
+  return points.slice(1).reduce((length, point, index) => {
+    const previous = points[index];
+    return length + Math.hypot(point.x - previous.x, point.y - previous.y);
+  }, 0);
 }
 
 function createCanonicalArrowObject(

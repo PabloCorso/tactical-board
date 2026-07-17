@@ -33,6 +33,8 @@ import {
   BoardEditorSelectionToolbarPopoverTrigger,
 } from "./selection-toolbar-popover";
 import { BoardEditorObjectColorSelectionControl } from "./object-color-selection-control";
+import { BoardEditorObjectMeasurementSelectionControl } from "./object-measurement-selection-control";
+import { useBoardEditorStore } from "../../../adapter/editor/use-board-editor-store";
 
 const BODY_STYLE_OPTIONS: Array<{
   value: ArrowKind;
@@ -252,6 +254,9 @@ export function BoardEditorArrowSelectionToolbar({
 }: BoardEditorSelectionToolbarRendererProps<ArrowObject>) {
   const labels = useBoardEditorLabels();
   const store = useBoardEditorContext();
+  const hasDocumentMeasurement = useBoardEditorStore(store, (state) =>
+    Boolean(state.board.frame.measurement),
+  );
   const toolApi = createToolApi(store);
 
   const updateArrow = (updater: (arrow: ArrowObject) => ArrowObject) => {
@@ -365,6 +370,17 @@ export function BoardEditorArrowSelectionToolbar({
             selectedObjects={[selectedObject]}
           />
         </BoardEditorToolbarGroup>
+
+        {hasDocumentMeasurement ? (
+          <>
+            <BoardEditorToolbarSeparator />
+            <BoardEditorToolbarGroup>
+              <BoardEditorObjectMeasurementSelectionControl
+                selectedObjects={[selectedObject]}
+              />
+            </BoardEditorToolbarGroup>
+          </>
+        ) : null}
 
         <BoardEditorToolbarSeparator />
         <BoardEditorSelectionActionsMenu
