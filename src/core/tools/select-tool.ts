@@ -14,7 +14,7 @@ import type {
   CanvasRectOverlayItem,
   CanvasOverlayRenderer,
 } from "../rendering/canvas/types";
-import type { BoardObject, Point } from "../board/types";
+import type { Board, BoardObject, Point } from "../board/types";
 import {
   getObjectSelectionAdapterForObject,
   type ObjectSelectionAdapter,
@@ -54,7 +54,7 @@ const GROUP_ROTATE_HANDLE_OFFSET_PX = 18;
 
 let cachedSelectionOverlayItems:
   | {
-      objectsById: BoardEditorState["board"]["objects"]["byId"];
+      board: BoardEditorState["board"];
       selectState: SelectToolState;
       presentation: ReturnType<typeof getActiveSelectionPresentation>;
       overlays: Array<
@@ -65,6 +65,7 @@ let cachedSelectionOverlayItems:
 
 type SelectionOverlayItem = {
   kind: typeof SELECTION_OVERLAY_KIND;
+  board: Board;
   object: BoardObject;
   color: string;
   showControls: boolean;
@@ -84,6 +85,7 @@ type GroupSelectionHandle =
 
 type GroupSelectionOverlayItem = {
   kind: typeof GROUP_SELECTION_OVERLAY_KIND;
+  board: Board;
   objects: BoardObject[];
   selectionAdaptersByObjectId: Record<
     string,
@@ -379,7 +381,22 @@ function getMarqueeObjectIds(
       return false;
     }
 
-    const objectBounds = projection.getObjectCanvasBounds(object);
+    const selectionBounds = getObjectSelectionAdapterForObject(
+      state,
+      object,
+    )?.getCanvasBounds?.({
+      board: state.board,
+      object,
+      projection,
+    });
+    const objectBounds = selectionBounds
+      ? {
+          x: selectionBounds.left,
+          y: selectionBounds.top,
+          width: selectionBounds.right - selectionBounds.left,
+          height: selectionBounds.bottom - selectionBounds.top,
+        }
+      : projection.getObjectCanvasBounds(object);
 
     return !(
       marqueeBounds.right < objectBounds.x ||
@@ -411,6 +428,7 @@ function createMarqueeOverlayItem(
 }
 
 function getGroupSelectionCanvasBounds(
+  board: Board,
   projection: SelectionProjection,
   objects: BoardObject[],
   selectionAdaptersByObjectId?: Record<
@@ -422,6 +440,7 @@ function getGroupSelectionCanvasBounds(
     const selectionBounds = selectionAdaptersByObjectId?.[
       object.id
     ]?.getCanvasBounds?.({
+      board,
       object,
       projection,
     });
@@ -453,11 +472,12 @@ function getGroupSelectionCanvasBounds(
 }
 
 function getGroupSelectionBoardBounds(
-  state: Pick<BoardEditorState, "objectRegistry">,
+  state: Pick<BoardEditorState, "board" | "objectRegistry">,
   projection: SelectionProjection,
   objects: BoardObject[],
 ) {
   const canvasBounds = getGroupSelectionCanvasBounds(
+    state.board,
     projection,
     objects,
     Object.fromEntries(
@@ -583,6 +603,7 @@ function getGroupSelectionOutlineCanvasPoints(
 ) {
   if (overlay.rotation === undefined || !overlay.bounds) {
     const canvasBounds = getGroupSelectionCanvasBounds(
+      overlay.board,
       projection,
       overlay.objects,
       overlay.selectionAdaptersByObjectId,
@@ -678,7 +699,7 @@ function remapPoint(
 }
 
 function isGroupSelectionChromeHit(
-  state: Pick<BoardEditorState, "objectRegistry">,
+  state: Pick<BoardEditorState, "board" | "objectRegistry">,
   projection: SelectionProjection,
   objects: BoardObject[],
   event: ToolPointerEvent,
@@ -694,6 +715,7 @@ function isGroupSelectionChromeHit(
     ]),
   );
   const canvasBounds = getGroupSelectionCanvasBounds(
+    state.board,
     projection,
     objects,
     selectionAdaptersByObjectId,
@@ -746,7 +768,7 @@ function isGroupSelectionChromeHit(
 }
 
 function isPointInsideGroupSelectionBounds(
-  state: Pick<BoardEditorState, "objectRegistry">,
+  state: Pick<BoardEditorState, "board" | "objectRegistry">,
   projection: SelectionProjection,
   objects: BoardObject[],
   event: ToolPointerEvent,
@@ -756,6 +778,7 @@ function isPointInsideGroupSelectionBounds(
   }
 
   const canvasBounds = getGroupSelectionCanvasBounds(
+    state.board,
     projection,
     objects,
     Object.fromEntries(
@@ -804,6 +827,7 @@ function createGroupSelectionOverlayItem(
 
   return {
     kind: GROUP_SELECTION_OVERLAY_KIND,
+    board: state.board,
     objects,
     selectionAdaptersByObjectId: Object.fromEntries(
       objects.map((object) => [
@@ -855,6 +879,7 @@ function createSelectionOverlayItems(
       ? [
           {
             kind: SELECTION_OVERLAY_KIND,
+            board: state.board,
             object,
             color: accentColor,
             showControls,
@@ -880,7 +905,7 @@ function getSelectOverlayItems(
 
   if (
     cachedSelectionOverlayItems?.selectState === selectState &&
-    cachedSelectionOverlayItems.objectsById === state.board.objects.byId &&
+    cachedSelectionOverlayItems.board === state.board &&
     cachedSelectionOverlayItems.presentation === presentation
   ) {
     return cachedSelectionOverlayItems.overlays;
@@ -897,7 +922,7 @@ function getSelectOverlayItems(
   }
 
   cachedSelectionOverlayItems = {
-    objectsById: state.board.objects.byId,
+    board: state.board,
     selectState,
     presentation,
     overlays,
@@ -924,6 +949,7 @@ function registerSelectOverlayRenderer(
       }
 
       overlay.selectionAdapter.renderSelection({
+        board: overlay.board,
         context,
         object: overlay.object,
         projection: frameTransform as SelectionProjection,
@@ -951,6 +977,7 @@ function registerSelectOverlayRenderer(
         const selectionAdapter = overlay.selectionAdaptersByObjectId[object.id];
 
         selectionAdapter?.renderSelection?.({
+          board: overlay.board,
           context,
           object,
           projection: frameTransform as SelectionProjection,
@@ -963,6 +990,7 @@ function registerSelectOverlayRenderer(
         overlay.rotation === undefined
           ? (() => {
               const canvasBounds = getGroupSelectionCanvasBounds(
+                overlay.board,
                 frameTransform as SelectionProjection,
                 overlay.objects,
                 overlay.selectionAdaptersByObjectId,
@@ -1206,7 +1234,7 @@ function beginSelectionInteraction(event: ToolPointerEvent, api: ToolApi) {
 }
 
 function hitGroupSelectionHandle(
-  state: Pick<BoardEditorState, "objectRegistry">,
+  state: Pick<BoardEditorState, "board" | "objectRegistry">,
   projection: SelectionProjection,
   objects: BoardObject[],
   event: ToolPointerEvent,
@@ -1227,6 +1255,7 @@ function hitGroupSelectionHandle(
         ?.rotate !== false,
   );
   const canvasBounds = getGroupSelectionCanvasBounds(
+    state.board,
     projection,
     objects,
     selectionAdaptersByObjectId,

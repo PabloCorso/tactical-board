@@ -25,8 +25,8 @@ cover the changed behavior.
 Tests exist to move faster, not as ceremony.
 
 Add or extend tests only for critical flows, bug fixes, risky business logic, or
-when explicitly asked. Skip new tests for trivial helpers, presentational changes,
-and obvious glue.
+when explicitly asked. Do not test styling, dimensions, layout, or other volatile
+early-stage UI decisions. Skip tests for trivial helpers and obvious glue.
 
 Default to no new tests unless the protected risk is clear and worth the
 maintenance cost. Before adding a test, name the risk it protects. Weak risk

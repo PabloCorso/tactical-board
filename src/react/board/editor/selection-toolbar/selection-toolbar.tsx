@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import type { BoardObject } from "../../../../core/board/types";
 import { getBoardPlayerGroups } from "../../../../core/board/player-groups";
 import { createToolApi } from "../../../../core/editor/create-tool-api";
+import type { BoardEditorState } from "../../../../core/editor/types";
 import {
   getActiveSelectionPresentation,
   type SelectionPresentation,
@@ -98,12 +99,13 @@ const DEFAULT_SELECTION_TOOLBAR_RENDERERS: Record<
 export function getSelectionToolbarAnchor(
   projection: SelectionProjection,
   selectedObject: BoardObject,
-  state: Parameters<typeof getObjectSelectionAdapterForObject>[0],
+  state: Pick<BoardEditorState, "board" | "objectRegistry">,
 ) {
   return getObjectSelectionAdapterForObject(
     state,
     selectedObject,
   )?.getToolbarAnchor?.({
+    board: state.board,
     object: selectedObject,
     projection,
   });
@@ -131,13 +133,14 @@ export function shouldShowSelectionToolbar(
 export function getMultiSelectionToolbarAnchor(
   projection: SelectionProjection,
   selectedObjects: BoardObject[],
+  state: Pick<BoardEditorState, "board" | "objectRegistry">,
 ) {
   if (selectedObjects.length === 0) {
     return undefined;
   }
 
   const bounds = selectedObjects.map((object) =>
-    projection.getObjectCanvasBounds(object),
+    getSelectionCanvasBounds(projection, object, state),
   );
   const left = Math.min(...bounds.map((bound) => bound.x));
   const right = Math.max(...bounds.map((bound) => bound.x + bound.width));
@@ -152,13 +155,14 @@ export function getMultiSelectionToolbarAnchor(
 export function getSelectionBounds(
   projection: SelectionProjection,
   selectedObjects: BoardObject[],
+  state: Pick<BoardEditorState, "board" | "objectRegistry">,
 ) {
   if (selectedObjects.length === 0) {
     return undefined;
   }
 
   const bounds = selectedObjects.map((object) =>
-    projection.getObjectCanvasBounds(object),
+    getSelectionCanvasBounds(projection, object, state),
   );
   const left = Math.min(...bounds.map((bound) => bound.x));
   const right = Math.max(...bounds.map((bound) => bound.x + bound.width));
@@ -166,6 +170,32 @@ export function getSelectionBounds(
   const bottom = Math.max(...bounds.map((bound) => bound.y + bound.height));
 
   return { left, right, top, bottom };
+}
+
+function getSelectionCanvasBounds(
+  projection: SelectionProjection,
+  object: BoardObject,
+  state: Pick<BoardEditorState, "board" | "objectRegistry">,
+) {
+  const selectionBounds = getObjectSelectionAdapterForObject(
+    state,
+    object,
+  )?.getCanvasBounds?.({
+    board: state.board,
+    object,
+    projection,
+  });
+
+  if (selectionBounds) {
+    return {
+      x: selectionBounds.left,
+      y: selectionBounds.top,
+      width: selectionBounds.right - selectionBounds.left,
+      height: selectionBounds.bottom - selectionBounds.top,
+    };
+  }
+
+  return projection.getObjectCanvasBounds(object);
 }
 
 export function BoardEditorSelectionToolbar({
@@ -220,8 +250,12 @@ export function BoardEditorSelectionToolbar({
   });
 
   if (selectedObjects.length > 1) {
-    const anchor = getMultiSelectionToolbarAnchor(projection, selectedObjects);
-    const bounds = getSelectionBounds(projection, selectedObjects);
+    const anchor = getMultiSelectionToolbarAnchor(
+      projection,
+      selectedObjects,
+      state,
+    );
+    const bounds = getSelectionBounds(projection, selectedObjects, state);
     const selectedPlayers = selectedObjects.every(
       (object): object is PlayerObject => object.type === PLAYER_OBJECT_TYPE,
     )
@@ -335,7 +369,7 @@ export function BoardEditorSelectionToolbar({
     return null;
   }
 
-  const bounds = projection.getObjectCanvasBounds(selectedObject);
+  const bounds = getSelectionCanvasBounds(projection, selectedObject, state);
 
   return (
     <ToolbarRenderer

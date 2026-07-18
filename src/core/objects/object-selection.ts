@@ -1,4 +1,4 @@
-import type { BoardObject, ObjectId, Point } from "../board/types";
+import type { Board, BoardObject, ObjectId, Point } from "../board/types";
 import type { BoardEditorState } from "../editor/types";
 import type { createBoardSpaceProjection } from "../geometry/board-space-projection";
 import type { ToolPointerEvent } from "../tools/types";
@@ -11,6 +11,7 @@ export type SelectionProjection = Pick<
 export interface ObjectSelectionRenderInput<
   TObject extends BoardObject = BoardObject,
 > {
+  board: Board;
   context: CanvasRenderingContext2D;
   object: TObject;
   projection: SelectionProjection;
@@ -57,6 +58,7 @@ export interface ObjectSelectionGroupResizeInput<
 export interface ObjectSelectionToolbarAnchorInput<
   TObject extends BoardObject = BoardObject,
 > {
+  board: Board;
   object: TObject;
   projection: SelectionProjection;
 }
@@ -64,6 +66,7 @@ export interface ObjectSelectionToolbarAnchorInput<
 export interface ObjectSelectionCanvasBoundsInput<
   TObject extends BoardObject = BoardObject,
 > {
+  board: Board;
   object: TObject;
   projection: SelectionProjection;
 }

@@ -285,12 +285,7 @@ function getPlayerCaptionWithoutStyle(player: PlayerObject) {
   };
 }
 
-export function applyPlayerGroupStyleToPlayer(
-  player: PlayerObject,
-  group: PlayerGroup,
-) {
-  const style = resolvePlayerGroupStyle(group);
-
+export function applyPlayerGroupStyleToPlayer(player: PlayerObject) {
   return updatePlayerObject(player, {
     color: undefined,
     colors: undefined,
@@ -298,19 +293,8 @@ export function applyPlayerGroupStyleToPlayer(
     options: undefined,
     asset: undefined,
     fontSize: undefined,
-    size: { width: style.size, height: style.size },
+    size: undefined,
     caption: getPlayerCaptionWithoutStyle(player),
-  });
-}
-
-function applyPlayerGroupStylePatchToPlayer(
-  player: PlayerObject,
-  patch: PlayerGroupStylePatch,
-) {
-  return updatePlayerObject(player, {
-    ...("size" in patch && typeof patch.size === "number"
-      ? { size: { width: patch.size, height: patch.size } }
-      : {}),
   });
 }
 
@@ -360,37 +344,10 @@ export function updatePlayerGroupStyle(
       ? { ...group, style: { ...group.style, ...patch } }
       : group,
   );
-  const memberIds = getPlayerGroupMemberObjects(board, groupId).map(
-    (object) => object.id,
-  );
-
-  if (memberIds.length === 0) {
-    return {
-      ...board,
-      playerGroups,
-    };
-  }
-
-  const nextById = { ...board.objects.byId };
-
-  for (const memberId of memberIds) {
-    const object = nextById[memberId];
-
-    if (object?.type === PLAYER_OBJECT_TYPE) {
-      nextById[memberId] = applyPlayerGroupStylePatchToPlayer(
-        object as PlayerObject,
-        patch,
-      );
-    }
-  }
 
   return {
     ...board,
     playerGroups,
-    objects: {
-      ...board.objects,
-      byId: nextById,
-    },
   };
 }
 
@@ -414,7 +371,7 @@ export function movePlayerToGroupInBoard(
       return player;
     }
 
-    return updatePlayerObject(applyPlayerGroupStyleToPlayer(player, group), {
+    return updatePlayerObject(applyPlayerGroupStyleToPlayer(player), {
       groupId,
       ...(nextLabel ? { label: nextLabel } : {}),
     });
@@ -425,7 +382,7 @@ export function resetPlayerStyleToGroupInBoard(board: Board, playerId: string) {
   return updateBoardPlayerObject(board, playerId, (player) => {
     const group = getBoardPlayerGroup(board, player.props.groupId);
 
-    return group ? applyPlayerGroupStyleToPlayer(player, group) : player;
+    return group ? applyPlayerGroupStyleToPlayer(player) : player;
   });
 }
 
@@ -483,14 +440,11 @@ export function createPlayerFromPlayerGroup({
   label?: string;
   position: { x: number; y: number };
 }) {
-  const style = resolvePlayerGroupStyle(group);
-
   return createPlayerObject({
     id,
     position,
     groupId: group.id,
     label,
-    size: { width: style.size, height: style.size },
   });
 }
 

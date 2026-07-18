@@ -160,8 +160,13 @@ export function updatePlayerStyle(
   return updatePlayerObject(player, {
     ...("color" in patch ? { color: patch.color } : {}),
     ...("colors" in patch ? { colors: patch.colors } : {}),
-    ...("size" in patch && typeof patch.size === "number"
-      ? { size: { width: patch.size, height: patch.size } }
+    ...("size" in patch
+      ? {
+          size:
+            typeof patch.size === "number"
+              ? { width: patch.size, height: patch.size }
+              : undefined,
+        }
       : {}),
     ...("fontSize" in patch ? { fontSize: patch.fontSize } : {}),
     ...("labelColor" in patch ? { labelColor: patch.labelColor } : {}),

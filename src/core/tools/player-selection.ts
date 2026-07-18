@@ -25,6 +25,7 @@ import {
   getPlayerCaptionCanvasBounds,
   getPlayerVisibleCanvasBounds,
 } from "./player-geometry";
+import { getPlayerWithEffectiveStyle } from "../board/player-style";
 
 const PLAYER_SELECTION_PADDING_PX = 0.75;
 const PLAYER_RESIZE_HANDLE_RADIUS_PX = 4;
@@ -104,20 +105,25 @@ export const playerSelectionAdapter: ObjectSelectionAdapter<
   PlayerObject,
   PlayerSelectionSession
 > = {
-  getCanvasBounds: ({ object, projection }) =>
-    getBoundsFromCanvasPoints(
-      getPlayerSelectionOutlineCanvasPoints(projection, object),
-    ),
+  getCanvasBounds: ({ board, object, projection }) => {
+    const player = getPlayerWithEffectiveStyle(board, object);
+
+    return getBoundsFromCanvasPoints(
+      getPlayerSelectionOutlineCanvasPoints(projection, player),
+    );
+  },
   renderSelection: ({
+    board,
     context,
     object,
     projection,
     color,
     showControls = true,
   }) => {
+    const player = getPlayerWithEffectiveStyle(board, object);
     const outlinePoints = getPlayerSelectionOutlineCanvasPoints(
       projection,
-      object,
+      player,
     );
     context.save();
     context.strokeStyle = color;
@@ -126,7 +132,7 @@ export const playerSelectionAdapter: ObjectSelectionAdapter<
     drawClosedCanvasPath(context, outlinePoints);
     context.stroke();
 
-    if (showControls && !object.locked) {
+    if (showControls && !player.locked) {
       for (const handlePoint of outlinePoints) {
         drawRoundedSquareHandle(
           context,
@@ -140,23 +146,24 @@ export const playerSelectionAdapter: ObjectSelectionAdapter<
 
       renderRotateHandleIcon(
         context,
-        getPlayerRotateHandleCanvasPoint(projection, object),
+        getPlayerRotateHandleCanvasPoint(projection, player),
         PLAYER_ROTATE_HANDLE_RADIUS_PX,
-        object.rotation,
+        player.rotation,
       );
     }
 
     context.restore();
   },
-  hitSelectionHandle: ({ object, projection, event }) => {
+  hitSelectionHandle: ({ state, object, projection, event }) => {
     if (object.type !== PLAYER_OBJECT_TYPE || object.locked) {
       return undefined;
     }
 
+    const player = getPlayerWithEffectiveStyle(state.board, object);
     const canvasPoint = projection.boardToCanvas(event.point);
     const handlePoints = getPlayerSelectionOutlineCanvasPoints(
       projection,
-      object,
+      player,
     );
 
     for (const [index, handleCanvasPoint] of handlePoints.entries()) {
@@ -176,12 +183,12 @@ export const playerSelectionAdapter: ObjectSelectionAdapter<
                 : index === 2
                   ? "bottom-right"
                   : "bottom-left",
-          center: object.position,
+          center: player.position,
         };
       }
     }
 
-    const rotateHandle = getPlayerRotateHandleCanvasPoint(projection, object);
+    const rotateHandle = getPlayerRotateHandleCanvasPoint(projection, player);
     const rotateDistance = Math.hypot(
       canvasPoint.x - rotateHandle.x,
       canvasPoint.y - rotateHandle.y,
@@ -190,11 +197,11 @@ export const playerSelectionAdapter: ObjectSelectionAdapter<
     if (rotateDistance <= PLAYER_ROTATE_HANDLE_HIT_RADIUS_PX) {
       return {
         kind: "rotate",
-        center: object.position,
-        initialRotation: object.rotation ?? 0,
+        center: player.position,
+        initialRotation: player.rotation ?? 0,
         initialPointerAngle: Math.atan2(
-          event.point.y - object.position.y,
-          event.point.x - object.position.x,
+          event.point.y - player.position.y,
+          event.point.x - player.position.x,
         ),
       };
     }
@@ -222,18 +229,19 @@ export const playerSelectionAdapter: ObjectSelectionAdapter<
       ),
     );
   },
-  getToolbarAnchor: ({ object, projection }) => {
+  getToolbarAnchor: ({ board, object, projection }) => {
+    const player = getPlayerWithEffectiveStyle(board, object);
     const outlinePoints = getPlayerSelectionOutlineCanvasPoints(
       projection,
-      object,
+      player,
     );
     const rotateHandlePoint = getPlayerRotateHandleCanvasPoint(
       projection,
-      object,
+      player,
     );
 
     return getSelectionToolbarAnchorFromSelectionChrome({
-      left: projection.boardToCanvas(object.position).x,
+      left: projection.boardToCanvas(player.position).x,
       outlinePoints,
       rotateHandlePoint,
       rotateHandleRadiusPx: PLAYER_ROTATE_HANDLE_RADIUS_PX,

@@ -1,12 +1,10 @@
 import {
-  DEFAULT_PLAYER_SIZE,
   updatePlayerObject,
   type PlayerObject,
 } from "../../../../core/objects/player-object";
 import {
   getBoardPlayerGroup,
   getBoardPlayerGroups,
-  resolvePlayerGroupStyle,
 } from "../../../../core/board/player-groups";
 import {
   resolveEffectivePlayerStyle,
@@ -56,9 +54,6 @@ export function BoardEditorPlayerSelectionToolbar({
   const toolApi = createToolApi(store);
   const playerGroups = getBoardPlayerGroups(board);
   const playerGroup = getBoardPlayerGroup(board, selectedObject.props.groupId);
-  const groupStyle = playerGroup
-    ? resolvePlayerGroupStyle(playerGroup)
-    : undefined;
   const effectiveStyle = resolveEffectivePlayerStyle(board, selectedObject);
   const appearances = getThemePlayerAppearanceDefinitions(theme);
   const appearance =
@@ -68,7 +63,6 @@ export function BoardEditorPlayerSelectionToolbar({
   const labelColor =
     effectiveStyle.labelColor ??
     getContrastingPlayerLabelColor(effectiveStyle.color);
-  const groupSize = groupStyle?.size ?? DEFAULT_PLAYER_SIZE;
   const hasLabelStyleOverride =
     selectedObject.props.fontSize !== undefined ||
     selectedObject.props.labelColor !== undefined;
@@ -80,7 +74,7 @@ export function BoardEditorPlayerSelectionToolbar({
     selectedObject.props.appearanceId !== undefined ||
     selectedObject.props.options !== undefined ||
     selectedObject.props.asset !== undefined ||
-    effectiveStyle.size !== groupSize;
+    selectedObject.size !== undefined;
   const hasAnyStyleOverride =
     hasLabelStyleOverride || hasCaptionStyleOverride || hasAppearanceOverride;
 
@@ -100,7 +94,7 @@ export function BoardEditorPlayerSelectionToolbar({
     applyPlayerStylePatch({
       color: undefined,
       colors: undefined,
-      size: groupSize,
+      size: undefined,
       appearanceId: undefined,
       options: undefined,
       asset: undefined,

@@ -319,10 +319,12 @@ function createPlayerPreviewObject({
     id,
     position: point,
     rotation: 0,
-    size: {
-      width: draftStyle.size,
-      height: draftStyle.size,
-    },
+    size: groupId
+      ? undefined
+      : {
+          width: draftStyle.size,
+          height: draftStyle.size,
+        },
     groupId,
     color: groupId ? undefined : draftStyle.color,
     colors: groupId ? undefined : draftStyle.colors,

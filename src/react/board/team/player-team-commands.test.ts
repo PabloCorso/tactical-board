@@ -4,7 +4,6 @@ import { createToolApi } from "../../../core/editor/create-tool-api";
 import { createFootballBoard } from "../../sports/football/board/football-board";
 import { createFootballTools } from "../../sports/football/theme/football-tools";
 import { getBoardPlayerGroups } from "../../../core/board/player-groups";
-import { resolveEffectivePlayerStyle } from "../../../core/board/player-style";
 import {
   createPlayerObject,
   PLAYER_OBJECT_TYPE,
@@ -12,7 +11,6 @@ import {
 } from "../../../core/objects/player-object";
 import {
   applyFormationToPlayerGroup,
-  applyPlayerGroupStylePatch,
   deletePlayerGroupCommand,
   movePlayerToGroup,
   movePlayersToGroup,
@@ -49,7 +47,6 @@ function addGroupPlayer(
       position: { x: 10, y: 10 },
       groupId,
       label,
-      color: "#ff0000",
     }),
   ]);
 }
@@ -87,57 +84,6 @@ describe("deletePlayerGroupCommand", () => {
   });
 });
 
-describe("applyPlayerGroupStylePatch", () => {
-  it("updates the group defaults and existing members", () => {
-    const toolApi = createTestToolApi();
-    const [group] = getBoardPlayerGroups(toolApi.getState().board);
-
-    addGroupPlayer(toolApi, "player-a", group.id, "1");
-
-    applyPlayerGroupStylePatch(toolApi, group.id, {
-      appearanceId: "football-shirt",
-      colors: { secondary: "#ffffff" },
-      options: { pattern: "stripes" },
-    });
-
-    const nextBoard = toolApi.getState().board;
-    const nextGroup = getBoardPlayerGroups(nextBoard).find(
-      (candidate) => candidate.id === group.id,
-    );
-    const member = nextBoard.objects.byId["player-a"] as PlayerObject;
-
-    expect(nextGroup?.style.appearanceId).toBe("football-shirt");
-    expect(nextGroup?.style.options).toEqual({ pattern: "stripes" });
-    expect(member.props.appearanceId).toBeUndefined();
-    expect(member.props.colors).toBeUndefined();
-    expect(member.props.options).toBeUndefined();
-    expect(resolveEffectivePlayerStyle(nextBoard, member)).toMatchObject({
-      appearanceId: "football-shirt",
-      colors: { secondary: "#ffffff" },
-      options: { pattern: "stripes" },
-    });
-  });
-
-  it("propagates size changes to members as square sizes", () => {
-    const toolApi = createTestToolApi();
-    const [group] = getBoardPlayerGroups(toolApi.getState().board);
-
-    addGroupPlayer(toolApi, "player-a", group.id, "1");
-    applyPlayerGroupStylePatch(toolApi, group.id, { size: 30 });
-
-    const member = toolApi.getState().board.objects.byId[
-      "player-a"
-    ] as PlayerObject;
-
-    expect(member.size).toEqual({ width: 30, height: 30 });
-    expect(
-      getBoardPlayerGroups(toolApi.getState().board).find(
-        (candidate) => candidate.id === group.id,
-      )?.style.size,
-    ).toBe(30);
-  });
-});
-
 describe("movePlayerToGroup", () => {
   it("adopts the destination team style and next number", () => {
     const toolApi = createTestToolApi();
@@ -153,10 +99,6 @@ describe("movePlayerToGroup", () => {
     ] as PlayerObject;
 
     expect(moved.props.groupId).toBe(second.id);
-    expect(moved.props.color).toBeUndefined();
-    expect(
-      resolveEffectivePlayerStyle(toolApi.getState().board, moved).color,
-    ).toBe(second.style.color);
     expect(moved.props.label).toBe("2");
   });
 

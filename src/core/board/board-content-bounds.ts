@@ -9,6 +9,11 @@ import {
   SHAPE_OBJECT_TYPE,
   type ShapeObject,
 } from "../objects/shape-object";
+import {
+  PLAYER_OBJECT_TYPE,
+  type PlayerObject,
+} from "../objects/player-object";
+import { getPlayerWithEffectiveStyle } from "./player-style";
 
 export type BoardContentBounds = {
   minX: number;
@@ -175,7 +180,11 @@ function expandBoundsToMarking(
   }
 }
 
-function expandBoundsToObject(bounds: BoardContentBounds, object: BoardObject) {
+function expandBoundsToObject(
+  bounds: BoardContentBounds,
+  board: Board,
+  object: BoardObject,
+) {
   if (object.type === ARROW_OBJECT_TYPE) {
     const arrow = object as ArrowObject;
 
@@ -202,16 +211,21 @@ function expandBoundsToObject(bounds: BoardContentBounds, object: BoardObject) {
     return;
   }
 
-  const width = object.size?.width ?? 0;
-  const height = object.size?.height ?? object.size?.width ?? 0;
+  const effectiveObject =
+    object.type === PLAYER_OBJECT_TYPE
+      ? getPlayerWithEffectiveStyle(board, object as PlayerObject)
+      : object;
+  const width = effectiveObject.size?.width ?? 0;
+  const height =
+    effectiveObject.size?.height ?? effectiveObject.size?.width ?? 0;
 
   expandBoundsToPoint(bounds, {
-    x: object.position.x - width / 2,
-    y: object.position.y - height / 2,
+    x: effectiveObject.position.x - width / 2,
+    y: effectiveObject.position.y - height / 2,
   });
   expandBoundsToPoint(bounds, {
-    x: object.position.x + width / 2,
-    y: object.position.y + height / 2,
+    x: effectiveObject.position.x + width / 2,
+    y: effectiveObject.position.y + height / 2,
   });
 }
 
@@ -233,7 +247,7 @@ export function getBoardContentBounds(board: Board): BoardContentBounds {
     const object = board.objects.byId[objectId];
 
     if (object) {
-      expandBoundsToObject(bounds, object);
+      expandBoundsToObject(bounds, board, object);
     }
   }
 
