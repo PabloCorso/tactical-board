@@ -335,7 +335,7 @@ describe("createBoardEditorController", () => {
     expect(editingSession?.anchorPosition.y).toBeCloseTo(18);
   });
 
-  it("prefers players over overlapping shapes during hit testing", () => {
+  it("hit-tests overlapping object types using their global order", () => {
     const shape = createShapeObject({
       id: "shape-1",
       kind: "rectangle",
@@ -351,7 +351,7 @@ describe("createBoardEditorController", () => {
       position: { x: 25, y: 12 },
       color: "#111827",
     });
-    const { boardToCanvas, controller } = createEditorHarness({
+    const { boardToCanvas, controller, store } = createEditorHarness({
       initialToolId: selectTool.id,
       objects: [player, shape],
     });
@@ -361,6 +361,20 @@ describe("createBoardEditorController", () => {
       controller.createToolPointerEvent({
         clientPoint: targetPoint,
         pointerId: 1,
+        ctrlKey: false,
+        shiftKey: false,
+        altKey: false,
+        metaKey: false,
+        canvasRect,
+      }).targetObjectId,
+    ).toBe(shape.id);
+
+    store.getState().actions.bringObjectsToFront([player.id]);
+
+    expect(
+      controller.createToolPointerEvent({
+        clientPoint: targetPoint,
+        pointerId: 2,
         ctrlKey: false,
         shiftKey: false,
         altKey: false,

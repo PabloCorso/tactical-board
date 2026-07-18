@@ -4,6 +4,7 @@ import type {
   ToolDefinition,
   ToolPointerEvent,
 } from "./types";
+import { DEFAULT_OBJECT_ORDER_RANKS } from "../board/object-order";
 import { defineObjectDefinition } from "../objects/types";
 import { BoardEditorTool } from "./tool";
 import type {
@@ -58,6 +59,7 @@ export type EquipmentCanvasRendererRegistry = Record<
 
 const equipmentObjectDefinition = defineObjectDefinition({
   type: EQUIPMENT_OBJECT_TYPE,
+  defaultOrderRank: DEFAULT_OBJECT_ORDER_RANKS.content,
   selection: equipmentSelectionAdapter,
 });
 

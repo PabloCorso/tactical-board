@@ -1,4 +1,5 @@
 import type { BoardEditorToolState } from "../editor/types";
+import { DEFAULT_OBJECT_ORDER_RANKS } from "../board/object-order";
 import {
   createDefaultBoardPlayerGroups,
   getBoardPlayerGroup,
@@ -73,6 +74,7 @@ type PlayerAssetImageCacheEntry = {
 
 const playerObjectDefinition = defineObjectDefinition({
   type: PLAYER_OBJECT_TYPE,
+  defaultOrderRank: DEFAULT_OBJECT_ORDER_RANKS.foreground,
   selection: playerSelectionAdapter,
 });
 

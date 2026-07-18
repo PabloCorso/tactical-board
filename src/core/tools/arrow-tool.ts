@@ -1,4 +1,5 @@
 import type { Point } from "../board/types";
+import { DEFAULT_OBJECT_ORDER_RANKS } from "../board/object-order";
 import type { BoardEditorToolState } from "../editor/types";
 import {
   ARROW_OBJECT_TYPE,
@@ -56,6 +57,7 @@ export type CreateArrowToolOptions = {
 
 const arrowObjectDefinition = defineObjectDefinition({
   type: ARROW_OBJECT_TYPE,
+  defaultOrderRank: DEFAULT_OBJECT_ORDER_RANKS.annotation,
   behaviors: {
     move: moveArrowObject,
     rotate: (object, center, rotationDelta) =>

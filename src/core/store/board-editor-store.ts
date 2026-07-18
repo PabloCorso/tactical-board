@@ -15,7 +15,10 @@ import {
   getViewportForBoardCanvasResize,
   getViewportToFitBoard,
 } from "../editor/viewport-utils";
-import { moveObjectIdsToLayerBoundary } from "../board/object-order";
+import {
+  DEFAULT_OBJECT_ORDER_RANK,
+  moveObjectIdsToBoundary,
+} from "../board/object-order";
 import { moveBoardObject } from "../objects/object-behaviors";
 import type { ShapeDefinition, ShapeRegistry } from "../objects/types";
 import type {
@@ -77,6 +80,61 @@ function createObjectRegistry(
       objectDefinitions.map((definition) => [definition.type, definition]),
     ),
   };
+}
+
+function getDefaultObjectOrderRank(
+  objectRegistry: ShapeRegistry,
+  object: Shape,
+) {
+  const rank = objectRegistry.definitions[object.type]?.defaultOrderRank;
+  return typeof rank === "number" && Number.isFinite(rank)
+    ? rank
+    : DEFAULT_OBJECT_ORDER_RANK;
+}
+
+function insertObjectIdAtDefaultOrder({
+  byId,
+  object,
+  objectRegistry,
+  order,
+}: {
+  byId: Record<ShapeId, Shape>;
+  object: Shape;
+  objectRegistry: ShapeRegistry;
+  order: ShapeId[];
+}) {
+  const targetRank = getDefaultObjectOrderRank(objectRegistry, object);
+  let lastPeerIndex = -1;
+
+  for (let index = 0; index < order.length; index += 1) {
+    const existingObject = byId[order[index]];
+
+    if (
+      existingObject &&
+      getDefaultObjectOrderRank(objectRegistry, existingObject) === targetRank
+    ) {
+      lastPeerIndex = index;
+    }
+  }
+
+  if (lastPeerIndex >= 0) {
+    order.splice(lastPeerIndex + 1, 0, object.id);
+    return;
+  }
+
+  const firstHigherRankIndex = order.findIndex((objectId) => {
+    const existingObject = byId[objectId];
+    return (
+      existingObject !== undefined &&
+      getDefaultObjectOrderRank(objectRegistry, existingObject) > targetRank
+    );
+  });
+
+  order.splice(
+    firstHigherRankIndex >= 0 ? firstHigherRankIndex : order.length,
+    0,
+    object.id,
+  );
 }
 
 function createDuplicatedObjectId(
@@ -446,7 +504,12 @@ export function createEditorStore({
           for (const object of objects) {
             nextById[object.id] = object;
             if (!nextOrder.includes(object.id)) {
-              nextOrder.push(object.id);
+              insertObjectIdAtDefaultOrder({
+                byId: nextById,
+                object,
+                objectRegistry: state.objectRegistry,
+                order: nextOrder,
+              });
             }
           }
 
@@ -467,7 +530,7 @@ export function createEditorStore({
       },
       bringObjectsToFront: (objectIds) => {
         set((state) => {
-          const nextOrder = moveObjectIdsToLayerBoundary(
+          const nextOrder = moveObjectIdsToBoundary(
             state.board,
             objectIds,
             "front",
@@ -511,7 +574,7 @@ export function createEditorStore({
 
           const duplicateId = createDuplicatedObjectId(objectId, nextById);
           duplicateIds.push(duplicateId);
-          nextById[duplicateId] = translateObject(
+          const duplicatedObject = translateObject(
             state,
             {
               ...object,
@@ -522,7 +585,13 @@ export function createEditorStore({
               y: 2,
             },
           );
-          nextOrder.push(duplicateId);
+          nextById[duplicateId] = duplicatedObject;
+          insertObjectIdAtDefaultOrder({
+            byId: nextById,
+            object: duplicatedObject,
+            objectRegistry: state.objectRegistry,
+            order: nextOrder,
+          });
         }
 
         if (duplicateIds.length === 0) {
@@ -590,7 +659,7 @@ export function createEditorStore({
       },
       sendObjectsToBack: (objectIds) => {
         set((state) => {
-          const nextOrder = moveObjectIdsToLayerBoundary(
+          const nextOrder = moveObjectIdsToBoundary(
             state.board,
             objectIds,
             "back",

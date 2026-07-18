@@ -1036,7 +1036,7 @@ describe("createBoardEditorStore", () => {
     expect(store.getState().selection.selectedObjectIds).toEqual(["a"]);
   });
 
-  it("brings an object to the front of its semantic layer", () => {
+  it("brings an object to the front across object types", () => {
     const store = createBoardEditorStore({
       initialBoard: {
         id: "board-1",
@@ -1077,13 +1077,13 @@ describe("createBoardEditorStore", () => {
     store.getState().actions.bringObjectsToFront(["player-1"]);
 
     expect(store.getState().board.objects.order).toEqual([
-      "player-2",
       "shape-1",
+      "player-2",
       "player-1",
     ]);
   });
 
-  it("sends an object to the back of its semantic layer", () => {
+  it("sends an object to the back across object types", () => {
     const store = createBoardEditorStore({
       initialBoard: {
         id: "board-1",
@@ -1125,8 +1125,8 @@ describe("createBoardEditorStore", () => {
 
     expect(store.getState().board.objects.order).toEqual([
       "player-2",
-      "shape-1",
       "player-1",
+      "shape-1",
     ]);
   });
 

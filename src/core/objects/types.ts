@@ -18,6 +18,7 @@ export interface ShapeBehaviorAdapter<TShape extends Shape = Shape> {
 
 export interface ShapeDefinition {
   type: ShapeType;
+  defaultOrderRank?: number;
   createDefault?: (input: Pick<Shape, "id" | "position">) => Shape;
   getBounds?: (object: Shape) => Rect;
   render?: (object: Shape, context: ObjectRenderContext) => void;

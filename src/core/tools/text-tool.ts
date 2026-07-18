@@ -1,4 +1,5 @@
 import { defineObjectDefinition } from "../objects/types";
+import { DEFAULT_OBJECT_ORDER_RANKS } from "../board/object-order";
 import {
   getTextLineMetrics,
   getWrappedTextLines,
@@ -30,6 +31,7 @@ import {
 
 const textObjectDefinition = defineObjectDefinition({
   type: TEXT_OBJECT_TYPE,
+  defaultOrderRank: DEFAULT_OBJECT_ORDER_RANKS.text,
   selection: textSelectionAdapter,
   beginEditing: ({ object, state, canvasRect }) => {
     const textObject = object as TextObject;

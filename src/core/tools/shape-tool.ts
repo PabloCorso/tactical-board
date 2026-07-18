@@ -1,4 +1,5 @@
 import type { Point } from "../board/types";
+import { DEFAULT_OBJECT_ORDER_RANKS } from "../board/object-order";
 import type { BoardEditorToolState } from "../editor/types";
 import {
   createShapeObject,
@@ -68,6 +69,7 @@ type CreateShapeToolOptions = {
 
 const shapeObjectDefinition = defineObjectDefinition({
   type: SHAPE_OBJECT_TYPE,
+  defaultOrderRank: DEFAULT_OBJECT_ORDER_RANKS.background,
   behaviors: {
     move: moveShapeObject,
     rotate: (object, center, rotationDelta) => {

@@ -1,10 +1,7 @@
 import type { ReactNode } from "react";
 import { DotsThreeVerticalIcon } from "@phosphor-icons/react";
 import type { ObjectId } from "../../../../core/board/types";
-import {
-  canBringObjectToFront,
-  canSendObjectToBack,
-} from "../../../../core/board/object-order";
+import { canMoveObjectIdsToBoundary } from "../../../../core/board/object-order";
 import { createToolApi } from "../../../../core/editor/create-tool-api";
 import {
   deleteSelectedObjects,
@@ -37,11 +34,15 @@ export function BoardEditorSelectionActionsMenu({
   const floatingPortal = useBoardEditorToolbarFloatingPortal();
   const board = useBoardEditorStore(store, (state) => state.board);
   const toolApi = createToolApi(store);
-  const canBringToFront = selectedObjectIds.some((objectId) =>
-    canBringObjectToFront(board, objectId),
+  const canBringToFront = canMoveObjectIdsToBoundary(
+    board,
+    selectedObjectIds,
+    "front",
   );
-  const canSendToBack = selectedObjectIds.some((objectId) =>
-    canSendObjectToBack(board, objectId),
+  const canSendToBack = canMoveObjectIdsToBoundary(
+    board,
+    selectedObjectIds,
+    "back",
   );
 
   const handleDuplicate = () => {
