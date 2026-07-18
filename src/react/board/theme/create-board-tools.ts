@@ -64,6 +64,7 @@ export function createBoardTools({
       defaults: defaults.arrows ?? BOARD_ARROW_DEFAULTS,
     }),
     new ShapeTool({
+      completion: "select-created",
       defaults: defaults.shapes ?? BOARD_SHAPE_DEFAULTS,
       defaultPreviewSize: defaults.shapePreviewSize,
     }),

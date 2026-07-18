@@ -8,6 +8,7 @@ import type {
   CanvasOverlayRenderer,
 } from "../rendering/canvas/types";
 import type { ObjectDefinition } from "../objects/types";
+import type { SelectionPresentation } from "./selection-presentation";
 
 export interface ToolPointerEvent {
   point: Point;
@@ -112,7 +113,9 @@ export interface ToolCapabilityRegistrationApi {
 export interface ToolDefinition {
   id: ToolId;
   label: string;
+  completeInteraction?: (api: ToolApi) => boolean;
   getOverlayItems?: (state: BoardEditorState) => CanvasOverlayItem[];
+  getSelectionPresentation?: (state: BoardEditorState) => SelectionPresentation;
   getCursor?: (event: ToolPointerEvent, api: ToolApi) => string | undefined;
   registerCapabilities?: (api: ToolCapabilityRegistrationApi) => void;
   onActivate?: (api: ToolApi) => void;

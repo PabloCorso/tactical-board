@@ -2,6 +2,10 @@ import { useMemo } from "react";
 import type { BoardObject } from "../../../../core/board/types";
 import { getBoardPlayerGroups } from "../../../../core/board/player-groups";
 import { createToolApi } from "../../../../core/editor/create-tool-api";
+import {
+  getActiveSelectionPresentation,
+  type SelectionPresentation,
+} from "../../../../core/tools/selection-presentation";
 import { createBoardSpaceProjection } from "../../../../core/geometry/board-space-projection";
 import { resolveBoardEditorFitPadding } from "../../../../core/editor/fit-padding";
 import {
@@ -115,9 +119,12 @@ export type BoardEditorSelectionToolbarProps = {
 export function shouldShowSelectionToolbar(
   selectState: ReturnType<typeof getSelectToolState>,
   selectedObjectIds: string[],
+  presentation: SelectionPresentation = "interactive",
 ) {
   return (
-    selectedObjectIds.length > 0 && selectState.interaction?.mode !== "marquee"
+    presentation === "interactive" &&
+    selectedObjectIds.length > 0 &&
+    selectState.interaction?.mode !== "marquee"
   );
 }
 
@@ -173,17 +180,18 @@ export function BoardEditorSelectionToolbar({
   const state = useBoardEditorStore(store, (currentState) => currentState);
   const selectState = getSelectToolState(state.toolState);
   const selection = state.selection.selectedObjectIds;
+  const selectionPresentation = getActiveSelectionPresentation(state);
 
   const selectedObject = useMemo(() => {
     if (
       selection.length !== 1 ||
-      !shouldShowSelectionToolbar(selectState, selection)
+      !shouldShowSelectionToolbar(selectState, selection, selectionPresentation)
     ) {
       return undefined;
     }
 
     return state.board.objects.byId[selection[0]];
-  }, [selectState, selection, state.board.objects.byId]);
+  }, [selectState, selection, selectionPresentation, state.board.objects.byId]);
   const selectedObjects = useMemo(
     () =>
       selection.flatMap((objectId) => {
@@ -194,7 +202,11 @@ export function BoardEditorSelectionToolbar({
   );
 
   if (
-    !shouldShowSelectionToolbar(selectState, selection) ||
+    !shouldShowSelectionToolbar(
+      selectState,
+      selection,
+      selectionPresentation,
+    ) ||
     !state.ui.canvasRect
   ) {
     return null;

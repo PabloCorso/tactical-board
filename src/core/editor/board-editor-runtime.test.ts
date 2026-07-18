@@ -1178,6 +1178,75 @@ describe("createBoardEditorRuntime", () => {
     globalThis.cancelAnimationFrame = originalCancelAnimationFrame;
   });
 
+  it("does not delete a passive selection while a creation tool is active", () => {
+    const arrowTool = new ArrowTool();
+    const store = createBoardEditorStore({
+      initialBoard: {
+        id: "board-1",
+        version: 1,
+        metadata: {},
+        frame: { width: 100, height: 50 },
+        objects: {
+          byId: {
+            a: {
+              id: "a",
+              type: "token",
+              position: { x: 10, y: 12 },
+              props: {},
+            },
+          },
+          order: ["a"],
+        },
+        style: {},
+      },
+      tools: [
+        {
+          id: SELECT_TOOL_ID,
+          label: "Select",
+        },
+        arrowTool,
+      ],
+    });
+    const runtime = createBoardEditorRuntime({ store });
+    const canvas = createCanvasStub();
+    const originalRequestAnimationFrame = globalThis.requestAnimationFrame;
+    const originalCancelAnimationFrame = globalThis.cancelAnimationFrame;
+    vi.stubGlobal(
+      "requestAnimationFrame",
+      vi.fn(() => 1),
+    );
+    vi.stubGlobal("cancelAnimationFrame", vi.fn());
+
+    store.getState().actions.setSelectedObjectIds(["a"]);
+    store.getState().actions.setActiveTool(ARROW_TOOL_ID);
+    runtime.mount(canvas);
+
+    const keyDownHandler = vi
+      .mocked(canvas.addEventListener)
+      .mock.calls.find(([eventName]) => eventName === "keydown")?.[1] as
+      | ((event: KeyboardEvent) => void)
+      | undefined;
+    const deleteEvent = {
+      key: "Delete",
+      metaKey: false,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      preventDefault: vi.fn(),
+    } as unknown as KeyboardEvent;
+
+    keyDownHandler?.(deleteEvent);
+
+    expect(store.getState().board.objects.byId.a).toBeDefined();
+    expect(store.getState().selection.selectedObjectIds).toEqual(["a"]);
+    expect(deleteEvent.preventDefault).not.toHaveBeenCalled();
+
+    runtime.unmount();
+    vi.unstubAllGlobals();
+    globalThis.requestAnimationFrame = originalRequestAnimationFrame;
+    globalThis.cancelAnimationFrame = originalCancelAnimationFrame;
+  });
+
   it("cancels an unfinished arrow when Escape is pressed on the focused canvas", () => {
     const arrowTool = new ArrowTool();
     const store = createBoardEditorStore({
@@ -1262,6 +1331,7 @@ describe("createBoardEditorRuntime", () => {
 
   it("completes an unfinished polygon when Enter is pressed on the focused canvas", () => {
     const shapeTool = new ShapeTool({
+      completion: "select-created",
       defaults: [
         {
           id: "polygon",
@@ -1287,7 +1357,6 @@ describe("createBoardEditorRuntime", () => {
         },
         style: {},
       },
-      initialToolId: SHAPE_TOOL_ID,
       tools: [
         {
           id: SELECT_TOOL_ID,
@@ -1306,6 +1375,7 @@ describe("createBoardEditorRuntime", () => {
     );
     vi.stubGlobal("cancelAnimationFrame", vi.fn());
 
+    store.getState().actions.setActiveTool(SHAPE_TOOL_ID);
     runtime.mount(canvas);
     store.getState().actions.setToolState(SHAPE_TOOL_ID, {
       ...getShapeToolState(store.getState().toolState),
@@ -1340,6 +1410,8 @@ describe("createBoardEditorRuntime", () => {
     keyDownHandler?.(enterEvent);
 
     expect(store.getState().board.objects.order).toEqual(["shape-1"]);
+    expect(store.getState().ui.activeToolId).toBe(SELECT_TOOL_ID);
+    expect(store.getState().selection.selectedObjectIds).toEqual(["shape-1"]);
     expect(getShapeToolState(store.getState().toolState).pendingPoints).toEqual(
       [],
     );
@@ -1955,6 +2027,7 @@ describe("createBoardEditorRuntime", () => {
   ])(
     "selects every object when $name is pressed on the focused canvas",
     ({ metaKey, ctrlKey }) => {
+      const arrowTool = new ArrowTool();
       const store = createBoardEditorStore({
         initialBoard: {
           id: "board-1",
@@ -1988,6 +2061,7 @@ describe("createBoardEditorRuntime", () => {
             id: SELECT_TOOL_ID,
             label: "Select",
           },
+          arrowTool,
         ],
       });
       const runtime = createBoardEditorRuntime({ store });
@@ -2000,6 +2074,11 @@ describe("createBoardEditorRuntime", () => {
       );
       vi.stubGlobal("cancelAnimationFrame", vi.fn());
 
+      store.getState().actions.setActiveTool(ARROW_TOOL_ID);
+      store.getState().actions.setToolState(ARROW_TOOL_ID, {
+        ...getArrowToolState(store.getState().toolState),
+        pendingPoints: [{ x: 10, y: 10 }],
+      });
       runtime.mount(canvas);
 
       const keyDownHandler = vi
@@ -2021,7 +2100,11 @@ describe("createBoardEditorRuntime", () => {
 
       keyDownHandler?.(selectAllEvent);
 
+      expect(store.getState().ui.activeToolId).toBe(SELECT_TOOL_ID);
       expect(store.getState().selection.selectedObjectIds).toEqual(["a", "b"]);
+      expect(
+        getArrowToolState(store.getState().toolState).pendingPoints,
+      ).toEqual([]);
       expect(selectAllEvent.preventDefault).toHaveBeenCalledTimes(1);
 
       runtime.unmount();

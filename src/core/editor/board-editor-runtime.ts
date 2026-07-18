@@ -9,6 +9,7 @@ import type { BoardEditorState } from "./types";
 import type { BoardEditorStore } from "../store/board-editor-store";
 import type { ToolDefinition } from "../tools/types";
 import { resolveBoardEditorFitPadding } from "./fit-padding";
+import { isSelectionInteractive } from "../tools/selection-presentation";
 import {
   DEFAULT_VIEWPORT,
   MAX_VIEWPORT_ZOOM,
@@ -573,8 +574,8 @@ export function createBoardEditorRuntime({
   ) => {
     const state = store.getState();
 
-    if (!state.ui.canvasRect) {
-      return;
+    if (!state.ui.canvasRect || !isSelectionInteractive(state)) {
+      return false;
     }
 
     const selectedObjects = state.selection.selectedObjectIds
@@ -582,14 +583,14 @@ export function createBoardEditorRuntime({
       .filter((object) => Boolean(object));
 
     if (selectedObjects.length !== 1) {
-      return;
+      return false;
     }
 
     const object = selectedObjects[0]!;
     const definition = state.objectRegistry.definitions[object.type];
 
     if (!definition?.beginEditing) {
-      return;
+      return false;
     }
 
     if (input) {
@@ -612,7 +613,7 @@ export function createBoardEditorRuntime({
       });
 
       if (pointerEvent.targetObjectId !== object.id) {
-        return;
+        return false;
       }
     }
 
@@ -622,6 +623,7 @@ export function createBoardEditorRuntime({
       state,
       canvasRect: state.ui.canvasRect,
     });
+    return true;
   };
 
   const onDoubleClick = (event: MouseEvent) => {
@@ -673,7 +675,8 @@ export function createBoardEditorRuntime({
       (event.key === "Delete" || event.key === "Backspace") &&
       !event.metaKey &&
       !event.ctrlKey &&
-      !event.altKey
+      !event.altKey &&
+      isSelectionInteractive(store.getState())
     ) {
       const selectedObjectIds = store.getState().selection.selectedObjectIds;
 
@@ -707,9 +710,9 @@ export function createBoardEditorRuntime({
       !event.metaKey &&
       !event.ctrlKey &&
       !event.altKey &&
-      !event.shiftKey
+      !event.shiftKey &&
+      beginEditingSelection(undefined)
     ) {
-      beginEditingSelection(undefined);
       event.preventDefault();
       return;
     }
@@ -739,6 +742,7 @@ export function createBoardEditorRuntime({
     }
 
     if (key === "a" && !event.shiftKey) {
+      toolApi.resetTool();
       toolApi.setSelectedObjectIds(store.getState().board.objects.order);
       event.preventDefault();
     }

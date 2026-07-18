@@ -36,6 +36,11 @@ import {
 } from "./shape-tool-state";
 import { clearSelection } from "./select-tool-actions";
 import { shapeSelectionAdapter } from "./shape-selection";
+import {
+  applyCreationCompletion,
+  DEFAULT_CREATION_COMPLETION_BEHAVIOR,
+  type CreationCompletionBehavior,
+} from "./creation-completion";
 
 const PREVIEW_OPACITY = 0.55;
 const MIN_HIT_DISTANCE_PX = 10;
@@ -59,7 +64,8 @@ export type ShapeToolDefault = {
   draftStyle: Partial<ShapeDraftStyle>;
 };
 
-type CreateShapeToolOptions = {
+export type CreateShapeToolOptions = {
+  completion?: CreationCompletionBehavior;
   defaults?: ShapeToolDefault[];
   defaultPreviewSize?: {
     width: number;
@@ -98,9 +104,12 @@ export class ShapeTool extends BoardEditorTool implements ToolDefinition {
 
   private readonly defaults: ShapeToolDefault[];
   private readonly defaultPreviewSize;
+  private readonly completion: CreationCompletionBehavior;
 
   constructor(options: CreateShapeToolOptions = {}) {
     super();
+    this.completion =
+      options.completion ?? DEFAULT_CREATION_COMPLETION_BEHAVIOR;
     this.defaults = options.defaults ?? [];
     this.defaultPreviewSize =
       options.defaultPreviewSize ?? DEFAULT_SHAPE_PREVIEW_SIZE;
@@ -120,6 +129,10 @@ export class ShapeTool extends BoardEditorTool implements ToolDefinition {
     }
 
     return nextDraftStyle;
+  }
+
+  completeInteraction(api: ToolApi) {
+    return completePendingPolygon(api, this.completion);
   }
 
   onActivate(api: ToolApi) {
@@ -165,12 +178,12 @@ export class ShapeTool extends BoardEditorTool implements ToolDefinition {
     }
 
     if (event.button === 2) {
-      completePendingPolygon(api);
+      this.completeInteraction(api);
       return;
     }
 
     if (shouldFinishPolygon(api, pendingPoints, event.point, event)) {
-      completePendingPolygon(api);
+      this.completeInteraction(api);
       return;
     }
 
@@ -227,6 +240,7 @@ export class ShapeTool extends BoardEditorTool implements ToolDefinition {
           }),
     ]);
     cancelPendingShape(api);
+    applyCreationCompletion(api, [shapeId], this.completion);
   }
 
   onKeyDown(
@@ -244,8 +258,7 @@ export class ShapeTool extends BoardEditorTool implements ToolDefinition {
       return false;
     }
 
-    completePendingPolygon(api);
-    return true;
+    return this.completeInteraction(api);
   }
 
   onEscapeKey(api: ToolApi) {
@@ -307,7 +320,10 @@ function cancelPendingShape(api: ToolApi) {
   api.clearPreviewObjects();
 }
 
-export function completePendingPolygon(api: ToolApi) {
+export function completePendingPolygon(
+  api: ToolApi,
+  completion: CreationCompletionBehavior = DEFAULT_CREATION_COMPLETION_BEHAVIOR,
+) {
   const state = api.getState();
   const shapeState = getShapeToolState(state.toolState);
 
@@ -315,7 +331,7 @@ export function completePendingPolygon(api: ToolApi) {
     shapeState.draftStyle.kind !== "polygon" ||
     shapeState.pendingPoints.length < 3
   ) {
-    return;
+    return false;
   }
 
   const shapeId = createShapeId(state.board.objects.byId);
@@ -327,6 +343,8 @@ export function completePendingPolygon(api: ToolApi) {
     }),
   ]);
   cancelPendingShape(api);
+  applyCreationCompletion(api, [shapeId], completion);
+  return true;
 }
 
 export function canCompletePendingPolygon(api: ToolApi) {

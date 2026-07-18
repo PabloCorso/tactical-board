@@ -33,6 +33,7 @@ export * from "./store/board-editor-store";
 export * from "./tools/arrow-selection";
 export * from "./tools/arrow-tool";
 export * from "./tools/arrow-tool-state";
+export * from "./tools/creation-completion";
 export * from "./tools/equipment-geometry";
 export * from "./tools/equipment-selection";
 export * from "./tools/equipment-tool";
@@ -44,6 +45,7 @@ export * from "./tools/player-tool-state";
 export * from "./tools/select-tool";
 export * from "./tools/select-tool-actions";
 export * from "./tools/select-tool-state";
+export * from "./tools/selection-presentation";
 export {
   SELECTION_TOOLBAR_OFFSET_PX,
   distanceToSegment,

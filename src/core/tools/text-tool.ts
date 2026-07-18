@@ -48,6 +48,19 @@ export class TextTool extends BoardEditorTool implements ToolDefinition {
   readonly id = TEXT_TOOL_ID;
   readonly label = "Text";
 
+  getSelectionPresentation(
+    state: Parameters<
+      NonNullable<ToolDefinition["getSelectionPresentation"]>
+    >[0],
+  ) {
+    const editingSession = getTextToolState(state.toolState).editingSession;
+
+    return editingSession &&
+      state.selection.selectedObjectIds.includes(editingSession.objectId)
+      ? ("interactive" as const)
+      : ("passive" as const);
+  }
+
   onActivate(api: ToolApi) {
     const textState = getTextToolState(api.getState().toolState);
 

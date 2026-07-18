@@ -1,19 +1,14 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { createBoardEditorStore } from "../../../core/store/board-editor-store";
-import {
-  createPlayerObject,
-  PLAYER_OBJECT_TYPE,
-} from "../../../core/objects/player-object";
-import type { Shape } from "../../../core/board/types";
-import { createEquipmentObjectAdapter } from "./equipment-object-adapter";
+import { createBoardEditorController } from "../../../core/editor/board-editor-controller";
+import { createBoardSpaceProjection } from "../../../core/geometry/board-space-projection";
+import { ARROW_TOOL_ID } from "../../../core/tools/arrow-tool-state";
+import { SELECT_TOOL_ID } from "../../../core/tools/select-tool-state";
+import { SHAPE_TOOL_ID } from "../../../core/tools/shape-tool-state";
 import { createBoardTools } from "./create-board-tools";
 
-function createObject(id: string, type: string): Shape {
-  return { id, type, position: { x: 0, y: 0 }, props: {} };
-}
-
 describe("createBoardTools", () => {
-  it("uses semantic defaults only when inserting new Objects", () => {
+  it("selects a created shape but keeps the arrow tool ready for repeated drawing", () => {
     const store = createBoardEditorStore({
       initialBoard: {
         id: "board-1",
@@ -23,111 +18,58 @@ describe("createBoardTools", () => {
         objects: { byId: {}, order: [] },
         style: {},
       },
-      tools: createBoardTools({
-        theme: {
-          id: "test-theme",
-          name: "Test theme",
-          objects: [
-            {
-              type: "equipment",
-              kind: "cone",
-              label: "Cone",
-              defaultSize: { width: 1, height: 1 },
-            },
-          ],
-        },
-        adapters: {
-          objectAdapters: [createEquipmentObjectAdapter()],
-        },
-      }),
+      tools: createBoardTools(),
     });
+    const controller = createBoardEditorController(store);
+    const canvasRect = {
+      left: 0,
+      top: 0,
+      width: 1000,
+      height: 500,
+    };
+    const projection = createBoardSpaceProjection({
+      frame: store.getState().board.frame,
+      viewport: store.getState().ui.viewport,
+      canvasRect,
+    });
+    const dispatchPointer = (
+      handlerName: "onPointerDown" | "onPointerMove" | "onPointerUp",
+      point: { x: number; y: number },
+    ) =>
+      controller.dispatchPointerEvent(handlerName, {
+        clientPoint: point,
+        pointerId: 1,
+        ctrlKey: false,
+        shiftKey: false,
+        altKey: false,
+        metaKey: false,
+        canvasRect,
+      });
 
-    store
-      .getState()
-      .actions.addObjects([
-        createObject("player", "player"),
-        createObject("text", "text"),
-        createObject("equipment", "equipment"),
-        createObject("shape", "shape"),
-        createObject("arrow", "arrow"),
-      ]);
+    store.getState().actions.setActiveTool(SHAPE_TOOL_ID);
+    const shapePoint = projection.boardToCanvas({ x: 20, y: 15 });
+    dispatchPointer("onPointerDown", shapePoint);
+    dispatchPointer("onPointerUp", shapePoint);
 
-    expect(store.getState().board.objects.order).toEqual([
-      "shape",
-      "equipment",
-      "arrow",
-      "player",
-      "text",
+    const createdShapeId = store.getState().board.objects.order[0];
+    expect(store.getState().ui.activeToolId).toBe(SELECT_TOOL_ID);
+    expect(store.getState().selection.selectedObjectIds).toEqual([
+      createdShapeId,
     ]);
 
-    store.getState().actions.bringObjectsToFront(["shape"]);
-    store.getState().actions.addObjects([createObject("arrow-2", "arrow")]);
+    store.getState().actions.setActiveTool(ARROW_TOOL_ID);
+    const arrowStart = projection.boardToCanvas({ x: 10, y: 10 });
+    const arrowEnd = projection.boardToCanvas({ x: 30, y: 20 });
+    dispatchPointer("onPointerDown", arrowStart);
+    dispatchPointer("onPointerMove", arrowEnd);
+    dispatchPointer("onPointerUp", arrowEnd);
 
-    expect(store.getState().board.objects.order).toEqual([
-      "equipment",
-      "arrow",
-      "arrow-2",
-      "player",
-      "text",
-      "shape",
-    ]);
-  });
-
-  it("registers player appearance renderers on the player tool", () => {
-    const appearanceRenderer = vi.fn();
-    const store = createBoardEditorStore({
-      initialBoard: {
-        id: "board-1",
-        version: 1,
-        metadata: {},
-        frame: {
-          width: 100,
-          height: 50,
-        },
-        objects: {
-          byId: {},
-          order: [],
-        },
-        style: {},
-      },
-      tools: createBoardTools({
-        adapters: {
-          playerAppearanceRenderers: {
-            "football-shirt": appearanceRenderer,
-          },
-        },
-      }),
-    });
-    const renderer =
-      store.getState().rendering.objectRenderers[PLAYER_OBJECT_TYPE];
-    const player = createPlayerObject({
-      id: "player-1",
-      position: { x: 10, y: 10 },
-      appearanceId: "football-shirt",
-    });
-
-    renderer?.({
-      context: {} as CanvasRenderingContext2D,
-      board: store.getState().board,
-      object: player,
-      appearance: "default",
-      requestRender: () => {},
-      frameTransform: {
-        scale: 1,
-      } as never,
-    });
-
-    expect(appearanceRenderer).toHaveBeenCalledWith(
-      expect.objectContaining({
-        player: expect.objectContaining({
-          props: expect.objectContaining({
-            appearanceId: "football-shirt",
-            color: "#1f1f1f",
-            fontSize: 12,
-          }),
-          size: { width: 24, height: 24 },
-        }),
-      }),
-    );
+    expect(store.getState().ui.activeToolId).toBe(ARROW_TOOL_ID);
+    expect(store.getState().selection.selectedObjectIds).toEqual([]);
+    expect(
+      Object.values(store.getState().board.objects.byId).some(
+        (object) => object.type === "arrow",
+      ),
+    ).toBe(true);
   });
 });

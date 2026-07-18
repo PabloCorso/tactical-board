@@ -40,6 +40,11 @@ import {
 } from "./arrow-tool-state";
 import { clearSelection } from "./select-tool-actions";
 import { arrowSelectionAdapter } from "./arrow-selection";
+import {
+  applyCreationCompletion,
+  DEFAULT_CREATION_COMPLETION_BEHAVIOR,
+  type CreationCompletionBehavior,
+} from "./creation-completion";
 
 const PREVIEW_OPACITY = 0.55;
 const MIN_HIT_DISTANCE_PX = 10;
@@ -52,6 +57,7 @@ export type ArrowToolDefault = {
 };
 
 export type CreateArrowToolOptions = {
+  completion?: CreationCompletionBehavior;
   defaults?: readonly ArrowToolDefault[];
 };
 
@@ -74,9 +80,12 @@ export class ArrowTool extends BoardEditorTool implements ToolDefinition {
   readonly label = "Arrow";
 
   private readonly defaults: readonly ArrowToolDefault[];
+  private readonly completion: CreationCompletionBehavior;
 
   constructor(options: CreateArrowToolOptions = {}) {
     super();
+    this.completion =
+      options.completion ?? DEFAULT_CREATION_COMPLETION_BEHAVIOR;
     this.defaults = options.defaults ?? [];
   }
 
@@ -145,6 +154,7 @@ export class ArrowTool extends BoardEditorTool implements ToolDefinition {
       }),
     ]);
     cancelPendingArrow(api);
+    applyCreationCompletion(api, [arrowId], this.completion);
   }
 
   onPointerMove(
@@ -186,6 +196,7 @@ export class ArrowTool extends BoardEditorTool implements ToolDefinition {
       }),
     ]);
     cancelPendingArrow(api);
+    applyCreationCompletion(api, [arrowId], this.completion);
   }
 
   onEscapeKey(api: ToolApi) {

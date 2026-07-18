@@ -39,6 +39,7 @@ import {
   moveBoardObject,
   rotateBoardObject,
 } from "../objects/object-behaviors";
+import { getActiveSelectionPresentation } from "./selection-presentation";
 
 const DEFAULT_SELECTION_COLOR = "#38bdf8";
 const SELECTION_HANDLE_FILL_COLOR = "#ffffff";
@@ -55,6 +56,7 @@ let cachedSelectionOverlayItems:
   | {
       objectsById: BoardEditorState["board"]["objects"]["byId"];
       selectState: SelectToolState;
+      presentation: ReturnType<typeof getActiveSelectionPresentation>;
       overlays: Array<
         CanvasRectOverlayItem | SelectionOverlayItem | GroupSelectionOverlayItem
       >;
@@ -65,6 +67,7 @@ type SelectionOverlayItem = {
   kind: typeof SELECTION_OVERLAY_KIND;
   object: BoardObject;
   color: string;
+  showControls: boolean;
   selectionAdapter?: ObjectSelectionAdapter;
   [key: string]: unknown;
 };
@@ -88,6 +91,7 @@ type GroupSelectionOverlayItem = {
   >;
   color: string;
   canRotate: boolean;
+  showControls: boolean;
   rotation?: number;
   bounds?: {
     minX: number;
@@ -172,6 +176,10 @@ function isGroupSelectionHandle(value: string): value is GroupSelectionHandle {
 export class SelectTool extends BoardEditorTool implements ToolDefinition {
   readonly id = SELECT_TOOL_ID;
   readonly label = "Select";
+
+  getSelectionPresentation() {
+    return "interactive" as const;
+  }
 
   getCursor(event: ToolPointerEvent, api: ToolApi) {
     const state = api.getState();
@@ -776,6 +784,7 @@ function createGroupSelectionOverlayItem(
   state: BoardEditorState,
   selectState: SelectToolState,
   accentColor: string,
+  showControls: boolean,
 ) {
   const objects = state.selection.selectedObjectIds
     .map((objectId) => state.board.objects.byId[objectId])
@@ -804,6 +813,7 @@ function createGroupSelectionOverlayItem(
     ),
     color: accentColor,
     canRotate,
+    showControls,
     rotation:
       canRotate && interaction?.session.kind === "rotate"
         ? getGroupSelectionRotationDegrees(
@@ -821,13 +831,21 @@ function createGroupSelectionOverlayItem(
 
 function createSelectionOverlayItems(
   state: BoardEditorState,
+  showControls: boolean,
 ): Array<SelectionOverlayItem | GroupSelectionOverlayItem> {
   const selectState = getSelectToolState(state.toolState);
   const accentColor = getSelectionAccentColor(state, selectState);
   const selectedObjectIds = state.selection.selectedObjectIds;
 
   if (selectedObjectIds.length > 1) {
-    return [createGroupSelectionOverlayItem(state, selectState, accentColor)];
+    return [
+      createGroupSelectionOverlayItem(
+        state,
+        selectState,
+        accentColor,
+        showControls,
+      ),
+    ];
   }
 
   return selectedObjectIds.flatMap((objectId) => {
@@ -839,6 +857,7 @@ function createSelectionOverlayItems(
             kind: SELECTION_OVERLAY_KIND,
             object,
             color: accentColor,
+            showControls,
             selectionAdapter: getObjectSelectionAdapterForObject(state, object),
           } satisfies SelectionOverlayItem,
         ]
@@ -853,17 +872,23 @@ function getSelectOverlayItems(
 > {
   const selectState = getSelectToolState(state.toolState);
   const accentColor = getSelectionAccentColor(state, selectState);
+  const presentation = getActiveSelectionPresentation(state);
+
+  if (presentation === "hidden") {
+    return [];
+  }
 
   if (
     cachedSelectionOverlayItems?.selectState === selectState &&
-    cachedSelectionOverlayItems.objectsById === state.board.objects.byId
+    cachedSelectionOverlayItems.objectsById === state.board.objects.byId &&
+    cachedSelectionOverlayItems.presentation === presentation
   ) {
     return cachedSelectionOverlayItems.overlays;
   }
 
   const overlays: Array<
     CanvasRectOverlayItem | SelectionOverlayItem | GroupSelectionOverlayItem
-  > = createSelectionOverlayItems(state);
+  > = createSelectionOverlayItems(state, presentation === "interactive");
 
   if (selectState.interaction?.mode === "marquee") {
     overlays.push(
@@ -874,6 +899,7 @@ function getSelectOverlayItems(
   cachedSelectionOverlayItems = {
     objectsById: state.board.objects.byId,
     selectState,
+    presentation,
     overlays,
   };
 
@@ -902,6 +928,7 @@ function registerSelectOverlayRenderer(
         object: overlay.object,
         projection: frameTransform as SelectionProjection,
         color: overlay.color,
+        showControls: overlay.showControls,
       });
     },
   );
@@ -973,7 +1000,7 @@ function registerSelectOverlayRenderer(
       drawClosedCanvasPath(context, outlinePoints);
       context.stroke();
 
-      if (!anyLocked) {
+      if (overlay.showControls && !anyLocked) {
         for (const handlePoint of [...outlinePoints, ...sideHandlePoints]) {
           drawRoundedSquareHandle(
             context,

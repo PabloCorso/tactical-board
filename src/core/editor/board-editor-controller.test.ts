@@ -32,14 +32,10 @@ import { ShapeTool } from "../tools/shape-tool";
 import { SelectTool } from "../tools/select-tool";
 import { setSelectedObjectIds } from "../tools/select-tool-actions";
 import { TextTool } from "../tools/text-tool";
-import { getArrowToolState } from "../tools/arrow-tool-state";
+import { ARROW_TOOL_ID, getArrowToolState } from "../tools/arrow-tool-state";
 import { getPlayerToolState, PLAYER_TOOL_ID } from "../tools/player-tool-state";
 import { getSelectToolState, SELECT_TOOL_ID } from "../tools/select-tool-state";
-import {
-  DEFAULT_SHAPE_TOOL_STATE,
-  getShapeToolState,
-  SHAPE_TOOL_ID,
-} from "../tools/shape-tool-state";
+import { getShapeToolState, SHAPE_TOOL_ID } from "../tools/shape-tool-state";
 import { getTextToolState, TEXT_TOOL_ID } from "../tools/text-tool-state";
 import type { ToolDefinition } from "../tools/types";
 import { BOARD_PLAYER_DEFAULT_COLORS } from "../../react/board/theme/board-tool-defaults";
@@ -282,24 +278,6 @@ describe("createBoardEditorController", () => {
     });
   });
 
-  it("shows a player ghost preview at the pointer before placement", () => {
-    const playerTool = new PlayerTool();
-    const { boardToCanvas, dispatchPointer, store } = createEditorHarness({
-      initialToolId: playerTool.id,
-      tools: [playerTool],
-    });
-    const previewPoint = boardToCanvas({ x: 25, y: 12 });
-
-    dispatchPointer("onPointerMove", previewPoint);
-
-    expect(store.getState().rendering.previewObjects).toHaveLength(1);
-    expect(store.getState().rendering.previewObjects[0]).toMatchObject({
-      id: "player-preview",
-      type: "player",
-      position: { x: 25, y: 12 },
-    });
-  });
-
   it("starts inline text editing at the clicked point", () => {
     const textTool = new TextTool();
     const { boardToCanvas, dispatchPointer, store, toolApi } =
@@ -426,38 +404,6 @@ describe("createBoardEditorController", () => {
         (point) => point.x > boardToCanvas(player.position).x + 20,
       ),
     ).toBe(true);
-  });
-
-  it("shows an equipment ghost preview at the pointer before placement", () => {
-    const equipmentTool = new EquipmentTool({
-      definitions: [
-        {
-          kind: "football-cone",
-          label: "Football Cone",
-          defaultSize: { width: 1.8, height: 2.2 },
-          color: "#ff6b35",
-          lockedAspectRatio: true,
-        },
-      ],
-    });
-    const { boardToCanvas, dispatchPointer, store } = createEditorHarness({
-      initialToolId: equipmentTool.id,
-      tools: [equipmentTool],
-    });
-    const previewPoint = boardToCanvas({ x: 32, y: 18 });
-
-    dispatchPointer("onPointerMove", previewPoint);
-
-    expect(store.getState().rendering.previewObjects).toHaveLength(1);
-    expect(store.getState().rendering.previewObjects[0]).toMatchObject({
-      id: "equipment-preview",
-      type: "equipment",
-      position: { x: 32, y: 18 },
-      props: {
-        kind: "football-cone",
-        color: "#ff6b35",
-      },
-    });
   });
 
   it("resizes a selected arrow by dragging an endpoint handle", () => {
@@ -1462,7 +1408,15 @@ describe("createBoardEditorController", () => {
     expect(overlays).toHaveLength(1);
     expect(overlays[0]).toMatchObject({
       kind: "select:group-selection-ring",
+      showControls: true,
     });
+
+    store.getState().actions.setActiveTool(playerTool.id);
+    expect(selectTool.getOverlayItems(store.getState())[0]).toMatchObject({
+      kind: "select:group-selection-ring",
+      showControls: false,
+    });
+    store.getState().actions.setActiveTool(SELECT_TOOL_ID);
 
     const controller = createBoardEditorController(store);
     const canvasRect = {
@@ -2971,7 +2925,7 @@ describe("createBoardEditorController", () => {
     expect(resizedCorners[2].y).toBeCloseTo(targetBottomRight.y, 6);
   });
 
-  it("creates a rectangle shape with the default preview size on click", () => {
+  it("creates a rectangle on click and keeps the shape tool active", () => {
     const shapeTool = new ShapeTool();
     const store = createBoardEditorStore({
       initialBoard: {
@@ -3028,242 +2982,17 @@ describe("createBoardEditorController", () => {
     });
 
     expect(store.getState().board.objects.order).toEqual(["shape-1"]);
+    expect(store.getState().ui.activeToolId).toBe(SHAPE_TOOL_ID);
+    expect(store.getState().selection.selectedObjectIds).toEqual([]);
     expect(getShapeToolState(store.getState().toolState).pendingPoints).toEqual(
       [],
     );
     expect(store.getState().board.objects.byId["shape-1"]).toMatchObject({
       type: "shape",
-      position: { x: 32, y: 24 },
       props: {
         kind: "rectangle",
-        start: { x: 24, y: 18 },
-        end: { x: 40, y: 30 },
       },
     });
-  });
-
-  it("lets consumers configure the shape click-preview size", () => {
-    const shapeTool = new ShapeTool({
-      defaultPreviewSize: {
-        width: 128,
-        height: 96,
-      },
-    });
-    const store = createBoardEditorStore({
-      initialBoard: {
-        id: "board-1",
-        version: 1,
-        metadata: {},
-        frame: {
-          width: 920,
-          height: 592,
-        },
-        objects: {
-          byId: {},
-          order: [],
-        },
-        style: {},
-      },
-      initialToolId: shapeTool.id,
-      tools: [selectTool, shapeTool],
-    });
-    const toolApi = createToolApi(store);
-    shapeTool.registerCapabilities?.(toolApi);
-
-    const controller = createBoardEditorController(store);
-    const canvasRect = {
-      left: 0,
-      top: 0,
-      width: 1000,
-      height: 700,
-    };
-    const projection = createBoardSpaceProjection({
-      frame: store.getState().board.frame,
-      viewport: store.getState().ui.viewport,
-      canvasRect,
-    });
-    const clickPoint = projection.boardToCanvas({ x: 80, y: 64 });
-
-    controller.dispatchPointerEvent("onPointerDown", {
-      clientPoint: clickPoint,
-      pointerId: 1,
-      ctrlKey: false,
-      shiftKey: false,
-      altKey: false,
-      metaKey: false,
-      canvasRect,
-    });
-    controller.dispatchPointerEvent("onPointerUp", {
-      clientPoint: clickPoint,
-      pointerId: 1,
-      ctrlKey: false,
-      shiftKey: false,
-      altKey: false,
-      metaKey: false,
-      canvasRect,
-    });
-
-    expect(store.getState().board.objects.byId["shape-1"]).toMatchObject({
-      type: "shape",
-      position: { x: 144, y: 112 },
-      props: {
-        kind: "rectangle",
-        start: { x: 80, y: 64 },
-        end: { x: 208, y: 160 },
-      },
-    });
-  });
-
-  it("keeps default oval and diamond click previews square", () => {
-    for (const kind of ["oval", "diamond"] as const) {
-      const shapeTool = new ShapeTool({
-        defaultPreviewSize: {
-          width: 128,
-          height: 96,
-        },
-      });
-      const store = createBoardEditorStore({
-        initialBoard: {
-          id: "board-1",
-          version: 1,
-          metadata: {},
-          frame: {
-            width: 920,
-            height: 592,
-          },
-          objects: {
-            byId: {},
-            order: [],
-          },
-          style: {},
-        },
-        initialToolId: shapeTool.id,
-        tools: [selectTool, shapeTool],
-      });
-      const toolApi = createToolApi(store);
-      shapeTool.registerCapabilities?.(toolApi);
-      store.getState().actions.setToolState(SHAPE_TOOL_ID, {
-        ...DEFAULT_SHAPE_TOOL_STATE,
-        draftStyle: {
-          ...DEFAULT_SHAPE_TOOL_STATE.draftStyle,
-          kind,
-        },
-      });
-
-      const controller = createBoardEditorController(store);
-      const canvasRect = {
-        left: 0,
-        top: 0,
-        width: 1000,
-        height: 700,
-      };
-      const projection = createBoardSpaceProjection({
-        frame: store.getState().board.frame,
-        viewport: store.getState().ui.viewport,
-        canvasRect,
-      });
-      const clickPoint = projection.boardToCanvas({ x: 80, y: 64 });
-
-      controller.dispatchPointerEvent("onPointerDown", {
-        clientPoint: clickPoint,
-        pointerId: 1,
-        ctrlKey: false,
-        shiftKey: false,
-        altKey: false,
-        metaKey: false,
-        canvasRect,
-      });
-      controller.dispatchPointerEvent("onPointerUp", {
-        clientPoint: clickPoint,
-        pointerId: 1,
-        ctrlKey: false,
-        shiftKey: false,
-        altKey: false,
-        metaKey: false,
-        canvasRect,
-      });
-
-      const shape = store.getState().board.objects.byId[
-        "shape-1"
-      ] as ShapeObject;
-      expect(shape.props.kind).toBe(kind);
-      expect(shape.size?.width).toBe(96);
-      expect(shape.size?.height).toBe(96);
-    }
-  });
-
-  it("keeps default triangle click previews equilateral", () => {
-    const shapeTool = new ShapeTool({
-      defaultPreviewSize: {
-        width: 128,
-        height: 96,
-      },
-    });
-    const store = createBoardEditorStore({
-      initialBoard: {
-        id: "board-1",
-        version: 1,
-        metadata: {},
-        frame: {
-          width: 920,
-          height: 592,
-        },
-        objects: {
-          byId: {},
-          order: [],
-        },
-        style: {},
-      },
-      initialToolId: shapeTool.id,
-      tools: [selectTool, shapeTool],
-    });
-    const toolApi = createToolApi(store);
-    shapeTool.registerCapabilities?.(toolApi);
-    store.getState().actions.setToolState(SHAPE_TOOL_ID, {
-      ...DEFAULT_SHAPE_TOOL_STATE,
-      draftStyle: {
-        ...DEFAULT_SHAPE_TOOL_STATE.draftStyle,
-        kind: "triangle",
-      },
-    });
-
-    const controller = createBoardEditorController(store);
-    const canvasRect = {
-      left: 0,
-      top: 0,
-      width: 1000,
-      height: 700,
-    };
-    const projection = createBoardSpaceProjection({
-      frame: store.getState().board.frame,
-      viewport: store.getState().ui.viewport,
-      canvasRect,
-    });
-    const clickPoint = projection.boardToCanvas({ x: 80, y: 64 });
-
-    controller.dispatchPointerEvent("onPointerDown", {
-      clientPoint: clickPoint,
-      pointerId: 1,
-      ctrlKey: false,
-      shiftKey: false,
-      altKey: false,
-      metaKey: false,
-      canvasRect,
-    });
-    controller.dispatchPointerEvent("onPointerUp", {
-      clientPoint: clickPoint,
-      pointerId: 1,
-      ctrlKey: false,
-      shiftKey: false,
-      altKey: false,
-      metaKey: false,
-      canvasRect,
-    });
-
-    const shape = store.getState().board.objects.byId["shape-1"] as ShapeObject;
-    expect(shape.props.kind).toBe("triangle");
-    expect(shape.size?.height).toBeCloseTo(96, 6);
-    expect(shape.size?.width).toBeCloseTo(96 / (Math.sqrt(3) / 2), 6);
   });
 
   it("creates a simple arrow by dragging and releasing after the first click", () => {
@@ -3333,6 +3062,8 @@ describe("createBoardEditorController", () => {
     });
 
     expect(store.getState().board.objects.order).toEqual(["arrow-1"]);
+    expect(store.getState().ui.activeToolId).toBe(ARROW_TOOL_ID);
+    expect(store.getState().selection.selectedObjectIds).toEqual([]);
     expect(getArrowToolState(store.getState().toolState).pendingPoints).toEqual(
       [],
     );

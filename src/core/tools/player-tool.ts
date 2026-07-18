@@ -51,6 +51,11 @@ import {
 } from "./player-geometry";
 import { drawCanvasCaption } from "../rendering/canvas/caption";
 import { getContrastingTextColor } from "../colors/contrast";
+import {
+  applyCreationCompletion,
+  DEFAULT_CREATION_COMPLETION_BEHAVIOR,
+  type CreationCompletionBehavior,
+} from "./creation-completion";
 
 export type PlayerToolLabelStrategy = "numeric-by-color" | "none";
 
@@ -61,7 +66,8 @@ export type PlayerToolDefault = {
   draftStyle: Partial<PlayerDraftStyle>;
 };
 
-type CreatePlayerToolOptions = {
+export type CreatePlayerToolOptions = {
+  completion?: CreationCompletionBehavior;
   defaults?: PlayerToolDefault[];
   labelStrategy?: PlayerToolLabelStrategy;
   renderer?: CanvasObjectRenderer;
@@ -105,9 +111,12 @@ export class PlayerTool extends BoardEditorTool implements ToolDefinition {
   readonly labelStrategy: PlayerToolLabelStrategy;
   private readonly defaults: PlayerToolDefault[];
   private readonly renderer: CanvasObjectRenderer;
+  private readonly completion: CreationCompletionBehavior;
 
   constructor(options: CreatePlayerToolOptions = {}) {
     super();
+    this.completion =
+      options.completion ?? DEFAULT_CREATION_COMPLETION_BEHAVIOR;
     this.labelStrategy = options.labelStrategy ?? "numeric-by-color";
     this.defaults = options.defaults ?? [];
     this.renderer = options.renderer ?? renderPlayer;
@@ -218,6 +227,7 @@ export class PlayerTool extends BoardEditorTool implements ToolDefinition {
         label,
       }),
     ]);
+    applyCreationCompletion(api, [playerId], this.completion);
   }
 
   onPointerMove(

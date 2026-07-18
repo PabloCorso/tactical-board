@@ -2,7 +2,6 @@ import { createBoardSpaceProjection } from "../../../core/geometry/board-space-p
 import { createToolApi } from "../../../core/editor/create-tool-api";
 import { resolveBoardEditorFitPadding } from "../../../core/editor/fit-padding";
 import { createShapeObject } from "../../../core/objects/shape-object";
-import { completePendingPolygon } from "../../../core/tools/shape-tool";
 import {
   getShapeToolState,
   SHAPE_TOOL_ID,
@@ -55,7 +54,9 @@ export function BoardEditorShapePolygonDone() {
         disabled={!canClose}
         onClick={() => {
           if (canClose) {
-            completePendingPolygon(toolApi);
+            state.toolRegistry.definitions[
+              state.ui.activeToolId
+            ]?.completeInteraction?.(toolApi);
           }
         }}
         onPointerEnter={() => {

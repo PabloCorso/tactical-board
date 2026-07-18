@@ -27,6 +27,11 @@ import {
 import { clearSelection } from "./select-tool-actions";
 import { equipmentSelectionAdapter } from "./equipment-selection";
 import {
+  applyCreationCompletion,
+  DEFAULT_CREATION_COMPLETION_BEHAVIOR,
+  type CreationCompletionBehavior,
+} from "./creation-completion";
+import {
   DEFAULT_EQUIPMENT_TOOL_STATE,
   EQUIPMENT_TOOL_ID,
   getEquipmentToolState,
@@ -34,7 +39,8 @@ import {
 
 const PREVIEW_OPACITY = 0.55;
 
-type CreateEquipmentToolOptions = {
+export type CreateEquipmentToolOptions = {
+  completion?: CreationCompletionBehavior;
   definitions: EquipmentDefinition[];
   renderersByKind?: EquipmentCanvasRendererRegistry;
 };
@@ -70,9 +76,12 @@ export class EquipmentTool extends BoardEditorTool implements ToolDefinition {
   private readonly definitions: EquipmentDefinition[];
   private readonly definitionsByKind: Record<string, EquipmentDefinition>;
   private readonly renderEquipment;
+  private readonly completion: CreationCompletionBehavior;
 
   constructor(options: CreateEquipmentToolOptions) {
     super();
+    this.completion =
+      options.completion ?? DEFAULT_CREATION_COMPLETION_BEHAVIOR;
 
     if (options.definitions.length === 0) {
       throw new Error(
@@ -125,14 +134,16 @@ export class EquipmentTool extends BoardEditorTool implements ToolDefinition {
       return;
     }
 
+    const equipmentId = createEquipmentId(state.board.objects.byId);
     clearSelection(api);
     api.addObjects([
       createEquipmentPreviewObject({
-        id: createEquipmentId(state.board.objects.byId),
+        id: equipmentId,
         point: event.point,
         definition,
       }),
     ]);
+    applyCreationCompletion(api, [equipmentId], this.completion);
   }
 
   onPointerMove(event: ToolPointerEvent, api: ToolApi) {
