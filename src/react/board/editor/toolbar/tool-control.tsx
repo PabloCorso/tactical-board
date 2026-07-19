@@ -26,6 +26,7 @@ import {
   type BoardEditorToolbarButtonProps,
 } from "./editor-toolbar";
 import type { IconRender } from "../../../ui/icon";
+import { useBoardEditorTheme } from "../../theme/board-editor-theme-context";
 
 export type BoardEditorToolControlProps = Omit<
   BoardEditorToolbarButtonProps,
@@ -114,20 +115,23 @@ export function BoardEditorHandToolControl(
 
 export function BoardEditorPlayerToolControl({
   adapters,
-  icon = (
-    <BoardPlayerToolIcon
-      appearanceRenderers={adapters?.playerAppearanceRenderers}
-    />
-  ),
+  icon,
   onActivate,
   ...props
 }: BoardEditorPlayerToolControlProps) {
   const teamPanel = useBoardEditorTeamPanelOptional();
+  const inheritedTheme = useBoardEditorTheme();
+  const resolvedAdapters = adapters ?? inheritedTheme.adapters;
+  const resolvedIcon = icon ?? (
+    <BoardPlayerToolIcon
+      appearanceRenderers={resolvedAdapters?.playerAppearanceRenderers}
+    />
+  );
 
   return (
     <BoardEditorToolControl
       {...props}
-      icon={icon}
+      icon={resolvedIcon}
       toolId={PLAYER_TOOL_ID}
       onActivate={(toolId) => {
         teamPanel?.closeTeamPanel();
@@ -143,15 +147,18 @@ export function BoardEditorEquipmentToolControl({
   theme,
   ...props
 }: BoardEditorEquipmentToolControlProps) {
-  const equipmentDefinitions = getThemeEquipmentDefinitions(theme);
+  const inheritedTheme = useBoardEditorTheme();
+  const resolvedAdapters = adapters ?? inheritedTheme.adapters;
+  const resolvedTheme = theme ?? inheritedTheme.theme;
+  const equipmentDefinitions = getThemeEquipmentDefinitions(resolvedTheme);
   const equipmentRenderer = useMemo(
     () =>
       createThemeObjectDefinition({
-        adapters,
-        theme,
+        adapters: resolvedAdapters,
+        theme: resolvedTheme,
         type: EQUIPMENT_OBJECT_TYPE,
       })?.canvas?.render,
-    [adapters, theme],
+    [resolvedAdapters, resolvedTheme],
   );
   const resolvedIcon =
     icon ??

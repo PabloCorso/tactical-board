@@ -7,13 +7,15 @@ import {
   getFootballPitchAspectRatio,
   type FootballPitchVariant,
   BoardViewerCanvas,
-  resolvedFootballTheme,
+  createFootballEditorConfig,
 } from "../react";
 import { createPlayerObject } from "../core/objects/player-object";
 import { createTextObject } from "../core/objects/text-object";
 import { BOARD_PLAYER_DEFAULT_COLORS } from "../react/board/theme/board-tool-defaults";
 import { cn } from "../react/ui/misc";
 import { pointMetersToPixels } from "../react/sports/football/board/football-units";
+
+const footballViewerConfig = createFootballEditorConfig();
 
 export type CardProps = ComponentProps<"div">;
 
@@ -188,9 +190,9 @@ function TacticalBoardCardItem({ description, id, pitch, title }: BoardCard) {
         >
           <BoardViewerCanvas
             board={board}
+            config={footballViewerConfig}
             frameClassName="h-full flex-none"
             mode="fit-content"
-            objectDefinitions={resolvedFootballTheme.objectDefinitions}
           />
         </div>
         <div className="border-tb-border-default flex flex-col gap-1 border-t px-4 py-3">

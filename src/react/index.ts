@@ -7,6 +7,12 @@ export {
 export type * from "../core/board/types";
 export * from "../core/board/player-formation";
 export type * from "../core/editor/types";
+export {
+  parseBoard,
+  parseDocument,
+  serializeBoard,
+  serializeDocument,
+} from "../core/serialization/board-schema";
 export * from "./board/editor/arrow-icon";
 export * from "./board/editor/canvas-toolbar";
 export * from "./adapter/editor/board-editor-context";

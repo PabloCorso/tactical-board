@@ -1,10 +1,21 @@
-import type { Document } from "../board/types";
+import type { Board, Document } from "../board/types";
 
-export interface ParseDocumentResult {
-  ok: boolean;
-  board?: Document;
-  error?: string;
-}
+export type ParseDocumentResult =
+  | {
+      ok: true;
+      document: Document;
+    }
+  | {
+      ok: false;
+      error: string;
+    };
 
-// Compatibility result name kept for Board-facing callers.
-export type ParseBoardResult = ParseDocumentResult;
+export type ParseBoardResult =
+  | {
+      ok: true;
+      board: Board;
+    }
+  | {
+      ok: false;
+      error: string;
+    };

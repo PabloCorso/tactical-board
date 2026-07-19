@@ -26,13 +26,13 @@ import {
   type ObjectRegistry,
 } from "../objects/types";
 import type {
-  ToolApi,
   ToolCapabilityRegistrationApi,
   ToolDefinition,
   ToolRegistration,
   ToolRegistry,
 } from "../tools/types";
 import type { CanvasOverlayRendererRegistry } from "../rendering/canvas/types";
+import { createToolApi } from "../editor/create-tool-api";
 
 const MAX_HISTORY_ENTRIES = 100;
 
@@ -364,30 +364,7 @@ export function createEditorStore({
             return state;
           }
 
-          const actions = get().actions;
-          const toolApi: ToolApi = {
-            getState: () => get(),
-            resetTool: actions.resetTool,
-            beginHistoryBatch: actions.beginHistoryBatch,
-            endHistoryBatch: actions.endHistoryBatch,
-            addObjects: actions.addObjects,
-            bringObjectsToFront: actions.bringObjectsToFront,
-            moveObjects: actions.moveObjects,
-            duplicateObjects: actions.duplicateObjects,
-            deleteObjects: actions.deleteObjects,
-            sendObjectsToBack: actions.sendObjectsToBack,
-            setFrame: actions.setFrame,
-            updateBoard: actions.updateBoard,
-            updateObjects: actions.updateObjects,
-            setPreviewObjects: actions.setPreviewObjects,
-            clearPreviewObjects: actions.clearPreviewObjects,
-            panViewport: actions.panViewport,
-            setSelectedObjectIds: actions.setSelectedObjectIds,
-            clearSelection: actions.clearSelection,
-            setToolState: actions.setToolState,
-            clearToolState: actions.clearToolState,
-            registerOverlayRenderer: actions.registerOverlayRenderer,
-          };
+          const toolApi = createToolApi(store);
           const toolsToDeactivate = Object.values(
             state.toolRegistry.definitions,
           ).filter((tool) => tool.id !== toolId);

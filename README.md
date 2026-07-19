@@ -68,15 +68,16 @@ const board = createBoard({
   style: {},
 });
 
+const config = createBoardEditorConfig();
 const store = createBoardEditorStore({
   initialBoard: board,
   initialToolId: "select",
-  ...createBoardEditorConfig(),
+  ...config,
 });
 
 export function TrainingBoardEditor() {
   return (
-    <BoardEditorProvider store={store}>
+    <BoardEditorProvider config={config} store={store}>
       <BoardEditor className="relative h-dvh w-full overflow-hidden">
         <BoardEditorCanvas />
         <BoardEditorShapePolygonDone />
@@ -97,10 +98,10 @@ export function TrainingBoardEditor() {
 }
 ```
 
-Sport adapters are defaults, not separate React editors. For football, compose
-the generic editor store with `createFootballEditorConfig()`, then render the generic
-editor components with `footballTheme`, `footballThemeAdapters`, and any
-sport-specific frame controls your app wants to expose:
+Sport adapters are defaults, not separate React editors. For football, create one
+configuration with `createFootballEditorConfig()`, use it to create the generic
+editor store, and share it through the provider. React composition and
+sport-specific frame controls remain under the Host App's control:
 
 ```tsx
 import {
@@ -117,36 +118,26 @@ import {
   createBoardEditorStore,
   createFootballBoard,
   createFootballEditorConfig,
-  footballTheme,
-  footballThemeAdapters,
-  getFootballPitchFitPadding,
 } from "@pablocorso/tactical-board/react";
 
+const config = createFootballEditorConfig();
 const store = createBoardEditorStore({
   initialBoard: createFootballBoard({ id: "match-plan", name: "Match Plan" }),
-  fitPadding: getFootballPitchFitPadding,
-  ...createFootballEditorConfig(),
+  ...config,
 });
 
 export function MatchPlanEditor() {
   return (
-    <BoardEditorProvider store={store}>
+    <BoardEditorProvider config={config} store={store}>
       <BoardEditor className="relative h-dvh w-full overflow-hidden">
         <BoardEditorCanvas />
         <BoardEditorShapePolygonDone />
         <BoardEditorCanvasToolbar />
-        <BoardEditorSelectionToolbar theme={footballTheme} />
+        <BoardEditorSelectionToolbar />
         <BoardEditorToolbarDockProvider>
           <BoardEditorToolbarDock>
-            <BoardPrimaryToolbar
-              adapters={footballThemeAdapters}
-              showEquipment
-              theme={footballTheme}
-            />
-            <BoardEditorSecondaryToolbars
-              adapters={footballThemeAdapters}
-              theme={footballTheme}
-            />
+            <BoardPrimaryToolbar />
+            <BoardEditorSecondaryToolbars />
           </BoardEditorToolbarDock>
         </BoardEditorToolbarDockProvider>
       </BoardEditor>
@@ -156,8 +147,9 @@ export function MatchPlanEditor() {
 ```
 
 Football Theme Data includes player appearance choices, while football adapters
-provide runtime rendering behavior. Passing `footballTheme` to the selection
-toolbar enables per-player appearance, caption, and uploaded visual controls.
+provide runtime rendering behavior. The provider shares the resolved config with
+the composed editor primitives; an explicit primitive prop still overrides the
+inherited value when a Host App needs local customization.
 
 Run `npm run storybook` and open `React/Board Editor/Football` for an interactive reference.
 The source examples in `src/stories/examples` are written as copyable host-app
@@ -178,7 +170,7 @@ stay local to the toolbar that consumes them:
 
 ```tsx
 <>
-  <BoardEditorPlayerGroupToolbar adapters={footballThemeAdapters}>
+  <BoardEditorPlayerGroupToolbar>
     <BoardEditorTeamPanelContent>
       <TeamPanelPlayerLabelSection />
       <HostPlayerGroupAppearanceSection />
@@ -187,7 +179,7 @@ stay local to the toolbar that consumes them:
       <TeamPanelDeleteSection />
     </BoardEditorTeamPanelContent>
   </BoardEditorPlayerGroupToolbar>
-  <BoardEditorEquipmentToolbar theme={footballTheme} />
+  <BoardEditorEquipmentToolbar />
   <BoardEditorArrowToolbar defaults={hostArrowDefaults} />
   <BoardEditorShapeToolbar density="compact" />
 </>

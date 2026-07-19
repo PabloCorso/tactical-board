@@ -21,6 +21,7 @@ import { useBoardEditorStore } from "../../adapter/editor/use-board-editor-store
 import { useBoardEditorToolbarDockOptional } from "../editor/toolbar/toolbar-dock";
 import { BoardEquipmentDefinitionIcon } from "./equipment-tool-icons";
 import { setToolStatePatch } from "./secondary-toolbar-commands";
+import { useBoardEditorTheme } from "../theme/board-editor-theme-context";
 
 export type BoardEditorEquipmentToolbarProps = Omit<
   BoardEditorToolbarProps,
@@ -63,15 +64,18 @@ function BoardEditorEquipmentToolbarContent({
     () => getEquipmentToolState(toolState),
     [toolState],
   );
-  const equipmentDefinitions = getThemeEquipmentDefinitions(theme);
+  const inheritedTheme = useBoardEditorTheme();
+  const resolvedAdapters = adapters ?? inheritedTheme.adapters;
+  const resolvedTheme = theme ?? inheritedTheme.theme;
+  const equipmentDefinitions = getThemeEquipmentDefinitions(resolvedTheme);
   const equipmentRenderer = useMemo(
     () =>
       createThemeObjectDefinition({
-        adapters,
-        theme,
+        adapters: resolvedAdapters,
+        theme: resolvedTheme,
         type: EQUIPMENT_OBJECT_TYPE,
       })?.canvas?.render,
-    [adapters, theme],
+    [resolvedAdapters, resolvedTheme],
   );
 
   if (equipmentDefinitions.length === 0 || !equipmentRenderer) {

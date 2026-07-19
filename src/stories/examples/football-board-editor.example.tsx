@@ -27,8 +27,6 @@ import {
   TeamPanelDeleteSection,
   FOOTBALL_PITCH_OPTIONS,
   FOOTBALL_PITCH_TOOL_ID,
-  footballTheme,
-  footballThemeAdapters,
   FootballPitchPreview,
   getFootballPitchOrientation,
   getFootballPitchOrientationLabel,
@@ -91,6 +89,7 @@ export function FootballBoardEditorExample({
   translatePitchLabel,
   translateRotatePitchAction,
 }: FootballBoardEditorExampleProps = {}) {
+  const config = useMemo(() => createFootballEditorConfig(), []);
   const pitchOptions = useMemo(
     () => createFootballPitchFrameOptions(translatePitchLabel),
     [translatePitchLabel],
@@ -101,22 +100,19 @@ export function FootballBoardEditorExample({
         initialBoard:
           initialBoard ?? createFootballBoard({ id: boardId, name: boardName }),
         navigationMode,
-        ...createFootballEditorConfig(),
+        ...config,
       }),
-    [boardId, boardName, initialBoard, navigationMode],
+    [boardId, boardName, config, initialBoard, navigationMode],
   );
 
   return (
-    <BoardEditorProvider labels={labels} store={store}>
+    <BoardEditorProvider config={config} labels={labels} store={store}>
       <BoardEditor className={className}>
         <BoardEditorTeamPanelProvider>
           <BoardEditorCanvas />
           <BoardEditorShapePolygonDone />
           <BoardEditorCanvasToolbar />
-          <BoardEditorSelectionToolbar
-            adapters={footballThemeAdapters}
-            theme={footballTheme}
-          />
+          <BoardEditorSelectionToolbar />
 
           <BoardEditorToolbarDockProvider>
             <FootballBoardEditorToolbarDock
@@ -185,11 +181,7 @@ function FootballBoardEditorToolbarDock({
   return (
     <BoardEditorToolbarDock>
       <div onClick={toolbarDock.openSecondaryToolbar}>
-        <BoardPrimaryToolbar
-          adapters={footballThemeAdapters}
-          showEquipment
-          theme={footballTheme}
-        >
+        <BoardPrimaryToolbar>
           <BoardEditorFrameVariantToolControl
             getValue={getFootballPitchVariant}
             options={pitchOptions}
@@ -235,10 +227,7 @@ function FootballBoardEditorToolbarDock({
             options={pitchOptions}
             toolId={FOOTBALL_PITCH_TOOL_ID}
           />
-          <BoardEditorSecondaryToolbars
-            adapters={footballThemeAdapters}
-            theme={footballTheme}
-          >
+          <BoardEditorSecondaryToolbars>
             <FootballPlayerGroupPanelContent />
           </BoardEditorSecondaryToolbars>
         </>

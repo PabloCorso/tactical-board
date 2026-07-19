@@ -22,14 +22,12 @@ export type BoardPrimaryToolbarProps = Omit<
 > & {
   theme?: Pick<BoardTheme, "objects">;
   adapters?: BoardThemeAdapters;
-  showEquipment?: boolean;
   children?: ReactNode;
 };
 
 export function BoardPrimaryToolbar({
   children,
   orientation = "vertical",
-  showEquipment = false,
   adapters,
   theme,
   ...toolbarProps
@@ -45,9 +43,7 @@ export function BoardPrimaryToolbar({
         <BoardEditorSelectToolControl />
         <BoardEditorHandToolControl />
         <BoardEditorPlayerToolControl adapters={adapters} />
-        {showEquipment ? (
-          <BoardEditorEquipmentToolControl adapters={adapters} theme={theme} />
-        ) : null}
+        <BoardEditorEquipmentToolControl adapters={adapters} theme={theme} />
         <BoardEditorTextToolControl />
         <BoardEditorArrowToolControl />
         <BoardEditorShapeToolControl />

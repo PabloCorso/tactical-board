@@ -34,6 +34,13 @@ export type BoardToolDefaults = {
   extraTools?: ToolRegistration[];
 };
 
+export type BoardEditorConfig = {
+  adapters?: BoardThemeAdapters;
+  objectDefinitions: ReturnType<typeof createBoardObjectDefinitions>;
+  theme?: BoardTheme;
+  tools: ToolRegistration[];
+};
+
 function createTools({
   adapters,
   theme,
@@ -79,7 +86,9 @@ export function createBoardEditorConfig(
   } = {},
 ) {
   return {
+    adapters: options.adapters,
     objectDefinitions: createBoardObjectDefinitions(options),
+    theme: options.theme,
     tools: createTools(options),
-  };
+  } satisfies BoardEditorConfig;
 }

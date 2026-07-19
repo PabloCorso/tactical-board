@@ -33,6 +33,11 @@ import {
 } from "../../board/editor/board-editor-labels";
 import { cn } from "../../ui/misc";
 import { TooltipProvider } from "../../ui/tooltip";
+import {
+  BoardEditorThemeProvider,
+  type BoardEditorThemeContextValue,
+} from "../../board/theme/board-editor-theme-context";
+import type { BoardEditorConfig } from "../../board/theme/create-board-editor-config";
 export { BoardEditorCanvasToolbar } from "../../board/editor/canvas-toolbar";
 export { BoardEditorShapePolygonDone } from "../../board/editor/shape-polygon-done";
 
@@ -42,9 +47,10 @@ export type BoardEditorProps = {
 };
 
 export type BoardEditorProviderProps = PropsWithChildren & {
+  config?: Pick<BoardEditorConfig, "adapters" | "theme">;
   labels?: BoardEditorLabelOverrides;
   store: BoardEditorStore;
-};
+} & BoardEditorThemeContextValue;
 
 export type BoardEditorCanvasProps = {
   assetResolver?: AssetResolver;
@@ -54,17 +60,25 @@ export type BoardEditorCanvasProps = {
 };
 
 export function BoardEditorProvider({
+  adapters,
   children,
+  config,
   labels,
   store,
+  theme,
 }: BoardEditorProviderProps) {
   return (
     <BoardEditorContext.Provider value={store}>
-      <TooltipProvider delay={250}>
-        <BoardEditorLabelsProvider labels={labels}>
-          {children}
-        </BoardEditorLabelsProvider>
-      </TooltipProvider>
+      <BoardEditorThemeProvider
+        adapters={adapters ?? config?.adapters}
+        theme={theme ?? config?.theme}
+      >
+        <TooltipProvider delay={250}>
+          <BoardEditorLabelsProvider labels={labels}>
+            {children}
+          </BoardEditorLabelsProvider>
+        </TooltipProvider>
+      </BoardEditorThemeProvider>
     </BoardEditorContext.Provider>
   );
 }

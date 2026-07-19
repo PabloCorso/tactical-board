@@ -13,7 +13,6 @@ import {
   BoardEditorToolbarDock,
   BoardEditorToolbarDockProvider,
   BoardPrimaryToolbar,
-  basketballTheme,
   createBoardEditorStore,
   createBasketballBoard,
   createBasketballEditorConfig,
@@ -31,10 +30,10 @@ function BasketballToolbarDockExample() {
   return (
     <BoardEditorToolbarDock>
       <div onClick={toolbarDock.openSecondaryToolbar}>
-        <BoardPrimaryToolbar theme={basketballTheme} />
+        <BoardPrimaryToolbar />
       </div>
       {toolbarDock.secondaryToolbarOpen ? (
-        <BoardEditorSecondaryToolbars theme={basketballTheme} />
+        <BoardEditorSecondaryToolbars />
       ) : null}
     </BoardEditorToolbarDock>
   );
@@ -44,23 +43,24 @@ function BasketballBoardStory({
   initialBoard,
   navigationMode,
 }: BasketballBoardStoryProps = {}) {
+  const config = useMemo(() => createBasketballEditorConfig(), []);
   const store = useMemo(
     () =>
       createBoardEditorStore({
         initialBoard: initialBoard ?? createBasketballBoard(),
         navigationMode,
-        ...createBasketballEditorConfig(),
+        ...config,
       }),
-    [initialBoard, navigationMode],
+    [config, initialBoard, navigationMode],
   );
 
   return (
-    <BoardEditorProvider store={store}>
+    <BoardEditorProvider config={config} store={store}>
       <BoardEditor className="relative h-dvh w-full overflow-hidden">
         <BoardEditorCanvas />
         <BoardEditorShapePolygonDone />
         <BoardEditorCanvasToolbar />
-        <BoardEditorSelectionToolbar theme={basketballTheme} />
+        <BoardEditorSelectionToolbar />
         <BoardEditorToolbarDockProvider>
           <BasketballToolbarDockExample />
         </BoardEditorToolbarDockProvider>

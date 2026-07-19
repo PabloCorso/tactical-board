@@ -36,6 +36,7 @@ import {
   PlayerLabelSelectionControl,
 } from "./player-selection-controls";
 import { PlayerTeamSelectionControl } from "./player-team-selection-control";
+import { useBoardEditorTheme } from "../../theme/board-editor-theme-context";
 
 export function BoardEditorPlayerSelectionToolbar({
   adapters,
@@ -49,13 +50,16 @@ export function BoardEditorPlayerSelectionToolbar({
   viewportHeight,
 }: BoardEditorSelectionToolbarRendererProps<PlayerObject>) {
   const labels = useBoardEditorLabels();
+  const inheritedTheme = useBoardEditorTheme();
+  const resolvedAdapters = adapters ?? inheritedTheme.adapters;
+  const resolvedTheme = theme ?? inheritedTheme.theme;
   const store = useBoardEditorContext();
   const board = useBoardEditorStore(store, (state) => state.board);
   const toolApi = createToolApi(store);
   const playerGroups = getBoardPlayerGroups(board);
   const playerGroup = getBoardPlayerGroup(board, selectedObject.props.groupId);
   const effectiveStyle = resolveEffectivePlayerStyle(board, selectedObject);
-  const appearances = getThemePlayerAppearanceDefinitions(theme);
+  const appearances = getThemePlayerAppearanceDefinitions(resolvedTheme);
   const appearance =
     appearances.find(
       (candidate) => candidate.id === effectiveStyle.appearanceId,
@@ -172,8 +176,8 @@ export function BoardEditorPlayerSelectionToolbar({
 
         <PlayerAppearanceSelectionControl
           appearance={appearance}
-          appearanceRenderers={adapters?.playerAppearanceRenderers}
-          appearances={theme?.playerAppearances}
+          appearanceRenderers={resolvedAdapters?.playerAppearanceRenderers}
+          appearances={resolvedTheme?.playerAppearances}
           customized={hasAppearanceOverride}
           labels={labels}
           value={{

@@ -8,12 +8,14 @@ import {
   BoardPrimaryToolbar,
   BoardViewerCanvas,
   createBoardEditorStore,
+  useBoardEditorStore,
 } from ".";
-import {
-  createFootballBoard,
-  createFootballEditorConfig,
-  footballTheme,
-} from "./react";
+import { createFootballBoard, createFootballEditorConfig } from "./react";
+
+function BoardName() {
+  const name = useBoardEditorStore((state) => state.board.metadata.name);
+  return createElement("span", null, name);
+}
 
 describe("SSR safety", () => {
   it("server-renders the public React exports with static imports", () => {
@@ -27,7 +29,12 @@ describe("SSR safety", () => {
         createElement(
           BoardEditorProvider,
           { store },
-          createElement(BoardEditor, null, createElement(BoardEditorCanvas)),
+          createElement(
+            BoardEditor,
+            null,
+            createElement(BoardEditorCanvas),
+            createElement(BoardName),
+          ),
         ),
       ),
     ).not.toThrow();
@@ -42,18 +49,20 @@ describe("SSR safety", () => {
   });
 
   it("server-renders sport defaults composed through generic React components", () => {
+    const config = createFootballEditorConfig();
     const store = createBoardEditorStore({
       initialBoard: createFootballBoard(),
-      ...createFootballEditorConfig(),
+      ...config,
     });
     const html = renderToString(
       createElement(
         BoardEditorProvider,
-        { store },
-        createElement(BoardPrimaryToolbar, { theme: footballTheme }),
+        { config, store },
+        createElement(BoardPrimaryToolbar),
       ),
     );
 
     expect(html).toContain('role="toolbar"');
+    expect(html).toContain('aria-label="Equipment"');
   });
 });

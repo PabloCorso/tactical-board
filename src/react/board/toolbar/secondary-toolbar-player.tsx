@@ -32,6 +32,7 @@ import {
 } from "../team/player-team-commands";
 import { useBoardEditorTeamPanelOptional } from "../team/team-panel-context";
 import { BoardEditorTeamPanelDock } from "../team/team-panel";
+import { useBoardEditorTheme } from "../theme/board-editor-theme-context";
 
 export { getPlayerGroupDraftStyle } from "../team/player-team-commands";
 
@@ -81,6 +82,8 @@ function BoardEditorPlayerGroupToolbarContent({
     (state) => state.toolRegistry,
   );
   const isSmallScreen = useMediaQuery("(max-width: 640px)");
+  const inheritedTheme = useBoardEditorTheme();
+  const resolvedAdapters = adapters ?? inheritedTheme.adapters;
 
   const playerState = getPlayerToolState(toolState);
   const playerTool = toolRegistry.definitions[PLAYER_TOOL_ID];
@@ -158,7 +161,9 @@ function BoardEditorPlayerGroupToolbarContent({
               onClick={selectGroup}
             >
               <BoardPlayerDefaultIcon
-                appearanceRenderers={adapters?.playerAppearanceRenderers}
+                appearanceRenderers={
+                  resolvedAdapters?.playerAppearanceRenderers
+                }
                 draftStyle={draftStyle}
                 label={label}
                 className="h-9 w-9 shrink-0"

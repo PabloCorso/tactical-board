@@ -59,6 +59,7 @@ import {
   getObjectMeasurementSelectionState,
 } from "../../../../core/objects/object-properties";
 import { BoardEditorObjectMeasurementSelectionControl } from "./object-measurement-selection-control";
+import { useBoardEditorTheme } from "../../theme/board-editor-theme-context";
 
 const DEFAULT_SELECTION_TOOLBAR_RENDERERS: Record<
   string,
@@ -205,6 +206,9 @@ export function BoardEditorSelectionToolbar({
   theme,
 }: BoardEditorSelectionToolbarProps) {
   const labels = useBoardEditorLabels();
+  const inheritedTheme = useBoardEditorTheme();
+  const resolvedAdapters = adapters ?? inheritedTheme.adapters;
+  const resolvedTheme = theme ?? inheritedTheme.theme;
   const store = useBoardEditorContext();
   const toolApi = createToolApi(store);
   const state = useBoardEditorStore(store, (currentState) => currentState);
@@ -374,9 +378,9 @@ export function BoardEditorSelectionToolbar({
   return (
     <ToolbarRenderer
       className={className}
-      adapters={adapters}
+      adapters={resolvedAdapters}
       selectedObject={selectedObject}
-      theme={theme}
+      theme={resolvedTheme}
       toolbarLeft={anchor.left}
       toolbarTop={anchor.top}
       toolbarBottom={bounds.y + bounds.height + SELECTION_TOOLBAR_OFFSET_PX}

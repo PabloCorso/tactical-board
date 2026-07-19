@@ -13,10 +13,12 @@ import {
   useBoardViewerCanvas,
 } from "./use-board-viewer-canvas";
 import { cn } from "../../ui/misc";
+import type { BoardEditorConfig } from "../../board/theme/create-board-editor-config";
 
 export type BoardViewerCanvasProps = {
   board: Board;
   className?: string;
+  config?: Pick<BoardEditorConfig, "objectDefinitions">;
   frameClassName?: string;
   mode?: BoardViewerViewportMode;
   fitPadding?: number;
@@ -51,6 +53,7 @@ export function BoardViewer({ children, className }: BoardViewerProps) {
 export function BoardViewerCanvas({
   board,
   className,
+  config,
   frameClassName,
   mode = "fit",
   fitPadding,
@@ -71,7 +74,7 @@ export function BoardViewerCanvas({
     viewport,
     initialViewport,
     onViewportChange,
-    objectDefinitions,
+    objectDefinitions: objectDefinitions ?? config?.objectDefinitions,
     overlayItems,
     overlayRenderers,
     assetResolver,
