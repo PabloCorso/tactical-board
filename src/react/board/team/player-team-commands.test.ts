@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createBoardEditorStore } from "../../../core/store/board-editor-store";
 import { createToolApi } from "../../../core/editor/create-tool-api";
 import { createFootballBoard } from "../../sports/football/board/football-board";
-import { createFootballTools } from "../../sports/football/theme/football-tools";
+import { createFootballEditorConfig } from "../../sports/football/theme/football-editor-config";
 import { getBoardPlayerGroups } from "../../../core/board/player-groups";
 import {
   createPlayerObject,
@@ -19,7 +19,7 @@ import {
 function createTestToolApi() {
   const store = createBoardEditorStore({
     initialBoard: createFootballBoard({ id: "team-commands-board" }),
-    tools: createFootballTools(),
+    ...createFootballEditorConfig(),
   });
 
   return createToolApi(store);

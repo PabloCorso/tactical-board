@@ -324,7 +324,7 @@ export const arrowSelectionAdapter: ObjectSelectionAdapter<
     context.restore();
   },
   hitSelectionHandle: ({ object, projection, event }) => {
-    if (object.type !== ARROW_OBJECT_TYPE || object.locked) {
+    if (object.type !== ARROW_OBJECT_TYPE) {
       return undefined;
     }
 

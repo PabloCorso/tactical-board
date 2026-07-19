@@ -77,11 +77,7 @@ export function createBoardEditorRuntime({
     registeredToolRendererIds.add(tool.id);
 
     tool.registerCapabilities?.({
-      registerObjectRenderer: store.getState().actions.registerObjectRenderer,
-      registerObjectHitTester: store.getState().actions.registerObjectHitTester,
       registerOverlayRenderer: store.getState().actions.registerOverlayRenderer,
-      registerObjectDefinition:
-        store.getState().actions.registerObjectDefinition,
     });
   };
 
@@ -118,7 +114,7 @@ export function createBoardEditorRuntime({
       requestRender,
       previewObjects: state.rendering.previewObjects,
       overlayItems,
-      objectRenderers: state.rendering.objectRenderers,
+      objectRegistry: state.objectRegistry,
       overlayRenderers: state.rendering.overlayRenderers,
       assetResolver,
     });

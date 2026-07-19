@@ -19,7 +19,7 @@ import {
   createFootballBoard,
   createFootballPitch,
   createNextFootballPitchFrame,
-  createFootballTools,
+  createFootballEditorConfig,
   FootballTeamPanelAppearance,
   FootballTeamFormationSection,
   TeamPanelCaptionSection,
@@ -101,7 +101,7 @@ export function FootballBoardEditorExample({
         initialBoard:
           initialBoard ?? createFootballBoard({ id: boardId, name: boardName }),
         navigationMode,
-        tools: createFootballTools(),
+        ...createFootballEditorConfig(),
       }),
     [boardId, boardName, initialBoard, navigationMode],
   );

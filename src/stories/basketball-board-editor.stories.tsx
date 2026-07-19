@@ -16,7 +16,7 @@ import {
   basketballTheme,
   createBoardEditorStore,
   createBasketballBoard,
-  createBasketballTools,
+  createBasketballEditorConfig,
   useBoardEditorToolbarDock,
 } from "../react";
 
@@ -49,7 +49,7 @@ function BasketballBoardStory({
       createBoardEditorStore({
         initialBoard: initialBoard ?? createBasketballBoard(),
         navigationMode,
-        tools: createBasketballTools(),
+        ...createBasketballEditorConfig(),
       }),
     [initialBoard, navigationMode],
   );

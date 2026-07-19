@@ -34,10 +34,9 @@
 - **Shape**: An Object representing a geometric figure such as a rectangle, ellipse, or polygon.
 - **Board Object**: A board-specific Object with planning-board meaning.
 - **Board Renderer**: The non-editing rendering capability used to display a Board in read-only contexts such as thumbnails, lists, previews, and exports.
-- **Object Definition**: The per-type definition that supplies Object-specific behavior such as default properties, geometry, hit-testing, bounds, and render hooks while the Canvas Renderer retains ownership of the draw loop and viewport concerns.
+- **Object Definition**: The instance-scoped runtime registration for one Object type. It supplies ordering, technical transform behavior, Selection behavior, editing hooks, and a Canvas adapter while the Canvas Renderer retains ownership of the draw loop and viewport concerns. Object Definitions are configured independently from Tools and are not serialized into Documents.
 - **Editor Store**: The framework-independent source of truth for editing state and operations. React subscribes to the Editor Store rather than owning editing state directly.
 - **Editor Engine**: The framework-independent core that defines Document state, editing operations, geometry contracts, object dispatch, and serialization rules. The Editor Engine does not own React UI concerns or canvas drawing details.
-- **Editor Policy**: Host App-provided runtime rules that restrict editing for a workflow without changing the Document or its Objects.
 - **React Adapter**: The React integration layer that subscribes to the Editor Store, wires DOM input to Tools, and renders editor UI without owning canonical Document state.
 - **Document Background**: The generic base visual and coordinate setup for a Document.
 - **Document Unit**: The optional measurement declaration on a Document Background. It identifies the real-world unit represented by the coordinate space and the number of document units per measurement unit. Football frames declare meters at 8 document units per meter. The Editor Engine provides conversion helpers without assigning sport-specific meaning to the unit; documents without a declaration remain valid but have no real-world measurement contract.
@@ -71,7 +70,9 @@
 ## Relationships
 
 - **Smart Guides** treat a multi-Object **Selection** through its **Selection Bounds** and exclude Objects inside that Selection from the active set of **Guide Targets**.
-- Objects are editable and transformable by default; an **Object Definition** may declare a technical exception, while an **Editor Policy** may impose workflow-specific restrictions.
+- Objects contain editable facts rather than editing capability flags. They are movable and rotatable by default, while type-specific geometry is implemented by the **Object Definition** and its Selection behavior instead of `canMove`, `canResize`, or `canRotate` booleans.
+- A **Tool** may create or interact with an Object type, but installing that Tool does not register the Object type. Editors and read-only renderers receive the same instance-scoped **Object Definitions** independently from their Tools.
+- **Theme Data** may describe catalog entries such as equipment kinds, but runtime rendering, hit testing, and Selection behavior are captured by an Object Definition for the current editor or renderer instance rather than stored in Objects or module-global registries.
 - The **Board Library** may provide reusable **Export Primitives**, while **Share Workflows** belong to the **Host App** because storage, privacy, URLs, channels, and analytics are product-specific.
 - A **Host App** may compose custom save, export, or share controls with Board Library toolbar primitives instead of using a prescribed Board Library toolbar.
 - **React UI Copy** is localized through the React Adapter labels provider only when the copy is owned by React UI. Labels carried by **Tool** registrations, **Theme** definitions, frame variant options, equipment definitions, or Host App-provided presets remain owned by that data and should not be overwritten by the provider.

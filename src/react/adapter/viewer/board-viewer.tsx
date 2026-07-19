@@ -4,10 +4,10 @@ import type { Viewport } from "../../../core/geometry/types";
 import type { BoardViewerViewportMode } from "../../../core/viewer/board-viewer-viewport";
 import type {
   AssetResolver,
-  CanvasObjectRendererRegistry,
   CanvasOverlayItem,
   CanvasOverlayRendererRegistry,
 } from "../../../core/rendering/canvas/types";
+import type { ObjectDefinition } from "../../../core/objects/types";
 import {
   type BoardViewerInitialViewport,
   useBoardViewerCanvas,
@@ -24,7 +24,7 @@ export type BoardViewerCanvasProps = {
   viewport?: Viewport;
   initialViewport?: BoardViewerInitialViewport;
   onViewportChange?: (viewport: Viewport) => void;
-  objectRenderers?: CanvasObjectRendererRegistry;
+  objectDefinitions?: ObjectDefinition[];
   overlayItems?: CanvasOverlayItem[];
   overlayRenderers?: CanvasOverlayRendererRegistry;
   assetResolver?: AssetResolver;
@@ -58,7 +58,7 @@ export function BoardViewerCanvas({
   viewport,
   initialViewport,
   onViewportChange,
-  objectRenderers,
+  objectDefinitions,
   overlayItems,
   overlayRenderers,
   assetResolver,
@@ -71,7 +71,7 @@ export function BoardViewerCanvas({
     viewport,
     initialViewport,
     onViewportChange,
-    objectRenderers,
+    objectDefinitions,
     overlayItems,
     overlayRenderers,
     assetResolver,

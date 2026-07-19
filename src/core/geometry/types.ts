@@ -26,5 +26,3 @@ export interface FitPaddingInsets {
   bottom: number;
   left: number;
 }
-
-export type HitTestMode = "normal" | "passthrough" | "bounds-only";

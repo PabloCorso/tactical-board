@@ -2,12 +2,18 @@ import { describe, expect, it } from "vitest";
 import { createBoardEditorStore } from "../../../core/store/board-editor-store";
 import { createBoardEditorController } from "../../../core/editor/board-editor-controller";
 import { createBoardSpaceProjection } from "../../../core/geometry/board-space-projection";
+import {
+  createEquipmentObject,
+  EQUIPMENT_OBJECT_TYPE,
+} from "../../../core/objects/equipment-object";
 import { ARROW_TOOL_ID } from "../../../core/tools/arrow-tool-state";
 import { SELECT_TOOL_ID } from "../../../core/tools/select-tool-state";
 import { SHAPE_TOOL_ID } from "../../../core/tools/shape-tool-state";
-import { createBoardTools } from "./create-board-tools";
+import { createBoardEditorConfig } from "./create-board-editor-config";
+import { createEquipmentObjectAdapter } from "./equipment-object-adapter";
+import type { BoardTheme } from "./board-theme";
 
-describe("createBoardTools", () => {
+describe("createBoardEditorConfig", () => {
   it("selects a created shape but keeps the arrow tool ready for repeated drawing", () => {
     const store = createBoardEditorStore({
       initialBoard: {
@@ -18,7 +24,7 @@ describe("createBoardTools", () => {
         objects: { byId: {}, order: [] },
         style: {},
       },
-      tools: createBoardTools(),
+      ...createBoardEditorConfig(),
     });
     const controller = createBoardEditorController(store);
     const canvasRect = {
@@ -71,5 +77,72 @@ describe("createBoardTools", () => {
         (object) => object.type === "arrow",
       ),
     ).toBe(true);
+  });
+
+  it("keeps equipment behavior scoped to each editor configuration", () => {
+    const equipment = createEquipmentObject({
+      id: "shared-equipment",
+      position: { x: 20, y: 20 },
+      size: { width: 10, height: 4 },
+      kind: "shared-kind",
+      color: "#000000",
+    });
+    const createTheme = (hitTestShape: "rect" | "circle") =>
+      ({
+        id: hitTestShape,
+        name: hitTestShape,
+        objects: [
+          {
+            type: EQUIPMENT_OBJECT_TYPE,
+            kind: equipment.props.kind,
+            label: "Shared equipment",
+            defaultSize: { width: 10, height: 4 },
+            minimumHitRadiusPx: 0,
+            hitTestShape,
+          },
+        ],
+      }) satisfies BoardTheme;
+    const createStore = (theme: BoardTheme) =>
+      createBoardEditorStore({
+        initialBoard: {
+          id: `board-${theme.id}`,
+          version: 1,
+          metadata: {},
+          frame: { width: 100, height: 50 },
+          objects: {
+            byId: { [equipment.id]: equipment },
+            order: [equipment.id],
+          },
+          style: {},
+        },
+        ...createBoardEditorConfig({
+          theme,
+          adapters: { objectAdapters: [createEquipmentObjectAdapter()] },
+        }),
+      });
+    const rectStore = createStore(createTheme("rect"));
+    const circleStore = createStore(createTheme("circle"));
+    const projection = createBoardSpaceProjection({
+      frame: rectStore.getState().board.frame,
+      viewport: rectStore.getState().ui.viewport,
+      canvasRect: { width: 100, height: 50 },
+    });
+    const input = {
+      board: rectStore.getState().board,
+      object: equipment,
+      canvasPoint: projection.boardToCanvas({ x: 24.9, y: 21.9 }),
+      frameTransform: projection,
+      minimumHitRadiusPx: 0,
+    };
+    const rectHitTest =
+      rectStore.getState().objectRegistry.definitions[EQUIPMENT_OBJECT_TYPE]
+        ?.canvas?.hitTest;
+    const circleHitTest =
+      circleStore.getState().objectRegistry.definitions[EQUIPMENT_OBJECT_TYPE]
+        ?.canvas?.hitTest;
+
+    expect(rectHitTest?.(input)).toBe(true);
+    expect(circleHitTest?.(input)).toBe(false);
+    expect(rectHitTest?.(input)).toBe(true);
   });
 });

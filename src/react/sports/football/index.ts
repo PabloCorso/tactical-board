@@ -1,6 +1,5 @@
 export * from "./board/football-board";
 export * from "./board/football-units";
-export * from "./editor/football-object-renderers";
 export * from "./editor/football-team-panel-appearance";
 export * from "./editor/football-team-formation-section";
 export * from "./equipment";
@@ -10,4 +9,4 @@ export * from "./theme/football-pitch-icons";
 export * from "./theme/football-player-appearances";
 export * from "./theme/football-pitch-options";
 export * from "./theme/football-theme";
-export * from "./theme/football-tools";
+export * from "./theme/football-editor-config";

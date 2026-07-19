@@ -10,12 +10,15 @@ export interface EquipmentSelectionBounds {
   bottom: number;
 }
 
-export interface EquipmentDefinitionSnapshot {
+export interface EquipmentDefinition {
   kind: string;
   label: string;
+  defaultSize: {
+    width: number;
+    height: number;
+  };
   color?: string;
   toolIconColorMode?: "adaptive" | "fixed";
-  lockedAspectRatio?: boolean;
   selectionBounds?: EquipmentSelectionBounds;
   selectionPaddingPx?: number;
   minimumHitRadiusPx?: number;
@@ -34,12 +37,7 @@ export type EquipmentObject = BoardObject & {
   props: EquipmentObjectProps;
 };
 
-export interface EquipmentDefinition extends EquipmentDefinitionSnapshot {
-  defaultSize: {
-    width: number;
-    height: number;
-  };
-}
+export type EquipmentDefinitionRegistry = Record<string, EquipmentDefinition>;
 
 type EquipmentCoreInput = {
   position: Point;
@@ -52,21 +50,19 @@ type EquipmentCoreInput = {
   definition?: EquipmentDefinition;
 };
 
-const equipmentDefinitionsByKind: Record<string, EquipmentDefinitionSnapshot> =
-  {};
-
-export function registerEquipmentDefinitions(
+export function createEquipmentDefinitionRegistry(
   definitions: EquipmentDefinition[],
-) {
-  for (const definition of definitions) {
-    equipmentDefinitionsByKind[definition.kind] = definition;
-  }
+): EquipmentDefinitionRegistry {
+  return Object.fromEntries(
+    definitions.map((definition) => [definition.kind, definition]),
+  );
 }
 
 export function getEquipmentDefinition(
+  definitions: EquipmentDefinitionRegistry,
   equipment: Pick<EquipmentObject, "props">,
-): EquipmentDefinitionSnapshot | undefined {
-  return equipmentDefinitionsByKind[equipment.props.kind];
+): EquipmentDefinition | undefined {
+  return definitions[equipment.props.kind];
 }
 
 function clonePoint(point: Point): Point {
@@ -113,10 +109,6 @@ function createCanonicalEquipmentObject(
   base: Omit<EquipmentObject, "position" | "rotation" | "size" | "props">,
   input: EquipmentCoreInput,
 ): EquipmentObject {
-  if (input.definition) {
-    equipmentDefinitionsByKind[input.definition.kind] = input.definition;
-  }
-
   return {
     ...base,
     position: clonePoint(input.position),

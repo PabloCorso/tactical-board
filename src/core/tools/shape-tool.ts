@@ -73,7 +73,7 @@ export type CreateShapeToolOptions = {
   };
 };
 
-const shapeObjectDefinition = defineObjectDefinition({
+export const shapeObjectDefinition = defineObjectDefinition({
   type: SHAPE_OBJECT_TYPE,
   defaultOrderRank: DEFAULT_OBJECT_ORDER_RANKS.background,
   behaviors: {
@@ -96,6 +96,10 @@ const shapeObjectDefinition = defineObjectDefinition({
     },
   },
   selection: shapeSelectionAdapter,
+  canvas: {
+    render: renderShape,
+    hitTest: hitTestShape,
+  },
 });
 
 export class ShapeTool extends BoardEditorTool implements ToolDefinition {
@@ -146,14 +150,6 @@ export class ShapeTool extends BoardEditorTool implements ToolDefinition {
 
   onDeactivate(api: ToolApi) {
     cancelPendingShape(api);
-  }
-
-  registerCapabilities(
-    api: Parameters<NonNullable<ToolDefinition["registerCapabilities"]>>[0],
-  ) {
-    api.registerObjectRenderer(SHAPE_OBJECT_TYPE, renderShape);
-    api.registerObjectHitTester(SHAPE_OBJECT_TYPE, hitTestShape);
-    api.registerObjectDefinition(shapeObjectDefinition);
   }
 
   onPointerDown(

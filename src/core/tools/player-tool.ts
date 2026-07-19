@@ -70,19 +70,12 @@ export type CreatePlayerToolOptions = {
   completion?: CreationCompletionBehavior;
   defaults?: PlayerToolDefault[];
   labelStrategy?: PlayerToolLabelStrategy;
-  renderer?: CanvasObjectRenderer;
 };
 
 type PlayerAssetImageCacheEntry = {
   image: HTMLImageElement;
   loaded: boolean;
 };
-
-const playerObjectDefinition = defineObjectDefinition({
-  type: PLAYER_OBJECT_TYPE,
-  defaultOrderRank: DEFAULT_OBJECT_ORDER_RANKS.foreground,
-  selection: playerSelectionAdapter,
-});
 
 const PREVIEW_OPACITY = 0.55;
 const DEFAULT_PLAYER_BORDER_COLOR = "#000000";
@@ -110,7 +103,6 @@ export class PlayerTool extends BoardEditorTool implements ToolDefinition {
 
   readonly labelStrategy: PlayerToolLabelStrategy;
   private readonly defaults: PlayerToolDefault[];
-  private readonly renderer: CanvasObjectRenderer;
   private readonly completion: CreationCompletionBehavior;
 
   constructor(options: CreatePlayerToolOptions = {}) {
@@ -119,7 +111,6 @@ export class PlayerTool extends BoardEditorTool implements ToolDefinition {
       options.completion ?? DEFAULT_CREATION_COMPLETION_BEHAVIOR;
     this.labelStrategy = options.labelStrategy ?? "numeric-by-color";
     this.defaults = options.defaults ?? [];
-    this.renderer = options.renderer ?? renderPlayer;
   }
 
   getActivatedDraftStyle(toolState: BoardEditorToolState): PlayerDraftStyle {
@@ -200,14 +191,6 @@ export class PlayerTool extends BoardEditorTool implements ToolDefinition {
     api.clearPreviewObjects();
   }
 
-  registerCapabilities(
-    api: Parameters<NonNullable<ToolDefinition["registerCapabilities"]>>[0],
-  ) {
-    api.registerObjectRenderer(PLAYER_OBJECT_TYPE, this.renderer);
-    api.registerObjectHitTester(PLAYER_OBJECT_TYPE, hitTestPlayer);
-    api.registerObjectDefinition(playerObjectDefinition);
-  }
-
   onPointerDown(
     event: Parameters<NonNullable<ToolDefinition["onPointerDown"]>>[0],
     api: ToolApi,
@@ -268,6 +251,20 @@ export class PlayerTool extends BoardEditorTool implements ToolDefinition {
       playerState.activeGroupId,
     );
   }
+}
+
+export function createPlayerObjectDefinition(
+  renderer: CanvasObjectRenderer = renderPlayer,
+) {
+  return defineObjectDefinition({
+    type: PLAYER_OBJECT_TYPE,
+    defaultOrderRank: DEFAULT_OBJECT_ORDER_RANKS.foreground,
+    selection: playerSelectionAdapter,
+    canvas: {
+      render: renderer,
+      hitTest: hitTestPlayer,
+    },
+  });
 }
 
 function isDefaultBoardPlayerGroup(

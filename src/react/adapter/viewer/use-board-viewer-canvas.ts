@@ -17,11 +17,14 @@ import {
 import { createCanvasRenderer } from "../../../core/rendering/canvas/create-canvas-renderer";
 import type {
   AssetResolver,
-  CanvasObjectRendererRegistry,
   CanvasOverlayItem,
   CanvasOverlayRendererRegistry,
   CanvasRenderer,
 } from "../../../core/rendering/canvas/types";
+import {
+  createObjectRegistry,
+  type ObjectDefinition,
+} from "../../../core/objects/types";
 
 export type BoardViewerInitialViewport = Viewport | "fit";
 
@@ -33,7 +36,7 @@ export type UseBoardViewerCanvasOptions = {
   viewport?: Viewport;
   initialViewport?: BoardViewerInitialViewport;
   onViewportChange?: (viewport: Viewport) => void;
-  objectRenderers?: CanvasObjectRendererRegistry;
+  objectDefinitions?: ObjectDefinition[];
   overlayItems?: CanvasOverlayItem[];
   overlayRenderers?: CanvasOverlayRendererRegistry;
   assetResolver?: AssetResolver;
@@ -54,7 +57,7 @@ export function useBoardViewerCanvas({
   viewport,
   initialViewport = "fit",
   onViewportChange,
-  objectRenderers,
+  objectDefinitions = [],
   overlayItems,
   overlayRenderers,
   assetResolver,
@@ -78,6 +81,10 @@ export function useBoardViewerCanvas({
   );
   const [interactiveViewport, setInteractiveViewport] =
     useState<Viewport>(DEFAULT_VIEWPORT);
+  const objectRegistry = useMemo(
+    () => createObjectRegistry(objectDefinitions),
+    [objectDefinitions],
+  );
 
   const resolveInitialViewport = useCallback(
     (rect: BoardViewerCanvasRect) => {
@@ -193,7 +200,7 @@ export function useBoardViewerCanvas({
       extendBackground,
       fitPadding: fitPadding,
       requestRender,
-      objectRenderers,
+      objectRegistry,
       overlayItems,
       overlayRenderers,
       assetResolver,
@@ -204,7 +211,7 @@ export function useBoardViewerCanvas({
     effectiveViewport,
     extendBackground,
     fitPadding,
-    objectRenderers,
+    objectRegistry,
     overlayItems,
     overlayRenderers,
     requestRender,

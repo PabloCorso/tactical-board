@@ -11,7 +11,7 @@ import {
 } from ".";
 import {
   createFootballBoard,
-  createFootballTools,
+  createFootballEditorConfig,
   footballTheme,
 } from "./react";
 
@@ -44,7 +44,7 @@ describe("SSR safety", () => {
   it("server-renders sport defaults composed through generic React components", () => {
     const store = createBoardEditorStore({
       initialBoard: createFootballBoard(),
-      tools: createFootballTools(),
+      ...createFootballEditorConfig(),
     });
     const html = renderToString(
       createElement(

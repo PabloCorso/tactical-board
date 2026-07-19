@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { EQUIPMENT_OBJECT_TYPE } from "../../../core/objects/equipment-object";
 import {
-  createThemeObjectRenderer,
+  createThemeObjectDefinition,
   type BoardTheme,
   type BoardThemeAdapters,
 } from "../theme/board-theme";
@@ -66,11 +66,11 @@ function BoardEditorEquipmentToolbarContent({
   const equipmentDefinitions = getThemeEquipmentDefinitions(theme);
   const equipmentRenderer = useMemo(
     () =>
-      createThemeObjectRenderer({
+      createThemeObjectDefinition({
         adapters,
         theme,
         type: EQUIPMENT_OBJECT_TYPE,
-      }),
+      })?.canvas?.render,
     [adapters, theme],
   );
 

@@ -32,7 +32,6 @@ export const footballTheme = {
       color: definition.color,
     },
     toolIconColorMode: definition.toolIconColorMode,
-    lockedAspectRatio: definition.lockedAspectRatio,
     selectionBounds: definition.selectionBounds,
     selectionPaddingPx: definition.selectionPaddingPx,
     minimumHitRadiusPx: definition.minimumHitRadiusPx,

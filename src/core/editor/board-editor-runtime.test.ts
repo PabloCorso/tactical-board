@@ -10,7 +10,7 @@ import { ArrowTool } from "../tools/arrow-tool";
 import { ARROW_TOOL_ID, getArrowToolState } from "../tools/arrow-tool-state";
 import { ShapeTool } from "../tools/shape-tool";
 import { getShapeToolState, SHAPE_TOOL_ID } from "../tools/shape-tool-state";
-import { TextTool } from "../tools/text-tool";
+import { TextTool, textObjectDefinition } from "../tools/text-tool";
 import { createTextObject } from "../objects/text-object";
 import { getTextToolState } from "../tools/text-tool-state";
 import { PlayerTool } from "../tools/player-tool";
@@ -1835,6 +1835,7 @@ describe("createBoardEditorRuntime", () => {
         },
         textTool,
       ],
+      objectDefinitions: [textObjectDefinition],
     });
     const runtime = createBoardEditorRuntime({ store });
     const canvas = createCanvasStub();
@@ -1905,6 +1906,7 @@ describe("createBoardEditorRuntime", () => {
         },
         textTool,
       ],
+      objectDefinitions: [textObjectDefinition],
     });
     const runtime = createBoardEditorRuntime({ store });
     const canvas = createCanvasStub();
@@ -1982,6 +1984,7 @@ describe("createBoardEditorRuntime", () => {
         },
         textTool,
       ],
+      objectDefinitions: [textObjectDefinition],
     });
     const runtime = createBoardEditorRuntime({ store });
     const canvas = createCanvasStub();

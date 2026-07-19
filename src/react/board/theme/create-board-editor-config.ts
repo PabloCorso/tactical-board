@@ -4,7 +4,6 @@ import {
 } from "../../../core/tools/arrow-tool";
 import { HandTool } from "../../../core/tools/hand-tool";
 import {
-  createPlayerRenderer,
   PlayerTool,
   type PlayerToolDefault,
 } from "../../../core/tools/player-tool";
@@ -17,6 +16,7 @@ import { TextTool } from "../../../core/tools/text-tool";
 import type { ToolRegistration } from "../../../core/tools/types";
 import type { BoardTheme, BoardThemeAdapters } from "./board-theme";
 import { getThemeObjectDefinitions } from "./board-theme";
+import { createBoardObjectDefinitions } from "./create-board-object-definitions";
 import {
   BOARD_ARROW_DEFAULTS,
   BOARD_PLAYER_DEFAULTS,
@@ -34,7 +34,7 @@ export type BoardToolDefaults = {
   extraTools?: ToolRegistration[];
 };
 
-export function createBoardTools({
+function createTools({
   adapters,
   theme,
   defaults = {},
@@ -56,7 +56,6 @@ export function createBoardTools({
     new HandTool(),
     new PlayerTool({
       defaults: defaults.players ?? BOARD_PLAYER_DEFAULTS,
-      renderer: createPlayerRenderer(adapters?.playerAppearanceRenderers),
     }),
     ...objectAdapterTools,
     new TextTool(),
@@ -70,4 +69,17 @@ export function createBoardTools({
     }),
     ...(defaults.extraTools ?? []),
   ];
+}
+
+export function createBoardEditorConfig(
+  options: {
+    theme?: BoardTheme;
+    adapters?: BoardThemeAdapters;
+    defaults?: BoardToolDefaults;
+  } = {},
+) {
+  return {
+    objectDefinitions: createBoardObjectDefinitions(options),
+    tools: createTools(options),
+  };
 }

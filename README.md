@@ -31,11 +31,10 @@ See [architecture.md](./architecture.md), [CONTEXT.md](./CONTEXT.md), and [docs/
 
 ## React integration
 
-React consumers build a board editor by creating a board document, registering the tools they want to expose, and rendering the React adapter around a shared editor store.
+React consumers build a board editor by creating a board document, composing its Tools and Object Definitions, and rendering the React adapter around a shared editor store.
 
 ```tsx
 import {
-  ArrowTool,
   BoardEditor,
   BoardEditorCanvas,
   BoardEditorCanvasToolbar,
@@ -49,11 +48,8 @@ import {
   BoardEditorTextToolControl,
   BoardEditorToolbar,
   createBoard,
+  createBoardEditorConfig,
   createBoardEditorStore,
-  HandTool,
-  SelectTool,
-  ShapeTool,
-  TextTool,
 } from "@pablocorso/tactical-board";
 
 const board = createBoard({
@@ -75,13 +71,7 @@ const board = createBoard({
 const store = createBoardEditorStore({
   initialBoard: board,
   initialToolId: "select",
-  tools: [
-    new SelectTool(),
-    new HandTool(),
-    new TextTool(),
-    new ArrowTool(),
-    new ShapeTool(),
-  ],
+  ...createBoardEditorConfig(),
 });
 
 export function TrainingBoardEditor() {
@@ -108,7 +98,7 @@ export function TrainingBoardEditor() {
 ```
 
 Sport adapters are defaults, not separate React editors. For football, compose
-the generic editor store with `createFootballTools()`, then render the generic
+the generic editor store with `createFootballEditorConfig()`, then render the generic
 editor components with `footballTheme`, `footballThemeAdapters`, and any
 sport-specific frame controls your app wants to expose:
 
@@ -126,7 +116,7 @@ import {
   BoardPrimaryToolbar,
   createBoardEditorStore,
   createFootballBoard,
-  createFootballTools,
+  createFootballEditorConfig,
   footballTheme,
   footballThemeAdapters,
   getFootballPitchFitPadding,
@@ -135,7 +125,7 @@ import {
 const store = createBoardEditorStore({
   initialBoard: createFootballBoard({ id: "match-plan", name: "Match Plan" }),
   fitPadding: getFootballPitchFitPadding,
-  tools: createFootballTools(),
+  ...createFootballEditorConfig(),
 });
 
 export function MatchPlanEditor() {
@@ -165,9 +155,9 @@ export function MatchPlanEditor() {
 }
 ```
 
-Football theme data includes player appearance choices and renderers, so passing
-`footballTheme` to the selection toolbar enables per-player appearance,
-caption, and uploaded visual controls.
+Football Theme Data includes player appearance choices, while football adapters
+provide runtime rendering behavior. Passing `footballTheme` to the selection
+toolbar enables per-player appearance, caption, and uploaded visual controls.
 
 Run `npm run storybook` and open `React/Board Editor/Football` for an interactive reference.
 The source examples in `src/stories/examples` are written as copyable host-app

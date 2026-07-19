@@ -1,9 +1,4 @@
-import type {
-  ToolApi,
-  ToolCapabilityRegistrationApi,
-  ToolDefinition,
-  ToolPointerEvent,
-} from "./types";
+import type { ToolApi, ToolDefinition, ToolPointerEvent } from "./types";
 import { DEFAULT_OBJECT_ORDER_RANKS } from "../board/object-order";
 import { defineObjectDefinition } from "../objects/types";
 import { BoardEditorTool } from "./tool";
@@ -14,10 +9,11 @@ import type {
 } from "../rendering/canvas/types";
 import {
   createEquipmentObject,
+  createEquipmentDefinitionRegistry,
   EQUIPMENT_OBJECT_TYPE,
   getEquipmentDefinition,
-  registerEquipmentDefinitions,
   type EquipmentDefinition,
+  type EquipmentDefinitionRegistry,
   type EquipmentObject,
 } from "../objects/equipment-object";
 import {
@@ -25,7 +21,7 @@ import {
   getRelativeCanvasStrokeWidth,
 } from "../rendering/canvas/object-render-scale";
 import { clearSelection } from "./select-tool-actions";
-import { equipmentSelectionAdapter } from "./equipment-selection";
+import { createEquipmentSelectionAdapter } from "./equipment-selection";
 import {
   applyCreationCompletion,
   DEFAULT_CREATION_COMPLETION_BEHAVIOR,
@@ -42,7 +38,6 @@ const PREVIEW_OPACITY = 0.55;
 export type CreateEquipmentToolOptions = {
   completion?: CreationCompletionBehavior;
   definitions: EquipmentDefinition[];
-  renderersByKind?: EquipmentCanvasRendererRegistry;
 };
 
 export type EquipmentCanvasRenderInput = {
@@ -63,19 +58,12 @@ export type EquipmentCanvasRendererRegistry = Record<
   EquipmentCanvasRenderer
 >;
 
-const equipmentObjectDefinition = defineObjectDefinition({
-  type: EQUIPMENT_OBJECT_TYPE,
-  defaultOrderRank: DEFAULT_OBJECT_ORDER_RANKS.content,
-  selection: equipmentSelectionAdapter,
-});
-
 export class EquipmentTool extends BoardEditorTool implements ToolDefinition {
   readonly id = EQUIPMENT_TOOL_ID;
   readonly label = "Equipment";
 
   private readonly definitions: EquipmentDefinition[];
   private readonly definitionsByKind: Record<string, EquipmentDefinition>;
-  private readonly renderEquipment;
   private readonly completion: CreationCompletionBehavior;
 
   constructor(options: CreateEquipmentToolOptions) {
@@ -93,8 +81,6 @@ export class EquipmentTool extends BoardEditorTool implements ToolDefinition {
     this.definitionsByKind = Object.fromEntries(
       options.definitions.map((definition) => [definition.kind, definition]),
     );
-    registerEquipmentDefinitions(options.definitions);
-    this.renderEquipment = createEquipmentRenderer(options.renderersByKind);
   }
 
   onActivate(api: ToolApi) {
@@ -114,12 +100,6 @@ export class EquipmentTool extends BoardEditorTool implements ToolDefinition {
 
   onDeactivate(api: ToolApi) {
     api.clearPreviewObjects();
-  }
-
-  registerCapabilities(api: ToolCapabilityRegistrationApi) {
-    api.registerObjectRenderer(EQUIPMENT_OBJECT_TYPE, this.renderEquipment);
-    api.registerObjectHitTester(EQUIPMENT_OBJECT_TYPE, hitTestEquipment);
-    api.registerObjectDefinition(equipmentObjectDefinition);
   }
 
   onPointerDown(event: ToolPointerEvent, api: ToolApi) {
@@ -210,6 +190,7 @@ function findDefinition(
 }
 
 export function createEquipmentRenderer(
+  definitions: EquipmentDefinitionRegistry,
   renderersByKind: EquipmentCanvasRendererRegistry = {},
 ): CanvasObjectRenderer {
   return ({
@@ -219,7 +200,7 @@ export function createEquipmentRenderer(
     frameTransform,
   }: CanvasObjectRenderInput) => {
     const equipment = object as EquipmentObject;
-    const definition = getEquipmentDefinition(equipment);
+    const definition = getEquipmentDefinition(definitions, equipment);
     const bounds = frameTransform.getObjectCanvasBounds(equipment);
     const width = getAbsoluteCanvasExtent(bounds.width);
     const height = getAbsoluteCanvasExtent(bounds.height);
@@ -259,38 +240,62 @@ export function createEquipmentRenderer(
   };
 }
 
-export function hitTestEquipment({
-  object,
-  canvasPoint,
-  frameTransform,
-  minimumHitRadiusPx,
-}: CanvasObjectHitTestInput) {
-  const equipment = object as EquipmentObject;
-  const definition = getEquipmentDefinition(equipment);
-  const center = frameTransform.boardToCanvas(equipment.position);
-  const bounds = frameTransform.getObjectCanvasBounds(equipment);
-  const effectiveMinimumHitRadiusPx = Math.max(
-    definition?.minimumHitRadiusPx ?? minimumHitRadiusPx,
-    0,
-  );
-  const width = Math.max(
-    Math.abs(bounds.width),
-    effectiveMinimumHitRadiusPx * 2,
-  );
-  const height = Math.max(
-    Math.abs(bounds.height),
-    effectiveMinimumHitRadiusPx * 2,
-  );
-  const angle = -(((equipment.rotation ?? 0) * Math.PI) / 180);
-  const dx = canvasPoint.x - center.x;
-  const dy = canvasPoint.y - center.y;
-  const localX = dx * Math.cos(angle) - dy * Math.sin(angle);
-  const localY = dx * Math.sin(angle) + dy * Math.cos(angle);
-  const hitTestShape = definition?.hitTestShape ?? "rect";
+export function createEquipmentHitTester(
+  definitions: EquipmentDefinitionRegistry,
+) {
+  return ({
+    object,
+    canvasPoint,
+    frameTransform,
+    minimumHitRadiusPx,
+  }: CanvasObjectHitTestInput) => {
+    const equipment = object as EquipmentObject;
+    const definition = getEquipmentDefinition(definitions, equipment);
+    const center = frameTransform.boardToCanvas(equipment.position);
+    const bounds = frameTransform.getObjectCanvasBounds(equipment);
+    const effectiveMinimumHitRadiusPx = Math.max(
+      definition?.minimumHitRadiusPx ?? minimumHitRadiusPx,
+      0,
+    );
+    const width = Math.max(
+      Math.abs(bounds.width),
+      effectiveMinimumHitRadiusPx * 2,
+    );
+    const height = Math.max(
+      Math.abs(bounds.height),
+      effectiveMinimumHitRadiusPx * 2,
+    );
+    const angle = -(((equipment.rotation ?? 0) * Math.PI) / 180);
+    const dx = canvasPoint.x - center.x;
+    const dy = canvasPoint.y - center.y;
+    const localX = dx * Math.cos(angle) - dy * Math.sin(angle);
+    const localY = dx * Math.sin(angle) + dy * Math.cos(angle);
+    const hitTestShape = definition?.hitTestShape ?? "rect";
 
-  if (hitTestShape === "circle") {
-    return Math.hypot(localX, localY) <= Math.max(width, height) / 2;
-  }
+    if (hitTestShape === "circle") {
+      return Math.hypot(localX, localY) <= Math.max(width, height) / 2;
+    }
 
-  return Math.abs(localX) <= width / 2 && Math.abs(localY) <= height / 2;
+    return Math.abs(localX) <= width / 2 && Math.abs(localY) <= height / 2;
+  };
+}
+
+export function createEquipmentObjectDefinition({
+  definitions,
+  renderersByKind,
+}: {
+  definitions: EquipmentDefinition[];
+  renderersByKind?: EquipmentCanvasRendererRegistry;
+}) {
+  const definitionsByKind = createEquipmentDefinitionRegistry(definitions);
+
+  return defineObjectDefinition({
+    type: EQUIPMENT_OBJECT_TYPE,
+    defaultOrderRank: DEFAULT_OBJECT_ORDER_RANKS.content,
+    selection: createEquipmentSelectionAdapter(definitionsByKind),
+    canvas: {
+      render: createEquipmentRenderer(definitionsByKind, renderersByKind),
+      hitTest: createEquipmentHitTester(definitionsByKind),
+    },
+  });
 }

@@ -29,18 +29,20 @@ import {
   finishTextEditingSession,
 } from "./text-editing";
 
-const textObjectDefinition = defineObjectDefinition({
+export const textObjectDefinition = defineObjectDefinition({
   type: TEXT_OBJECT_TYPE,
   defaultOrderRank: DEFAULT_OBJECT_ORDER_RANKS.text,
   selection: textSelectionAdapter,
   beginEditing: ({ object, state, canvasRect }) => {
-    const textObject = object as TextObject;
-
     beginTextEditingSession({
       state,
-      object: textObject,
+      object,
       canvasRect,
     });
+  },
+  canvas: {
+    render: renderText,
+    hitTest: hitTestText,
   },
 });
 
@@ -81,14 +83,6 @@ export class TextTool extends BoardEditorTool implements ToolDefinition {
 
   shouldFocusCanvasOnPointerDown() {
     return false;
-  }
-
-  registerCapabilities(
-    api: Parameters<NonNullable<ToolDefinition["registerCapabilities"]>>[0],
-  ) {
-    api.registerObjectRenderer(TEXT_OBJECT_TYPE, renderText);
-    api.registerObjectHitTester(TEXT_OBJECT_TYPE, hitTestText);
-    api.registerObjectDefinition(textObjectDefinition);
   }
 
   onPointerDown(

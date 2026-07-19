@@ -10,8 +10,7 @@ import {
   type PlayerAppearanceRendererRegistry,
 } from "../../../core/tools/player-appearance";
 import type { ToolRegistration } from "../../../core/tools/types";
-import type { CanvasObjectRenderer } from "../../../core/rendering/canvas/types";
-import type { CanvasObjectRendererRegistry } from "../../../core/rendering/canvas/types";
+import type { ObjectDefinition } from "../../../core/objects/types";
 
 export type {
   PlayerAppearanceRenderer,
@@ -82,7 +81,6 @@ export type BoardThemeObjectDefinition = {
   asset?: Asset;
   defaultProps?: Record<string, unknown>;
   toolIconColorMode?: "adaptive" | "fixed";
-  lockedAspectRatio?: boolean;
   selectionBounds?: {
     left: number;
     top: number;
@@ -110,21 +108,20 @@ export type BoardThemeObjectAdapterInput = {
 
 export type BoardThemeObjectAdapter = {
   type: ObjectType;
-  createRenderer?: (
+  createObjectDefinition?: (
     input: BoardThemeObjectAdapterInput,
-  ) => CanvasObjectRenderer | undefined;
+  ) => ObjectDefinition | undefined;
   createTools?: (input: BoardThemeObjectAdapterInput) => ToolRegistration[];
 };
 
 export type BoardThemeAdapters = {
   objectAdapters?: BoardThemeObjectAdapter[];
-  objectRenderers?: CanvasObjectRendererRegistry;
   playerAppearanceRenderers?: PlayerAppearanceRendererRegistry;
 };
 
 export type ResolvedBoardTheme = BoardTheme & {
   adapters?: BoardThemeAdapters;
-  objectRenderers: CanvasObjectRendererRegistry;
+  objectDefinitions: ObjectDefinition[];
 };
 
 export function getThemeObjectDefinitions(
@@ -152,7 +149,7 @@ export function getThemePlayerPresetDefinitions(
   return theme?.playerPresets ?? [];
 }
 
-export function createThemeObjectRenderer({
+export function createThemeObjectDefinition({
   adapters,
   theme,
   type,
@@ -160,10 +157,10 @@ export function createThemeObjectRenderer({
   adapters?: BoardThemeAdapters;
   theme?: Pick<BoardTheme, "objects">;
   type: ObjectType;
-}): CanvasObjectRenderer | undefined {
+}): ObjectDefinition | undefined {
   const adapter = adapters?.objectAdapters?.find((item) => item.type === type);
 
-  return adapter?.createRenderer?.({
+  return adapter?.createObjectDefinition?.({
     definitions: getThemeObjectDefinitions(theme, type),
     theme,
   });

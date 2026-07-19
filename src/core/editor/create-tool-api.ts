@@ -25,9 +25,6 @@ export function createToolApi(store: BoardEditorStore): ToolApi {
     clearSelection: actions.clearSelection,
     setToolState: actions.setToolState,
     clearToolState: actions.clearToolState,
-    registerObjectRenderer: actions.registerObjectRenderer,
-    registerObjectHitTester: actions.registerObjectHitTester,
     registerOverlayRenderer: actions.registerOverlayRenderer,
-    registerObjectDefinition: actions.registerObjectDefinition,
   };
 }

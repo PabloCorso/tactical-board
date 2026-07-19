@@ -33,7 +33,6 @@ export const miniGoalEquipment: FootballEquipmentSpec = {
       height: MINI_GOAL_METRICS.height,
     },
     color: DEFAULT_BOARD_COLOR.lightGray,
-    lockedAspectRatio: true,
     selectionBounds: {
       left: -0.5,
       top: -0.5,

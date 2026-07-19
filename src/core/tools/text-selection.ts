@@ -94,7 +94,7 @@ export const textSelectionAdapter: ObjectSelectionAdapter<
     );
     context.stroke();
 
-    if (showControls && !object.locked) {
+    if (showControls) {
       renderRotateHandleIcon(
         context,
         getTextRotateHandleCanvasPoint(projection, object),
@@ -106,10 +106,6 @@ export const textSelectionAdapter: ObjectSelectionAdapter<
     context.restore();
   },
   hitSelectionHandle: ({ object, projection, event }) => {
-    if (object.locked) {
-      return undefined;
-    }
-
     const canvasPoint = projection.boardToCanvas(event.point);
     const rotateHandle = getTextRotateHandleCanvasPoint(projection, object);
     const rotateDistance = Math.hypot(

@@ -34,7 +34,6 @@ export const poleEquipment: FootballEquipmentSpec = {
       height: 28,
     },
     color: POLE_COLOR,
-    lockedAspectRatio: true,
     selectionBounds: POLE_SELECTION_BOUNDS,
   },
   renderer: ({ context, color, width, height }) => {

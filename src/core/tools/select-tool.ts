@@ -92,7 +92,6 @@ type GroupSelectionOverlayItem = {
     ObjectSelectionAdapter | undefined
   >;
   color: string;
-  canRotate: boolean;
   showControls: boolean;
   rotation?: number;
   bounds?: {
@@ -704,7 +703,7 @@ function isGroupSelectionChromeHit(
   objects: BoardObject[],
   event: ToolPointerEvent,
 ) {
-  if (objects.length <= 1 || objects.some((object) => object.locked)) {
+  if (objects.length <= 1) {
     return false;
   }
 
@@ -816,15 +815,6 @@ function createGroupSelectionOverlayItem(
     selectState.interaction?.mode === "group-selection"
       ? selectState.interaction
       : undefined;
-  const canRotate = objects.every((object) => {
-    const transformCapabilities = getObjectSelectionAdapterForObject(
-      state,
-      object,
-    )?.getTransformCapabilities?.(object);
-
-    return transformCapabilities?.rotate !== false;
-  });
-
   return {
     kind: GROUP_SELECTION_OVERLAY_KIND,
     board: state.board,
@@ -836,10 +826,9 @@ function createGroupSelectionOverlayItem(
       ]),
     ),
     color: accentColor,
-    canRotate,
     showControls,
     rotation:
-      canRotate && interaction?.session.kind === "rotate"
+      interaction?.session.kind === "rotate"
         ? getGroupSelectionRotationDegrees(
             objects,
             interaction.session.initialObjects,
@@ -847,7 +836,7 @@ function createGroupSelectionOverlayItem(
           )
         : undefined,
     bounds:
-      canRotate && interaction?.session.kind === "rotate"
+      interaction?.session.kind === "rotate"
         ? interaction.session.bounds
         : undefined,
   } satisfies GroupSelectionOverlayItem;
@@ -1001,7 +990,6 @@ function registerSelectOverlayRenderer(
                 : undefined;
             })()
           : getGroupRotateHandlePointFromOutline(outlinePoints);
-      const anyLocked = overlay.objects.some((object) => object.locked);
       const sideHandlePoints = [
         {
           x: (outlinePoints[0]!.x + outlinePoints[1]!.x) / 2,
@@ -1028,7 +1016,7 @@ function registerSelectOverlayRenderer(
       drawClosedCanvasPath(context, outlinePoints);
       context.stroke();
 
-      if (overlay.showControls && !anyLocked) {
+      if (overlay.showControls) {
         for (const handlePoint of [...outlinePoints, ...sideHandlePoints]) {
           drawRoundedSquareHandle(
             context,
@@ -1040,7 +1028,7 @@ function registerSelectOverlayRenderer(
           context.stroke();
         }
 
-        if (overlay.canRotate && rotateHandlePoint) {
+        if (rotateHandlePoint) {
           renderRotateHandleIcon(
             context,
             rotateHandlePoint,
@@ -1162,30 +1150,16 @@ function beginSelectionInteraction(event: ToolPointerEvent, api: ToolApi) {
       return;
     }
 
-    const targetObject = state.board.objects.byId[event.targetObjectId];
-    const targetSelectionAdapter = getObjectSelectionAdapterForObject(
-      state,
-      targetObject,
-    );
-    const transformCapabilities = targetObject
-      ? targetSelectionAdapter?.getTransformCapabilities?.(targetObject)
-      : undefined;
-
     api.setSelectedObjectIds(nextSelection);
     setSelectState(api, {
-      interaction:
-        transformCapabilities?.move === false
-          ? undefined
-          : {
-              mode: "drag",
-              dragObjectIds: nextSelection,
-              lastPoint: event.point,
-            },
+      interaction: {
+        mode: "drag",
+        dragObjectIds: nextSelection,
+        lastPoint: event.point,
+      },
     });
 
-    if (transformCapabilities?.move !== false) {
-      api.beginHistoryBatch();
-    }
+    api.beginHistoryBatch();
     return;
   }
 
@@ -1199,18 +1173,14 @@ function beginSelectionInteraction(event: ToolPointerEvent, api: ToolApi) {
     )
   ) {
     setSelectState(api, {
-      interaction: selectedObjects.some((object) => object.locked)
-        ? undefined
-        : {
-            mode: "drag",
-            dragObjectIds: selectedObjectIds,
-            lastPoint: event.point,
-          },
+      interaction: {
+        mode: "drag",
+        dragObjectIds: selectedObjectIds,
+        lastPoint: event.point,
+      },
     });
 
-    if (!selectedObjects.some((object) => object.locked)) {
-      api.beginHistoryBatch();
-    }
+    api.beginHistoryBatch();
     return;
   }
 
@@ -1239,7 +1209,7 @@ function hitGroupSelectionHandle(
   objects: BoardObject[],
   event: ToolPointerEvent,
 ): GroupSelectionSession | undefined {
-  if (objects.length <= 1 || objects.some((object) => object.locked)) {
+  if (objects.length <= 1) {
     return undefined;
   }
 
@@ -1248,11 +1218,6 @@ function hitGroupSelectionHandle(
       object.id,
       getObjectSelectionAdapterForObject(state, object),
     ]),
-  );
-  const canRotate = objects.every(
-    (object) =>
-      selectionAdaptersByObjectId[object.id]?.getTransformCapabilities?.(object)
-        ?.rotate !== false,
   );
   const canvasBounds = getGroupSelectionCanvasBounds(
     state.board,
@@ -1356,10 +1321,6 @@ function hitGroupSelectionHandle(
       pointerOffset: nearest.pointerOffset,
       initialObjects: objects,
     };
-  }
-
-  if (!canRotate) {
-    return undefined;
   }
 
   const rotateHandle = getGroupRotateHandlePoint(canvasBounds);
@@ -1467,7 +1428,7 @@ function updateSelectionInteraction(event: ToolPointerEvent, api: ToolApi) {
       return;
     case "object-selection":
       api.updateObjects([interaction.objectId], (object) => {
-        if (!object || object.locked) {
+        if (!object) {
           return object;
         }
 
@@ -1510,19 +1471,8 @@ function updateGroupSelectionInteraction(
 
     api.updateObjects(interaction.selectedObjectIds, (object) => {
       const initialObject = object ? initialObjectsById[object.id] : undefined;
-      const transformCapabilities = object
-        ? getObjectSelectionAdapterForObject(
-            api.getState(),
-            object,
-          )?.getTransformCapabilities?.(object)
-        : undefined;
 
-      if (
-        !object ||
-        object.locked ||
-        !initialObject ||
-        transformCapabilities?.rotate === false
-      ) {
+      if (!object || !initialObject) {
         return object;
       }
 
@@ -1586,7 +1536,7 @@ function updateGroupSelectionInteraction(
   api.updateObjects(interaction.selectedObjectIds, (object) => {
     const initialObject = object ? initialObjectsById[object.id] : undefined;
 
-    if (!object || object.locked || !initialObject) {
+    if (!object || !initialObject) {
       return object;
     }
 

@@ -7,7 +7,7 @@ import {
   getFootballPitchAspectRatio,
   type FootballPitchVariant,
   BoardViewerCanvas,
-  getFootballObjectRenderers,
+  resolvedFootballTheme,
 } from "../react";
 import { createPlayerObject } from "../core/objects/player-object";
 import { createTextObject } from "../core/objects/text-object";
@@ -190,7 +190,7 @@ function TacticalBoardCardItem({ description, id, pitch, title }: BoardCard) {
             board={board}
             frameClassName="h-full flex-none"
             mode="fit-content"
-            objectRenderers={getFootballObjectRenderers()}
+            objectDefinitions={resolvedFootballTheme.objectDefinitions}
           />
         </div>
         <div className="border-tb-border-default flex flex-col gap-1 border-t px-4 py-3">

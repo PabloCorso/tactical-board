@@ -11,18 +11,10 @@ import type {
 } from "../board/types";
 import type { ToolDefinition, ToolRegistry } from "../tools/types";
 import type {
-  CanvasObjectHitTester,
-  CanvasObjectRenderer,
-  CanvasObjectRendererRegistry,
   CanvasOverlayRenderer,
   CanvasOverlayRendererRegistry,
 } from "../rendering/canvas/types";
-import type {
-  ObjectDefinition,
-  ObjectRegistry,
-  ShapeDefinition,
-  ShapeRegistry,
-} from "../objects/types";
+import type { ObjectDefinition, ObjectRegistry } from "../objects/types";
 import type { FitPadding, ViewportZoomScaleLimits } from "./viewport-utils";
 
 export interface BoardViewport {
@@ -51,8 +43,6 @@ export interface BoardEditorUiState {
 
 export interface BoardEditorRenderingState {
   previewObjects: BoardObject[];
-  objectRenderers: CanvasObjectRendererRegistry;
-  objectHitTesters: Record<string, CanvasObjectHitTester>;
   overlayRenderers: CanvasOverlayRendererRegistry;
 }
 
@@ -101,19 +91,10 @@ export interface BoardEditorActions {
   setToolState: (toolId: ToolId, value: unknown) => void;
   clearToolState: (toolId: ToolId) => void;
   registerTool: (tool: ToolDefinition) => void;
-  registerObjectRenderer: (
-    objectType: string,
-    renderer: CanvasObjectRenderer,
-  ) => void;
-  registerObjectHitTester: (
-    objectType: string,
-    hitTester: CanvasObjectHitTester,
-  ) => void;
   registerOverlayRenderer: (
     overlayKind: string,
     renderer: CanvasOverlayRenderer,
   ) => void;
-  registerObjectDefinition: (definition: ObjectDefinition) => void;
 }
 
 export interface BoardEditorState {
@@ -160,7 +141,6 @@ export type EditorActions = Omit<
   | "setPreviewObjects"
   | "moveObjects"
   | "setSelectedObjectIds"
-  | "registerObjectDefinition"
 > & {
   addObjects: (objects: Shape[]) => void;
   bringObjectsToFront: (shapeIds: ShapeId[]) => void;
@@ -174,7 +154,6 @@ export type EditorActions = Omit<
   setPreviewObjects: (objects: Shape[]) => void;
   moveObjects: (shapeIds: ShapeId[], delta: Point) => void;
   setSelectedObjectIds: (shapeIds: ShapeId[]) => void;
-  registerObjectDefinition: (definition: ShapeDefinition) => void;
 };
 export type EditorState = Omit<
   BoardEditorState,
@@ -183,7 +162,7 @@ export type EditorState = Omit<
   board: Document;
   rendering: EditorRenderingState;
   selection: EditorSelectionState;
-  objectRegistry: ShapeRegistry;
+  objectRegistry: ObjectRegistry;
   actions: EditorActions;
 };
 

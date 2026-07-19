@@ -90,7 +90,6 @@ export interface Shape {
   position: Point;
   size?: ShapeSize;
   rotation?: number;
-  locked?: boolean;
   props: Record<string, unknown>;
 }
 

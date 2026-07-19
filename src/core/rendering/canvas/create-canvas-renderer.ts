@@ -181,7 +181,7 @@ export function createCanvasRenderer(): CanvasRenderer {
       requestRender = () => {},
       previewObjects = [],
       overlayItems = [],
-      objectRenderers = {},
+      objectRegistry,
       overlayRenderers = {},
       assetResolver,
     }) => {
@@ -235,7 +235,8 @@ export function createCanvasRenderer(): CanvasRenderer {
           continue;
         }
 
-        const renderer = objectRenderers[object.type];
+        const renderer =
+          objectRegistry?.definitions[object.type]?.canvas?.render;
         renderer?.({
           context,
           board,
@@ -248,7 +249,8 @@ export function createCanvasRenderer(): CanvasRenderer {
       }
 
       for (const previewObject of previewObjects) {
-        const renderer = objectRenderers[previewObject.type];
+        const renderer =
+          objectRegistry?.definitions[previewObject.type]?.canvas?.render;
         renderer?.({
           context,
           board,

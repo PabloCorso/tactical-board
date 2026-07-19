@@ -1,82 +1,74 @@
-import type { Point, Shape, ShapeType, SkinId } from "../board/types";
+import type { BoardObject, ObjectType, Point } from "../board/types";
 import type { BoardEditorState } from "../editor/types";
-import type { Rect } from "../geometry/types";
+import type {
+  CanvasObjectHitTester,
+  CanvasObjectRenderer,
+} from "../rendering/canvas/types";
 import type {
   ErasedObjectSelectionAdapter,
   ObjectSelectionAdapter,
   ObjectSelectionSession,
 } from "./object-selection";
 
-export interface ObjectRenderContext {
-  skinId?: SkinId;
+export interface ObjectBehaviorAdapter<
+  TObject extends BoardObject = BoardObject,
+> {
+  move?: (object: TObject, delta: Point) => TObject;
+  rotate?: (object: TObject, center: Point, rotationDelta: number) => TObject;
 }
 
-export interface ShapeBehaviorAdapter<TShape extends Shape = Shape> {
-  move?: (object: TShape, delta: Point) => TShape;
-  rotate?: (object: TShape, center: Point, rotationDelta: number) => TShape;
+export interface CanvasObjectAdapter {
+  render: CanvasObjectRenderer;
+  hitTest?: CanvasObjectHitTester;
 }
 
-export interface ShapeDefinition {
-  type: ShapeType;
+export interface ObjectDefinition {
+  type: ObjectType;
   defaultOrderRank?: number;
-  createDefault?: (input: Pick<Shape, "id" | "position">) => Shape;
-  getBounds?: (object: Shape) => Rect;
-  render?: (object: Shape, context: ObjectRenderContext) => void;
   beginEditing?: (input: {
-    object: Shape;
+    object: BoardObject;
     state: BoardEditorState;
     canvasRect: { width: number; height: number };
   }) => void;
-  hitTestMode?: "normal" | "passthrough" | "bounds-only";
-  behaviors?: ShapeBehaviorAdapter;
+  behaviors?: ObjectBehaviorAdapter;
   selection?: ErasedObjectSelectionAdapter;
+  canvas: CanvasObjectAdapter;
 }
 
-export interface ShapeRegistry {
-  definitions: Record<ShapeType, ShapeDefinition>;
+export interface ObjectRegistry {
+  definitions: Record<ObjectType, ObjectDefinition>;
 }
 
-type ShapeDefinitionInput<
-  TShape extends Shape,
+export function createObjectRegistry(
+  definitions: ObjectDefinition[] = [],
+): ObjectRegistry {
+  return {
+    definitions: Object.fromEntries(
+      definitions.map((definition) => [definition.type, definition]),
+    ),
+  };
+}
+
+export type ObjectDefinitionInput<
+  TObject extends BoardObject,
   TSession extends ObjectSelectionSession = ObjectSelectionSession,
 > = Omit<
-  ShapeDefinition,
-  "type" | "createDefault" | "getBounds" | "render" | "behaviors" | "selection"
+  ObjectDefinition,
+  "type" | "beginEditing" | "behaviors" | "selection"
 > & {
-  type: TShape["type"];
-  createDefault?: (input: Pick<TShape, "id" | "position">) => TShape;
-  getBounds?: (object: TShape) => Rect;
-  render?: (object: TShape, context: ObjectRenderContext) => void;
+  type: TObject["type"];
   beginEditing?: (input: {
-    object: TShape;
+    object: TObject;
     state: BoardEditorState;
     canvasRect: { width: number; height: number };
   }) => void;
-  behaviors?: ShapeBehaviorAdapter<TShape>;
-  selection?: ObjectSelectionAdapter<TShape, TSession>;
+  behaviors?: ObjectBehaviorAdapter<TObject>;
+  selection?: ObjectSelectionAdapter<TObject, TSession>;
 };
 
-export function defineShapeDefinition<
-  TShape extends Shape,
-  TSession extends ObjectSelectionSession = ObjectSelectionSession,
->(definition: ShapeDefinitionInput<TShape, TSession>): ShapeDefinition {
-  return definition as unknown as ShapeDefinition;
-}
-
-// Compatibility names kept while callers migrate from Board Object terminology.
-// Prefer ShapeDefinition/ShapeRegistry/defineShapeDefinition for new core work.
-export type ObjectBehaviorAdapter<TObject extends Shape = Shape> =
-  ShapeBehaviorAdapter<TObject>;
-export type ObjectDefinition = ShapeDefinition;
-export type ObjectRegistry = ShapeRegistry;
-export type ObjectDefinitionInput<
-  TObject extends Shape,
-  TSession extends ObjectSelectionSession = ObjectSelectionSession,
-> = ShapeDefinitionInput<TObject, TSession>;
-
 export function defineObjectDefinition<
-  TObject extends Shape,
+  TObject extends BoardObject,
   TSession extends ObjectSelectionSession = ObjectSelectionSession,
 >(definition: ObjectDefinitionInput<TObject, TSession>): ObjectDefinition {
-  return defineShapeDefinition(definition);
+  return definition as unknown as ObjectDefinition;
 }

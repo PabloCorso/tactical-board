@@ -1,9 +1,9 @@
 import type { BoardSpaceProjection } from "../geometry/board-space-projection";
 import type {
+  EquipmentDefinition,
   EquipmentObject,
   EquipmentSelectionBounds,
 } from "../objects/equipment-object";
-import { getEquipmentDefinition } from "../objects/equipment-object";
 import {
   getExpandedCanvasRectPoints,
   rotateOffset,
@@ -37,8 +37,8 @@ export function getEquipmentSelectionOutlineCanvasPoints(
     "getObjectCanvasBounds" | "boardToCanvas" | "scale"
   >,
   equipment: EquipmentObject,
+  definition?: EquipmentDefinition,
 ) {
-  const definition = getEquipmentDefinition(equipment);
   const bounds = definition?.selectionBounds ?? DEFAULT_SELECTION_BOUNDS;
   const width = Math.max(
     equipment.size?.width ?? 0,

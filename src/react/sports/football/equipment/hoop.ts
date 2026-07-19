@@ -10,7 +10,6 @@ export const hoopEquipment: FootballEquipmentSpec = {
     label: "Hoop",
     defaultSize: { width: HOOP_RADIUS * 2, height: HOOP_RADIUS * 2 },
     color: DEFAULT_BOARD_COLOR.red,
-    lockedAspectRatio: true,
     minimumHitRadiusPx: 0,
     hitTestShape: "circle",
     selectionBounds: {

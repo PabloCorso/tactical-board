@@ -3,7 +3,7 @@ import type {
   BoardThemeAdapters,
   ResolvedBoardTheme,
 } from "./board-theme";
-import { createBoardObjectRenderers } from "./create-board-object-renderers";
+import { createBoardObjectDefinitions } from "./create-board-object-definitions";
 
 export function resolveBoardTheme({
   adapters,
@@ -15,6 +15,6 @@ export function resolveBoardTheme({
   return {
     ...theme,
     adapters,
-    objectRenderers: createBoardObjectRenderers({ adapters, theme }),
+    objectDefinitions: createBoardObjectDefinitions({ adapters, theme }),
   };
 }

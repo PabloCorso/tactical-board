@@ -105,7 +105,8 @@ function getTargetObjectId(
       continue;
     }
 
-    const hitTester = state.rendering.objectHitTesters[object.type];
+    const hitTester =
+      state.objectRegistry.definitions[object.type]?.canvas?.hitTest;
 
     if (
       hitTester?.({

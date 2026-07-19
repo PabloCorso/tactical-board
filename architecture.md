@@ -74,7 +74,7 @@ Owns:
 
 - reusable standard tools such as Select, Hand, Shape, Arrow, and Text
 - tool-specific temporary interaction state
-- tool-provided renderers, hit-testers, overlays, and shape definitions
+- Tool-provided transient overlays
 
 Does not own:
 
@@ -126,19 +126,11 @@ This keeps lookup/update operations simple while preserving explicit ordering.
 
 ### Layering and Interaction
 
-Rendering order alone should not define interaction. Objects need separate concepts for:
-
-- visual order
-- hit-test behavior
-- selectability
-
-This allows overlays or zones to render above players while remaining passthrough or less intrusive to selection.
+Rendering order alone does not define interaction. Each Object Definition supplies the Object type's Canvas hit testing independently from its default ordering rank. Transient overlays remain Tool rendering and are not persistent Objects.
 
 ### Editing Defaults
 
-Persistent Objects contain editable values such as position, size, rotation, and color, not editor capability flags. Object properties and transforms are supported by default.
-
-An Object Definition may opt out of an operation only when the Object cannot technically support it. Host App or workflow restrictions belong to runtime Editor Policy. An absent restriction means the operation is allowed.
+Persistent Objects contain editable values such as position, size, rotation, and color, not editor capability flags or per-Object locking state. Movement and rotation are supported by default. Object-specific geometry and Selection interactions are implemented directly instead of being enabled or disabled through capability booleans.
 
 ## Extensibility
 
@@ -146,10 +138,13 @@ An Object Definition may opt out of an operation only when the Object cannot tec
 
 Objects are type-based. Each type has an **Object Definition** with:
 
-- default props
-- geometry/bounds behavior
-- hit-testing behavior
-- render hook
+- default ordering rank
+- custom transform implementation when its geometry needs one
+- Selection behavior
+- optional editing hooks
+- one Canvas adapter containing rendering and hit-testing behavior
+
+Object Definitions are runtime configuration scoped to an editor or renderer instance. Internal consumers dispatch rendering, hit testing, Selection, and transforms through that one registration. Theme catalogs remain serializable data and are resolved into Object Definitions without module-global registries.
 
 Players are board-specific Objects. Skins such as dots, numbered circles, shirts, or stylized players are visual concerns, not separate persistent Object semantics.
 
@@ -163,6 +158,8 @@ The Editor Engine defines tool contracts but does not privilege concrete tools. 
 - may contribute transient overlays
 
 It does not directly mutate Document state.
+
+A Tool also does not register the Object types it creates. Editor configuration composes Tools and Object Definitions together, which lets an existing Document render and remain editable even when its creation Tool is not installed.
 
 Reusable tools such as Select, Hand, Shape, Arrow, and Text live in a standard tools layer and are registered by editor instances. The default tool is configured by id; the Engine must not know that Select is special.
 
@@ -185,6 +182,7 @@ The generic core may later own a lower-level Timeline and Frame model. Board Seq
 ## Serialization
 
 - Persist explicit JSON Document Schema, or a board-specific Board Schema profile, not raw internal store state.
+- Persist Object facts, not Object Definitions, renderer functions, editing capability flags, or runtime catalog snapshots.
 - Host apps own persistence and migration policy.
 - The library can expose parse/serialize helpers and runtime validation at the boundary.
 - Runtime validation is still useful even with TypeScript because persisted JSON is untrusted input.

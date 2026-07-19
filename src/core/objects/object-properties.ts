@@ -5,11 +5,6 @@ import type {
   CaptionPlacement,
 } from "../board/types";
 import { resolveEffectivePlayerStyle } from "../board/player-style";
-import {
-  EQUIPMENT_OBJECT_TYPE,
-  getEquipmentDefinition,
-  type EquipmentObject,
-} from "./equipment-object";
 import { PLAYER_OBJECT_TYPE, type PlayerObject } from "./player-object";
 import {
   ARROW_OBJECT_TYPE,
@@ -37,10 +32,6 @@ export function getObjectColor(
 
   if (typeof object.props.color === "string") {
     return object.props.color;
-  }
-
-  if (object.type === EQUIPMENT_OBJECT_TYPE) {
-    return getEquipmentDefinition(object as EquipmentObject)?.color;
   }
 
   return undefined;

@@ -2,12 +2,9 @@ import type { BoardFrameConfig, ObjectId, Point, ToolId } from "../board/types";
 import type { BoardEditorState } from "../editor/types";
 import type { CanvasRect } from "../editor/board-editor-controller";
 import type {
-  CanvasObjectHitTester,
-  CanvasObjectRenderer,
   CanvasOverlayItem,
   CanvasOverlayRenderer,
 } from "../rendering/canvas/types";
-import type { ObjectDefinition } from "../objects/types";
 import type { SelectionPresentation } from "./selection-presentation";
 
 export interface ToolPointerEvent {
@@ -79,35 +76,17 @@ export interface ToolApi {
   clearSelection: () => void;
   setToolState: (toolId: ToolId, value: unknown) => void;
   clearToolState: (toolId: ToolId) => void;
-  registerObjectRenderer: (
-    objectType: string,
-    renderer: CanvasObjectRenderer,
-  ) => void;
-  registerObjectHitTester: (
-    objectType: string,
-    hitTester: CanvasObjectHitTester,
-  ) => void;
   registerOverlayRenderer: (
     overlayKind: string,
     renderer: CanvasOverlayRenderer,
   ) => void;
-  registerObjectDefinition: (definition: ObjectDefinition) => void;
 }
 
 export interface ToolCapabilityRegistrationApi {
-  registerObjectRenderer: (
-    objectType: string,
-    renderer: CanvasObjectRenderer,
-  ) => void;
-  registerObjectHitTester: (
-    objectType: string,
-    hitTester: CanvasObjectHitTester,
-  ) => void;
   registerOverlayRenderer: (
     overlayKind: string,
     renderer: CanvasOverlayRenderer,
   ) => void;
-  registerObjectDefinition: (definition: ObjectDefinition) => void;
 }
 
 export interface ToolDefinition {

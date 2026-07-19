@@ -3,7 +3,7 @@ import {
   type EquipmentDefinition,
 } from "../../../core/objects/equipment-object";
 import {
-  createEquipmentRenderer,
+  createEquipmentObjectDefinition,
   EquipmentTool,
   type EquipmentCanvasRendererRegistry,
 } from "../../../core/tools/equipment-tool";
@@ -34,7 +34,6 @@ export function getThemeEquipmentDefinitions(
           ? definition.defaultProps.color
           : undefined,
       toolIconColorMode: definition.toolIconColorMode,
-      lockedAspectRatio: definition.lockedAspectRatio,
       selectionBounds: definition.selectionBounds,
       selectionPaddingPx: definition.selectionPaddingPx,
       minimumHitRadiusPx: definition.minimumHitRadiusPx,
@@ -47,7 +46,13 @@ export function createEquipmentObjectAdapter(
 ): BoardThemeObjectAdapter {
   return {
     type: EQUIPMENT_OBJECT_TYPE,
-    createRenderer: () => createEquipmentRenderer(renderersByKind),
+    createObjectDefinition: ({ theme }) => {
+      const definitions = getThemeEquipmentDefinitions(theme);
+
+      return definitions.length > 0
+        ? createEquipmentObjectDefinition({ definitions, renderersByKind })
+        : undefined;
+    },
     createTools: ({ theme }) => {
       const definitions = getThemeEquipmentDefinitions(theme);
 
@@ -55,7 +60,6 @@ export function createEquipmentObjectAdapter(
         ? [
             new EquipmentTool({
               definitions,
-              renderersByKind,
             }),
           ]
         : [];

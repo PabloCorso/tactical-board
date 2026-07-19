@@ -71,12 +71,6 @@ export interface ObjectSelectionCanvasBoundsInput<
   projection: SelectionProjection;
 }
 
-export interface ObjectTransformCapabilities {
-  move?: boolean;
-  resize?: boolean;
-  rotate?: boolean;
-}
-
 export type ObjectSelectionSession = {
   kind: string;
   [key: string]: unknown;
@@ -86,9 +80,6 @@ export interface ObjectSelectionAdapter<
   TObject extends BoardObject = BoardObject,
   TSession extends ObjectSelectionSession = ObjectSelectionSession,
 > {
-  getTransformCapabilities?: (
-    object: TObject,
-  ) => ObjectTransformCapabilities | undefined;
   getCanvasBounds?: (
     input: ObjectSelectionCanvasBoundsInput<TObject>,
   ) => { left: number; right: number; top: number; bottom: number } | undefined;

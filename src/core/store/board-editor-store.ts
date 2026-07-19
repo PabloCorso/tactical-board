@@ -20,7 +20,11 @@ import {
   moveObjectIdsToBoundary,
 } from "../board/object-order";
 import { moveBoardObject } from "../objects/object-behaviors";
-import type { ShapeDefinition, ShapeRegistry } from "../objects/types";
+import {
+  createObjectRegistry,
+  type ObjectDefinition,
+  type ObjectRegistry,
+} from "../objects/types";
 import type {
   ToolApi,
   ToolCapabilityRegistrationApi,
@@ -28,11 +32,7 @@ import type {
   ToolRegistration,
   ToolRegistry,
 } from "../tools/types";
-import type {
-  CanvasObjectHitTesterRegistry,
-  CanvasObjectRendererRegistry,
-  CanvasOverlayRendererRegistry,
-} from "../rendering/canvas/types";
+import type { CanvasOverlayRendererRegistry } from "../rendering/canvas/types";
 
 const MAX_HISTORY_ENTRIES = 100;
 
@@ -42,10 +42,8 @@ type CreateEditorStoreBaseOptions = {
   fitPadding?: BoardEditorState["ui"]["fitPadding"];
   navigationMode?: BoardEditorState["ui"]["navigationMode"];
   zoomScaleLimits?: BoardEditorState["ui"]["zoomScaleLimits"];
-  objectRenderers?: CanvasObjectRendererRegistry;
-  objectHitTesters?: CanvasObjectHitTesterRegistry;
   overlayRenderers?: CanvasOverlayRendererRegistry;
-  objectDefinitions?: ShapeDefinition[];
+  objectDefinitions?: ObjectDefinition[];
 };
 
 export type CreateEditorStoreOptions = CreateEditorStoreBaseOptions & {
@@ -72,18 +70,8 @@ function createToolRegistry(tools: ToolRegistration[] = []): ToolRegistry {
   };
 }
 
-function createObjectRegistry(
-  objectDefinitions: ShapeDefinition[] = [],
-): ShapeRegistry {
-  return {
-    definitions: Object.fromEntries(
-      objectDefinitions.map((definition) => [definition.type, definition]),
-    ),
-  };
-}
-
 function getDefaultObjectOrderRank(
-  objectRegistry: ShapeRegistry,
+  objectRegistry: ObjectRegistry,
   object: Shape,
 ) {
   const rank = objectRegistry.definitions[object.type]?.defaultOrderRank;
@@ -100,7 +88,7 @@ function insertObjectIdAtDefaultOrder({
 }: {
   byId: Record<ShapeId, Shape>;
   object: Shape;
-  objectRegistry: ShapeRegistry;
+  objectRegistry: ObjectRegistry;
   order: ShapeId[];
 }) {
   const targetRank = getDefaultObjectOrderRank(objectRegistry, object);
@@ -240,8 +228,6 @@ export function createEditorStore({
   fitPadding,
   navigationMode = "free",
   zoomScaleLimits,
-  objectRenderers = {},
-  objectHitTesters = {},
   overlayRenderers = {},
   objectDefinitions = [],
 }: CreateEditorStoreOptions): EditorStore {
@@ -312,8 +298,6 @@ export function createEditorStore({
     },
     rendering: {
       previewObjects: [],
-      objectRenderers: { ...objectRenderers },
-      objectHitTesters: { ...objectHitTesters },
       overlayRenderers: { ...overlayRenderers },
     },
     objectRegistry,
@@ -402,10 +386,7 @@ export function createEditorStore({
             clearSelection: actions.clearSelection,
             setToolState: actions.setToolState,
             clearToolState: actions.clearToolState,
-            registerObjectRenderer: actions.registerObjectRenderer,
-            registerObjectHitTester: actions.registerObjectHitTester,
             registerOverlayRenderer: actions.registerOverlayRenderer,
-            registerObjectDefinition: actions.registerObjectDefinition,
           };
           const toolsToDeactivate = Object.values(
             state.toolRegistry.definitions,
@@ -831,7 +812,7 @@ export function createEditorStore({
 
           for (const objectId of objectIds) {
             const object = nextById[objectId];
-            if (!object || object.locked) {
+            if (!object) {
               continue;
             }
 
@@ -885,40 +866,6 @@ export function createEditorStore({
           },
         }));
       },
-      registerObjectRenderer: (objectType, renderer) => {
-        set((state) => {
-          if (state.rendering.objectRenderers[objectType] === renderer) {
-            return state;
-          }
-
-          return {
-            rendering: {
-              ...state.rendering,
-              objectRenderers: {
-                ...state.rendering.objectRenderers,
-                [objectType]: renderer,
-              },
-            },
-          };
-        });
-      },
-      registerObjectHitTester: (objectType, hitTester) => {
-        set((state) => {
-          if (state.rendering.objectHitTesters[objectType] === hitTester) {
-            return state;
-          }
-
-          return {
-            rendering: {
-              ...state.rendering,
-              objectHitTesters: {
-                ...state.rendering.objectHitTesters,
-                [objectType]: hitTester,
-              },
-            },
-          };
-        });
-      },
       registerOverlayRenderer: (overlayKind, renderer) => {
         set((state) => {
           if (state.rendering.overlayRenderers[overlayKind] === renderer) {
@@ -936,32 +883,11 @@ export function createEditorStore({
           };
         });
       },
-      registerObjectDefinition: (definition) => {
-        set((state) => {
-          if (
-            state.objectRegistry.definitions[definition.type] === definition
-          ) {
-            return state;
-          }
-
-          return {
-            objectRegistry: {
-              definitions: {
-                ...state.objectRegistry.definitions,
-                [definition.type]: definition,
-              },
-            },
-          };
-        });
-      },
     },
   }));
 
   const registrationApi: ToolCapabilityRegistrationApi = {
-    registerObjectRenderer: store.getState().actions.registerObjectRenderer,
-    registerObjectHitTester: store.getState().actions.registerObjectHitTester,
     registerOverlayRenderer: store.getState().actions.registerOverlayRenderer,
-    registerObjectDefinition: store.getState().actions.registerObjectDefinition,
   };
 
   for (const tool of registeredTools) {

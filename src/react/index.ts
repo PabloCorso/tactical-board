@@ -34,4 +34,3 @@ export * from "./board";
 export * from "./adapter/editor/use-board-editor-canvas";
 export * from "./adapter/editor/use-board-editor-store";
 export * from "./adapter/viewer/use-board-viewer-canvas";
-export * from "./adapter/viewer/use-canvas-renderer";

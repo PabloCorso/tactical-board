@@ -11,7 +11,7 @@ import { useBoardEditorStore } from "../../../adapter/editor/use-board-editor-st
 import { useBoardEditorContext } from "../../../adapter/editor/board-editor-context";
 import { useBoardEditorTeamPanelOptional } from "../../team/team-panel-context";
 import {
-  createThemeObjectRenderer,
+  createThemeObjectDefinition,
   type BoardTheme,
   type BoardThemeAdapters,
 } from "../../theme/board-theme";
@@ -146,11 +146,11 @@ export function BoardEditorEquipmentToolControl({
   const equipmentDefinitions = getThemeEquipmentDefinitions(theme);
   const equipmentRenderer = useMemo(
     () =>
-      createThemeObjectRenderer({
+      createThemeObjectDefinition({
         adapters,
         theme,
         type: EQUIPMENT_OBJECT_TYPE,
-      }),
+      })?.canvas?.render,
     [adapters, theme],
   );
   const resolvedIcon =

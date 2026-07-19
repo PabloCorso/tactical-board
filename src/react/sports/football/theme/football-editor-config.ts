@@ -1,13 +1,12 @@
-import type { ToolRegistration } from "../../../../core/tools/types";
 import { BOARD_PLAYER_DEFAULTS } from "../../../board/theme/board-tool-defaults";
-import { createBoardTools } from "../../../board/theme/create-board-tools";
+import { createBoardEditorConfig } from "../../../board/theme/create-board-editor-config";
 import { DEFAULT_FOOTBALL_PLAYER_SIZE } from "../board/football-units";
 import { FOOTBALL_ARROW_DEFAULTS } from "./football-arrow-defaults";
 import { FOOTBALL_PITCH_TOOL_ID } from "./football-pitch-options";
 import { footballTheme, footballThemeAdapters } from "./football-theme";
 
-export function createFootballTools(): ToolRegistration[] {
-  return createBoardTools({
+export function createFootballEditorConfig() {
+  return createBoardEditorConfig({
     adapters: footballThemeAdapters,
     theme: footballTheme,
     defaults: {

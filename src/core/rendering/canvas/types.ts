@@ -1,6 +1,7 @@
 import type { Asset, Board, BoardObject } from "../../board/types";
 import type { BoardSpaceProjection } from "../../geometry/board-space-projection";
 import type { FitPadding, Viewport } from "../../geometry/types";
+import type { ObjectRegistry } from "../../objects/types";
 
 export interface CanvasRectOverlayItem {
   kind: "rect";
@@ -34,8 +35,6 @@ export interface CanvasObjectRenderInput {
 
 export type CanvasObjectRenderer = (input: CanvasObjectRenderInput) => void;
 
-export type CanvasObjectRendererRegistry = Record<string, CanvasObjectRenderer>;
-
 export interface CanvasObjectHitTestInput {
   board: Board;
   object: BoardObject;
@@ -47,11 +46,6 @@ export interface CanvasObjectHitTestInput {
 export type CanvasObjectHitTester = (
   input: CanvasObjectHitTestInput,
 ) => boolean;
-
-export type CanvasObjectHitTesterRegistry = Record<
-  string,
-  CanvasObjectHitTester
->;
 
 export interface CanvasOverlayRenderInput {
   context: CanvasRenderingContext2D;
@@ -79,7 +73,7 @@ export interface CanvasRenderRequest {
   requestRender?: () => void;
   previewObjects?: BoardObject[];
   overlayItems?: CanvasOverlayItem[];
-  objectRenderers?: CanvasObjectRendererRegistry;
+  objectRegistry?: ObjectRegistry;
   overlayRenderers?: CanvasOverlayRendererRegistry;
   assetResolver?: AssetResolver;
 }

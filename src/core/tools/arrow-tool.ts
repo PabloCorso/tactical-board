@@ -61,7 +61,7 @@ export type CreateArrowToolOptions = {
   defaults?: readonly ArrowToolDefault[];
 };
 
-const arrowObjectDefinition = defineObjectDefinition({
+export const arrowObjectDefinition = defineObjectDefinition({
   type: ARROW_OBJECT_TYPE,
   defaultOrderRank: DEFAULT_OBJECT_ORDER_RANKS.annotation,
   behaviors: {
@@ -73,6 +73,10 @@ const arrowObjectDefinition = defineObjectDefinition({
       }),
   },
   selection: arrowSelectionAdapter,
+  canvas: {
+    render: renderArrow,
+    hitTest: hitTestArrow,
+  },
 });
 
 export class ArrowTool extends BoardEditorTool implements ToolDefinition {
@@ -120,14 +124,6 @@ export class ArrowTool extends BoardEditorTool implements ToolDefinition {
 
   onDeactivate(api: ToolApi) {
     this.onEscapeKey(api);
-  }
-
-  registerCapabilities(
-    api: Parameters<NonNullable<ToolDefinition["registerCapabilities"]>>[0],
-  ) {
-    api.registerObjectRenderer(ARROW_OBJECT_TYPE, renderArrow);
-    api.registerObjectHitTester(ARROW_OBJECT_TYPE, hitTestArrow);
-    api.registerObjectDefinition(arrowObjectDefinition);
   }
 
   onPointerDown(

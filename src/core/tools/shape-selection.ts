@@ -282,7 +282,7 @@ export const shapeSelectionAdapter: ObjectSelectionAdapter<
     drawClosedCanvasPath(context, outlinePoints);
     context.stroke();
 
-    if (showControls && !object.locked) {
+    if (showControls) {
       for (const handlePoint of outlinePoints) {
         drawRoundedSquareHandle(
           context,
@@ -305,7 +305,7 @@ export const shapeSelectionAdapter: ObjectSelectionAdapter<
     context.restore();
   },
   hitSelectionHandle: ({ object, projection, event }) => {
-    if (object.type !== SHAPE_OBJECT_TYPE || object.locked) {
+    if (object.type !== SHAPE_OBJECT_TYPE) {
       return undefined;
     }
 
