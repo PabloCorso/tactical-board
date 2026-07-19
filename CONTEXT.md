@@ -63,10 +63,10 @@
 ## Relationships
 
 - **Smart Guides** treat a multi-Object **Selection** through its **Selection Bounds** and exclude Objects inside that Selection from the active set of **Guide Targets**.
-- Objects contain editable facts, while instance-scoped **Object Definitions** provide type-specific runtime behavior. **Tools** interact with Objects but do not register their types. See [ADR 0006](./docs/adr/0006-keep-objects-capability-free-and-register-runtime-behavior.md).
+- Persistent **Objects** contain editable facts. Type-specific runtime behavior belongs to instance-scoped **Object Definitions** configured independently from **Tools**.
 - The **Board Library** provides **Export Primitives**; product-specific persistence and **Share Workflows** belong to the **Host App**.
 - **React UI Copy** is localized by the React Adapter. Labels supplied by Tools, Themes, Definitions, Presets, or Host Apps remain owned by their source data.
 - A **Player Group** provides optional **Player Style Defaults**. A Player may inherit them, override individual values, or remain ungrouped. The resulting **Effective Player Style** is resolved rather than copied. See [ADR 0005](./docs/adr/0005-model-player-groups-as-inheritable-player-defaults.md).
 - **Player Group** is the durable Board term; sport-specific **React UI Copy** may present it as a team, side, squad, or group.
-- A **Player Appearance** is selected by stable identity in Board data, while its color roles, options, and rendering behavior belong to a Theme or Host App. See [ADR 0004](./docs/adr/0004-model-player-appearances-as-theme-defined-rendering.md).
+- A **Player Appearance** is selected by stable identity in Board data, which may also store selected color and option values. Their catalog definitions and runtime rendering behavior belong to a Theme or Host App.
 - **Player Appearances** own marker visuals and **Player Marker Label** rendering. A **Player Caption** remains common Player behavior and participates in selection, hit testing, movement, and visible bounds.

@@ -27,11 +27,9 @@ draw loop and viewport. The React Adapter owns React integration, not canonical
 editor state. Board and sport layers provide frames, objects, themes, tools, and
 coach-facing workflows.
 
-The library optimizes for HTML canvas. It keeps Object behavior in instance-scoped
-Object Definitions and persistent Objects capability-free. Tools interpret input
-and invoke editor operations; they do not register Object types or own persistent
-Document state. See ADRs 0001, 0002, and 0006 for the decisions behind those
-constraints.
+Decision rationale: [generic Editor Engine layering](./docs/adr/0001-layer-generic-editor-core-below-board-editors.md)
+and [Canvas rendering](./docs/adr/0002-use-html-canvas-as-the-rendering-target.md).
+Durable domain terminology and invariants live in [CONTEXT.md](./CONTEXT.md).
 
 `src/core/board` contains framework-independent Board types and helpers. Sport-
 and React-specific behavior stays in their respective modules.

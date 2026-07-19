@@ -1,9 +1,9 @@
 # Model player groups as inheritable player defaults
 
-Board state and reusable Board Library code use **Player Group** for a board-level grouping of Players. Sport-specific React UI Copy may call it a team, side, squad, or group.
+A **Player Group** provides optional style defaults to Players that reference it through Group Identity. Players may remain ungrouped and may override individual inherited values.
 
-A Player Group provides optional defaults to Players that reference it through Group Identity. Players may remain ungrouped or override individual inherited values.
+**Effective Player Style** resolves built-in defaults, then Player Group defaults, then Player-owned overrides. Player overrides use the existing optional Player fields: an absent value inherits, while a present value overrides. There is no parallel override container.
 
-Effective Player Style resolves built-in or Theme defaults, then Player Group defaults, then Player-owned overrides. Overrides use the existing optional Player fields; there is no parallel override container.
+This is live inheritance rather than copying Player Group values into each Player. Changing a group default therefore updates inheriting Players without overwriting intentional Player overrides. Theme or workflow defaults may seed Player Group or Player data during creation, but they are not a separate layer in Effective Player Style resolution.
 
-Grouped workflows may provide default groups, but grouping is not required by the Board model.
+Grouping remains optional in the Board model. Sport-specific React UI Copy may present a Player Group as a team, side, squad, or group.
