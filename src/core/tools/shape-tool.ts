@@ -26,7 +26,6 @@ import type {
   CanvasObjectRenderInput,
 } from "../rendering/canvas/types";
 import type { ToolApi, ToolDefinition } from "./types";
-import { BoardEditorTool } from "./tool";
 import { defineObjectDefinition } from "../objects/types";
 import {
   getShapeToolState,
@@ -102,7 +101,7 @@ export const shapeObjectDefinition = defineObjectDefinition({
   },
 });
 
-export class ShapeTool extends BoardEditorTool implements ToolDefinition {
+export class ShapeTool implements ToolDefinition {
   readonly id = SHAPE_TOOL_ID;
   readonly label = "Shape";
 
@@ -111,7 +110,6 @@ export class ShapeTool extends BoardEditorTool implements ToolDefinition {
   private readonly completion: CreationCompletionBehavior;
 
   constructor(options: CreateShapeToolOptions = {}) {
-    super();
     this.completion =
       options.completion ?? DEFAULT_CREATION_COMPLETION_BEHAVIOR;
     this.defaults = options.defaults ?? [];

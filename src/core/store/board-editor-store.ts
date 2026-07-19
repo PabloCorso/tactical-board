@@ -28,7 +28,6 @@ import {
 import type {
   ToolCapabilityRegistrationApi,
   ToolDefinition,
-  ToolRegistration,
   ToolRegistry,
 } from "../tools/types";
 import type { CanvasOverlayRendererRegistry } from "../rendering/canvas/types";
@@ -37,7 +36,7 @@ import { createToolApi } from "../editor/create-tool-api";
 const MAX_HISTORY_ENTRIES = 100;
 
 type CreateEditorStoreBaseOptions = {
-  tools?: ToolRegistration[];
+  tools?: ToolDefinition[];
   initialToolId?: ToolId;
   fitPadding?: BoardEditorState["ui"]["fitPadding"];
   navigationMode?: BoardEditorState["ui"]["navigationMode"];
@@ -58,15 +57,9 @@ export type CreateBoardEditorStoreOptions = CreateEditorStoreBaseOptions & {
 export type BoardEditorStore = StoreApi<BoardEditorState>;
 export type EditorStore = BoardEditorStore;
 
-function instantiateTool(tool: ToolRegistration): ToolDefinition {
-  return typeof tool === "function" ? new tool() : tool;
-}
-
-function createToolRegistry(tools: ToolRegistration[] = []): ToolRegistry {
+function createToolRegistry(tools: ToolDefinition[] = []): ToolRegistry {
   return {
-    definitions: Object.fromEntries(
-      tools.map(instantiateTool).map((tool) => [tool.id, tool]),
-    ),
+    definitions: Object.fromEntries(tools.map((tool) => [tool.id, tool])),
   };
 }
 

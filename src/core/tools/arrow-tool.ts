@@ -30,7 +30,6 @@ import type {
   CanvasObjectRenderInput,
 } from "../rendering/canvas/types";
 import type { ToolApi, ToolDefinition } from "./types";
-import { BoardEditorTool } from "./tool";
 import { defineObjectDefinition } from "../objects/types";
 import {
   ARROW_TOOL_ID,
@@ -79,7 +78,7 @@ export const arrowObjectDefinition = defineObjectDefinition({
   },
 });
 
-export class ArrowTool extends BoardEditorTool implements ToolDefinition {
+export class ArrowTool implements ToolDefinition {
   readonly id = ARROW_TOOL_ID;
   readonly label = "Arrow";
 
@@ -87,7 +86,6 @@ export class ArrowTool extends BoardEditorTool implements ToolDefinition {
   private readonly completion: CreationCompletionBehavior;
 
   constructor(options: CreateArrowToolOptions = {}) {
-    super();
     this.completion =
       options.completion ?? DEFAULT_CREATION_COMPLETION_BEHAVIOR;
     this.defaults = options.defaults ?? [];

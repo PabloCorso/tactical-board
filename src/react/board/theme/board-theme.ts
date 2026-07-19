@@ -9,7 +9,7 @@ import {
   DEFAULT_PLAYER_APPEARANCE_ID,
   type PlayerAppearanceRendererRegistry,
 } from "../../../core/tools/player-appearance";
-import type { ToolRegistration } from "../../../core/tools/types";
+import type { ToolDefinition } from "../../../core/tools/types";
 import type { ObjectDefinition } from "../../../core/objects/types";
 
 export type {
@@ -111,17 +111,12 @@ export type BoardThemeObjectAdapter = {
   createObjectDefinition?: (
     input: BoardThemeObjectAdapterInput,
   ) => ObjectDefinition | undefined;
-  createTools?: (input: BoardThemeObjectAdapterInput) => ToolRegistration[];
+  createTools?: (input: BoardThemeObjectAdapterInput) => ToolDefinition[];
 };
 
 export type BoardThemeAdapters = {
   objectAdapters?: BoardThemeObjectAdapter[];
   playerAppearanceRenderers?: PlayerAppearanceRendererRegistry;
-};
-
-export type ResolvedBoardTheme = BoardTheme & {
-  adapters?: BoardThemeAdapters;
-  objectDefinitions: ObjectDefinition[];
 };
 
 export function getThemeObjectDefinitions(

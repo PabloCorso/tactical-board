@@ -6,6 +6,8 @@ import {
   createEquipmentObject,
   EQUIPMENT_OBJECT_TYPE,
 } from "../../../core/objects/equipment-object";
+import type { ObjectDefinition } from "../../../core/objects/types";
+import { PLAYER_OBJECT_TYPE } from "../../../core/objects/player-object";
 import { ARROW_TOOL_ID } from "../../../core/tools/arrow-tool-state";
 import { SELECT_TOOL_ID } from "../../../core/tools/select-tool-state";
 import { SHAPE_TOOL_ID } from "../../../core/tools/shape-tool-state";
@@ -14,6 +16,36 @@ import { createEquipmentObjectAdapter } from "./equipment-object-adapter";
 import type { BoardTheme } from "./board-theme";
 
 describe("createBoardEditorConfig", () => {
+  it("lets Host Apps add or replace Object Definitions and Tools directly", () => {
+    const customPlayerDefinition = {
+      type: PLAYER_OBJECT_TYPE,
+      canvas: { render: () => undefined },
+    } satisfies ObjectDefinition;
+    const customObjectDefinition = {
+      type: "host-object",
+      canvas: { render: () => undefined },
+    } satisfies ObjectDefinition;
+    const customSelectTool = {
+      id: SELECT_TOOL_ID,
+      label: "Host Select",
+    };
+
+    const config = createBoardEditorConfig({
+      objectDefinitions: [customPlayerDefinition, customObjectDefinition],
+      tools: [customSelectTool],
+    });
+
+    expect(
+      config.objectDefinitions.filter(
+        ({ type }) => type === PLAYER_OBJECT_TYPE,
+      ),
+    ).toEqual([customPlayerDefinition]);
+    expect(config.objectDefinitions).toContain(customObjectDefinition);
+    expect(config.tools.filter(({ id }) => id === SELECT_TOOL_ID)).toEqual([
+      customSelectTool,
+    ]);
+  });
+
   it("selects a created shape but keeps the arrow tool ready for repeated drawing", () => {
     const store = createBoardEditorStore({
       initialBoard: {

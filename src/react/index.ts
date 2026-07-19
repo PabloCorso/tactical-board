@@ -15,7 +15,6 @@ export {
 } from "../core/serialization/board-schema";
 export * from "./board/editor/arrow-icon";
 export * from "./board/editor/canvas-toolbar";
-export * from "./adapter/editor/board-editor-context";
 export * from "./board/editor/selection-toolbar/selection-actions-menu";
 export * from "./board/editor/selection-toolbar/selection-toolbar";
 export * from "./board/editor/selection-toolbar/arrow-selection-toolbar";

@@ -8,9 +8,10 @@ import {
   BoardPrimaryToolbar,
   BoardViewerCanvas,
   createBoardEditorStore,
+  createFootballBoard,
+  createFootballEditorConfig,
   useBoardEditorStore,
-} from ".";
-import { createFootballBoard, createFootballEditorConfig } from "./react";
+} from "./react";
 
 function BoardName() {
   const name = useBoardEditorStore((state) => state.board.metadata.name);

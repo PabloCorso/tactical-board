@@ -8,7 +8,6 @@ import {
   resolvePlayerGroupStyle,
 } from "../board/player-groups";
 import type { ToolApi, ToolDefinition } from "./types";
-import { BoardEditorTool } from "./tool";
 import { defineObjectDefinition } from "../objects/types";
 import {
   createPlayerObject,
@@ -97,7 +96,7 @@ function getCanvasFontSizeForPlayerLabel(
   return Math.max(scaledConfiguredFontSize, scaledMarkerBasedFontSize);
 }
 
-export class PlayerTool extends BoardEditorTool implements ToolDefinition {
+export class PlayerTool implements ToolDefinition {
   readonly id = PLAYER_TOOL_ID;
   readonly label = "Player";
 
@@ -106,7 +105,6 @@ export class PlayerTool extends BoardEditorTool implements ToolDefinition {
   private readonly completion: CreationCompletionBehavior;
 
   constructor(options: CreatePlayerToolOptions = {}) {
-    super();
     this.completion =
       options.completion ?? DEFAULT_CREATION_COMPLETION_BEHAVIOR;
     this.labelStrategy = options.labelStrategy ?? "numeric-by-color";

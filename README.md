@@ -50,7 +50,7 @@ import {
   createBoard,
   createBoardEditorConfig,
   createBoardEditorStore,
-} from "@pablocorso/tactical-board";
+} from "@pablocorso/tactical-board/react";
 
 const board = createBoard({
   id: "training-board",

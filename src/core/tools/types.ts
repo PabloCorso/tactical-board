@@ -110,8 +110,6 @@ export interface ToolDefinition {
   shouldPreventContextMenu?: (api: ToolApi) => boolean;
 }
 
-export type ToolRegistration = ToolDefinition | (new () => ToolDefinition);
-
 export interface ToolRegistry {
   definitions: Record<ToolId, ToolDefinition>;
 }

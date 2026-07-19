@@ -13,7 +13,8 @@ import {
   type ShapeToolDefault,
 } from "../../../core/tools/shape-tool";
 import { TextTool } from "../../../core/tools/text-tool";
-import type { ToolRegistration } from "../../../core/tools/types";
+import type { ToolDefinition } from "../../../core/tools/types";
+import type { ObjectDefinition } from "../../../core/objects/types";
 import type { BoardTheme, BoardThemeAdapters } from "./board-theme";
 import { getThemeObjectDefinitions } from "./board-theme";
 import { createBoardObjectDefinitions } from "./create-board-object-definitions";
@@ -31,25 +32,26 @@ export type BoardToolDefaults = {
     width: number;
     height: number;
   };
-  extraTools?: ToolRegistration[];
 };
 
 export type BoardEditorConfig = {
   adapters?: BoardThemeAdapters;
   objectDefinitions: ReturnType<typeof createBoardObjectDefinitions>;
   theme?: BoardTheme;
-  tools: ToolRegistration[];
+  tools: ToolDefinition[];
 };
 
 function createTools({
   adapters,
   theme,
   defaults = {},
+  tools = [],
 }: {
   theme?: BoardTheme;
   adapters?: BoardThemeAdapters;
   defaults?: BoardToolDefaults;
-} = {}): ToolRegistration[] {
+  tools?: ToolDefinition[];
+} = {}): ToolDefinition[] {
   const objectAdapterTools = (adapters?.objectAdapters ?? []).flatMap(
     (adapter) =>
       adapter.createTools?.({
@@ -58,7 +60,7 @@ function createTools({
       }) ?? [],
   );
 
-  return [
+  const definitions = [
     new SelectTool(),
     new HandTool(),
     new PlayerTool({
@@ -74,8 +76,10 @@ function createTools({
       defaults: defaults.shapes ?? BOARD_SHAPE_DEFAULTS,
       defaultPreviewSize: defaults.shapePreviewSize,
     }),
-    ...(defaults.extraTools ?? []),
+    ...tools,
   ];
+
+  return [...new Map(definitions.map((tool) => [tool.id, tool])).values()];
 }
 
 export function createBoardEditorConfig(
@@ -83,6 +87,8 @@ export function createBoardEditorConfig(
     theme?: BoardTheme;
     adapters?: BoardThemeAdapters;
     defaults?: BoardToolDefaults;
+    objectDefinitions?: ObjectDefinition[];
+    tools?: ToolDefinition[];
   } = {},
 ) {
   return {

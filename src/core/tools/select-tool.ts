@@ -6,7 +6,6 @@ import type {
   ToolDefinition,
   ToolPointerEvent,
 } from "./types";
-import { BoardEditorTool } from "./tool";
 import { createBoardSpaceProjection } from "../geometry/board-space-projection";
 import type {
   CanvasOverlayItem,
@@ -174,7 +173,7 @@ function isGroupSelectionHandle(value: string): value is GroupSelectionHandle {
   );
 }
 
-export class SelectTool extends BoardEditorTool implements ToolDefinition {
+export class SelectTool implements ToolDefinition {
   readonly id = SELECT_TOOL_ID;
   readonly label = "Select";
 

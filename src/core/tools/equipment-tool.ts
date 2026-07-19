@@ -1,7 +1,6 @@
 import type { ToolApi, ToolDefinition, ToolPointerEvent } from "./types";
 import { DEFAULT_OBJECT_ORDER_RANKS } from "../board/object-order";
 import { defineObjectDefinition } from "../objects/types";
-import { BoardEditorTool } from "./tool";
 import type {
   CanvasObjectHitTestInput,
   CanvasObjectRenderInput,
@@ -58,7 +57,7 @@ export type EquipmentCanvasRendererRegistry = Record<
   EquipmentCanvasRenderer
 >;
 
-export class EquipmentTool extends BoardEditorTool implements ToolDefinition {
+export class EquipmentTool implements ToolDefinition {
   readonly id = EQUIPMENT_TOOL_ID;
   readonly label = "Equipment";
 
@@ -67,7 +66,6 @@ export class EquipmentTool extends BoardEditorTool implements ToolDefinition {
   private readonly completion: CreationCompletionBehavior;
 
   constructor(options: CreateEquipmentToolOptions) {
-    super();
     this.completion =
       options.completion ?? DEFAULT_CREATION_COMPLETION_BEHAVIOR;
 

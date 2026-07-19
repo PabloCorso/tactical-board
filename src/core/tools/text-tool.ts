@@ -14,7 +14,6 @@ import type {
   CanvasObjectHitTestInput,
   CanvasObjectRenderInput,
 } from "../rendering/canvas/types";
-import { BoardEditorTool } from "./tool";
 import type { ToolApi, ToolDefinition } from "./types";
 import { clearSelection, setSelectedObjectIds } from "./select-tool-actions";
 import {
@@ -46,7 +45,7 @@ export const textObjectDefinition = defineObjectDefinition({
   },
 });
 
-export class TextTool extends BoardEditorTool implements ToolDefinition {
+export class TextTool implements ToolDefinition {
   readonly id = TEXT_TOOL_ID;
   readonly label = "Text";
 

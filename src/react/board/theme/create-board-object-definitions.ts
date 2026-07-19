@@ -5,6 +5,7 @@ import {
 } from "../../../core/tools/player-tool";
 import { shapeObjectDefinition } from "../../../core/tools/shape-tool";
 import { textObjectDefinition } from "../../../core/tools/text-tool";
+import type { ObjectDefinition } from "../../../core/objects/types";
 import type { BoardTheme, BoardThemeAdapters } from "./board-theme";
 import {
   createThemeObjectDefinition,
@@ -15,6 +16,7 @@ export function createBoardObjectDefinitions(
   options: {
     theme?: BoardTheme;
     adapters?: BoardThemeAdapters;
+    objectDefinitions?: ObjectDefinition[];
   } = {},
 ) {
   const themeObjectDefinitions = (
@@ -30,7 +32,7 @@ export function createBoardObjectDefinitions(
     return definition && definitions.length > 0 ? [definition] : [];
   });
 
-  return [
+  const definitions = [
     createPlayerObjectDefinition(
       createPlayerRenderer(options.adapters?.playerAppearanceRenderers),
     ),
@@ -38,5 +40,12 @@ export function createBoardObjectDefinitions(
     arrowObjectDefinition,
     shapeObjectDefinition,
     ...themeObjectDefinitions,
+    ...(options.objectDefinitions ?? []),
+  ];
+
+  return [
+    ...new Map(
+      definitions.map((definition) => [definition.type, definition]),
+    ).values(),
   ];
 }
