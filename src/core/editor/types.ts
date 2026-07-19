@@ -2,11 +2,8 @@ import type {
   Board,
   BoardFrameConfig,
   BoardObject,
-  Document,
   ObjectId,
   Point,
-  Shape,
-  ShapeId,
   ToolId,
 } from "../board/types";
 import type { ToolDefinition, ToolRegistry } from "../tools/types";
@@ -14,7 +11,7 @@ import type {
   CanvasOverlayRenderer,
   CanvasOverlayRendererRegistry,
 } from "../rendering/canvas/types";
-import type { ObjectDefinition, ObjectRegistry } from "../objects/types";
+import type { ObjectRegistry } from "../objects/types";
 import type { FitPadding, ViewportZoomScaleLimits } from "./viewport-utils";
 
 export interface BoardViewport {
@@ -108,62 +105,3 @@ export interface BoardEditorState {
   toolRegistry: ToolRegistry;
   actions: BoardEditorActions;
 }
-
-// Preferred Editor Engine vocabulary for new core work. The current state shape
-// still exposes `board` as a compatibility property for React and football code.
-export type EditorViewport = BoardViewport;
-export type EditorUiState = BoardEditorUiState;
-export type EditorRenderingState = Omit<
-  BoardEditorRenderingState,
-  "previewObjects"
-> & {
-  previewObjects: Shape[];
-};
-export type EditorHistoryEntry = Omit<BoardEditorHistoryEntry, "board"> & {
-  board: Document;
-};
-export type EditorHistoryState = BoardEditorHistoryState;
-export type EditorToolState = BoardEditorToolState;
-export type EditorSelectionState = Omit<
-  BoardEditorSelectionState,
-  "selectedObjectIds"
-> & {
-  selectedObjectIds: ShapeId[];
-};
-export type EditorActions = Omit<
-  BoardEditorActions,
-  | "addObjects"
-  | "bringObjectsToFront"
-  | "duplicateObjects"
-  | "deleteObjects"
-  | "sendObjectsToBack"
-  | "updateObjects"
-  | "setPreviewObjects"
-  | "moveObjects"
-  | "setSelectedObjectIds"
-> & {
-  addObjects: (objects: Shape[]) => void;
-  bringObjectsToFront: (shapeIds: ShapeId[]) => void;
-  duplicateObjects: (shapeIds: ShapeId[]) => ShapeId[];
-  deleteObjects: (shapeIds: ShapeId[]) => void;
-  sendObjectsToBack: (shapeIds: ShapeId[]) => void;
-  updateObjects: (
-    shapeIds: ShapeId[],
-    updater: (shape: Shape) => Shape,
-  ) => void;
-  setPreviewObjects: (objects: Shape[]) => void;
-  moveObjects: (shapeIds: ShapeId[], delta: Point) => void;
-  setSelectedObjectIds: (shapeIds: ShapeId[]) => void;
-};
-export type EditorState = Omit<
-  BoardEditorState,
-  "board" | "rendering" | "selection" | "objectRegistry" | "actions"
-> & {
-  board: Document;
-  rendering: EditorRenderingState;
-  selection: EditorSelectionState;
-  objectRegistry: ObjectRegistry;
-  actions: EditorActions;
-};
-
-export type { Board, BoardObject, ObjectDefinition, ObjectId, ObjectRegistry };

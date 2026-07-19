@@ -1,5 +1,6 @@
 export * from "./adapter/editor/board-editor";
 export { createBoardEditorStore } from "../core/store/board-editor-store";
+export { createBoard } from "../core/board/create-board";
 export {
   remapObjectToFrameRotation,
   remapObjectToFrameSize,
@@ -7,6 +8,9 @@ export {
 export type * from "../core/board/types";
 export * from "../core/board/player-formation";
 export type * from "../core/editor/types";
+export { defineObjectDefinition } from "../core/objects/types";
+export type { ObjectDefinition } from "../core/objects/types";
+export type { ToolDefinition } from "../core/tools/types";
 export {
   parseBoard,
   parseDocument,

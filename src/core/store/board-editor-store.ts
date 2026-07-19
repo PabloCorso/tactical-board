@@ -1,7 +1,6 @@
 import { createStore, type StoreApi } from "zustand/vanilla";
 import type {
   Board,
-  Document,
   Point,
   Shape,
   ShapeId,
@@ -35,7 +34,8 @@ import { createToolApi } from "../editor/create-tool-api";
 
 const MAX_HISTORY_ENTRIES = 100;
 
-type CreateEditorStoreBaseOptions = {
+export type CreateBoardEditorStoreOptions = {
+  initialBoard: Board;
   tools?: ToolDefinition[];
   initialToolId?: ToolId;
   fitPadding?: BoardEditorState["ui"]["fitPadding"];
@@ -45,17 +45,7 @@ type CreateEditorStoreBaseOptions = {
   objectDefinitions?: ObjectDefinition[];
 };
 
-export type CreateEditorStoreOptions = CreateEditorStoreBaseOptions & {
-  initialDocument: Document;
-};
-
-// Compatibility options kept for current Board-facing callers.
-export type CreateBoardEditorStoreOptions = CreateEditorStoreBaseOptions & {
-  initialBoard: Board;
-};
-
 export type BoardEditorStore = StoreApi<BoardEditorState>;
-export type EditorStore = BoardEditorStore;
 
 function createToolRegistry(tools: ToolDefinition[] = []): ToolRegistry {
   return {
@@ -214,8 +204,8 @@ function selectedObjectIdsEqual(a: ShapeId[], b: ShapeId[]) {
   );
 }
 
-export function createEditorStore({
-  initialDocument,
+export function createBoardEditorStore({
+  initialBoard,
   tools = [],
   initialToolId,
   fitPadding,
@@ -223,7 +213,7 @@ export function createEditorStore({
   zoomScaleLimits,
   overlayRenderers = {},
   objectDefinitions = [],
-}: CreateEditorStoreOptions): EditorStore {
+}: CreateBoardEditorStoreOptions): BoardEditorStore {
   const toolRegistry = createToolRegistry(tools);
   const registeredTools = Object.values(toolRegistry.definitions);
   const objectRegistry = createObjectRegistry(objectDefinitions);
@@ -269,7 +259,7 @@ export function createEditorStore({
   };
 
   const store = createStore<BoardEditorState>((set, get) => ({
-    board: initialDocument,
+    board: initialBoard,
     history: {
       past: [],
       future: [],
@@ -865,14 +855,4 @@ export function createEditorStore({
   }
 
   return store;
-}
-
-export function createBoardEditorStore({
-  initialBoard,
-  ...options
-}: CreateBoardEditorStoreOptions): BoardEditorStore {
-  return createEditorStore({
-    ...options,
-    initialDocument: initialBoard,
-  });
 }

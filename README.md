@@ -151,6 +151,28 @@ provide runtime rendering behavior. The provider shares the resolved config with
 the composed editor primitives; an explicit primitive prop still overrides the
 inherited value when a Host App needs local customization.
 
+### Add or replace Objects and Tools
+
+Object Definitions and Tools use the same configuration seam as the built-in
+editor. A Host App can extend a sport config directly without rebuilding its
+Theme composition:
+
+```tsx
+import { createFootballEditorConfig } from "@pablocorso/tactical-board/react";
+import { hostZoneObjectDefinition } from "./host-zone-object";
+import { hostZoneTool } from "./host-zone-tool";
+
+const config = createFootballEditorConfig({
+  objectDefinitions: [hostZoneObjectDefinition],
+  tools: [hostZoneTool],
+});
+```
+
+A custom Object Definition with the same Object type replaces the built-in
+definition. A custom Tool with the same Tool ID replaces the built-in Tool. The
+resulting config works unchanged with both `createBoardEditorStore` and
+`BoardViewerCanvas`.
+
 Run `npm run storybook` and open `React/Board Editor/Football` for an interactive reference.
 The source examples in `src/stories/examples` are written as copyable host-app
 integration references for humans and AI agents. They intentionally use the

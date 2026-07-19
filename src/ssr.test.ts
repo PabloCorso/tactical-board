@@ -7,6 +7,7 @@ import {
   BoardEditorProvider,
   BoardPrimaryToolbar,
   BoardViewerCanvas,
+  createBoard,
   createBoardEditorStore,
   createFootballBoard,
   createFootballEditorConfig,
@@ -20,7 +21,14 @@ function BoardName() {
 
 describe("SSR safety", () => {
   it("server-renders the public React exports with static imports", () => {
-    const board = createFootballBoard();
+    const board = createBoard({
+      id: "generic-board",
+      version: 1,
+      metadata: { name: "Generic board" },
+      frame: { width: 100, height: 50 },
+      objects: { byId: {}, order: [] },
+      style: {},
+    });
     const store = createBoardEditorStore({
       initialBoard: board,
     });
