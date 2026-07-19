@@ -5,11 +5,7 @@
 - **Document**: The generic persistent editable content managed by the Editor Engine.
 - **Board**: A bounded visual planning canvas built as a specialization of a Document.
 - **Football Board**: A football-specific Board configured with football frames, dimensions, objects, and coach-facing workflows.
-- **Timeline**: A generic future Document concept for frame-based or step-based change over time.
-- **Timeline Frame**: A generic future point or step in a Timeline.
-- **Board Sequence**: A board-specific presentation of a Timeline for animation or step-based playback across Board states.
 - **Coach Workflow**: The end-user experience of creating, editing, and presenting tactical boards for coaching use cases. This guides sport-specific product layers rather than the core Engine.
-- **Football Example**: The first concrete football editor used to pressure-test the Editor Engine and board-specific layers. It is not disposable demo code.
 - **Host App**: An application that embeds the Tactical Board library and configures it for a specific use case, sport, or product experience.
 - **Theme**: A Board configuration package that turns generic board state into a concrete board experience by providing frames, object catalogs, renderers, visual skins, and defaults.
 - **Theme Data**: The serializable portion of a Theme that can be saved, loaded, shared, or customized without embedding runtime functions.
@@ -23,9 +19,6 @@
 - **Player Style Default**: A style value supplied by a Player Group and inherited by Players that belong to that group unless the Player overrides that value.
 - **Player Style Override**: A Player-owned style value that takes precedence over the matching Player Style Default for that Player only.
 - **Effective Player Style**: The resolved visual style used for rendering and editing a Player after combining built-in Player defaults, optional Player Group defaults, and Player-owned overrides.
-- **Player Appearance Color**: A named color role used by a Player Appearance, where built-in and custom appearances decide which roles they understand.
-- **Player Appearance Option**: A serializable configuration value for a Player Appearance that is neither its identity, colors, nor media asset.
-- **Player Appearance Catalog**: A Theme- or Host App-provided collection of available Player Appearances and their configuration metadata.
 - **Preset**: A reusable shortcut that creates or applies a preconfigured Board state, object, or style from one or more Definitions.
 - **Document Schema**: The explicit serialized JSON structure for a Document. The Editor Engine may offer validation helpers, while migration policy and persistence handling remain Host App responsibilities.
 - **Board Schema**: A board-specific profile of the Document Schema for tactical-board content.
@@ -64,42 +57,16 @@
 - **Player Marker Label**: A short label rendered as part of a Player's marker or appearance, typically a number or compact role abbreviation.
 - **Player Caption**: Longer text associated with a Player and positioned around the player marker, typically used for names or readable role notes.
 - **Equipment Object**: A Board Object representing placeable training or game equipment whose name and visual appearance may be extended by a Theme or Host App.
-- **Object Index**: The canonical internal storage structure for Objects inside the Editor Engine: a map keyed by Object id plus a separate ordering list.
 - **Export Primitive**: A low-level Board Library capability that turns Board data into a portable representation, such as serialized JSON or a rendered image, without deciding where the result is stored or shared.
 - **Share Workflow**: A Host App workflow that chooses product-specific sharing behavior such as uploads, short links, deep links, native share sheets, WhatsApp links, permissions, analytics, or server-side rendering.
 
 ## Relationships
 
 - **Smart Guides** treat a multi-Object **Selection** through its **Selection Bounds** and exclude Objects inside that Selection from the active set of **Guide Targets**.
-- Objects contain editable facts rather than editing capability flags. They are movable and rotatable by default, while type-specific geometry is implemented by the **Object Definition** and its Selection behavior instead of `canMove`, `canResize`, or `canRotate` booleans.
-- A **Tool** may create or interact with an Object type, but installing that Tool does not register the Object type. Editors and read-only renderers receive the same instance-scoped **Object Definitions** independently from their Tools.
-- **Theme Data** may describe catalog entries such as equipment kinds, but runtime rendering, hit testing, and Selection behavior are captured by an Object Definition for the current editor or renderer instance rather than stored in Objects or module-global registries.
-- The **Board Library** may provide reusable **Export Primitives**, while **Share Workflows** belong to the **Host App** because storage, privacy, URLs, channels, and analytics are product-specific.
-- A **Host App** may compose custom save, export, or share controls with Board Library toolbar primitives instead of using a prescribed Board Library toolbar.
-- **React UI Copy** is localized through the React Adapter labels provider only when the copy is owned by React UI. Labels carried by **Tool** registrations, **Theme** definitions, frame variant options, equipment definitions, or Host App-provided presets remain owned by that data and should not be overwritten by the provider.
-- Built-in toolbar presets should prefer stable ids or values for behavior and resolve their display text at the React rendering boundary. If a Host App supplies a custom preset label or tooltip, that caller-owned copy takes precedence.
-- **Numeric player labels** are scoped to a Player Group when `groupId` is set, so labels can reuse across groups; players without a group use existing legacy color/global sequencing for backward compatibility.
-- A **Player Group** provides **Player Style Defaults** and default **Player Appearance** choices for its member **Players**, while an individual **Player** may define **Player Style Overrides** when a specific participant needs a different visual representation.
-- **Player Style Overrides** are stored as ordinary optional Player fields: style values such as `color`, `colors`, `fontSize`, `appearanceId`, `options`, `asset`, or caption style live in `Player.props`, while geometry uses existing Board Object fields such as top-level `Player.size`. If a matching field is absent, the Player inherits the corresponding Player Group default when it has a Group Identity; there is no parallel override container or specially named override field.
-- A **Player** does not require a **Group Identity**. Ungrouped Players use built-in or Theme-provided Player defaults plus their own Player Style Overrides.
-- **Player Group** is the durable Board state and Board Library term. **React UI Copy** may present the same concept as "team" in football or other team-sport workflows, or hide grouping entirely in workflows such as one-versus-one sports.
-- **Effective Player Style** should be resolved from defaults and overrides. Copying a Player Group's current style into each Player may be used as an implementation step, but it should not be treated as the long-term meaning of inheritance because it cannot distinguish inherited values from Player Style Overrides.
-- A **Player Appearance** is selected by a stable identity in board data, while the rendering behavior for that appearance belongs to a **Theme** or **Host App**.
-- A single player color remains the fallback for simple appearances, while richer **Player Appearances** may use any number of named **Player Appearance Colors**.
-- The Board model does not prescribe **Player Appearance Color** names; each **Player Appearance** may define the color roles its renderer understands.
-- A **Player Appearance Catalog** may define color-role metadata for editor controls, while **Players** and **Player Groups** store only the selected color values.
-- The Board model does not prescribe **Player Appearance Option** names; each **Player Appearance** may define the options its renderer understands.
-- A **Player Appearance** may use an **Asset**, but media remains a separate Board value so the same asset concept can serve objects, themes, and host-provided rendering.
-- A Player without an explicit **Player Appearance** uses the built-in circle appearance for backward-compatible rendering.
-- Built-in kit or marker patterns are modeled as distinct **Player Appearances** rather than as a required variant system in Board data.
-- A **Player Marker Label** belongs to the Player's visible marker, while a **Player Caption** is first-class player text placed outside the marker for readability.
-- A **Player Caption** uses a simple placement around the marker, such as top, right, bottom, or left, with optional distance from the marker.
-- **Player Appearances** own marker visuals and **Player Marker Label** rendering, while **Player Captions** use common player rendering behavior across appearances.
-- A **Player Group** may provide default **Player Caption** styling and placement, while each **Player** owns its caption text and may override those defaults.
-- A **Player Caption** is part of its **Player** for selection, hit testing, movement, and visible bounds.
-- In this v1 grouped Coach Workflow, deleting a Player Group is a destructive action on its members: players assigned to that group are removed from the board alongside the group definition.
-- In the current grouped Coach Workflow, the editor retains at least one visible Player Group; deleting the final remaining visible group is disallowed.
-- If a deletion request for the last remaining visible Player Group is made despite UI safeguards, it is treated as a no-op.
-- New grouped football-style boards should start with two Player Group Presets by default, each seeded from the first available colors in the shared color-order list used by the Color Picker.
-- Adding a Player Group Preset in v1 uses the next unused color from that same color-order list.
-- When all preset colors are already in use, new Player Group Presets fall back to the next color in the shared color-order sequence (wrapping as needed).
+- Objects contain editable facts, while instance-scoped **Object Definitions** provide type-specific runtime behavior. **Tools** interact with Objects but do not register their types. See [ADR 0006](./docs/adr/0006-keep-objects-capability-free-and-register-runtime-behavior.md).
+- The **Board Library** provides **Export Primitives**; product-specific persistence and **Share Workflows** belong to the **Host App**.
+- **React UI Copy** is localized by the React Adapter. Labels supplied by Tools, Themes, Definitions, Presets, or Host Apps remain owned by their source data.
+- A **Player Group** provides optional **Player Style Defaults**. A Player may inherit them, override individual values, or remain ungrouped. The resulting **Effective Player Style** is resolved rather than copied. See [ADR 0005](./docs/adr/0005-model-player-groups-as-inheritable-player-defaults.md).
+- **Player Group** is the durable Board term; sport-specific **React UI Copy** may present it as a team, side, squad, or group.
+- A **Player Appearance** is selected by stable identity in Board data, while its color roles, options, and rendering behavior belong to a Theme or Host App. See [ADR 0004](./docs/adr/0004-model-player-appearances-as-theme-defined-rendering.md).
+- **Player Appearances** own marker visuals and **Player Marker Label** rendering. A **Player Caption** remains common Player behavior and participates in selection, hit testing, movement, and visible bounds.

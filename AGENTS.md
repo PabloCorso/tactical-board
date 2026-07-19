@@ -24,15 +24,10 @@ cover the changed behavior.
 
 Tests exist to move faster, not as ceremony.
 
-Add or extend tests only for critical flows, bug fixes, risky business logic, or
-when explicitly asked. Do not test styling, dimensions, layout, or other volatile
-early-stage UI decisions. Skip tests for trivial helpers and obvious glue.
-
-Default to no new tests unless the protected risk is clear and worth the
-maintenance cost. Before adding a test, name the risk it protects. Weak risk
-means no test.
-
-Prefer one useful flow or integration test over many narrow unit tests.
+Before adding a test, name the risk it protects. Add tests for critical flows,
+bug fixes, or risky business logic; skip them for styling, volatile UI details,
+trivial helpers, and obvious glue. Prefer one useful flow or integration test
+over many narrow unit tests.
 
 Keep changes small and vertical. Avoid unrelated cleanup and premature
 abstractions.

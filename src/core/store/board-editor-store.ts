@@ -1,11 +1,5 @@
 import { createStore, type StoreApi } from "zustand/vanilla";
-import type {
-  Board,
-  Point,
-  Shape,
-  ShapeId,
-  ToolId,
-} from "../board/types";
+import type { Board, Point, Shape, ShapeId, ToolId } from "../board/types";
 import type { BoardEditorState } from "../editor/types";
 import { resolveBoardEditorFitPadding } from "../editor/fit-padding";
 import {
