@@ -43,6 +43,7 @@
 - **Board Frame**: The bounded board area that defines coordinate size, base visuals, and optional domain markings such as field or court lines.
 - **Board Library**: The reusable board editor library developed in this repository. It must be embeddable across multiple Host Apps while supporting sport-specific workflows such as tactics, game plans, and practice drills.
 - **Canvas Renderer**: The rendering layer that paints Document or Board state to HTML canvas for editing and read-only display. It consumes Editor Engine data rather than defining editing rules itself.
+- **Canvas Host**: The browser runtime that mounts a Canvas Renderer, observes its canvas size, coalesces render invalidations, and cleans up its rendering lifecycle.
 - **Tool**: An interaction module that interprets user input and invokes Editor Engine operations. Tools may own temporary interaction state, but persistent Document mutations belong to the Editor Engine rather than the Tool itself.
 - **Shape Tool**: The Standard Tool used to create and edit Shapes.
 - **Standard Tool**: A reusable generic Tool, such as Select, Hand, Shape, Arrow, or Text, that is provided outside the Editor Engine and registered by an editor instance.

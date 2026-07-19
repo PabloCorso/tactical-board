@@ -1,5 +1,5 @@
-import { createCanvasRenderer } from "../rendering/canvas/create-canvas-renderer";
-import type { AssetResolver, CanvasRenderer } from "../rendering/canvas/types";
+import { createCanvasHost } from "../rendering/canvas/canvas-host";
+import type { AssetResolver } from "../rendering/canvas/types";
 import { createToolApi } from "./create-tool-api";
 import {
   createBoardEditorController,
@@ -37,12 +37,9 @@ export function createBoardEditorRuntime({
 }: CreateBoardEditorRuntimeOptions): BoardEditorRuntime {
   const controller = createBoardEditorController(store);
   const toolApi = createToolApi(store);
-  const renderer: CanvasRenderer = createCanvasRenderer();
   const registeredToolRendererIds = new Set<string>();
   let canvas: HTMLCanvasElement | null = null;
-  let frameId: number | null = null;
   let unsubscribe: (() => void) | null = null;
-  let resizeObserver: ResizeObserver | null = null;
   let keydownDocument: Document | null = null;
   let hasAppliedInitialViewportFit = false;
   let lastPointerInput: BoardEditorPointerInput | null = null;
@@ -95,40 +92,26 @@ export function createBoardEditorRuntime({
     return state.toolRegistry.definitions[state.ui.activeToolId];
   };
 
-  const render = () => {
-    if (!canvas) {
-      return;
-    }
-
+  const getRenderRequest = () => {
     const state = store.getState();
     const overlayItems = Object.values(state.toolRegistry.definitions).flatMap(
       (tool) => tool.getOverlayItems?.(state) ?? [],
     );
 
-    renderer.render({
-      canvas,
+    return {
       board: state.board,
       viewport: state.ui.viewport,
       extendBackground,
       fitPadding: resolveBoardEditorFitPadding(state),
-      requestRender,
       previewObjects: state.rendering.previewObjects,
       overlayItems,
       objectRegistry: state.objectRegistry,
       overlayRenderers: state.rendering.overlayRenderers,
       assetResolver,
-    });
+    };
   };
 
-  const syncCanvasRect = () => {
-    if (!canvas) {
-      return;
-    }
-
-    const canvasRect = {
-      width: Math.max(1, Math.floor(canvas.clientWidth)),
-      height: Math.max(1, Math.floor(canvas.clientHeight)),
-    };
+  const syncCanvasRect = (canvasRect: { width: number; height: number }) => {
     const state = store.getState();
 
     state.actions.setCanvasRect(canvasRect);
@@ -152,16 +135,8 @@ export function createBoardEditorRuntime({
     hasAppliedInitialViewportFit = true;
   };
 
-  const requestRender = () => {
-    if (frameId !== null) {
-      return;
-    }
-
-    frameId = requestAnimationFrame(() => {
-      frameId = null;
-      render();
-    });
-  };
+  const canvasHost = createCanvasHost({ onResize: syncCanvasRect });
+  const requestRender = () => canvasHost.render(getRenderRequest());
 
   const createPointerInput = (event: PointerEvent) => {
     if (!canvas) {
@@ -857,7 +832,7 @@ export function createBoardEditorRuntime({
         keydownDocument = null;
       }
 
-      resizeObserver?.disconnect();
+      canvasHost.unmount();
       unsubscribe?.();
 
       canvas = nextCanvas;
@@ -879,27 +854,12 @@ export function createBoardEditorRuntime({
         requestRender();
       });
 
-      resizeObserver =
-        typeof ResizeObserver === "undefined"
-          ? null
-          : new ResizeObserver(() => {
-              syncCanvasRect();
-              requestRender();
-            });
-      resizeObserver?.observe(canvas);
-
-      syncCanvasRect();
       syncToolRenderers();
+      canvasHost.mount(canvas);
       requestRender();
     },
     unmount: () => {
-      if (frameId !== null) {
-        cancelAnimationFrame(frameId);
-        frameId = null;
-      }
-
-      resizeObserver?.disconnect();
-      resizeObserver = null;
+      canvasHost.unmount();
       unsubscribe?.();
       unsubscribe = null;
       touchPointers.clear();

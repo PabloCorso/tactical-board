@@ -14,12 +14,11 @@ import {
   type BoardViewerCanvasRect,
   type BoardViewerViewportMode,
 } from "../../../core/viewer/board-viewer-viewport";
-import { createCanvasRenderer } from "../../../core/rendering/canvas/create-canvas-renderer";
+import { createCanvasHost } from "../../../core/rendering/canvas/canvas-host";
 import type {
   AssetResolver,
   CanvasOverlayItem,
   CanvasOverlayRendererRegistry,
-  CanvasRenderer,
 } from "../../../core/rendering/canvas/types";
 import {
   createObjectRegistry,
@@ -63,9 +62,6 @@ export function useBoardViewerCanvas({
   assetResolver,
 }: UseBoardViewerCanvasOptions) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const rendererRef = useRef<CanvasRenderer | null>(null);
-  const frameIdRef = useRef<number | null>(null);
-  const renderRef = useRef<() => void>(() => {});
   const dragRef = useRef<{
     pointerId: number;
     point: { x: number; y: number };
@@ -100,28 +96,6 @@ export function useBoardViewerCanvas({
     },
     [board, fitPadding, initialViewport],
   );
-
-  useEffect(function observeCanvasResize() {
-    const canvas = canvasRef.current;
-    if (!canvas) {
-      return;
-    }
-
-    setCanvasRect(getCanvasRect(canvas));
-
-    const observer =
-      typeof ResizeObserver === "undefined"
-        ? undefined
-        : new ResizeObserver(() => {
-            setCanvasRect(getCanvasRect(canvas));
-          });
-
-    observer?.observe(canvas);
-
-    return () => {
-      observer?.disconnect();
-    };
-  }, []);
 
   useEffect(
     function initializeInteractiveViewport() {
@@ -172,63 +146,50 @@ export function useBoardViewerCanvas({
     [onViewportChange],
   );
 
-  const requestRender = useCallback(() => {
-    if (frameIdRef.current !== null) {
-      return;
-    }
-
-    frameIdRef.current = requestAnimationFrame(() => {
-      frameIdRef.current = null;
-      renderRef.current();
-    });
-  }, []);
-
-  const render = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) {
-      return;
-    }
-
-    if (!rendererRef.current) {
-      rendererRef.current = createCanvasRenderer();
-    }
-
-    rendererRef.current.render({
-      canvas,
-      board,
-      viewport: effectiveViewport,
-      extendBackground,
-      fitPadding: fitPadding,
-      requestRender,
-      objectRegistry,
-      overlayItems,
-      overlayRenderers,
-      assetResolver,
-    });
-  }, [
-    assetResolver,
-    board,
-    effectiveViewport,
-    extendBackground,
-    fitPadding,
-    objectRegistry,
-    overlayItems,
-    overlayRenderers,
-    requestRender,
-  ]);
+  const canvasHost = useMemo(
+    () => createCanvasHost({ onResize: setCanvasRect }),
+    [],
+  );
 
   useEffect(
-    function syncRenderRef() {
-      renderRef.current = render;
+    function mountCanvasHost() {
+      const canvas = canvasRef.current;
+
+      if (canvas) {
+        canvasHost.mount(canvas);
+      }
+
+      return () => {
+        canvasHost.unmount();
+      };
     },
-    [render],
+    [canvasHost],
   );
 
   useEffect(
     function renderCanvas() {
-      render();
+      canvasHost.render({
+        board,
+        viewport: effectiveViewport,
+        extendBackground,
+        fitPadding,
+        objectRegistry,
+        overlayItems,
+        overlayRenderers,
+        assetResolver,
+      });
     },
-    [render],
+    [
+      assetResolver,
+      board,
+      canvasHost,
+      effectiveViewport,
+      extendBackground,
+      fitPadding,
+      objectRegistry,
+      overlayItems,
+      overlayRenderers,
+    ],
   );
 
   useEffect(
