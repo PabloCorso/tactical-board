@@ -24,29 +24,25 @@ map, [CONTEXT.md](./CONTEXT.md) for shared terminology, and
 
 ## React integration
 
-React consumers create a document, resolve an editor configuration, create one
-shared store, and render the adapter around it. Sport adapters are defaults, not
-separate React editors. A minimal football composition is:
+React consumers create one Board Editor instance and share it through the React
+Provider. The instance owns its Editor Store and resolved Theme runtime, so a
+Host App cannot accidentally configure editing and React UI differently. Sport
+factories supply useful defaults, including an empty Board when initial state is
+omitted:
 
 ```tsx
 import {
   BoardEditor,
   BoardEditorCanvas,
   BoardEditorProvider,
-  createBoardEditorStore,
-  createFootballBoard,
-  createFootballEditorConfig,
+  createFootballBoardEditor,
 } from "@pablocorso/tactical-board/react";
 
-const config = createFootballEditorConfig();
-const store = createBoardEditorStore({
-  initialBoard: createFootballBoard({ id: "match-plan", name: "Match Plan" }),
-  ...config,
-});
+const editor = createFootballBoardEditor();
 
 export function MatchPlanEditor() {
   return (
-    <BoardEditorProvider config={config} store={store}>
+    <BoardEditorProvider editor={editor}>
       <BoardEditor className="relative h-dvh w-full overflow-hidden">
         <BoardEditorCanvas />
       </BoardEditor>
@@ -54,6 +50,11 @@ export function MatchPlanEditor() {
   );
 }
 ```
+
+Pass `initialBoard` when loading existing state. Instance creation options are
+initial-only; persistent Board changes go through the Editor Store. Host Apps
+compose the exported canvas, toolbar, Selection, and panel primitives explicitly
+under the same Provider.
 
 The maintained [football example](./src/stories/examples/football-board-editor.example.tsx)
 shows the complete composition: toolbars, team panels, pitch controls, labels,

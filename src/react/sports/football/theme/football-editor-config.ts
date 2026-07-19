@@ -6,6 +6,12 @@ import { DEFAULT_FOOTBALL_PLAYER_SIZE } from "../board/football-units";
 import { FOOTBALL_ARROW_DEFAULTS } from "./football-arrow-defaults";
 import { FOOTBALL_PITCH_TOOL_ID } from "./football-pitch-options";
 import { footballTheme, footballThemeAdapters } from "./football-theme";
+import type { Board } from "../../../../core/board/types";
+import {
+  createBoardEditorInstance,
+  type CreateBoardEditorInstanceOptions,
+} from "../../../adapter/editor/board-editor-instance";
+import { createFootballBoard } from "../board/football-board";
 
 export function createFootballEditorConfig(
   options: {
@@ -38,5 +44,27 @@ export function createFootballEditorConfig(
       },
       ...(options.tools ?? []),
     ],
+  });
+}
+
+export type CreateFootballBoardEditorOptions = Omit<
+  CreateBoardEditorInstanceOptions,
+  "config" | "initialBoard"
+> & {
+  initialBoard?: Board;
+  objectDefinitions?: ObjectDefinition[];
+  tools?: ToolDefinition[];
+};
+
+export function createFootballBoardEditor({
+  initialBoard = createFootballBoard(),
+  objectDefinitions,
+  tools,
+  ...options
+}: CreateFootballBoardEditorOptions = {}) {
+  return createBoardEditorInstance({
+    ...options,
+    config: createFootballEditorConfig({ objectDefinitions, tools }),
+    initialBoard,
   });
 }

@@ -8,9 +8,8 @@ import {
   BoardPrimaryToolbar,
   BoardViewerCanvas,
   createBoard,
-  createBoardEditorStore,
-  createFootballBoard,
-  createFootballEditorConfig,
+  createBoardEditorInstance,
+  createFootballBoardEditor,
   useBoardEditorStore,
 } from "./react";
 
@@ -29,7 +28,7 @@ describe("SSR safety", () => {
       objects: { byId: {}, order: [] },
       style: {},
     });
-    const store = createBoardEditorStore({
+    const editor = createBoardEditorInstance({
       initialBoard: board,
     });
 
@@ -37,7 +36,7 @@ describe("SSR safety", () => {
       renderToString(
         createElement(
           BoardEditorProvider,
-          { store },
+          { editor },
           createElement(
             BoardEditor,
             null,
@@ -58,15 +57,11 @@ describe("SSR safety", () => {
   });
 
   it("server-renders sport defaults composed through generic React components", () => {
-    const config = createFootballEditorConfig();
-    const store = createBoardEditorStore({
-      initialBoard: createFootballBoard(),
-      ...config,
-    });
+    const editor = createFootballBoardEditor();
     const html = renderToString(
       createElement(
         BoardEditorProvider,
-        { config, store },
+        { editor },
         createElement(BoardPrimaryToolbar),
       ),
     );

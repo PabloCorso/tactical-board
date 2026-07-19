@@ -15,11 +15,10 @@ import {
   BoardEditorToolbarDock,
   BoardEditorToolbarDockProvider,
   BoardPrimaryToolbar,
-  createBoardEditorStore,
+  createFootballBoardEditor,
   createFootballBoard,
   createFootballPitch,
   createNextFootballPitchFrame,
-  createFootballEditorConfig,
   FootballTeamPanelAppearance,
   FootballTeamFormationSection,
   TeamPanelCaptionSection,
@@ -89,24 +88,22 @@ export function FootballBoardEditorExample({
   translatePitchLabel,
   translateRotatePitchAction,
 }: FootballBoardEditorExampleProps = {}) {
-  const config = useMemo(() => createFootballEditorConfig(), []);
   const pitchOptions = useMemo(
     () => createFootballPitchFrameOptions(translatePitchLabel),
     [translatePitchLabel],
   );
-  const store = useMemo(
+  const editor = useMemo(
     () =>
-      createBoardEditorStore({
+      createFootballBoardEditor({
         initialBoard:
           initialBoard ?? createFootballBoard({ id: boardId, name: boardName }),
         navigationMode,
-        ...config,
       }),
-    [boardId, boardName, config, initialBoard, navigationMode],
+    [boardId, boardName, initialBoard, navigationMode],
   );
 
   return (
-    <BoardEditorProvider config={config} labels={labels} store={store}>
+    <BoardEditorProvider editor={editor} labels={labels}>
       <BoardEditor className={className}>
         <BoardEditorTeamPanelProvider>
           <BoardEditorCanvas />

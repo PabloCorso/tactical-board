@@ -23,6 +23,7 @@
 - **Document Schema**: The explicit serialized JSON structure for a Document. The Editor Engine may offer validation helpers, while migration policy and persistence handling remain Host App responsibilities.
 - **Board Schema**: A board-specific profile of the Document Schema for tactical-board content.
 - **Board Editor**: A board-specific editor layer built on top of the generic Editor Engine.
+- **Board Editor Instance**: An instance-scoped Board Editor assembly that owns one Editor Store and its resolved Theme runtime.
 - **Object**: A placed entity in a Document with shared editing behavior such as selection, movement, layering, and serialization.
 - **Shape**: An Object representing a geometric figure such as a rectangle, ellipse, or polygon.
 - **Board Object**: A board-specific Object with planning-board meaning.
@@ -66,6 +67,7 @@
 - Persistent **Objects** contain editable facts. Type-specific runtime behavior belongs to instance-scoped **Object Definitions** configured independently from **Tools**.
 - The **Board Library** provides **Export Primitives**; product-specific persistence and **Share Workflows** belong to the **Host App**.
 - **React UI Copy** is localized by the React Adapter. Labels supplied by Tools, Themes, Definitions, Presets, or Host Apps remain owned by their source data.
+- A **Board Editor Instance** supplies its **Editor Store** and the same resolved **Theme** runtime to the **React Adapter**.
 - A **Player Group** provides optional **Player Style Defaults**. A Player may inherit them, override individual values, or remain ungrouped. The resulting **Effective Player Style** is resolved rather than copied. See [ADR 0005](./docs/adr/0005-model-player-groups-as-inheritable-player-defaults.md).
 - **Player Group** is the durable Board term; sport-specific **React UI Copy** may present it as a team, side, squad, or group.
 - A **Player Appearance** is selected by stable identity in Board data, which may also store selected color and option values. Their catalog definitions and runtime rendering behavior belong to a Theme or Host App.

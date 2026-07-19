@@ -1,4 +1,5 @@
 export * from "./adapter/editor/board-editor";
+export * from "./adapter/editor/board-editor-instance";
 export { createBoardEditorStore } from "../core/store/board-editor-store";
 export { createBoard } from "../core/board/create-board";
 export {

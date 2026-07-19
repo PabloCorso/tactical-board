@@ -1,11 +1,10 @@
 import {
+  type ComponentPropsWithRef,
   type CSSProperties,
   type PropsWithChildren,
-  type ReactNode,
   useMemo,
   useRef,
 } from "react";
-import type { BoardEditorStore } from "../../../core/store/board-editor-store";
 import { createToolApi } from "../../../core/editor/create-tool-api";
 import {
   TEXT_FONT_FAMILY,
@@ -24,7 +23,9 @@ import type { AssetResolver } from "../../../core/rendering/canvas/types";
 import { TEXT_TOOL_ID } from "../../../core/tools/text-tool-state";
 import {
   BoardEditorContext,
+  BoardEditorInstanceContext,
   useBoardEditorContext,
+  useBoardEditorInstance,
 } from "./board-editor-context";
 import {
   BoardEditorLabelsProvider,
@@ -33,24 +34,17 @@ import {
 } from "../../board/editor/board-editor-labels";
 import { cn } from "../../ui/misc";
 import { TooltipProvider } from "../../ui/tooltip";
-import {
-  BoardEditorThemeProvider,
-  type BoardEditorThemeContextValue,
-} from "../../board/theme/board-editor-theme-context";
-import type { BoardEditorConfig } from "../../board/theme/create-board-editor-config";
+import { BoardEditorThemeProvider } from "../../board/theme/board-editor-theme-context";
+import type { BoardEditorInstance } from "./board-editor-instance";
 export { BoardEditorCanvasToolbar } from "../../board/editor/canvas-toolbar";
 export { BoardEditorShapePolygonDone } from "../../board/editor/shape-polygon-done";
 
-export type BoardEditorProps = {
-  children?: ReactNode;
-  className?: string;
-};
+export type BoardEditorProps = ComponentPropsWithRef<"div">;
 
 export type BoardEditorProviderProps = PropsWithChildren & {
-  config?: Pick<BoardEditorConfig, "adapters" | "theme">;
+  editor: BoardEditorInstance;
   labels?: BoardEditorLabelOverrides;
-  store: BoardEditorStore;
-} & BoardEditorThemeContextValue;
+};
 
 export type BoardEditorCanvasProps = {
   assetResolver?: AssetResolver;
@@ -60,53 +54,54 @@ export type BoardEditorCanvasProps = {
 };
 
 export function BoardEditorProvider({
-  adapters,
   children,
-  config,
+  editor,
   labels,
-  store,
-  theme,
 }: BoardEditorProviderProps) {
+  const { config, store } = editor;
+
   return (
-    <BoardEditorContext.Provider value={store}>
-      <BoardEditorThemeProvider
-        adapters={adapters ?? config?.adapters}
-        theme={theme ?? config?.theme}
-      >
-        <TooltipProvider delay={250}>
-          <BoardEditorLabelsProvider labels={labels}>
-            {children}
-          </BoardEditorLabelsProvider>
-        </TooltipProvider>
-      </BoardEditorThemeProvider>
-    </BoardEditorContext.Provider>
+    <BoardEditorInstanceContext.Provider value={editor}>
+      <BoardEditorContext.Provider value={store}>
+        <BoardEditorThemeProvider
+          adapters={config.adapters}
+          theme={config.theme}
+        >
+          <TooltipProvider delay={250}>
+            <BoardEditorLabelsProvider labels={labels}>
+              {children}
+            </BoardEditorLabelsProvider>
+          </TooltipProvider>
+        </BoardEditorThemeProvider>
+      </BoardEditorContext.Provider>
+    </BoardEditorInstanceContext.Provider>
   );
 }
 
-export function BoardEditor({ children, className }: BoardEditorProps) {
+export function BoardEditor({ className, ...props }: BoardEditorProps) {
   return (
     <div
+      {...props}
       data-board-editor-root
       data-tactical-board
       className={cn(
         "flex min-h-full w-full min-w-0 flex-1 flex-col",
         className,
       )}
-    >
-      {children}
-    </div>
+    />
   );
 }
 
 export function BoardEditorCanvas({
-  assetResolver,
+  assetResolver: assetResolverOverride,
   className,
   extendBackground,
   frameClassName,
 }: BoardEditorCanvasProps) {
+  const editor = useBoardEditorInstance();
   const store = useBoardEditorContext();
   const { canvasRef } = useBoardEditorCanvas({
-    assetResolver,
+    assetResolver: assetResolverOverride ?? editor.assetResolver,
     extendBackground,
     store,
   });

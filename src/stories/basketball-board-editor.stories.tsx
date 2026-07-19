@@ -13,9 +13,7 @@ import {
   BoardEditorToolbarDock,
   BoardEditorToolbarDockProvider,
   BoardPrimaryToolbar,
-  createBoardEditorStore,
-  createBasketballBoard,
-  createBasketballEditorConfig,
+  createBasketballBoardEditor,
   useBoardEditorToolbarDock,
 } from "../react";
 
@@ -43,19 +41,17 @@ function BasketballBoardStory({
   initialBoard,
   navigationMode,
 }: BasketballBoardStoryProps = {}) {
-  const config = useMemo(() => createBasketballEditorConfig(), []);
-  const store = useMemo(
+  const editor = useMemo(
     () =>
-      createBoardEditorStore({
-        initialBoard: initialBoard ?? createBasketballBoard(),
+      createBasketballBoardEditor({
+        initialBoard,
         navigationMode,
-        ...config,
       }),
-    [config, initialBoard, navigationMode],
+    [initialBoard, navigationMode],
   );
 
   return (
-    <BoardEditorProvider config={config} store={store}>
+    <BoardEditorProvider editor={editor}>
       <BoardEditor className="relative h-dvh w-full overflow-hidden">
         <BoardEditorCanvas />
         <BoardEditorShapePolygonDone />
