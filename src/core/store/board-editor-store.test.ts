@@ -72,6 +72,79 @@ describe("createBoardEditorStore", () => {
     });
   });
 
+  it("rejects duplicate Object ids instead of overwriting data", () => {
+    const store = createStore();
+    const original = {
+      id: "a",
+      type: "token",
+      position: { x: 10, y: 12 },
+      props: {},
+    };
+
+    store.getState().actions.addObjects([original]);
+
+    expect(() =>
+      store
+        .getState()
+        .actions.addObjects([{ ...original, position: { x: 99, y: 99 } }]),
+    ).toThrow("Cannot add duplicate Object id: a");
+    expect(store.getState().board.objects.byId.a).toBe(original);
+    expect(store.getState().history.past).toHaveLength(1);
+  });
+
+  it("keeps an updated Object id aligned with its index key", () => {
+    const store = createStore();
+
+    store.getState().actions.addObjects([
+      {
+        id: "a",
+        type: "token",
+        position: { x: 10, y: 12 },
+        props: {},
+      },
+    ]);
+    store.getState().actions.updateObjects(["a"], (object) => ({
+      ...object,
+      id: "b",
+      position: { x: 20, y: 22 },
+    }));
+
+    expect(store.getState().board.objects.byId.a).toMatchObject({
+      id: "a",
+      position: { x: 20, y: 22 },
+    });
+    expect(store.getState().board.objects.byId.b).toBeUndefined();
+    expect(store.getState().board.objects.order).toEqual(["a"]);
+  });
+
+  it("reconciles the Object index and Selection after a board update", () => {
+    const store = createStore();
+    const a = {
+      id: "a",
+      type: "token",
+      position: { x: 10, y: 12 },
+      props: {},
+    };
+    const b = { ...a, id: "b" };
+
+    store.getState().actions.addObjects([a, b]);
+    store.getState().actions.setSelectedObjectIds(["a", "b"]);
+    store.getState().actions.updateBoard((board) => ({
+      ...board,
+      objects: {
+        byId: {
+          a,
+          c: { ...b, id: "different-id" },
+        },
+        order: ["a", "b", "a"],
+      },
+    }));
+
+    expect(store.getState().board.objects.order).toEqual(["a", "c"]);
+    expect(store.getState().board.objects.byId.c?.id).toBe("c");
+    expect(store.getState().selection.selectedObjectIds).toEqual(["a"]);
+  });
+
   it("keeps the viewport free by default", () => {
     const store = createStore();
 

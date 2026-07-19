@@ -25,8 +25,11 @@ import type {
 } from "../tools/types";
 import type { CanvasOverlayRendererRegistry } from "../rendering/canvas/types";
 import { createToolApi } from "../editor/create-tool-api";
-
-const MAX_HISTORY_ENTRIES = 100;
+import {
+  createDocumentTransaction,
+  normalizeDocument,
+  reconcileDocumentSelection,
+} from "../editor/document-transaction";
 
 export type CreateBoardEditorStoreOptions = {
   initialBoard: Board;
@@ -126,75 +129,15 @@ function translateObject(
   return moveBoardObject(state, object, delta);
 }
 
-function createHistoryEntry(
-  state: Pick<BoardEditorState, "board" | "selection">,
-) {
-  return {
-    board: state.board,
-    selectedObjectIds: state.selection.selectedObjectIds,
-  };
-}
+function clearToolInteractions(toolState: BoardEditorState["toolState"]) {
+  return Object.fromEntries(
+    Object.entries(toolState).map(([toolId, value]) => {
+      if (!value || typeof value !== "object" || !("interaction" in value)) {
+        return [toolId, value];
+      }
 
-function pushHistoryEntry(
-  history: BoardEditorState["history"]["past"],
-  entry: BoardEditorState["history"]["past"][number],
-) {
-  if (history.length >= MAX_HISTORY_ENTRIES) {
-    return [...history.slice(1), entry];
-  }
-
-  return [...history, entry];
-}
-
-function applyHistoryEntry(
-  state: BoardEditorState,
-  entry: BoardEditorState["history"]["past"][number],
-) {
-  return {
-    board: entry.board,
-    selection: {
-      selectedObjectIds: [...entry.selectedObjectIds],
-    },
-    toolState: Object.fromEntries(
-      Object.entries(state.toolState).map(([toolId, value]) => {
-        if (!value || typeof value !== "object" || !("interaction" in value)) {
-          return [toolId, value];
-        }
-
-        return [
-          toolId,
-          {
-            ...value,
-            interaction: undefined,
-          },
-        ];
-      }),
-    ),
-  };
-}
-
-function normalizeSelectedObjectIds(
-  state: Pick<BoardEditorState, "board">,
-  objectIds: ShapeId[],
-) {
-  const seen = new Set<ShapeId>();
-  const selectedObjectIds: ShapeId[] = [];
-
-  for (const objectId of objectIds) {
-    if (seen.has(objectId) || !state.board.objects.byId[objectId]) {
-      continue;
-    }
-
-    seen.add(objectId);
-    selectedObjectIds.push(objectId);
-  }
-
-  return selectedObjectIds;
-}
-
-function selectedObjectIdsEqual(a: ShapeId[], b: ShapeId[]) {
-  return (
-    a.length === b.length && a.every((objectId, index) => objectId === b[index])
+      return [toolId, { ...value, interaction: undefined }];
+    }),
   );
 }
 
@@ -211,27 +154,11 @@ export function createBoardEditorStore({
   const toolRegistry = createToolRegistry(tools);
   const registeredTools = Object.values(toolRegistry.definitions);
   const objectRegistry = createObjectRegistry(objectDefinitions);
-  let historyBatchDepth = 0;
-  let hasRecordedHistoryForActiveBatch = false;
-  const recordHistoryForBoardChange = (
+  const documentTransaction = createDocumentTransaction();
+  const commitDocumentChange = (
     state: BoardEditorState,
-  ): BoardEditorState["history"] => {
-    if (historyBatchDepth > 0 && hasRecordedHistoryForActiveBatch) {
-      return {
-        ...state.history,
-        future: [],
-      };
-    }
-
-    if (historyBatchDepth > 0) {
-      hasRecordedHistoryForActiveBatch = true;
-    }
-
-    return {
-      past: pushHistoryEntry(state.history.past, createHistoryEntry(state)),
-      future: [],
-    };
-  };
+    update: (board: Board) => Board,
+  ) => documentTransaction.commit(state, update) ?? state;
   const activeToolId =
     initialToolId && toolRegistry.definitions[initialToolId]
       ? initialToolId
@@ -253,7 +180,7 @@ export function createBoardEditorStore({
   };
 
   const store = createStore<BoardEditorState>((set, get) => ({
-    board: initialBoard,
+    board: normalizeDocument(initialBoard),
     history: {
       past: [],
       future: [],
@@ -282,54 +209,27 @@ export function createBoardEditorStore({
     toolRegistry,
     actions: {
       beginHistoryBatch: () => {
-        historyBatchDepth += 1;
+        documentTransaction.beginHistoryBatch();
       },
       endHistoryBatch: () => {
-        historyBatchDepth = Math.max(0, historyBatchDepth - 1);
-
-        if (historyBatchDepth === 0) {
-          hasRecordedHistoryForActiveBatch = false;
-        }
+        documentTransaction.endHistoryBatch();
       },
       undo: () => {
         set((state) => {
-          historyBatchDepth = 0;
-          hasRecordedHistoryForActiveBatch = false;
-          const previousEntry = state.history.past.at(-1);
+          const result = documentTransaction.undo(state);
 
-          if (!previousEntry) {
-            return state;
-          }
-
-          return {
-            ...applyHistoryEntry(state, previousEntry),
-            history: {
-              past: state.history.past.slice(0, -1),
-              future: [createHistoryEntry(state), ...state.history.future],
-            },
-          };
+          return result
+            ? { ...result, toolState: clearToolInteractions(state.toolState) }
+            : state;
         });
       },
       redo: () => {
         set((state) => {
-          historyBatchDepth = 0;
-          hasRecordedHistoryForActiveBatch = false;
-          const nextEntry = state.history.future[0];
+          const result = documentTransaction.redo(state);
 
-          if (!nextEntry) {
-            return state;
-          }
-
-          return {
-            ...applyHistoryEntry(state, nextEntry),
-            history: {
-              past: pushHistoryEntry(
-                state.history.past,
-                createHistoryEntry(state),
-              ),
-              future: state.history.future.slice(1),
-            },
-          };
+          return result
+            ? { ...result, toolState: clearToolInteractions(state.toolState) }
+            : state;
         });
       },
       setActiveTool: (toolId) => {
@@ -433,6 +333,18 @@ export function createBoardEditorStore({
         }
 
         set((state) => {
+          const addedObjectIds = new Set<ShapeId>();
+
+          for (const object of objects) {
+            if (
+              state.board.objects.byId[object.id] ||
+              addedObjectIds.has(object.id)
+            ) {
+              throw new Error(`Cannot add duplicate Object id: ${object.id}`);
+            }
+            addedObjectIds.add(object.id);
+          }
+
           const nextById = { ...state.board.objects.byId };
           const nextOrder = [...state.board.objects.order];
 
@@ -457,10 +369,7 @@ export function createBoardEditorStore({
             },
           };
 
-          return {
-            board: nextBoard,
-            history: recordHistoryForBoardChange(state),
-          };
+          return commitDocumentChange(state, () => nextBoard);
         });
       },
       bringObjectsToFront: (objectIds) => {
@@ -489,10 +398,7 @@ export function createBoardEditorStore({
             },
           };
 
-          return {
-            board: nextBoard,
-            history: recordHistoryForBoardChange(state),
-          };
+          return commitDocumentChange(state, () => nextBoard);
         });
       },
       duplicateObjects: (objectIds) => {
@@ -543,10 +449,7 @@ export function createBoardEditorStore({
             },
           };
 
-          return {
-            board: nextBoard,
-            history: recordHistoryForBoardChange(currentState),
-          };
+          return commitDocumentChange(currentState, () => nextBoard);
         });
 
         return duplicateIds;
@@ -581,15 +484,7 @@ export function createBoardEditorStore({
             },
           };
 
-          return {
-            board: nextBoard,
-            selection: {
-              selectedObjectIds: state.selection.selectedObjectIds.filter(
-                (objectId) => !objectIdsToDelete.has(objectId),
-              ),
-            },
-            history: recordHistoryForBoardChange(state),
-          };
+          return commitDocumentChange(state, () => nextBoard);
         });
       },
       sendObjectsToBack: (objectIds) => {
@@ -618,10 +513,7 @@ export function createBoardEditorStore({
             },
           };
 
-          return {
-            board: nextBoard,
-            history: recordHistoryForBoardChange(state),
-          };
+          return commitDocumentChange(state, () => nextBoard);
         });
       },
       setFrame: (frame) => {
@@ -635,25 +527,11 @@ export function createBoardEditorStore({
             frame,
           };
 
-          return {
-            board: nextBoard,
-            history: recordHistoryForBoardChange(state),
-          };
+          return commitDocumentChange(state, () => nextBoard);
         });
       },
       updateBoard: (updater) => {
-        set((state) => {
-          const nextBoard = updater(state.board);
-
-          if (nextBoard === state.board) {
-            return state;
-          }
-
-          return {
-            board: nextBoard,
-            history: recordHistoryForBoardChange(state),
-          };
-        });
+        set((state) => commitDocumentChange(state, updater));
       },
       updateObjects: (objectIds, updater) => {
         set((state) => {
@@ -687,10 +565,7 @@ export function createBoardEditorStore({
             },
           };
 
-          return {
-            board: nextBoard,
-            history: recordHistoryForBoardChange(state),
-          };
+          return commitDocumentChange(state, () => nextBoard);
         });
       },
       setPreviewObjects: (objects) => {
@@ -725,25 +600,20 @@ export function createBoardEditorStore({
       },
       setSelectedObjectIds: (objectIds) => {
         set((state) => {
-          const selectedObjectIds = normalizeSelectedObjectIds(
-            state,
-            objectIds,
-          );
+          const selection = reconcileDocumentSelection(state.board, objectIds);
 
           if (
-            selectedObjectIdsEqual(
-              state.selection.selectedObjectIds,
-              selectedObjectIds,
+            selection.selectedObjectIds.length ===
+              state.selection.selectedObjectIds.length &&
+            selection.selectedObjectIds.every(
+              (objectId, index) =>
+                objectId === state.selection.selectedObjectIds[index],
             )
           ) {
             return state;
           }
 
-          return {
-            selection: {
-              selectedObjectIds,
-            },
-          };
+          return { selection };
         });
       },
       clearSelection: () => {
@@ -786,10 +656,7 @@ export function createBoardEditorStore({
             },
           };
 
-          return {
-            board: nextBoard,
-            history: recordHistoryForBoardChange(state),
-          };
+          return commitDocumentChange(state, () => nextBoard);
         });
       },
       setToolState: (toolId, value) => {
