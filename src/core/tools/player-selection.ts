@@ -17,17 +17,14 @@ import {
   getExpandedCanvasRectPoints,
   getRotatedRectBoardPoints,
   getRotationFromPointer,
+  SELECTION_OUTLINE_PADDING_PX,
+  SELECTION_OUTLINE_WIDTH_PX,
   getSelectionToolbarAnchorFromSelectionChrome,
   renderRotateHandleIcon,
 } from "./selection-geometry";
-import { getPlayerBorderWidth } from "../rendering/canvas/object-render-scale";
-import {
-  getPlayerCaptionCanvasBounds,
-  getPlayerVisibleCanvasBounds,
-} from "./player-geometry";
+import { getPlayerCaptionCanvasBounds } from "./player-geometry";
 import { getPlayerWithEffectiveStyle } from "../board/player-style";
 
-const PLAYER_SELECTION_PADDING_PX = 0.75;
 const PLAYER_RESIZE_HANDLE_RADIUS_PX = 4;
 const PLAYER_RESIZE_HANDLE_HIT_RADIUS_PX = 12;
 const PLAYER_ROTATE_HANDLE_RADIUS_PX = 11;
@@ -43,40 +40,12 @@ type PlayerSelectionSession = ObjectSelectionSession & {
   initialPointerAngle?: number;
 };
 
-function getPlayerSelectionPaddingPx(
-  projection: Parameters<
-    NonNullable<ObjectSelectionAdapter<PlayerObject>["renderSelection"]>
-  >[0]["projection"],
-  player: PlayerObject,
-) {
-  const bounds = projection.getObjectCanvasBounds(player);
-  const radius = Math.min(Math.abs(bounds.width), Math.abs(bounds.height)) / 2;
-
-  return PLAYER_SELECTION_PADDING_PX + getPlayerBorderWidth(radius) / 2;
-}
-
 export function getPlayerSelectionOutlineCanvasPoints(
   projection: Parameters<
     NonNullable<ObjectSelectionAdapter<PlayerObject>["renderSelection"]>
   >[0]["projection"],
   player: PlayerObject,
 ) {
-  const captionBounds = getPlayerCaptionCanvasBounds(player, projection);
-
-  if (captionBounds) {
-    const bounds = getPlayerVisibleCanvasBounds(player, projection);
-
-    return getExpandedCanvasRectPoints(
-      [
-        { x: bounds.x, y: bounds.y },
-        { x: bounds.x + bounds.width, y: bounds.y },
-        { x: bounds.x + bounds.width, y: bounds.y + bounds.height },
-        { x: bounds.x, y: bounds.y + bounds.height },
-      ],
-      getPlayerSelectionPaddingPx(projection, player),
-    );
-  }
-
   return getExpandedCanvasRectPoints(
     getRotatedRectBoardPoints({
       center: player.position,
@@ -84,8 +53,43 @@ export function getPlayerSelectionOutlineCanvasPoints(
       height: player.size?.height ?? player.size?.width ?? 0,
       rotation: player.rotation,
     }).map((point) => projection.boardToCanvas(point)),
-    getPlayerSelectionPaddingPx(projection, player),
+    SELECTION_OUTLINE_PADDING_PX,
   );
+}
+
+function getPlayerCaptionSelectionOutlineCanvasPoints(
+  projection: Parameters<
+    NonNullable<ObjectSelectionAdapter<PlayerObject>["renderSelection"]>
+  >[0]["projection"],
+  player: PlayerObject,
+) {
+  const bounds = getPlayerCaptionCanvasBounds(player, projection);
+
+  if (!bounds) {
+    return [];
+  }
+
+  return getExpandedCanvasRectPoints(
+    [
+      { x: bounds.x, y: bounds.y },
+      { x: bounds.x + bounds.width, y: bounds.y },
+      { x: bounds.x + bounds.width, y: bounds.y + bounds.height },
+      { x: bounds.x, y: bounds.y + bounds.height },
+    ],
+    SELECTION_OUTLINE_PADDING_PX,
+  );
+}
+
+function getPlayerSelectionCanvasBounds(
+  projection: Parameters<
+    NonNullable<ObjectSelectionAdapter<PlayerObject>["renderSelection"]>
+  >[0]["projection"],
+  player: PlayerObject,
+) {
+  return getBoundsFromCanvasPoints([
+    ...getPlayerSelectionOutlineCanvasPoints(projection, player),
+    ...getPlayerCaptionSelectionOutlineCanvasPoints(projection, player),
+  ]);
 }
 
 function getPlayerRotateHandleCanvasPoint(
@@ -108,9 +112,7 @@ export const playerSelectionAdapter: ObjectSelectionAdapter<
   getCanvasBounds: ({ board, object, projection }) => {
     const player = getPlayerWithEffectiveStyle(board, object);
 
-    return getBoundsFromCanvasPoints(
-      getPlayerSelectionOutlineCanvasPoints(projection, player),
-    );
+    return getPlayerSelectionCanvasBounds(projection, player);
   },
   renderSelection: ({
     board,
@@ -127,7 +129,7 @@ export const playerSelectionAdapter: ObjectSelectionAdapter<
     );
     context.save();
     context.strokeStyle = color;
-    context.lineWidth = 1.5;
+    context.lineWidth = SELECTION_OUTLINE_WIDTH_PX;
     context.fillStyle = colors.white;
     drawClosedCanvasPath(context, outlinePoints);
     context.stroke();

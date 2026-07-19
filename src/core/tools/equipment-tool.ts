@@ -57,6 +57,38 @@ export type EquipmentCanvasRendererRegistry = Record<
   EquipmentCanvasRenderer
 >;
 
+export type EquipmentCanvasSourceFrame = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+/** Maps tight artwork coordinates onto the complete Equipment Object frame. */
+export function renderEquipmentSourceFrame(
+  context: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  sourceFrame: EquipmentCanvasSourceFrame,
+  render: () => void,
+) {
+  if (
+    width <= 0 ||
+    height <= 0 ||
+    sourceFrame.width <= 0 ||
+    sourceFrame.height <= 0
+  ) {
+    return;
+  }
+
+  context.save();
+  context.translate(-width / 2, -height / 2);
+  context.scale(width / sourceFrame.width, height / sourceFrame.height);
+  context.translate(-sourceFrame.x, -sourceFrame.y);
+  render();
+  context.restore();
+}
+
 export class EquipmentTool implements ToolDefinition {
   readonly id = EQUIPMENT_TOOL_ID;
   readonly label = "Equipment";
@@ -290,7 +322,7 @@ export function createEquipmentObjectDefinition({
   return defineObjectDefinition({
     type: EQUIPMENT_OBJECT_TYPE,
     defaultOrderRank: DEFAULT_OBJECT_ORDER_RANKS.content,
-    selection: createEquipmentSelectionAdapter(definitionsByKind),
+    selection: createEquipmentSelectionAdapter(),
     canvas: {
       render: createEquipmentRenderer(definitionsByKind, renderersByKind),
       hitTest: createEquipmentHitTester(definitionsByKind),

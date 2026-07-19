@@ -12,21 +12,22 @@ export const hoopEquipment: FootballEquipmentSpec = {
     color: DEFAULT_BOARD_COLOR.red,
     minimumHitRadiusPx: 0,
     hitTestShape: "circle",
-    selectionBounds: {
-      left: -0.563,
-      top: -0.563,
-      right: 0.563,
-      bottom: 0.563,
-    },
   },
   renderer: ({ context, color, width, height }) => {
-    const radius = Math.min(width, height) / 2;
-    const strokeWidth = Math.max(1, radius * (HOOP_STROKE_WIDTH / HOOP_RADIUS));
+    const strokeWidth = Math.min(
+      Math.min(width, height),
+      Math.max(
+        1,
+        (Math.min(width, height) / 2) * (HOOP_STROKE_WIDTH / HOOP_RADIUS),
+      ),
+    );
+    const radiusX = Math.max(0, (width - strokeWidth) / 2);
+    const radiusY = Math.max(0, (height - strokeWidth) / 2);
 
     context.strokeStyle = color;
     context.lineWidth = strokeWidth;
     context.beginPath();
-    context.arc(0, 0, radius, 0, Math.PI * 2);
+    context.ellipse(0, 0, radiusX, radiusY, 0, 0, Math.PI * 2);
     context.stroke();
   },
 };

@@ -31,8 +31,6 @@ export const footballTheme = {
       color: definition.color,
     },
     toolIconColorMode: definition.toolIconColorMode,
-    selectionBounds: definition.selectionBounds,
-    selectionPaddingPx: definition.selectionPaddingPx,
     minimumHitRadiusPx: definition.minimumHitRadiusPx,
     hitTestShape: definition.hitTestShape,
   })),

@@ -9,12 +9,14 @@ import {
   getBoundsFromCanvasPoints,
   getCornerHandleCanvasPoint,
   getRotationFromPointer,
+  SELECTION_OUTLINE_PADDING_PX,
+  SELECTION_OUTLINE_WIDTH_PX,
   getSelectionToolbarAnchorFromSelectionChrome,
   renderRotateHandleIcon,
   rotateOffset,
 } from "./selection-geometry";
 
-const TEXT_SELECTION_PADDING_PX = 0;
+const TEXT_SELECTION_PADDING_PX = SELECTION_OUTLINE_PADDING_PX;
 const TEXT_ROTATE_HANDLE_RADIUS_PX = 11;
 const TEXT_ROTATE_HANDLE_HIT_RADIUS_PX = 18;
 const ROTATE_HANDLE_CORNER_INDEX = 3;
@@ -86,7 +88,7 @@ export const textSelectionAdapter: ObjectSelectionAdapter<
   }) => {
     context.save();
     context.strokeStyle = color;
-    context.lineWidth = 1.5;
+    context.lineWidth = SELECTION_OUTLINE_WIDTH_PX;
     context.fillStyle = colors.white;
     drawClosedCanvasPath(
       context,

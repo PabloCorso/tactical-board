@@ -72,3 +72,4 @@
 - **Player Group** is the durable Board term; sport-specific **React UI Copy** may present it as a team, side, squad, or group.
 - A **Player Appearance** is selected by stable identity in Board data, which may also store selected color and option values. Their catalog definitions and runtime rendering behavior belong to a Theme or Host App.
 - **Player Appearances** own marker visuals and **Player Marker Label** rendering. A **Player Caption** remains common Player behavior and participates in selection, hit testing, movement, and visible bounds.
+- An **Equipment Object** uses its Object size as the single local frame for rendering, Selection, resize handles, and broad hit testing. Runtime equipment renderers fit their complete painted output, including strokes, into that frame rather than supplying separate selection geometry.

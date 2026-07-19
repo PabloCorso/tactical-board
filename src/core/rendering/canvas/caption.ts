@@ -3,6 +3,11 @@ import type { CaptionBackgroundStyle } from "../../board/types";
 export const CANVAS_CAPTION_HEIGHT_FACTOR = 1.35;
 export const CANVAS_CAPTION_HORIZONTAL_PADDING_FACTOR = 0.4;
 const CANVAS_CAPTION_RADIUS_FACTOR = 0.3;
+const CANVAS_CAPTION_FONT_FAMILY = "ui-sans-serif, system-ui, sans-serif";
+const CANVAS_CAPTION_FONT_WEIGHT = 600;
+const FALLBACK_CAPTION_WIDTH_FACTOR = 0.58;
+
+let captionMeasurementContext: CanvasRenderingContext2D | null | undefined;
 
 export type CanvasCaptionStyle = {
   fontSize: number;
@@ -10,6 +15,27 @@ export type CanvasCaptionStyle = {
   backgroundStyle: CaptionBackgroundStyle;
   backgroundColor: string;
 };
+
+export function getCanvasCaptionFont(fontSize: number) {
+  return `${CANVAS_CAPTION_FONT_WEIGHT} ${fontSize}px ${CANVAS_CAPTION_FONT_FAMILY}`;
+}
+
+export function getCanvasCaptionTextWidth(text: string, fontSize: number) {
+  if (captionMeasurementContext === undefined) {
+    captionMeasurementContext =
+      typeof document === "undefined"
+        ? null
+        : document.createElement("canvas").getContext("2d");
+  }
+
+  if (!captionMeasurementContext) {
+    return text.length * fontSize * FALLBACK_CAPTION_WIDTH_FACTOR;
+  }
+
+  captionMeasurementContext.font = getCanvasCaptionFont(fontSize);
+
+  return captionMeasurementContext.measureText(text).width;
+}
 
 export function getUprightCanvasTextAngle(angle: number) {
   const fullTurn = Math.PI * 2;
@@ -45,7 +71,7 @@ export function drawCanvasCaption({
   context.save();
   context.translate(anchor.x, anchor.y);
   context.rotate(getUprightCanvasTextAngle(rotation));
-  context.font = `600 ${style.fontSize}px ui-sans-serif, system-ui, sans-serif`;
+  context.font = getCanvasCaptionFont(style.fontSize);
   context.textAlign = "center";
   context.textBaseline = "middle";
 

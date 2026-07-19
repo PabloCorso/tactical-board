@@ -18,23 +18,21 @@ export const ladderEquipment: FootballEquipmentSpec = {
       height: LADDER_METRICS.height,
     },
     color: DEFAULT_BOARD_COLOR.black,
-    selectionBounds: {
-      left: -0.553,
-      top: -0.515,
-      right: 0.553,
-      bottom: 0.515,
-    },
   },
   renderer: ({ context, color, width, height }) => {
-    const leftX = -width / 2;
-    const rightX = width / 2;
-    const topY = -height / 2;
-    const bottomY = height / 2;
-    const rungStep = height / (LADDER_METRICS.rungCount + 1);
-    const strokeWidth = Math.max(
-      1,
-      width * (LADDER_METRICS.railStrokeWidth / LADDER_METRICS.width),
+    const strokeWidth = Math.min(
+      Math.min(width, height),
+      Math.max(
+        1,
+        width * (LADDER_METRICS.railStrokeWidth / LADDER_METRICS.width),
+      ),
     );
+    const strokeInset = strokeWidth / 2;
+    const leftX = -width / 2 + strokeInset;
+    const rightX = width / 2 - strokeInset;
+    const topY = -height / 2 + strokeInset;
+    const bottomY = height / 2 - strokeInset;
+    const rungStep = (bottomY - topY) / (LADDER_METRICS.rungCount + 1);
 
     context.strokeStyle = color;
     context.lineWidth = strokeWidth;

@@ -3,13 +3,6 @@ import type { BoardObject, BoardObjectSize, Point } from "../board/types";
 export const EQUIPMENT_OBJECT_TYPE = "equipment";
 const MIN_EQUIPMENT_DIMENSION = 0.25;
 
-export interface EquipmentSelectionBounds {
-  left: number;
-  top: number;
-  right: number;
-  bottom: number;
-}
-
 export interface EquipmentDefinition {
   kind: string;
   label: string;
@@ -19,8 +12,6 @@ export interface EquipmentDefinition {
   };
   color?: string;
   toolIconColorMode?: "adaptive" | "fixed";
-  selectionBounds?: EquipmentSelectionBounds;
-  selectionPaddingPx?: number;
   minimumHitRadiusPx?: number;
   hitTestShape?: "rect" | "circle";
 }

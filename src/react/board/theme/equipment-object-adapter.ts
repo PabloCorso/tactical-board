@@ -34,8 +34,6 @@ export function getThemeEquipmentDefinitions(
           ? definition.defaultProps.color
           : undefined,
       toolIconColorMode: definition.toolIconColorMode,
-      selectionBounds: definition.selectionBounds,
-      selectionPaddingPx: definition.selectionPaddingPx,
       minimumHitRadiusPx: definition.minimumHitRadiusPx,
       hitTestShape: definition.hitTestShape,
     }));
@@ -50,7 +48,10 @@ export function createEquipmentObjectAdapter(
       const definitions = getThemeEquipmentDefinitions(theme);
 
       return definitions.length > 0
-        ? createEquipmentObjectDefinition({ definitions, renderersByKind })
+        ? createEquipmentObjectDefinition({
+            definitions,
+            renderersByKind,
+          })
         : undefined;
     },
     createTools: ({ theme }) => {

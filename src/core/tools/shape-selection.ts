@@ -20,6 +20,8 @@ import {
   getExpandedCanvasRectPoints,
   getRotatedRectBoardPoints,
   getRotationFromPointer,
+  SELECTION_OUTLINE_PADDING_PX,
+  SELECTION_OUTLINE_WIDTH_PX,
   getSelectionToolbarAnchorFromSelectionChrome,
   renderRotateHandleIcon,
   rotatePointAround,
@@ -82,10 +84,13 @@ function getShapeSelectionPaddingPx(
   shape: ShapeObject,
 ) {
   if (!shape.props.bordered) {
-    return 0;
+    return SELECTION_OUTLINE_PADDING_PX;
   }
 
-  return Math.max(1.5, shape.props.strokeWidth * projection.scale) / 2;
+  return (
+    SELECTION_OUTLINE_PADDING_PX +
+    Math.abs(shape.props.strokeWidth * projection.scale) / 2
+  );
 }
 
 export function getShapeSelectionOutlineCanvasPoints(
@@ -277,7 +282,7 @@ export const shapeSelectionAdapter: ObjectSelectionAdapter<
 
     context.save();
     context.strokeStyle = color;
-    context.lineWidth = 1.5;
+    context.lineWidth = SELECTION_OUTLINE_WIDTH_PX;
     context.fillStyle = colors.white;
     drawClosedCanvasPath(context, outlinePoints);
     context.stroke();

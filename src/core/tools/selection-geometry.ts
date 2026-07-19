@@ -1,6 +1,8 @@
 import type { Point } from "../board/types";
 
 const ROTATE_HANDLE_ICON_COLOR = "#111827";
+export const SELECTION_OUTLINE_WIDTH_PX = 1.5;
+export const SELECTION_OUTLINE_PADDING_PX = SELECTION_OUTLINE_WIDTH_PX / 2;
 export const SELECTION_TOOLBAR_OFFSET_PX = 56;
 
 let rotateHandleIconPathCache: Path2D | null | undefined;
@@ -86,7 +88,7 @@ export function getExpandedCanvasRectPoints(
   points: Point[],
   paddingPx: number,
 ) {
-  if (points.length !== 4) {
+  if (points.length !== 4 || paddingPx === 0) {
     return points;
   }
 
@@ -98,14 +100,47 @@ export function getExpandedCanvasRectPoints(
     { x: 0, y: 0 },
   );
 
+  const horizontal = {
+    x: points[1].x - points[0].x,
+    y: points[1].y - points[0].y,
+  };
+  const vertical = {
+    x: points[3].x - points[0].x,
+    y: points[3].y - points[0].y,
+  };
+  const horizontalLength = Math.hypot(horizontal.x, horizontal.y);
+  const verticalLength = Math.hypot(vertical.x, vertical.y);
+
+  if (horizontalLength === 0 || verticalLength === 0) {
+    return points;
+  }
+
+  const horizontalUnit = {
+    x: horizontal.x / horizontalLength,
+    y: horizontal.y / horizontalLength,
+  };
+  const verticalUnit = {
+    x: vertical.x / verticalLength,
+    y: vertical.y / verticalLength,
+  };
+
   return points.map((point) => {
     const dx = point.x - center.x;
     const dy = point.y - center.y;
-    const length = Math.hypot(dx, dy) || 1;
+    const horizontalDirection =
+      Math.sign(dx * horizontalUnit.x + dy * horizontalUnit.y) || 1;
+    const verticalDirection =
+      Math.sign(dx * verticalUnit.x + dy * verticalUnit.y) || 1;
 
     return {
-      x: point.x + (dx / length) * paddingPx,
-      y: point.y + (dy / length) * paddingPx,
+      x:
+        point.x +
+        horizontalUnit.x * horizontalDirection * paddingPx +
+        verticalUnit.x * verticalDirection * paddingPx,
+      y:
+        point.y +
+        horizontalUnit.y * horizontalDirection * paddingPx +
+        verticalUnit.y * verticalDirection * paddingPx,
     };
   });
 }

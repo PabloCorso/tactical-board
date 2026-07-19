@@ -1,10 +1,8 @@
 import colors from "tailwindcss/colors";
 import {
-  type EquipmentDefinitionRegistry,
   resizeEquipmentObject,
   rotateEquipmentObject,
   EQUIPMENT_OBJECT_TYPE,
-  getEquipmentDefinition,
   type EquipmentObject,
 } from "../objects/equipment-object";
 import type {
@@ -17,6 +15,7 @@ import {
   drawRoundedSquareHandle,
   getCornerHandleCanvasPoint,
   getRotationFromPointer,
+  SELECTION_OUTLINE_WIDTH_PX,
   getSelectionToolbarAnchorFromSelectionChrome,
   renderRotateHandleIcon,
 } from "./selection-geometry";
@@ -46,30 +45,22 @@ function getEquipmentRotateHandleCanvasPoint(
     NonNullable<ObjectSelectionAdapter<EquipmentObject>["renderSelection"]>
   >[0]["projection"],
   equipment: EquipmentObject,
-  definitions: EquipmentDefinitionRegistry,
 ) {
   return getCornerHandleCanvasPoint(
-    getEquipmentSelectionOutlineCanvasPoints(
-      projection,
-      equipment,
-      getEquipmentDefinition(definitions, equipment),
-    ),
+    getEquipmentSelectionOutlineCanvasPoints(projection, equipment),
     ROTATE_HANDLE_CORNER_INDEX,
     ROTATE_HANDLE_CORNER_OFFSET_PX,
   );
 }
 
-export function createEquipmentSelectionAdapter(
-  definitions: EquipmentDefinitionRegistry,
-): ObjectSelectionAdapter<EquipmentObject, EquipmentSelectionSession> {
+export function createEquipmentSelectionAdapter(): ObjectSelectionAdapter<
+  EquipmentObject,
+  EquipmentSelectionSession
+> {
   return {
     getCanvasBounds: ({ object, projection }) =>
       getBoundsFromCanvasPoints(
-        getEquipmentSelectionOutlineCanvasPoints(
-          projection,
-          object,
-          getEquipmentDefinition(definitions, object),
-        ),
+        getEquipmentSelectionOutlineCanvasPoints(projection, object),
       ),
     renderSelection: ({
       context,
@@ -81,11 +72,10 @@ export function createEquipmentSelectionAdapter(
       const outlinePoints = getEquipmentSelectionOutlineCanvasPoints(
         projection,
         object,
-        getEquipmentDefinition(definitions, object),
       );
       context.save();
       context.strokeStyle = color;
-      context.lineWidth = 1.5;
+      context.lineWidth = SELECTION_OUTLINE_WIDTH_PX;
       context.fillStyle = colors.white;
       drawClosedCanvasPath(context, outlinePoints);
       context.stroke();
@@ -104,7 +94,7 @@ export function createEquipmentSelectionAdapter(
 
         renderRotateHandleIcon(
           context,
-          getEquipmentRotateHandleCanvasPoint(projection, object, definitions),
+          getEquipmentRotateHandleCanvasPoint(projection, object),
           EQUIPMENT_ROTATE_HANDLE_RADIUS_PX,
           object.rotation,
         );
@@ -121,7 +111,6 @@ export function createEquipmentSelectionAdapter(
       const handlePoints = getEquipmentSelectionOutlineCanvasPoints(
         projection,
         object,
-        getEquipmentDefinition(definitions, object),
       );
 
       for (const [index, handleCanvasPoint] of handlePoints.entries()) {
@@ -153,7 +142,6 @@ export function createEquipmentSelectionAdapter(
       const rotateHandle = getEquipmentRotateHandleCanvasPoint(
         projection,
         object,
-        definitions,
       );
       const rotateDistance = Math.hypot(
         canvasPoint.x - rotateHandle.x,
@@ -210,12 +198,10 @@ export function createEquipmentSelectionAdapter(
       const outlinePoints = getEquipmentSelectionOutlineCanvasPoints(
         projection,
         object,
-        getEquipmentDefinition(definitions, object),
       );
       const rotateHandlePoint = getEquipmentRotateHandleCanvasPoint(
         projection,
         object,
-        definitions,
       );
 
       return getSelectionToolbarAnchorFromSelectionChrome({

@@ -1,11 +1,19 @@
 import { darkenHexColor } from "./shared";
 import type { FootballEquipmentSpec } from "./types";
 import { DEFAULT_BOARD_COLOR } from "../../../../core/colors/default-colors";
+import { renderEquipmentSourceFrame } from "../../../../core/tools/equipment-tool";
 
 let coneBodyPathCache: Path2D | null | undefined;
 let coneBasePathCache: Path2D | null | undefined;
 let coneTopBandPathCache: Path2D | null | undefined;
 let coneMidBandPathCache: Path2D | null | undefined;
+
+const CONE_SOURCE_FRAME = {
+  x: 0.89,
+  y: 0.99,
+  width: 22.22,
+  height: 22.11,
+} as const;
 
 function getConePaths() {
   if (coneBodyPathCache !== undefined) {
@@ -51,16 +59,14 @@ function getConePaths() {
 export function renderConeMarkerCanvas(
   context: CanvasRenderingContext2D,
   color: string,
-  size: number,
+  width: number,
+  height = width,
   centerX = 0,
   centerY = 0,
 ) {
   const { bodyPath, basePath, topBandPath, midBandPath } = getConePaths();
 
   if (!bodyPath || !basePath || !topBandPath || !midBandPath) {
-    const width = size * 0.78;
-    const height = size * 0.92;
-
     context.beginPath();
     context.moveTo(centerX, centerY - height / 2);
     context.lineTo(centerX + width / 2, centerY + height / 2);
@@ -78,31 +84,30 @@ export function renderConeMarkerCanvas(
     return;
   }
 
-  const scale = size / 24;
   const outline = darkenHexColor(color) ?? "#c2410c";
 
   context.save();
   context.translate(centerX, centerY);
-  context.scale(scale, scale);
-  context.translate(-12, -12);
-  context.fillStyle = color;
-  context.strokeStyle = outline;
-  context.lineCap = "round";
-  context.lineJoin = "round";
+  renderEquipmentSourceFrame(context, width, height, CONE_SOURCE_FRAME, () => {
+    context.fillStyle = color;
+    context.strokeStyle = outline;
+    context.lineCap = "round";
+    context.lineJoin = "round";
 
-  context.lineWidth = 2;
-  context.fill(bodyPath);
-  context.stroke(bodyPath);
+    context.lineWidth = 2;
+    context.fill(bodyPath);
+    context.stroke(bodyPath);
 
-  context.lineWidth = 2.2;
-  context.fill(basePath);
-  context.stroke(basePath);
+    context.lineWidth = 2.2;
+    context.fill(basePath);
+    context.stroke(basePath);
 
-  context.lineWidth = 2;
-  context.stroke(topBandPath);
+    context.lineWidth = 2;
+    context.stroke(topBandPath);
 
-  context.lineWidth = 2.2;
-  context.stroke(midBandPath);
+    context.lineWidth = 2.2;
+    context.stroke(midBandPath);
+  });
   context.restore();
 }
 
@@ -110,17 +115,14 @@ export const coneEquipment: FootballEquipmentSpec = {
   definition: {
     kind: "cone",
     label: "Cone",
-    defaultSize: { width: 14, height: 16 },
+    defaultSize: {
+      width: 14,
+      height: (14 * CONE_SOURCE_FRAME.height) / CONE_SOURCE_FRAME.width,
+    },
     color: DEFAULT_BOARD_COLOR.red,
     minimumHitRadiusPx: 0,
-    selectionBounds: {
-      left: -0.44,
-      top: -0.4,
-      right: 0.44,
-      bottom: 0.44,
-    },
   },
   renderer: ({ context, color, width, height }) => {
-    renderConeMarkerCanvas(context, color, Math.min(width, height));
+    renderConeMarkerCanvas(context, color, width, height);
   },
 };

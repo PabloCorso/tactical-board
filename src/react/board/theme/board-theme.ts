@@ -81,13 +81,6 @@ export type BoardThemeObjectDefinition = {
   asset?: Asset;
   defaultProps?: Record<string, unknown>;
   toolIconColorMode?: "adaptive" | "fixed";
-  selectionBounds?: {
-    left: number;
-    top: number;
-    right: number;
-    bottom: number;
-  };
-  selectionPaddingPx?: number;
   minimumHitRadiusPx?: number;
   hitTestShape?: "rect" | "circle";
 };

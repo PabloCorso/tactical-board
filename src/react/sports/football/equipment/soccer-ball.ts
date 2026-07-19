@@ -1,7 +1,15 @@
 import type { FootballEquipmentSpec } from "./types";
 import { DEFAULT_BOARD_COLOR } from "../../../../core/colors/default-colors";
+import { renderEquipmentSourceFrame } from "../../../../core/tools/equipment-tool";
 
 let soccerBallPanelPathCache: Path2D | null | undefined;
+const SOCCER_BALL_RADIUS = 100;
+const SOCCER_BALL_SOURCE_FRAME = {
+  x: 24,
+  y: 24,
+  width: 208,
+  height: 208,
+} as const;
 
 function getSoccerBallPanelPath() {
   if (soccerBallPanelPathCache !== undefined) {
@@ -28,36 +36,31 @@ export const soccerBallEquipment: FootballEquipmentSpec = {
     color: DEFAULT_BOARD_COLOR.white,
     toolIconColorMode: "fixed",
     minimumHitRadiusPx: 0,
-    selectionBounds: {
-      left: -0.391,
-      top: -0.391,
-      right: 0.391,
-      bottom: 0.391,
-    },
   },
   renderer: ({ context, color, width, height }) => {
-    const scale = Math.min(width, height) / 256;
-    const panelPath = getSoccerBallPanelPath();
+    renderEquipmentSourceFrame(
+      context,
+      width,
+      height,
+      SOCCER_BALL_SOURCE_FRAME,
+      () => {
+        const panelPath = getSoccerBallPanelPath();
 
-    context.save();
-    context.scale(scale, scale);
-    context.translate(-128, -128);
+        context.fillStyle = color;
+        context.beginPath();
+        context.arc(128, 128, SOCCER_BALL_RADIUS, 0, Math.PI * 2);
+        context.fill();
 
-    context.fillStyle = color;
-    context.beginPath();
-    context.arc(128, 128, 100, 0, Math.PI * 2);
-    context.fill();
-
-    if (panelPath) {
-      context.fillStyle = "#000000";
-      context.fill(panelPath);
-    } else {
-      context.fillStyle = "#000000";
-      context.beginPath();
-      context.arc(128, 128, 80, 0, Math.PI * 2);
-      context.fill();
-    }
-
-    context.restore();
+        if (panelPath) {
+          context.fillStyle = "#000000";
+          context.fill(panelPath);
+        } else {
+          context.fillStyle = "#000000";
+          context.beginPath();
+          context.arc(128, 128, 80, 0, Math.PI * 2);
+          context.fill();
+        }
+      },
+    );
   },
 };

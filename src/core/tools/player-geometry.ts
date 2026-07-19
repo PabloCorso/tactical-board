@@ -4,10 +4,10 @@ import type { Rect } from "../geometry/types";
 import {
   CANVAS_CAPTION_HEIGHT_FACTOR,
   CANVAS_CAPTION_HORIZONTAL_PADDING_FACTOR,
+  getCanvasCaptionTextWidth,
 } from "../rendering/canvas/caption";
 
 const DEFAULT_CAPTION_DISTANCE = 4;
-const CAPTION_WIDTH_FACTOR = 0.58;
 const CAPTION_HIT_PADDING_PX = 3;
 
 type PlayerGeometryProjection = {
@@ -55,7 +55,7 @@ export function getPlayerCaptionCanvasBounds(
   const centerY = markerBounds.y + markerBounds.height / 2;
   const fontSize = getPlayerCaptionCanvasFontSize(player, projection);
   const width =
-    Math.max(fontSize, text.length * fontSize * CAPTION_WIDTH_FACTOR) +
+    Math.max(fontSize, getCanvasCaptionTextWidth(text, fontSize)) +
     (player.props.caption?.style?.backgroundStyle === "solid"
       ? fontSize * CANVAS_CAPTION_HORIZONTAL_PADDING_FACTOR * 2
       : 0);

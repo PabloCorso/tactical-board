@@ -1,4 +1,5 @@
 import type { FootballEquipmentSpec } from "./types";
+import { renderEquipmentSourceFrame } from "../../../../core/tools/equipment-tool";
 
 const DISC_CONE_OUTER_RADIUS = 1.2;
 const DISC_CONE_INNER_RADIUS = DISC_CONE_OUTER_RADIUS * 0.35;
@@ -10,6 +11,12 @@ const DISC_CONE_INNER_RING_RADIUS =
   (DISC_CONE_OUTER_RADIUS - DISC_CONE_INNER_RADIUS) * 0.35;
 const DISC_CONE_OUTER_RING_STROKE_WIDTH = DISC_CONE_OUTER_RADIUS * 0.12;
 const DISC_CONE_INNER_RING_STROKE_WIDTH = DISC_CONE_OUTER_RADIUS * 0.1;
+const DISC_CONE_SOURCE_FRAME = {
+  x: 2 - DISC_CONE_OUTER_RADIUS,
+  y: 2 - DISC_CONE_OUTER_RADIUS,
+  width: DISC_CONE_OUTER_RADIUS * 2,
+  height: DISC_CONE_OUTER_RADIUS * 2,
+} as const;
 
 let discConeRingPathCache: Path2D | null | undefined;
 
@@ -58,34 +65,30 @@ export const discConeEquipment: FootballEquipmentSpec = {
     color: "#ffc857",
     minimumHitRadiusPx: 0,
     hitTestShape: "circle",
-    selectionBounds: {
-      left: -0.307,
-      top: -0.307,
-      right: 0.307,
-      bottom: 0.307,
-    },
   },
   renderer: ({ context, color, width, height }) => {
-    const ringPath = getDiscConeRingPath();
-    const scale = Math.min(width, height) / 4;
+    renderEquipmentSourceFrame(
+      context,
+      width,
+      height,
+      DISC_CONE_SOURCE_FRAME,
+      () => {
+        const ringPath = getDiscConeRingPath();
 
-    context.save();
-    context.scale(scale, scale);
-    context.translate(-2, -2);
+        fillDiscConeRing(context, color, ringPath);
 
-    fillDiscConeRing(context, color, ringPath);
+        context.globalAlpha /= 0.9;
+        context.strokeStyle = "rgba(0,0,0,0.1)";
+        context.lineWidth = DISC_CONE_OUTER_RING_STROKE_WIDTH;
+        context.beginPath();
+        context.arc(2, 2, DISC_CONE_OUTER_RING_RADIUS, 0, Math.PI * 2);
+        context.stroke();
 
-    context.globalAlpha /= 0.9;
-    context.strokeStyle = "rgba(0,0,0,0.1)";
-    context.lineWidth = DISC_CONE_OUTER_RING_STROKE_WIDTH;
-    context.beginPath();
-    context.arc(2, 2, DISC_CONE_OUTER_RING_RADIUS, 0, Math.PI * 2);
-    context.stroke();
-
-    context.lineWidth = DISC_CONE_INNER_RING_STROKE_WIDTH;
-    context.beginPath();
-    context.arc(2, 2, DISC_CONE_INNER_RING_RADIUS, 0, Math.PI * 2);
-    context.stroke();
-    context.restore();
+        context.lineWidth = DISC_CONE_INNER_RING_STROKE_WIDTH;
+        context.beginPath();
+        context.arc(2, 2, DISC_CONE_INNER_RING_RADIUS, 0, Math.PI * 2);
+        context.stroke();
+      },
+    );
   },
 };

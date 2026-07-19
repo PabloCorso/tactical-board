@@ -1,70 +1,27 @@
 import type { BoardSpaceProjection } from "../geometry/board-space-projection";
-import type {
-  EquipmentDefinition,
-  EquipmentObject,
-  EquipmentSelectionBounds,
-} from "../objects/equipment-object";
+import type { EquipmentObject } from "../objects/equipment-object";
 import {
   getExpandedCanvasRectPoints,
-  rotateOffset,
+  getRotatedRectBoardPoints,
+  SELECTION_OUTLINE_PADDING_PX,
 } from "./selection-geometry";
 
-const MIN_EQUIPMENT_RENDER_SIZE_PX = 8;
-const DEFAULT_EQUIPMENT_SELECTION_PADDING_PX = 0.75;
-
-const DEFAULT_SELECTION_BOUNDS: EquipmentSelectionBounds = {
-  left: -0.5,
-  top: -0.5,
-  right: 0.5,
-  bottom: 0.5,
-};
-
-export function getEquipmentRenderedCanvasSize(
-  projection: Pick<BoardSpaceProjection, "getObjectCanvasBounds">,
-  equipment: EquipmentObject,
-) {
-  const bounds = projection.getObjectCanvasBounds(equipment);
-
-  return {
-    width: Math.max(MIN_EQUIPMENT_RENDER_SIZE_PX, Math.abs(bounds.width)),
-    height: Math.max(MIN_EQUIPMENT_RENDER_SIZE_PX, Math.abs(bounds.height)),
-  };
-}
-
+/**
+ * Equipment rendering and selection share the Object's size as their single
+ * local frame. The selection outline sits directly outside that frame so its
+ * inner stroke edge meets, but never covers, the rendered equipment.
+ */
 export function getEquipmentSelectionOutlineCanvasPoints(
-  projection: Pick<
-    BoardSpaceProjection,
-    "getObjectCanvasBounds" | "boardToCanvas" | "scale"
-  >,
+  projection: Pick<BoardSpaceProjection, "boardToCanvas">,
   equipment: EquipmentObject,
-  definition?: EquipmentDefinition,
 ) {
-  const bounds = definition?.selectionBounds ?? DEFAULT_SELECTION_BOUNDS;
-  const width = Math.max(
-    equipment.size?.width ?? 0,
-    MIN_EQUIPMENT_RENDER_SIZE_PX / Math.max(projection.scale, 1),
-  );
-  const height = Math.max(
-    equipment.size?.height ?? equipment.size?.width ?? 0,
-    MIN_EQUIPMENT_RENDER_SIZE_PX / Math.max(projection.scale, 1),
-  );
-
-  const outlinePoints = [
-    { x: width * bounds.left, y: height * bounds.top },
-    { x: width * bounds.right, y: height * bounds.top },
-    { x: width * bounds.right, y: height * bounds.bottom },
-    { x: width * bounds.left, y: height * bounds.bottom },
-  ].map((point) => {
-    const rotated = rotateOffset(point.x, point.y, equipment.rotation);
-
-    return projection.boardToCanvas({
-      x: equipment.position.x + rotated.x,
-      y: equipment.position.y + rotated.y,
-    });
-  });
-
   return getExpandedCanvasRectPoints(
-    outlinePoints,
-    definition?.selectionPaddingPx ?? DEFAULT_EQUIPMENT_SELECTION_PADDING_PX,
+    getRotatedRectBoardPoints({
+      center: equipment.position,
+      width: equipment.size?.width ?? 0,
+      height: equipment.size?.height ?? equipment.size?.width ?? 0,
+      rotation: equipment.rotation,
+    }).map((point) => projection.boardToCanvas(point)),
+    SELECTION_OUTLINE_PADDING_PX,
   );
 }

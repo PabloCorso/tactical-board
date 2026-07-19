@@ -444,7 +444,9 @@ export function renderPlayerMarker(
   const bounds = frameTransform.getObjectCanvasBounds(player);
   const width = getAbsoluteCanvasExtent(bounds.width);
   const height = getAbsoluteCanvasExtent(bounds.height);
-  const radius = Math.min(width, height) / 2;
+  const outerRadius = Math.min(width, height) / 2;
+  const borderWidth = getPlayerBorderWidth(outerRadius);
+  const radius = Math.max(0, outerRadius - borderWidth / 2);
   const fillColor = player.props.color ?? DEFAULT_PLAYER_COLOR;
   const textColor =
     player.props.labelColor ?? getContrastingTextColor(fillColor);
@@ -465,7 +467,7 @@ export function renderPlayerMarker(
   context.fill();
 
   context.strokeStyle = DEFAULT_PLAYER_BORDER_COLOR;
-  context.lineWidth = getPlayerBorderWidth(radius);
+  context.lineWidth = borderWidth;
   context.stroke();
 
   if (player.props.label) {

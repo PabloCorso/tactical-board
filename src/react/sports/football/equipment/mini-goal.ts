@@ -1,16 +1,17 @@
 import type { FootballEquipmentSpec } from "./types";
 import { DEFAULT_BOARD_COLOR } from "../../../../core/colors/default-colors";
+import { renderEquipmentSourceFrame } from "../../../../core/tools/equipment-tool";
+
+const MINI_GOAL_SOURCE_FRAME = {
+  x: 358.88,
+  y: 419.75,
+  width: 307.48,
+  height: 149.86,
+} as const;
 
 const MINI_GOAL_METRICS = {
   width: 32,
-  height: (32 * 170) / 328,
-} as const;
-
-const MINI_GOAL_VIEW_BOX = {
-  x: 348,
-  y: 410,
-  width: 328,
-  height: 170,
+  height: (32 * MINI_GOAL_SOURCE_FRAME.height) / MINI_GOAL_SOURCE_FRAME.width,
 } as const;
 
 const MINI_GOAL_PATH_DATA =
@@ -33,23 +34,17 @@ export const miniGoalEquipment: FootballEquipmentSpec = {
       height: MINI_GOAL_METRICS.height,
     },
     color: DEFAULT_BOARD_COLOR.lightGray,
-    selectionBounds: {
-      left: -0.5,
-      top: -0.5,
-      right: 0.5,
-      bottom: 0.5,
-    },
   },
   renderer: ({ context, color, width, height }) => {
-    context.save();
-    context.translate(-width / 2, -height / 2);
-    context.scale(
-      width / MINI_GOAL_VIEW_BOX.width,
-      height / MINI_GOAL_VIEW_BOX.height,
+    renderEquipmentSourceFrame(
+      context,
+      width,
+      height,
+      MINI_GOAL_SOURCE_FRAME,
+      () => {
+        context.fillStyle = color;
+        context.fill(getMiniGoalPath());
+      },
     );
-    context.translate(-MINI_GOAL_VIEW_BOX.x, -MINI_GOAL_VIEW_BOX.y);
-    context.fillStyle = color;
-    context.fill(getMiniGoalPath());
-    context.restore();
   },
 };

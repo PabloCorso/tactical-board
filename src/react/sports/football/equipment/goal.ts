@@ -1,16 +1,17 @@
 import type { FootballEquipmentSpec } from "./types";
 import { DEFAULT_BOARD_COLOR } from "../../../../core/colors/default-colors";
+import { renderEquipmentSourceFrame } from "../../../../core/tools/equipment-tool";
 
 const GOAL_METRICS = {
   width: 58.5,
   height: 22,
 } as const;
 
-const GOAL_VIEW_BOX = {
-  x: 322,
-  y: 282,
-  width: 895,
-  height: 422,
+const GOAL_SOURCE_FRAME = {
+  x: 334.5,
+  y: 294.5,
+  width: 870,
+  height: 397,
 } as const;
 
 const GOAL_PATH_SPECS = [
@@ -265,30 +266,23 @@ export const goalEquipment: FootballEquipmentSpec = {
     label: "Goal",
     defaultSize: { width: GOAL_METRICS.width, height: GOAL_METRICS.height },
     color: DEFAULT_BOARD_COLOR.white,
-    selectionBounds: {
-      left: -0.5,
-      top: -0.5,
-      right: 0.5,
-      bottom: 0.5,
-    },
   },
   renderer: ({ context, color, width, height }) => {
-    const scaleX = width / GOAL_VIEW_BOX.width;
-    const scaleY = height / GOAL_VIEW_BOX.height;
+    renderEquipmentSourceFrame(
+      context,
+      width,
+      height,
+      GOAL_SOURCE_FRAME,
+      () => {
+        context.strokeStyle = color;
+        context.lineCap = "round";
+        context.lineJoin = "round";
 
-    context.save();
-    context.translate(-width / 2, -height / 2);
-    context.scale(scaleX, scaleY);
-    context.translate(-GOAL_VIEW_BOX.x, -GOAL_VIEW_BOX.y);
-    context.strokeStyle = color;
-    context.lineCap = "round";
-    context.lineJoin = "round";
-
-    for (const spec of getGoalPathSpecs()) {
-      context.lineWidth = spec.strokeWidth;
-      context.stroke(spec.path);
-    }
-
-    context.restore();
+        for (const spec of getGoalPathSpecs()) {
+          context.lineWidth = spec.strokeWidth;
+          context.stroke(spec.path);
+        }
+      },
+    );
   },
 };
