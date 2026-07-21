@@ -33,7 +33,7 @@ import {
 } from "./player-tool-state";
 import {
   getAbsoluteCanvasExtent,
-  getPlayerBorderWidth,
+  getContainedPlayerCircleGeometry,
   getPlayerLabelFontSize,
 } from "../rendering/canvas/object-render-scale";
 import type { Board } from "../board/types";
@@ -445,8 +445,7 @@ export function renderPlayerMarker(
   const width = getAbsoluteCanvasExtent(bounds.width);
   const height = getAbsoluteCanvasExtent(bounds.height);
   const outerRadius = Math.min(width, height) / 2;
-  const borderWidth = getPlayerBorderWidth(outerRadius);
-  const radius = Math.max(0, outerRadius - borderWidth / 2);
+  const { borderWidth, radius } = getContainedPlayerCircleGeometry(outerRadius);
   const fillColor = player.props.color ?? DEFAULT_PLAYER_COLOR;
   const textColor =
     player.props.labelColor ?? getContrastingTextColor(fillColor);

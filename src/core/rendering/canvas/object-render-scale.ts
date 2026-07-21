@@ -14,6 +14,15 @@ export function getPlayerBorderWidth(radius: number) {
   return radius * 0.18;
 }
 
+export function getContainedPlayerCircleGeometry(outerRadius: number) {
+  const borderWidth = getPlayerBorderWidth(outerRadius);
+
+  return {
+    borderWidth,
+    radius: Math.max(0, outerRadius - borderWidth / 2),
+  };
+}
+
 export function getPlayerLabelFontSize(radius: number) {
   return radius * 0.95;
 }

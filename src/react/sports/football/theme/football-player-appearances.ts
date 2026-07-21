@@ -1,6 +1,6 @@
 import {
   getAbsoluteCanvasExtent,
-  getPlayerBorderWidth,
+  getContainedPlayerCircleGeometry,
   getPlayerLabelFontSize,
 } from "../../../../core/rendering/canvas/object-render-scale";
 import type { PlayerAppearanceRenderer } from "../../../../core/tools/player-appearance";
@@ -700,8 +700,12 @@ export const renderFootballShirtPlayerAppearance: PlayerAppearanceRenderer = ({
   const bounds = frameTransform.getObjectCanvasBounds(player);
   const width = getAbsoluteCanvasExtent(bounds.width);
   const height = getAbsoluteCanvasExtent(bounds.height);
-  const scaleX = width / FOOTBALL_SHIRT_VISIBLE_BOUNDS.width;
-  const scaleY = height / FOOTBALL_SHIRT_VISIBLE_BOUNDS.height;
+  const scaleX =
+    width /
+    (FOOTBALL_SHIRT_VISIBLE_BOUNDS.width + FOOTBALL_SHIRT_OUTER_STROKE_WIDTH);
+  const scaleY =
+    height /
+    (FOOTBALL_SHIRT_VISIBLE_BOUNDS.height + FOOTBALL_SHIRT_OUTER_STROKE_WIDTH);
   const shirtColor =
     player.props.colors?.shirt ??
     player.props.colors?.primary ??
@@ -785,7 +789,8 @@ export const renderFootballCirclePlayerAppearance: PlayerAppearanceRenderer = ({
   const bounds = frameTransform.getObjectCanvasBounds(player);
   const width = getAbsoluteCanvasExtent(bounds.width);
   const height = getAbsoluteCanvasExtent(bounds.height);
-  const radius = Math.min(width, height) / 2;
+  const outerRadius = Math.min(width, height) / 2;
+  const { borderWidth, radius } = getContainedPlayerCircleGeometry(outerRadius);
   const fillColor = player.props.color ?? DEFAULT_PLAYER_COLOR;
 
   context.save();
@@ -806,7 +811,7 @@ export const renderFootballCirclePlayerAppearance: PlayerAppearanceRenderer = ({
   });
 
   context.strokeStyle = "#000000";
-  context.lineWidth = getPlayerBorderWidth(radius);
+  context.lineWidth = borderWidth;
   context.beginPath();
   context.arc(0, 0, radius, 0, Math.PI * 2);
   context.stroke();
