@@ -8,11 +8,7 @@ import type {
   BoardStyleRef,
   ObjectIndex,
 } from "../../../../core/board/types";
-import {
-  DEFAULT_FOOTBALL_PLAYER_SIZE,
-  FOOTBALL_MEASUREMENT,
-  metersToPixels,
-} from "./football-units";
+import { FOOTBALL_MEASUREMENT, metersToPixels } from "./football-units";
 
 export type FootballPitchVariant =
   | "full-pitch"
@@ -802,7 +798,7 @@ export function createFootballBoard({
   style = {},
   frame,
 }: CreateFootballBoardOptions = {}): Board {
-  const board = createBoard({
+  return createBoard({
     id,
     version: 1,
     metadata: {
@@ -816,15 +812,4 @@ export function createFootballBoard({
     objects,
     style,
   });
-
-  return {
-    ...board,
-    playerGroups: board.playerGroups?.map((group) => ({
-      ...group,
-      style: {
-        ...group.style,
-        size: DEFAULT_FOOTBALL_PLAYER_SIZE,
-      },
-    })),
-  };
 }

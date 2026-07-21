@@ -6,10 +6,12 @@ import { createFootballEditorConfig } from "../../sports/football/theme/football
 import { getBoardPlayerGroups } from "../../../core/board/player-groups";
 import {
   createPlayerObject,
+  DEFAULT_PLAYER_SIZE,
   PLAYER_OBJECT_TYPE,
   type PlayerObject,
 } from "../../../core/objects/player-object";
 import {
+  addPlayerGroupCommand,
   applyFormationToPlayerGroup,
   deletePlayerGroupCommand,
   movePlayerToGroup,
@@ -24,6 +26,20 @@ function createTestToolApi() {
 
   return createToolApi(store);
 }
+
+describe("addPlayerGroupCommand", () => {
+  it("keeps initial and newly added teams on the shared player size default", () => {
+    const toolApi = createTestToolApi();
+
+    addPlayerGroupCommand(toolApi);
+
+    expect(
+      getBoardPlayerGroups(toolApi.getState().board).map(
+        (group) => group.style.size,
+      ),
+    ).toEqual([DEFAULT_PLAYER_SIZE, DEFAULT_PLAYER_SIZE, DEFAULT_PLAYER_SIZE]);
+  });
+});
 
 function getGroupMembers(
   toolApi: ReturnType<typeof createTestToolApi>,

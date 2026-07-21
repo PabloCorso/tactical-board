@@ -3,7 +3,6 @@ import type { DocumentMeasurement } from "../../../../core/board/types";
 import { measurementToDocumentUnits } from "../../../../core/geometry/document-measurement";
 
 export const FOOTBALL_UNITS_PER_METER = 8;
-export const DEFAULT_FOOTBALL_PLAYER_SIZE = 30;
 export const FOOTBALL_MEASUREMENT = {
   unit: "meter",
   unitsPerUnit: FOOTBALL_UNITS_PER_METER,
