@@ -22,7 +22,10 @@ import {
   getSelectionToolbarAnchorFromSelectionChrome,
   renderRotateHandleIcon,
 } from "./selection-geometry";
-import { getPlayerCaptionCanvasBounds } from "./player-geometry";
+import {
+  getPlayerCaptionCanvasBounds,
+  getPlayerCaptionText,
+} from "./player-geometry";
 import { getPlayerWithEffectiveStyle } from "../board/player-style";
 
 const PLAYER_RESIZE_HANDLE_RADIUS_PX = 4;
@@ -92,15 +95,27 @@ function getPlayerSelectionCanvasBounds(
   ]);
 }
 
-function getPlayerRotateHandleCanvasPoint(
+export function getPlayerRotateHandleCanvasPoint(
   projection: Parameters<
     NonNullable<ObjectSelectionAdapter<PlayerObject>["renderSelection"]>
   >[0]["projection"],
   player: PlayerObject,
 ) {
+  const placement = getPlayerCaptionText(player)
+    ? (player.props.caption?.style?.placement ?? "bottom")
+    : undefined;
+  const cornerIndex =
+    placement === "top"
+      ? 2
+      : placement === "bottom"
+        ? 0
+        : placement === "left"
+          ? 1
+          : ROTATE_HANDLE_CORNER_INDEX;
+
   return getCornerHandleCanvasPoint(
     getPlayerSelectionOutlineCanvasPoints(projection, player),
-    ROTATE_HANDLE_CORNER_INDEX,
+    cornerIndex,
     ROTATE_HANDLE_CORNER_OFFSET_PX,
   );
 }

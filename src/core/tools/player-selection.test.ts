@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { createPlayerObject } from "../objects/player-object";
-import { getPlayerSelectionOutlineCanvasPoints } from "./player-selection";
+import {
+  getPlayerRotateHandleCanvasPoint,
+  getPlayerSelectionOutlineCanvasPoints,
+} from "./player-selection";
 
 const projection = {
   scale: 1,
@@ -37,4 +40,26 @@ describe("player selection geometry", () => {
       getPlayerSelectionOutlineCanvasPoints(projection, captionedPlayer),
     ).toEqual(getPlayerSelectionOutlineCanvasPoints(projection, player));
   });
+
+  it.each([
+    ["top", 1, 1],
+    ["right", -1, 1],
+    ["bottom", -1, -1],
+    ["left", 1, -1],
+  ] as const)(
+    "places the rotation handle opposite a %s caption",
+    (placement, expectedXDirection, expectedYDirection) => {
+      const player = createPlayerObject({
+        id: "player",
+        position: { x: 50, y: 50 },
+        size: { width: 20, height: 20 },
+        caption: { text: "Caption", style: { placement } },
+      });
+
+      const handle = getPlayerRotateHandleCanvasPoint(projection, player);
+
+      expect(Math.sign(handle.x - player.position.x)).toBe(expectedXDirection);
+      expect(Math.sign(handle.y - player.position.y)).toBe(expectedYDirection);
+    },
+  );
 });
